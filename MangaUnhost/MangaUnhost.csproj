@@ -56,12 +56,11 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Theme, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Theme.dll</HintPath>
+    <Reference Include="Theme">
+      <HintPath>..\packages\Theme.dll</HintPath>
     </Reference>
     <Reference Include="TLIB">
-      <HintPath>..\..\TLBOT\TransBot\bin\Debug\TLIB.dll</HintPath>
+      <HintPath>..\packages\TLIB.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

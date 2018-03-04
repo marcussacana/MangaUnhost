@@ -21,6 +21,7 @@ namespace MangaUnhost {
                 System.Diagnostics.Process.Start(Result);
                 Environment.Exit(0);
             }
+
             if (Updater.HaveUpdate()) {
                 if (MessageBox.Show("Atualização Encontrada, Deseja Atualizar?", "MangaUnhost", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                     Updater.Update();
