@@ -13,6 +13,12 @@ class AppVeyor {
     string API = "https://ci.appveyor.com/api/projects/{0}/{1}/";
     string Artifact = string.Empty;
     public static string MainExecutable = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+    public static string CurrentVersion {
+        get {
+            var Version = FileVersionInfo.GetVersionInfo(MainExecutable);
+            return Version.FileMajorPart + "." + Version.FileMinorPart;
+        }
+    }
     public AppVeyor(string Username, string Project, string Artifact) {
         API = string.Format(API, Username, Project);
         this.Artifact = Artifact;

@@ -9,18 +9,19 @@ using System.Threading;
 using System.Windows.Forms;
 using Noesis.Drawing.Imaging.WebP;
 using System.Linq;
-using System.Reflection;
 using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic;
 using System.Web;
 using TLIB;
-using System.Runtime.Serialization;
 
 namespace MangaUnhost {
     public partial class Main : Form {
         
         public Main() {
+            Text = "MangaUnhost v" + AppVeyor.CurrentVersion;
+
             InitializeComponent();
+
             TBSaveAs.Text = AppDomain.CurrentDomain.BaseDirectory + "Biblioteca";
         }
         
