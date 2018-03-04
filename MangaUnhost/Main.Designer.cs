@@ -30,6 +30,7 @@
             this.iTalk_ControlBox1 = new MangaUnhost.iTalk_ControlBox();
             this.iTalk_TabControl1 = new MangaUnhost.iTalk_TabControl();
             this.DownPage = new System.Windows.Forms.TabPage();
+            this.ckResume = new System.Windows.Forms.CheckBox();
             this.ckCaptureClipboard = new System.Windows.Forms.CheckBox();
             this.ckGenReader = new System.Windows.Forms.CheckBox();
             this.MainPanel = new MangaUnhost.iTalk_Panel();
@@ -73,7 +74,6 @@
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
-            this.ckResume = new System.Windows.Forms.CheckBox();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -111,7 +111,6 @@
             this.iTalk_ThemeContainer1.SmartBounds = false;
             this.iTalk_ThemeContainer1.StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultLocation;
             this.iTalk_ThemeContainer1.TabIndex = 0;
-            this.iTalk_ThemeContainer1.Text = "MangaUnhost - v0.3";
             // 
             // iTalk_ControlBox1
             // 
@@ -160,6 +159,19 @@
             this.DownPage.Size = new System.Drawing.Size(634, 431);
             this.DownPage.TabIndex = 0;
             this.DownPage.Text = "Downloader";
+            // 
+            // ckResume
+            // 
+            this.ckResume.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ckResume.AutoSize = true;
+            this.ckResume.Checked = true;
+            this.ckResume.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckResume.Location = new System.Drawing.Point(497, 367);
+            this.ckResume.Name = "ckResume";
+            this.ckResume.Size = new System.Drawing.Size(124, 17);
+            this.ckResume.TabIndex = 9;
+            this.ckResume.Text = "Resumir Download";
+            this.ckResume.UseVisualStyleBackColor = true;
             // 
             // ckCaptureClipboard
             // 
@@ -700,19 +712,6 @@
             // FolderPicker
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
-            // 
-            // ckResume
-            // 
-            this.ckResume.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ckResume.AutoSize = true;
-            this.ckResume.Checked = true;
-            this.ckResume.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckResume.Location = new System.Drawing.Point(497, 367);
-            this.ckResume.Name = "ckResume";
-            this.ckResume.Size = new System.Drawing.Size(124, 17);
-            this.ckResume.TabIndex = 9;
-            this.ckResume.Text = "Resumir Download";
-            this.ckResume.UseVisualStyleBackColor = true;
             // 
             // Main
             // 

@@ -18,10 +18,11 @@ namespace MangaUnhost {
     public partial class Main : Form {
         
         public Main() {
-            Text = "MangaUnhost v" + AppVeyor.CurrentVersion;
-
             InitializeComponent();
 
+            string Title = "MangaUnhost - v" + AppVeyor.CurrentVersion;
+            Text = Title;
+            iTalk_ThemeContainer1.Text = Title;
             TBSaveAs.Text = AppDomain.CurrentDomain.BaseDirectory + "Biblioteca";
         }
         
@@ -841,5 +842,6 @@ namespace MangaUnhost {
         private void CaptureClipboardChanged(object sender, EventArgs e) {
             CheckUrl.Enabled = ckCaptureClipboard.Checked;
         }
+        
     }
 }
