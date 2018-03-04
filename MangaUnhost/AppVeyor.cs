@@ -72,7 +72,7 @@ class AppVeyor {
             Environment.Exit(0);
         }
 
-        MemoryStream Update = new MemoryStream(Download(API + "artifacts\\" +  Artifact));
+        MemoryStream Update = new MemoryStream(Download(API + "artifacts/" +  Artifact.Replace("\\", "/")));
         var Zip = ZipFile.Read(Update);
         string TMP = Path.GetTempFileName();
         if (File.Exists(TMP))
@@ -89,14 +89,23 @@ class AppVeyor {
                 Output += UpdateSufix;
             }
 
-            if (System.IO.File.Exists(Output))
-                System.IO.File.Delete(Output);
+            Backup(Output);
             System.IO.File.Move(File, Output);
         }
         Directory.Delete(TMP);
 
         Process.Start(MainExecutable + UpdateSufix);
         Environment.Exit(0);
+    }
+
+    private void Backup(string Path) {
+        if (File.Exists(Path + ".bak"))
+            File.Delete(Path + ".bak");
+        while (File.Exists(Path)) {
+            try {
+                File.Move(Path, Path + ".bak");
+            } catch { Thread.Sleep(100); }
+        }
     }
 
     private byte[] Download(string URL) {
