@@ -51,7 +51,8 @@ class AppVeyor {
             string LastestVersion = GetLastestVersion().Trim();
             int[] CurrArr = CurrentVersion.Split('.').Select(x => int.Parse(x)).ToArray();
             int[] LastArr = LastestVersion.Split('.').Select(x => int.Parse(x)).ToArray();
-            for (int i = 0; i < 0; i++) {
+            int Max = CurrArr.Length < LastArr.Length ? CurrArr.Length : LastArr.Length;
+            for (int i = 0; i < Max; i++) {
                 if (LastArr[i] > CurrArr[i])
                     return true;
                 if (LastArr[i] == CurrArr[i])
@@ -144,7 +145,7 @@ class AppVeyor {
     }
 
     private string GetLastestVersion() {
-        string Reg = "<Version>([0-9.]*)<\\/Version>";
+        string Reg = "\"version\":[\\s]*\"([0-9.]*)\"";
         string XML = new WebClient().DownloadString(API);
         var a = System.Text.RegularExpressions.Regex.Match(XML, Reg);
         return a.Groups[1].Value;

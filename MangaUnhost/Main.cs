@@ -284,8 +284,9 @@ namespace MangaUnhost {
         }    
 
         internal static bool CanSort(List<string> Entries) {
+            int TMP;
             foreach (string Entry in Entries)
-                if (!int.TryParse(GetFileName(Entry), out int TMP))
+                if (!int.TryParse(GetFileName(Entry), out TMP))
                     return false;
             return true;
         }
@@ -467,7 +468,8 @@ namespace MangaUnhost {
                     ResultName += c;
             }
             string[] words = ResultName.Split(' ');
-            if (words[words.Length - 1].ToLower().StartsWith("mh") && int.TryParse(words[words.Length - 1].ToLower().Replace("mh", ""), out int ignore)) {
+            int ignore;
+            if (words[words.Length - 1].ToLower().StartsWith("mh") && int.TryParse(words[words.Length - 1].ToLower().Replace("mh", ""), out ignore)) {
                 int indexof = ResultName.IndexOf(words[words.Length - 1]);
                 ResultName = ResultName.Substring(0, indexof);
             }
