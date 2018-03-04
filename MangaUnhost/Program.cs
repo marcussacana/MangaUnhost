@@ -15,7 +15,7 @@ namespace MangaUnhost {
         }
 
         private static void Updater() {
-            AppVeyor Updater = new AppVeyor("Marcussacana", "MangaUnhost", "MangaUnhost\\bin\\Debug\\MangaUnhost.zip");
+            AppVeyor Updater = new AppVeyor("Marcussacana", "MangaUnhost", "MangaUnhost\\bin\\MangaUnhost.zip");
             string Result = Updater.FinishUpdate();
             if (Result != null) {
                 System.Diagnostics.Process.Start(Result);
@@ -23,7 +23,7 @@ namespace MangaUnhost {
             }
 
             if (Updater.HaveUpdate()) {
-                if (MessageBox.Show("Atualização Encontrada, Deseja Atualizar?", "MangaUnhost", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                if (MessageBox.Show("Atualização Encontrada, Deseja Atualizar?", "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
                     Updater.Update();
                 }
             }
