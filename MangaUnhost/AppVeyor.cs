@@ -30,26 +30,39 @@ class AppVeyor {
     public string FinishUpdate() {
         if (MainExecutable.EndsWith(UpdateSufix)) {
             string OriginalPath = MainExecutable.Substring(0, MainExecutable.Length - UpdateSufix.Length);
-            for (int Tries = 0; Tries < 10; Tries++) {
-                Process[] Procs = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(OriginalPath));
-                foreach (var Proc in Procs) {
-                    try {
-                        Proc.Kill();
-                        Thread.Sleep(100);
-                    } catch { }
-                }
-                try {
-                    if (File.Exists(OriginalPath))
-                        File.Delete(OriginalPath);
-                } catch {
-                    Thread.Sleep(100);
-                    continue;
-                }
-                break;
-            }
+            Delete(OriginalPath);
             File.Copy(MainExecutable, OriginalPath);
             return OriginalPath;
-        } else return null;
+        } else {
+            if (File.Exists(MainExecutable + UpdateSufix)) {
+                Delete(MainExecutable + UpdateSufix);
+            }
+            string[] OldFiles = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.bak", SearchOption.AllDirectories);
+            foreach (string file in OldFiles)
+                Delete(file);
+
+            return null;
+        }
+    }
+
+    private void Delete(string File) {
+        for (int Tries = 0; Tries < 10; Tries++) {
+            Process[] Procs = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(File));
+            foreach (var Proc in Procs) {
+                try {
+                    Proc.Kill();
+                    Thread.Sleep(100);
+                } catch { }
+            }
+            try {
+                if (System.IO.File.Exists(File))
+                    System.IO.File.Delete(File);
+            } catch {
+                Thread.Sleep(100);
+                continue;
+            }
+            break;
+        }
     }
     public bool HaveUpdate() {
         try {
