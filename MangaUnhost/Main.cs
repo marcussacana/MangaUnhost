@@ -191,7 +191,42 @@ namespace MangaUnhost {
                             MemoryStream MEM = new MemoryStream();
                             Download(Page, MEM);
                             MEM.Seek(0, SeekOrigin.Begin);
-                            WebPFormat.LoadFromStream(MEM).Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
+                            Bitmap PageTexture = DecodeWebP(MEM);
+                            PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
+
+                            //Prevent Decoder Bugs 
+                            new Thread((a) => {
+                                Thread.Sleep(500);
+                                Bitmap NewText = DecodeWebP(new MemoryStream((byte[])a));
+                                bool Equals = PageTexture.Size == NewText.Size;
+                                for (int x = 0; x < NewText.Width && Equals; x += 2)
+                                    for (int y = 0; y < NewText.Height && Equals; y += 2) {
+                                        Color NPixel = NewText.GetPixel(x, y);
+                                        Color OPixel = PageTexture.GetPixel(x, y);
+                                        if (NPixel != OPixel)
+                                            Equals = false;
+                                    }
+
+                                if (Equals)
+                                    return;
+
+                                Thread.Sleep(500);
+                                Bitmap NewText2 = DecodeWebP(new MemoryStream((byte[])a));
+                                Equals = PageTexture.Size == NewText2.Size;
+                                for (int x = 0; x < NewText2.Width && Equals; x += 2)
+                                    for (int y = 0; y < NewText2.Height && Equals; x += 2) {
+                                        Color NPixel = NewText2.GetPixel(x, y);
+                                        Color OPixel = PageTexture.GetPixel(x, y);
+                                        if (NPixel != OPixel)
+                                            Equals = false;
+                                    }
+
+                                if (Equals)
+                                    return;
+
+                                NewText2.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
+                            }).Start(MEM.ToArray());
+
                             MEM.Close();
                         }
                     } else
@@ -202,6 +237,10 @@ namespace MangaUnhost {
             if (ckGenReader.Checked)
                 GenerateBook(WorkDir, CapDir, Next, CapName);
             Status = "Aguardando Link...";
+        }
+
+        private Bitmap DecodeWebP(Stream Stream) {
+            return WebPFormat.LoadFromStream(Stream);
         }
 
         private void GenerateBook(string MangDir, string CapsDir, string Next, string CapName) {
