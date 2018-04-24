@@ -16,6 +16,13 @@ using TLIB;
 
 namespace MangaUnhost {
     public partial class Main : Form {
+
+        Host.IHost[] Hosts = new Host.IHost[] {
+            new Host.Mangahost(),
+            new Host.MangaHere()
+        };
+
+        Host.IHost AtualHost = null;
         
         public Main() {
             InitializeComponent();
@@ -24,6 +31,10 @@ namespace MangaUnhost {
             Text = Title;
             iTalk_ThemeContainer1.Text = Title;
             TBSaveAs.Text = AppDomain.CurrentDomain.BaseDirectory + "Biblioteca";
+            
+            foreach (var Host in Hosts) {
+                SupportList.Items.Add(Host.HostName);
+            }
         }
         
 
@@ -31,20 +42,20 @@ namespace MangaUnhost {
             string ClipboardContent = Clipboard.GetText();
 
             if (string.IsNullOrEmpty(ClipboardContent))
-                return;
-            if (ClipboardContent.Contains("http") && (ClipboardContent.Contains("mangahost") || ClipboardContent.Contains("mangashost"))) {
-                Clipboard.SetText(" ");
-                int Index = ClipboardContent.IndexOf("/manga/");
-                string Prefix = string.Empty;
-                if (Index < 0)
-                    return;
-                Prefix = ClipboardContent.Substring(0, Index);
-                ClipboardContent = ClipboardContent.Substring(Index, ClipboardContent.Length - Index);
-                string Name = GetName(ClipboardContent.Split('/')[2]);
-                string Page = Prefix + "/manga/" + ClipboardContent.Split('/')[2];
-                ButtonLst.Controls.Clear();
-                new Thread(() => { ShowManga(Name, Page); }).Start();
-            }
+                return;           
+
+            foreach (var Host in Hosts)
+                if (Host.IsValidLink(ClipboardContent)) {
+                    Clipboard.Clear();
+
+                    AtualHost = Host;
+                    new Thread(() => {
+                        string Name, URL;
+                        AtualHost.Initialize(ClipboardContent, out Name, out URL);
+                        ShowManga(Name, URL);
+                    }).Start();
+                    break;
+                }
         }
 
         delegate void Invoker();
@@ -76,26 +87,21 @@ namespace MangaUnhost {
                 });
                 Invoke(Delegate);
             } }
-
-        string BaseURL = string.Empty;
+        
         private void ShowManga(string Name, string Page) {
             Status = "Conectando...";
-            BaseURL = Page + "/";
-            string HTML = Download(Page, Encoding.UTF8);
-            string[] PossibleTitles = GetElementsByTag(HTML, "title", "| Mang", false, true);
-            if (PossibleTitles != null && PossibleTitles.Length > 0)
-                Name = ClearFileName(PossibleTitles.First().Split('|')[0].Split('>').Last());
+
+            AtualHost.LoadPage(Page);
+            Name = AtualHost.GetFullName();
 
             Status = "Obtendo informações do: " + Name;
-
-            string Element = GetElementsByClassName(HTML, "pull-left", "thumbnail")[0];
-            string Poster = GetElementTag(Element, "src");
-            PictureURL = Poster;
+            PictureURL = AtualHost.GetPosterUrl();
             Invoke(new Invoker(() => { MainPanel.Visible = true; }));
             Title = Name;
-            string[] Chapters = GetChapters(HTML);
+            string[] Chapters = AtualHost.GetChapters();
             Actions = new List<Action>();
 
+            ButtonLst.Controls.Clear();
             for (int i = 0; i < Chapters.Length; i ++)
                 Invoke(new Invoker(() => {
                     Control Button = RegisterChapter(Chapters[i], i - 1 >= 0 ? Chapters[i-1] : null);
@@ -109,7 +115,7 @@ namespace MangaUnhost {
             Status = "Aguardando Link...";
         }
 
-        private string ClearFileName(string Name) {
+        internal static string ClearFileName(string Name) {
             string[] Reps = new string[] {
                 ":", "-", "\\", "＼", "/", "／", "?", "？", "<", "＜", ">", "＞"
             };
@@ -121,24 +127,23 @@ namespace MangaUnhost {
             return Rst;
         }
         private Control RegisterChapter(string Chapter, string NextChapter) {
-            int Index = Chapter.IndexOf("/manga/");
-            Chapter = Chapter.Substring(Index, Chapter.Length - Index);
-            string ID = Chapter.Split('/')[3], ID2 = null;
+            string ID = AtualHost.GetChapterName(Chapter), ID2 = null;
 
             if (NextChapter != null) {
-                Index = NextChapter.IndexOf("/manga/");
-                NextChapter = NextChapter.Substring(Index, NextChapter.Length - Index);
-                ID2 = NextChapter.Split('/')[3];
+                ID2 = AtualHost.GetChapterName(NextChapter);
             }
 
 
             string Text = "Capítulo " + ID;
-            iTalk_Button_1 Button = new iTalk_Button_1();
-            Button.Text = Text;
+            iTalk_Button_1 Button = new iTalk_Button_1() {
+                Text = Text
+            };
+
             Action Action = new Action(() => {
-                DownloadChapter(ID, Next: ID2);
+                DownloadChapter(Chapter, Next: NextChapter);
             });
-            Index = Actions.Count;
+
+            int Index = Actions.Count;
             Actions.Add(Action);
             Button.Click += (a, b) => { Actions[Index].Invoke(); };
             return Button;
@@ -159,9 +164,11 @@ namespace MangaUnhost {
             return Button;
         }
 
-        private void DownloadChapter(string ID, bool Open = false, string Next = null) {
+        private void DownloadChapter(string URL, bool Open = false, string Next = null) {
+            string ID = AtualHost.GetChapterName(URL);
+
             Status = string.Format("Baixando Informações do Capítulo {0}...", ID);
-            string Manga = BaseURL + ID;
+            string Manga = URL;
             string CapDir = TBSaveAs.Text + string.Format("\\{0}\\", Title);
             string WorkDir = TBSaveAs.Text + string.Format("\\{0}\\Capítulo {1}\\", Title, ID);            
             string CapName = string.Format("Capítulo {0}", ID);
@@ -172,18 +179,19 @@ namespace MangaUnhost {
             }
 
             string HTML = Download(Manga, Encoding.UTF8);
-            string[] Pages = GetChapterPages(HTML);
+            string[] Pages = AtualHost.GetChapterPages(HTML);
             int Pag = 0;
 
             if (!Directory.Exists(WorkDir))
                 Directory.CreateDirectory(WorkDir);
             if (File.Exists(WorkDir + "Pages.lst"))
                 File.Delete(WorkDir + "Pages.lst");
+
             TextWriter FileList = File.CreateText(WorkDir + "Pages.lst");
             foreach (string Page in Pages) {
                 Application.DoEvents();
                 Status = string.Format("Baixando Capítulo {2} ({0}/{1})...", Pag++, Pages.Length, ID);
-                string SaveAs = WorkDir + Pag.ToString("D3") + Path.GetExtension(Page);
+                string SaveAs = WorkDir + Pag.ToString("D3") + Path.GetExtension(Page.Split('?')[0]);
                 if (!File.Exists(SaveAs))
                     if (Path.GetExtension(Page).EndsWith(".webp")) {
                         SaveAs = WorkDir + Pag.ToString("D3") + ".png";
@@ -193,39 +201,8 @@ namespace MangaUnhost {
                             MEM.Seek(0, SeekOrigin.Begin);
                             Bitmap PageTexture = DecodeWebP(MEM);
                             PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
-
-                            //Prevent Decoder Bugs 
-                            new Thread((a) => {
-                                Thread.Sleep(500);
-                                Bitmap NewText = DecodeWebP(new MemoryStream((byte[])a));
-                                bool Equals = PageTexture.Size == NewText.Size;
-                                for (int x = 0; x < NewText.Width && Equals; x += 2)
-                                    for (int y = 0; y < NewText.Height && Equals; y += 2) {
-                                        Color NPixel = NewText.GetPixel(x, y);
-                                        Color OPixel = PageTexture.GetPixel(x, y);
-                                        if (NPixel != OPixel)
-                                            Equals = false;
-                                    }
-
-                                if (Equals)
-                                    return;
-
-                                Thread.Sleep(500);
-                                Bitmap NewText2 = DecodeWebP(new MemoryStream((byte[])a));
-                                Equals = PageTexture.Size == NewText2.Size;
-                                for (int x = 0; x < NewText2.Width && Equals; x += 2)
-                                    for (int y = 0; y < NewText2.Height && Equals; x += 2) {
-                                        Color NPixel = NewText2.GetPixel(x, y);
-                                        Color OPixel = PageTexture.GetPixel(x, y);
-                                        if (NPixel != OPixel)
-                                            Equals = false;
-                                    }
-
-                                if (Equals)
-                                    return;
-
-                                NewText2.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
-                            }).Start(MEM.ToArray());
+                             
+                            new Thread(() => ValidateWebP(SaveAs, PageTexture, MEM.ToArray())).Start();
 
                             MEM.Close();
                         }
@@ -239,6 +216,38 @@ namespace MangaUnhost {
             Status = "Aguardando Link...";
         }
 
+        //Prevent Decoder Bugs
+        private void ValidateWebP(string SaveAs, Bitmap PageTexture, byte[] WebP) {
+            Thread.Sleep(500);
+            Bitmap NewText = DecodeWebP(new MemoryStream(WebP));
+            bool Equals = PageTexture.Size == NewText.Size;
+            for (int x = 0; x < NewText.Width && Equals; x += 2)
+                for (int y = 0; y < NewText.Height && Equals; y += 2) {
+                    Color NPixel = NewText.GetPixel(x, y);
+                    Color OPixel = PageTexture.GetPixel(x, y);
+                    if (NPixel != OPixel)
+                        Equals = false;
+                }
+
+            if (Equals)
+                return;
+
+            Thread.Sleep(500);
+            Bitmap NewText2 = DecodeWebP(new MemoryStream(WebP));
+            Equals = PageTexture.Size == NewText2.Size;
+            for (int x = 0; x < NewText2.Width && Equals; x += 2)
+                for (int y = 0; y < NewText2.Height && Equals; x += 2) {
+                    Color NPixel = NewText2.GetPixel(x, y);
+                    Color OPixel = PageTexture.GetPixel(x, y);
+                    if (NPixel != OPixel)
+                        Equals = false;
+                }
+
+            if (Equals)
+                return;
+
+            NewText2.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
+        }
         private Bitmap DecodeWebP(Stream Stream) {
             return WebPFormat.LoadFromStream(Stream);
         }
@@ -276,53 +285,7 @@ namespace MangaUnhost {
                 Generator.Flush();
             }
         }       
-        private string[] GetChapterPages(string HTML) {
-            const string MASK = "var images = [\"";
-            int Index = HTML.IndexOf(MASK);
-            string Cutted = HTML.Substring(Index + MASK.Length, HTML.Length - (Index + MASK.Length));
-            
-            //alt="Use o navegador Google Chrome
-            const string MASK2 = "Use o navegador Google Chrome";
-            List<string> Tags = new List<string>(GetElementsByTag(HTML, "alt", MASK2, true));
-            foreach (string TAG in GetElementsByTag(Cutted, "alt", MASK2, true))
-                Tags.Add(TAG);
-
-            List<string> Pictures = new List<string>();
-            foreach (string Element in Tags) {
-                string Picture = GetElementTag(Element, "src");
-                if (!Pictures.Contains(Picture))
-                    Pictures.Add(Picture);
-            }
-
-            const string MASK3 = ",\"url\":\"";
-            if (Pictures.Count <= 3 && HTML.IndexOf(MASK3) >= 0) {
-                Pictures = new List<string>();
-                Index = 0;
-                int MinIndex = 0;
-                while (Index < HTML.Length) {
-                    string Str = string.Empty;
-                    Index = HTML.IndexOf(MASK3, Index);
-//                    System.Diagnostics.Debug.Assert(Index >= 0);
-                    Index += MASK3.Length;
-                    if (Index < 0 || Index < MinIndex)
-                        break;
-                    MinIndex = Index;
-                    while (true) {
-                        char c = HTML[Index++];
-                        if (c == '"')
-                            break;
-                        Str += c;
-                    }
-                    Str = Str.Replace("\\/", "/");
-                    if (!Pictures.Contains(Str))
-                        Pictures.Add(Str);
-                }
-            }
-            if (CanSort(Pictures))
-                return Pictures.Distinct().OrderBy(x => int.Parse(GetFileName(x))).ToArray();
-            else
-                return Pictures.ToArray();
-        }    
+        
 
         internal static bool CanSort(List<string> Entries) {
             int TMP;
@@ -389,12 +352,12 @@ namespace MangaUnhost {
             }
         }
 
-        private string[] GetElementsByClassName(string HTML, params string[] Class) {
+        internal static string[] GetElementsByClassName(string HTML, int BeginIndex, params string[] Class) {
             if (Class == null || Class.Length == 0)
                 return new string[0];
 
             List<string> Tags = new List<string>();
-            string[] Elements = GetElements(HTML);
+            string[] Elements = GetElements(HTML, BeginIndex);
             foreach (string Element in Elements) {
                 if (!Element.ToLower().Contains("class="))
                     continue;
@@ -406,38 +369,7 @@ namespace MangaUnhost {
             return Tags.ToArray();
         }
 
-        private string[] GetChapters(string HTML) {
-            //data-html="true"
-            string[] Elements = GetElementsByTag(HTML, "data-html", "true");
-            if (Elements.Length == 0) {
-                Elements = GetElementsByTag(HTML, "class", "capitulo");
-            }
-            List<string> Chapters = new List<string>();
-            try {
-                foreach (string Element in Elements) {
-                    string RealTag = GetElementTag(Element, "data-content");
-                    string Tag = GetElementsByClassName(RealTag, "btn", "btn-success", "btn-white", "pull-left", "btn-small")[0];
-                    string URL = GetElementTag(Tag, "href");
-                    Chapters.Add(URL);
-                }
-            } catch {
-
-            }
-
-            try {
-                Elements = GetElementsByClassName(HTML, "capitulo");
-                foreach (string Element in Elements) {
-                    string CP = GetElementTag(Element, "href");
-                    if (string.IsNullOrWhiteSpace(CP) || Chapters.Contains(CP))
-                        continue;
-                    Chapters.Add(CP);
-                }
-            } catch {
-
-            }
-            return Chapters.ToArray();
-        }
-        private string[] GetElementsByTag(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false) {
+        internal static string[] GetElementsByTag(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false) {
             List<string> Tags = new List<string>();
             string[] Elements = GetElements(HTML);
             foreach (string Element in Elements) {
@@ -449,16 +381,16 @@ namespace MangaUnhost {
             }
             return Tags.ToArray();
         }
-        private bool EqualsArray(string[] Class, string[] Names) {
+        internal static bool EqualsArray(string[] Class, string[] Names) {
             if (Class.Length != Names.Length)
                 return false;
             for (int i = 0; i < Class.Length; i++)
-                if (Class[i] != Names[i])
+                if (Class[i].ToLower() != Names[i].ToLower())
                     return false;
             return true;
         }
 
-        private string GetElementTag(string Element, string Name) {
+        internal static string GetElementTag(string Element, string Name) {
             if (!Name.EndsWith("="))
                 Name += '=';
             int Index = Element.ToLower().IndexOf(Name);
@@ -477,9 +409,9 @@ namespace MangaUnhost {
             return Tag;
         }
 
-        private string[] GetElements(string HTML, int StartOfIndex = 0) {
+        internal static string[] GetElements(string HTML, int StartOfIndex = 0) {
             HtmlAgilityPack.HtmlDocument Document = new HtmlAgilityPack.HtmlDocument();
-            Document.LoadHtml(HTML);
+            Document.LoadHtml(HTML.Substring(StartOfIndex));
             List<string> Elements = new List<string>();
             foreach (HtmlNode Node in Document.DocumentNode.DescendantsAndSelf()) {
                 if (Node.Descendants().Count() > 2)
@@ -491,31 +423,7 @@ namespace MangaUnhost {
             }
             return Elements.ToArray();
         }
-
-        private string GetName(string UrlName) {
-            string Name = UrlName.Replace("-", " ");
-            bool Spaced = true;
-            string ResultName = string.Empty;
-            foreach (char c in Name) {
-                if (c == ' ') {
-                    Spaced = true;
-                    ResultName += ' ';
-                    continue;
-                }
-                if (Spaced) {
-                    ResultName += c.ToString().ToUpper();
-                    Spaced = false;
-                } else
-                    ResultName += c;
-            }
-            string[] words = ResultName.Split(' ');
-            int ignore;
-            if (words[words.Length - 1].ToLower().StartsWith("mh") && int.TryParse(words[words.Length - 1].ToLower().Replace("mh", ""), out ignore)) {
-                int indexof = ResultName.IndexOf(words[words.Length - 1]);
-                ResultName = ResultName.Substring(0, indexof);
-            }
-            return ResultName.Trim();
-        }
+        
 
         private void OnMouseEnter(object sender, EventArgs e) {
             ButtonLst.Focus();
@@ -705,7 +613,7 @@ namespace MangaUnhost {
             return Result.ToList();
         }
 
-        private string[] ExtractHtmlLinks(string Html, string Domain) {
+        public static string[] ExtractHtmlLinks(string Html, string Domain) {
             if (!Domain.StartsWith("http"))
                 Domain = "http://" + Domain;
             if (Domain.EndsWith("//"))
@@ -738,22 +646,41 @@ namespace MangaUnhost {
                 if (!Link.Contains(Result))
                     Links.Add(Result);
             }
-            Index = 1;
-            const string LinkProp = "href=";
-            while ((Index = Html.IndexOf(LinkProp, Index)) > 0) {
-                Index += LinkProp.Length;
-                char End = Html[Index++];
+
+            Links.AddRange(ExtractTagLinks(Html, Domain, "value"));
+            Links.AddRange(ExtractTagLinks(Html, Domain, "src"));
+            Links.AddRange(ExtractTagLinks(Html, Domain, "href"));
+
+
+            return Links.Distinct().ToArray();
+        }
+
+        private static string[] ExtractTagLinks(string HTML, string Domain, string Tag) {
+            Tag = Tag.Trim('\'', '"');
+
+            if (!Tag.EndsWith("="))
+                Tag += "=";
+
+            List<string> Links = new List<string>();
+            int Index = 0;
+            while ((Index = HTML.IndexOf(Tag, Index)) > 0) {
+                Index += Tag.Length;
+                char End = HTML[Index++];
                 if (End != '\'' && End != '"')
                     continue;
 
                 string Link = string.Empty;
-                while (Index < Html.Length && Html[Index] != End)
-                    Link += Html[Index++];
+                while (Index < HTML.Length && HTML[Index] != End)
+                    Link += HTML[Index++];
 
-                if (Index >= Html.Length)
+                if (Index >= HTML.Length)
                     break;
-                
-                string Result = Domain + '/' + Link.TrimStart('/');
+
+                string Result = Link;
+                if (Link.StartsWith("//"))
+                    Result = "http:" + Link;
+                else if (!Link.ToLower().StartsWith("http"))
+                    Result = Domain + '/' + Link.TrimStart('/');
 
                 while (!string.IsNullOrEmpty(Result)) {
                     Link = Result;
@@ -763,7 +690,7 @@ namespace MangaUnhost {
                         break;
                 }
 
-                if (!Link.Contains(Link))
+                if (!Links.Contains(Link))
                     Links.Add(Link);
             }
 
@@ -786,6 +713,26 @@ namespace MangaUnhost {
                 }
             }
 
+        }
+
+        internal static string GetRawNameFromUrlFolder(string Folder, bool DeupperlizerOnly = false) {
+            string Name = DeupperlizerOnly ? Folder.ToLower() : Folder.Replace("-", " ").Replace("_", " ");
+            bool Spaced = true;
+            string ResultName = string.Empty;
+            foreach (char c in Name) {
+                if (c == ' ') {
+                    Spaced = true;
+                    ResultName += ' ';
+                    continue;
+                }
+                if (Spaced) {
+                    ResultName += c.ToString().ToUpper();
+                    Spaced = false;
+                } else
+                    ResultName += c;
+            }
+
+            return ResultName;
         }
 
         private void BntListLink_Click(object sender, EventArgs e) {

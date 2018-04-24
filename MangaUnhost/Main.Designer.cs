@@ -69,11 +69,12 @@
             this.tbNovelLink = new MangaUnhost.iTalk_TextBox_Small();
             this.iTalk_Label3 = new MangaUnhost.iTalk_Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.textBox1 = new System.Windows.Forms.TextBox();
             this.iTalk_Label2 = new MangaUnhost.iTalk_Label();
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
+            this.label1 = new System.Windows.Forms.Label();
+            this.SupportList = new System.Windows.Forms.ListView();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -648,7 +649,8 @@
             // tabPage3
             // 
             this.tabPage3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
-            this.tabPage3.Controls.Add(this.textBox1);
+            this.tabPage3.Controls.Add(this.SupportList);
+            this.tabPage3.Controls.Add(this.label1);
             this.tabPage3.Controls.Add(this.iTalk_Label2);
             this.tabPage3.Controls.Add(this.iTalk_HeaderLabel1);
             this.tabPage3.Location = new System.Drawing.Point(139, 4);
@@ -658,21 +660,6 @@
             this.tabPage3.Size = new System.Drawing.Size(634, 431);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Sobre";
-            // 
-            // textBox1
-            // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(3, 159);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(542, 267);
-            this.textBox1.TabIndex = 2;
-            this.textBox1.Text = "Versão 0.3\r\n-Versão inicial publica\r\n+Dumpador de Novels (Avançado)\r\n\r\nVersão 0.2" +
-    "\r\n\r\n*Domínio Atualizado\r\n+Gerador de Leitor basico adicionádo\r\n\r\nVersão 0.1\r\n-Ve" +
-    "rsão Inicial privada";
             // 
             // iTalk_Label2
             // 
@@ -684,7 +671,7 @@
             this.iTalk_Label2.Location = new System.Drawing.Point(7, 63);
             this.iTalk_Label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.iTalk_Label2.Name = "iTalk_Label2";
-            this.iTalk_Label2.Size = new System.Drawing.Size(539, 93);
+            this.iTalk_Label2.Size = new System.Drawing.Size(622, 80);
             this.iTalk_Label2.TabIndex = 1;
             this.iTalk_Label2.Text = resources.GetString("iTalk_Label2.Text");
             // 
@@ -698,7 +685,7 @@
             this.iTalk_HeaderLabel1.Location = new System.Drawing.Point(2, 2);
             this.iTalk_HeaderLabel1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.iTalk_HeaderLabel1.Name = "iTalk_HeaderLabel1";
-            this.iTalk_HeaderLabel1.Size = new System.Drawing.Size(580, 60);
+            this.iTalk_HeaderLabel1.Size = new System.Drawing.Size(627, 60);
             this.iTalk_HeaderLabel1.TabIndex = 0;
             this.iTalk_HeaderLabel1.Text = "MangaUnhost";
             this.iTalk_HeaderLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -712,6 +699,24 @@
             // FolderPicker
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(5, 143);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(102, 13);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Hosts Suportados:";
+            // 
+            // SupportList
+            // 
+            this.SupportList.Location = new System.Drawing.Point(5, 159);
+            this.SupportList.Name = "SupportList";
+            this.SupportList.Size = new System.Drawing.Size(623, 267);
+            this.SupportList.TabIndex = 4;
+            this.SupportList.UseCompatibleStateImageBehavior = false;
+            this.SupportList.View = System.Windows.Forms.View.List;
             // 
             // Main
             // 
@@ -763,7 +768,6 @@
         private iTalk_Label iTalk_Label2;
         private iTalk_HeaderLabel iTalk_HeaderLabel1;
         private System.Windows.Forms.CheckBox ckGenReader;
-        private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Timer UpDot;
         private System.Windows.Forms.TabPage tabPage1;
         private iTalk_TextBox_Small tbNovelLink;
@@ -795,6 +799,8 @@
         private iTalk_CheckBox MergeSpan;
         private System.Windows.Forms.CheckBox ckCaptureClipboard;
         private System.Windows.Forms.CheckBox ckResume;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ListView SupportList;
     }
 }
 
