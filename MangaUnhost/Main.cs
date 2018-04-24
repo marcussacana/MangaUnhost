@@ -704,11 +704,19 @@ namespace MangaUnhost {
                           select x);
             return Result.ToList();
         }
-        private string[] ExtractHtmlLinks(string Html) {
+
+        private string[] ExtractHtmlLinks(string Html, string Domain) {
+            if (!Domain.StartsWith("http"))
+                Domain = "http://" + Domain;
+            if (Domain.EndsWith("//"))
+                Domain = Domain.Substring(0, Domain.Length - 1);
+
             List<string> Links = new List<string>();
             int Index = 1;
             while ((Index = Html.IndexOf("http", Index)) > 0) {
                 char End = Html[Index - 1];
+                if (End != '\'' && End != '"')
+                    continue;
 
                 string Link = string.Empty;
                 while (Index < Html.Length && Html[Index] != End)
@@ -727,15 +735,45 @@ namespace MangaUnhost {
                         break;
                 }
 
-                Links.Add(Result);
+                if (!Link.Contains(Result))
+                    Links.Add(Result);
             }
+            Index = 1;
+            const string LinkProp = "href=";
+            while ((Index = Html.IndexOf(LinkProp, Index)) > 0) {
+                Index += LinkProp.Length;
+                char End = Html[Index++];
+                if (End != '\'' && End != '"')
+                    continue;
+
+                string Link = string.Empty;
+                while (Index < Html.Length && Html[Index] != End)
+                    Link += Html[Index++];
+
+                if (Index >= Html.Length)
+                    break;
+                
+                string Result = Domain + '/' + Link.TrimStart('/');
+
+                while (!string.IsNullOrEmpty(Result)) {
+                    Link = Result;
+                    Result = HttpUtility.UrlDecode(Result);
+
+                    if (Result == Link)
+                        break;
+                }
+
+                if (!Link.Contains(Link))
+                    Links.Add(Link);
+            }
+
             return Links.ToArray();
         }
 
         public List<uint> Depth = new List<uint>();
         private void NovelTextChanged(object sender, EventArgs e) {
             string Link = tbNovelLink.Text;
-            if (Link.StartsWith("http") && Link.Contains(".")) {
+            if (Link.StartsWith("http") && Link.Contains(".") && Uri.IsWellFormedUriString(Link, UriKind.Absolute)) {
                 Depth = new List<uint>();
                 Linkfilter.Text = Link + "*";
                 if (!Linkfilter.Text.EndsWith("/"))
@@ -752,8 +790,15 @@ namespace MangaUnhost {
 
         private void BntListLink_Click(object sender, EventArgs e) {
             try {
+                string Domain = new Uri(tbNovelLink.Text).Host;
                 string MainHtml = Download(tbNovelLink.Text, Encoding.UTF8);
-                string[] Links = ExtractHtmlLinks(MainHtml);
+
+                if (Clipboard.GetText().ToLower().Contains("html")) {
+                    if (MessageBox.Show("Processar HTML da área de transferência?", "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        MainHtml = Clipboard.GetText();
+                }
+
+                string[] Links = ExtractHtmlLinks(MainHtml, Domain);
                 Links = (from x in Links
                          where LikeOperator.LikeString(x, Linkfilter.Text, CompareMethod.Text)
                          select x).ToArray();
