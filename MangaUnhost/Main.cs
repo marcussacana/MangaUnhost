@@ -42,23 +42,25 @@ namespace MangaUnhost {
         
 
         private void CheckUrl_Tick(object sender, EventArgs e) {
-            string ClipboardContent = Clipboard.GetText();
+            try {
+                string ClipboardContent = Clipboard.GetText();
 
-            if (string.IsNullOrEmpty(ClipboardContent))
-                return;           
+                if (string.IsNullOrEmpty(ClipboardContent))
+                    return;
 
-            foreach (var Host in Hosts)
-                if (Host.IsValidLink(ClipboardContent)) {
-                    Clipboard.Clear();
+                foreach (var Host in Hosts)
+                    if (Host.IsValidLink(ClipboardContent)) {
+                        Clipboard.Clear();
 
-                    AtualHost = Host;
-                    new Thread(() => {
-                        string Name, URL;
-                        AtualHost.Initialize(ClipboardContent, out Name, out URL);
-                        ShowManga(Name, URL);
-                    }).Start();
-                    break;
-                }
+                        AtualHost = Host;
+                        new Thread(() => {
+                            string Name, URL;
+                            AtualHost.Initialize(ClipboardContent, out Name, out URL);
+                            ShowManga(Name, URL);
+                        }).Start();
+                        break;
+                    }
+            } catch { }
         }
 
         delegate void Invoker();
