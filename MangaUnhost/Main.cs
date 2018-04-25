@@ -21,6 +21,7 @@ namespace MangaUnhost {
             new Host.Mangahost(),
             new Host.MangaHere(),
             new Host.MangaKakalot(),
+            new Host.NHentai(),
             new Host.UnionMangas()
         };
 
@@ -113,10 +114,11 @@ namespace MangaUnhost {
                     ButtonLst.Controls.Add(Button);
                 }));
 
-            Invoke(new Invoker(() => {
-                Control Button = RegisterGetAll();
-                ButtonLst.Controls.Add(Button);
-            }));
+            if (Chapters.Length > 1)
+                Invoke(new Invoker(() => {
+                    Control Button = RegisterGetAll();
+                    ButtonLst.Controls.Add(Button);
+                }));
 
             Status = "Aguardando Link...";
         }
@@ -377,7 +379,7 @@ namespace MangaUnhost {
                 return new string[0];
 
             List<string> Tags = new List<string>();
-            string[] Elements = GetElements(HTML, BeginIndex);
+            string[] Elements = GetElements(HTML, BeginIndex, true);
             foreach (string Element in Elements) {
                 if (!Element.ToLower().Contains("class="))
                     continue;
@@ -429,12 +431,12 @@ namespace MangaUnhost {
             return Value;
         }
 
-        internal static string[] GetElements(string HTML, int StartOfIndex = 0) {
+        internal static string[] GetElements(string HTML, int StartOfIndex = 0, bool NoLimit = false) {
             HtmlAgilityPack.HtmlDocument Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadHtml(HTML.Substring(StartOfIndex));
             List<string> Elements = new List<string>();
             foreach (HtmlNode Node in Document.DocumentNode.DescendantsAndSelf()) {
-                if (Node.Descendants().Count() > 2)
+                if (Node.Descendants().Count() > 2 && !NoLimit)
                     continue;
                 string SHTML = Node.OuterHtml;
                 if (string.IsNullOrWhiteSpace(SHTML.Trim(' ', '\t', '\n', '\r')))
