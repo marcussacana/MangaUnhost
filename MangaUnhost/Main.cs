@@ -172,6 +172,7 @@ namespace MangaUnhost {
 
         private void DownloadChapter(string URL, bool Open = false, string Next = null) {
             string ID = AtualHost.GetChapterName(URL);
+            string NID = Next == null ? null : AtualHost.GetChapterName(Next);
 
             Status = string.Format("Baixando Informações do Capítulo {0}...", ID);
             string Manga = URL;
@@ -231,7 +232,7 @@ namespace MangaUnhost {
             }
             FileList.Close();
             if (ckGenReader.Checked)
-                GenerateBook(WorkDir, CapDir, Next, CapName);
+                GenerateBook(WorkDir, CapDir, NID, CapName);
             Status = "Aguardando Link...";
         }
 
