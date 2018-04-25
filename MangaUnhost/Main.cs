@@ -19,7 +19,8 @@ namespace MangaUnhost {
 
         Host.IHost[] Hosts = new Host.IHost[] {
             new Host.Mangahost(),
-            new Host.MangaHere()
+            new Host.MangaHere(),
+            new Host.MangaKakalot()
         };
 
         Host.IHost AtualHost = null;
@@ -86,11 +87,14 @@ namespace MangaUnhost {
                     MEM.Close();
                 });
                 Invoke(Delegate);
-            } }
-        
+            }
+        }
+
+        string OpenMangaUrl = null;
         private void ShowManga(string Name, string Page) {
             Status = "Conectando...";
 
+            OpenMangaUrl = Page;
             AtualHost.LoadPage(Page);
             Name = AtualHost.GetFullName();
 
@@ -101,12 +105,13 @@ namespace MangaUnhost {
             string[] Chapters = AtualHost.GetChapters();
             Actions = new List<Action>();
 
-            ButtonLst.Controls.Clear();
+            Invoke(new Invoker(ButtonLst.Controls.Clear));
             for (int i = 0; i < Chapters.Length; i ++)
                 Invoke(new Invoker(() => {
                     Control Button = RegisterChapter(Chapters[i], i - 1 >= 0 ? Chapters[i-1] : null);
                     ButtonLst.Controls.Add(Button);
                 }));
+
             Invoke(new Invoker(() => {
                 Control Button = RegisterGetAll();
                 ButtonLst.Controls.Add(Button);
@@ -169,8 +174,14 @@ namespace MangaUnhost {
 
             Status = string.Format("Baixando Informações do Capítulo {0}...", ID);
             string Manga = URL;
-            string CapDir = TBSaveAs.Text + string.Format("\\{0}\\", Title);
-            string WorkDir = TBSaveAs.Text + string.Format("\\{0}\\Capítulo {1}\\", Title, ID);            
+
+            string[] Removes = new string[] { "?", "/", "\\", "*", ":", "\"", "|", "<", ">" };
+            string Validated = Title;
+            foreach (string Remove in Removes)
+                Validated = Validated.Replace(Remove, "");
+
+            string CapDir = TBSaveAs.Text + string.Format("\\{0}\\", Validated);
+            string WorkDir = TBSaveAs.Text + string.Format("\\{0}\\Capítulo {1}\\", Validated, ID);            
             string CapName = string.Format("Capítulo {0}", ID);
 
             if (File.Exists(CapDir + CapName + ".html") && ckResume.Checked) {
@@ -184,30 +195,37 @@ namespace MangaUnhost {
 
             if (!Directory.Exists(WorkDir))
                 Directory.CreateDirectory(WorkDir);
+
+            if (File.Exists(CapDir + "Online.url"))
+                File.Delete(CapDir + "Online.url");
+
             if (File.Exists(WorkDir + "Pages.lst"))
                 File.Delete(WorkDir + "Pages.lst");
 
+
+            File.WriteAllText(CapDir + "Online.url", string.Format(Properties.Resources.UrlFile, OpenMangaUrl));
             TextWriter FileList = File.CreateText(WorkDir + "Pages.lst");
             foreach (string Page in Pages) {
                 Application.DoEvents();
                 Status = string.Format("Baixando Capítulo {2} ({0}/{1})...", Pag++, Pages.Length, ID);
                 string SaveAs = WorkDir + Pag.ToString("D3") + Path.GetExtension(Page.Split('?')[0]);
-                if (!File.Exists(SaveAs))
+                if (!File.Exists(SaveAs) || new FileInfo(SaveAs).Length == 0) {
                     if (Path.GetExtension(Page).EndsWith(".webp")) {
-                        SaveAs = WorkDir + Pag.ToString("D3") + ".png";
+                        SaveAs = WorkDir + Pag.ToString("D3") + ".jpg";
                         if (!File.Exists(SaveAs)) {
                             MemoryStream MEM = new MemoryStream();
                             Download(Page, MEM);
                             MEM.Seek(0, SeekOrigin.Begin);
                             Bitmap PageTexture = DecodeWebP(MEM);
-                            PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
-                             
+                            PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Jpeg);
+
                             new Thread(() => ValidateWebP(SaveAs, PageTexture, MEM.ToArray())).Start();
 
                             MEM.Close();
                         }
                     } else
                         Download(Page, SaveAs);
+                }
                 FileList.WriteLine(SaveAs.Substring(WorkDir.Length, SaveAs.Length - WorkDir.Length));
             }
             FileList.Close();
@@ -258,8 +276,6 @@ namespace MangaUnhost {
             const string PageMask = "<img src=\"{0}\" style=\"max-width:100%;\"/><br/>";
             const string ChapMask = "<a href=\".\\{0}\" style=\"color: #FFF;\">Next Chapter</a>";
             const string SufixMask = "</div>\r\n</body>\r\n</html>";
-            const string JQUERY = "<script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js\">";
-            const string AutoAdv = "  <script type=\"text/javascript\" language=\"javascript\">\r\n         $(function () {\r\n             var $win = $(window);\r\n\r\n             $win.scroll(function () {\r\n                 if ($win.height() + $win.scrollTop() == $(document).height()) {\r\n                     document.location = \"{0}\";\r\n                 }\r\n             });\r\n         });\r\n    </script>";
             Status = "Gerando Leitor...";
             string FileList = MangDir + "Pages.lst";
             string HtmlFile = CapsDir + CapName + ".html";
@@ -268,8 +284,6 @@ namespace MangaUnhost {
             using (TextWriter Generator = File.CreateText(HtmlFile)) {
                 Generator.WriteLine(PrefixMask, CapName);
                 Generator.WriteLine(PrefixPart2);
-                //Generator.WriteLine(JQUERY);
-                //Generator.WriteLine(AutoAdv, string.Format(".\\Capítulo {0}.html", Next));
 
                 Generator.WriteLine();
                 foreach (string Line in File.ReadAllLines(FileList)) {
@@ -303,7 +317,7 @@ namespace MangaUnhost {
         }
         internal static void Download(string URL, string SaveAs) {
             byte[] Content = Download(URL);
-            System.IO.File.WriteAllBytes(SaveAs, Content);
+            File.WriteAllBytes(SaveAs, Content);
         }
         internal static byte[] Download(string URL) {
             MemoryStream MEM = new MemoryStream();
@@ -344,8 +358,12 @@ namespace MangaUnhost {
                 }
             }
             catch (Exception ex){
-                if (tries < 0)
-                    throw new Exception(string.Format("Connection Error: {0}", ex.Message));
+                if (tries < 0) {
+                    if (DialogResult.Yes == MessageBox.Show(string.Format("Connection Error: {0}\nIgnore?", ex.Message), "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Error))
+                        return;
+                    else
+                        throw ex;
+                 }
 
                 Thread.Sleep(1000);
                 Download(URL, Output, tries-1);
@@ -368,10 +386,10 @@ namespace MangaUnhost {
             }
             return Tags.ToArray();
         }
-
-        internal static string[] GetElementsByTag(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false) {
+        
+        internal static string[] GetElementsByTag(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
             List<string> Tags = new List<string>();
-            string[] Elements = GetElements(HTML);
+            string[] Elements = GetElements(HTML, StartIndex);
             foreach (string Element in Elements) {
                 if (!Element.ToLower().Contains(Tag.ToLower()))
                     continue;

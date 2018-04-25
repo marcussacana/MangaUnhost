@@ -59,5 +59,18 @@ namespace MangaUnhost.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a [{{000214A0-0000-0000-C000-000000000046}}]
+        ///Prop3=19,2
+        ///[InternetShortcut]
+        ///IDList=
+        ///URL={0}.
+        /// </summary>
+        internal static string UrlFile {
+            get {
+                return ResourceManager.GetString("UrlFile", resourceCulture);
+            }
+        }
     }
 }

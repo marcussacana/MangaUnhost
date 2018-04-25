@@ -70,6 +70,7 @@
     <Compile Include="Host\IHost.cs" />
     <Compile Include="Host\MangaHere.cs" />
     <Compile Include="Host\Mangahost.cs" />
+    <Compile Include="Host\MangaKakalot.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
