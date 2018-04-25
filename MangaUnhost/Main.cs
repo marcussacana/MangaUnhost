@@ -372,7 +372,7 @@ namespace MangaUnhost {
             }
         }
 
-        internal static string[] GetElementsByClassName(string HTML, int BeginIndex, params string[] Class) {
+        internal static string[] GetElementsByClasses(string HTML, int BeginIndex, params string[] Class) {
             if (Class == null || Class.Length == 0)
                 return new string[0];
 
@@ -381,7 +381,7 @@ namespace MangaUnhost {
             foreach (string Element in Elements) {
                 if (!Element.ToLower().Contains("class="))
                     continue;
-                string[] Names = GetElementTag(Element, "class").Split(' ');
+                string[] Names = GetElementAttribute(Element, "class").Split(' ');
                 bool Equal = EqualsArray(Class, Names);
                 if (Equal)
                     Tags.Add(Element);
@@ -389,14 +389,14 @@ namespace MangaUnhost {
             return Tags.ToArray();
         }
         
-        internal static string[] GetElementsByTag(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
+        internal static string[] GetElementsByAttribute(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
             List<string> Tags = new List<string>();
             string[] Elements = GetElements(HTML, StartIndex);
             foreach (string Element in Elements) {
                 if (!Element.ToLower().Contains(Tag.ToLower()))
                     continue;
-                string ETAG = GetElementTag(Element, Tag);
-                if ((StartsWithOnly ? ETAG.StartsWith(Content) : ETAG == Content) || (ContainsOnly && Element.Contains(Content)))
+                string Attrib = GetElementAttribute(Element, Tag);
+                if ((StartsWithOnly ? Attrib.StartsWith(Content) : Attrib == Content) || (ContainsOnly && Element.Contains(Content)))
                     Tags.Add(Element);
             }
             return Tags.ToArray();
@@ -410,23 +410,23 @@ namespace MangaUnhost {
             return true;
         }
 
-        internal static string GetElementTag(string Element, string Name) {
-            if (!Name.EndsWith("="))
-                Name += '=';
-            int Index = Element.ToLower().IndexOf(Name);
+        internal static string GetElementAttribute(string Element, string AttributeName) {
+            if (!AttributeName.EndsWith("="))
+                AttributeName += '=';
+            int Index = Element.ToLower().IndexOf(AttributeName);
             if (Index < 0)
                 return string.Empty;
             char Quote = '\x0';
                 while (Quote != '\'' && Quote != '"' && Index < Element.Length)
                     Quote = Element[Index++];
-            string Tag = string.Empty;
+            string Value = string.Empty;
             while (Index < Element.Length) {
                 if (Element[Index] == Quote)
                     break;
                 else
-                    Tag += Element[Index++];
+                    Value += Element[Index++];
             }
-            return Tag;
+            return Value;
         }
 
         internal static string[] GetElements(string HTML, int StartOfIndex = 0) {

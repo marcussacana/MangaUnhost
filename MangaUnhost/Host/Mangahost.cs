@@ -36,8 +36,8 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByClassName(HTML, 0, "pull-left", "thumbnail")[0];
-            return Main.GetElementTag(Element, "src");
+            string Element = Main.GetElementsByClasses(HTML, 0, "pull-left", "thumbnail")[0];
+            return Main.GetElementAttribute(Element, "src");
         }
 
         public string GetName(string CodedName) {
@@ -53,7 +53,7 @@ namespace MangaUnhost.Host {
         }
         
         public string GetFullName() {
-            string[] PossibleTitles = Main.GetElementsByTag(HTML, "title", "| Mang", false, true);
+            string[] PossibleTitles = Main.GetElementsByAttribute(HTML, "title", "| Mang", false, true);
             if (PossibleTitles != null && PossibleTitles.Length > 0)
                 return Main.ClearFileName(PossibleTitles.First().Split('|')[0].Split('>').Last());
 
@@ -67,13 +67,13 @@ namespace MangaUnhost.Host {
 
             //alt="Use o navegador Google Chrome
             const string MASK2 = "Use o navegador Google Chrome";
-            List<string> Tags = new List<string>(Main.GetElementsByTag(HTML, "alt", MASK2, true));
-            foreach (string TAG in Main.GetElementsByTag(Cutted, "alt", MASK2, true))
+            List<string> Tags = new List<string>(Main.GetElementsByAttribute(HTML, "alt", MASK2, true));
+            foreach (string TAG in Main.GetElementsByAttribute(Cutted, "alt", MASK2, true))
                 Tags.Add(TAG);
 
             List<string> Pictures = new List<string>();
             foreach (string Element in Tags) {
-                string Picture = Main.GetElementTag(Element, "src");
+                string Picture = Main.GetElementAttribute(Element, "src");
                 if (!Pictures.Contains(Picture))
                     Pictures.Add(Picture);
             }
@@ -110,16 +110,16 @@ namespace MangaUnhost.Host {
 
         public string[] GetChapters() {
             //data-html="true"
-            string[] Elements = Main.GetElementsByTag(HTML, "data-html", "true");
+            string[] Elements = Main.GetElementsByAttribute(HTML, "data-html", "true");
             if (Elements.Length == 0) {
-                Elements = Main.GetElementsByTag(HTML, "class", "capitulo");
+                Elements = Main.GetElementsByAttribute(HTML, "class", "capitulo");
             }
             List<string> Chapters = new List<string>();
             try {
                 foreach (string Element in Elements) {
-                    string RealTag = Main.GetElementTag(Element, "data-content");
-                    string Tag = Main.GetElementsByClassName(RealTag, 0, "btn", "btn-success", "btn-white", "pull-left", "btn-small")[0];
-                    string URL = Main.GetElementTag(Tag, "href");
+                    string RealTag = Main.GetElementAttribute(Element, "data-content");
+                    string Tag = Main.GetElementsByClasses(RealTag, 0, "btn", "btn-success", "btn-white", "pull-left", "btn-small")[0];
+                    string URL = Main.GetElementAttribute(Tag, "href");
                     Chapters.Add(URL);
                 }
             } catch {
@@ -127,9 +127,9 @@ namespace MangaUnhost.Host {
             }
 
             try {
-                Elements = Main.GetElementsByClassName(HTML, 0, "capitulo");
+                Elements = Main.GetElementsByClasses(HTML, 0, "capitulo");
                 foreach (string Element in Elements) {
-                    string CP = Main.GetElementTag(Element, "href");
+                    string CP = Main.GetElementAttribute(Element, "href");
                     if (string.IsNullOrWhiteSpace(CP) || Chapters.Contains(CP))
                         continue;
                     Chapters.Add(CP);

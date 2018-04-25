@@ -42,7 +42,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Title = Main.GetElementsByTag(HTML, "", "<title>", false, true, 0).First();
+            string Title = Main.GetElementsByAttribute(HTML, "", "<title>", false, true, 0).First();
 
             const string Sufix = " - Union Mangás";
             Title = Title.Split('>')[1].Split('<')[0];

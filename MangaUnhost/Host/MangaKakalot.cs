@@ -36,8 +36,8 @@ namespace MangaUnhost.Host {
 
         public string GetFullName() {
             int Index = HTML.IndexOf("manga-info-pic");
-            string Element = Main.GetElementsByTag(HTML, "src", "img src=", ContainsOnly: true, StartIndex: Index).First();
-            return Main.GetElementTag(Element, "alt");
+            string Element = Main.GetElementsByAttribute(HTML, "src", "img src=", ContainsOnly: true, StartIndex: Index).First();
+            return Main.GetElementAttribute(Element, "alt");
         }
 
         public string GetName(string CodedName) {
@@ -46,7 +46,7 @@ namespace MangaUnhost.Host {
 
         public string GetPosterUrl() {
             int Index = HTML.IndexOf("manga-info-pic");
-            string Element = Main.GetElementsByTag(HTML, "src", "img src=", ContainsOnly: true, StartIndex: Index).First();
+            string Element = Main.GetElementsByAttribute(HTML, "src", "img src=", ContainsOnly: true, StartIndex: Index).First();
             return Main.ExtractHtmlLinks(Element, "mangakakalot.com").First();
         }
 

@@ -30,7 +30,7 @@ namespace MangaUnhost.Host {
         }
 
         public string[] GetChapterPages(string HTML) {
-            string[] Elements = Main.GetElementsByTag(HTML, "value", "www.mangahere.cc/manga", false, true);
+            string[] Elements = Main.GetElementsByAttribute(HTML, "value", "www.mangahere.cc/manga", false, true);
             List<string> URLs = new List<string>();
 
             foreach (string Element in Elements) {
@@ -43,7 +43,7 @@ namespace MangaUnhost.Host {
             List<string> Pages = new List<string>();
             foreach (string URL in URLs) {
                 string cHTML = Main.Download(URL, Encoding.UTF8);
-                string Element = Main.GetElementsByTag(cHTML, "onload", "loadImg", true).First();
+                string Element = Main.GetElementsByAttribute(cHTML, "onload", "loadImg", true).First();
                 Pages.Add(Main.ExtractHtmlLinks(Element, "www.mangahere.cc").First());
             }
 
@@ -52,7 +52,7 @@ namespace MangaUnhost.Host {
 
         public string[] GetChapters() {
             int TOCBegin = HTML.IndexOf("<div class=\"detail_list\">");
-            string[] Elements = Main.GetElementsByClassName(HTML, TOCBegin, "color_0077");
+            string[] Elements = Main.GetElementsByClasses(HTML, TOCBegin, "color_0077");
 
             List<string> URLs = new List<string>();
             foreach (string Element in Elements) {
@@ -65,7 +65,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Title = Main.GetElementsByClassName(HTML, 0, "title_icon").First();
+            string Title = Main.GetElementsByClasses(HTML, 0, "title_icon").First();
             const string Prefix = "</span>";
             int GIndex = HTML.IndexOf(Title);
             if (GIndex < 0)
@@ -81,7 +81,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByTag(HTML, "src", "img src=\"", false, true).First();
+            string Element = Main.GetElementsByAttribute(HTML, "src", "img src=\"", false, true).First();
 
             return Main.ExtractHtmlLinks(Element, "www.mangahere.cc").First();
         }
