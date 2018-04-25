@@ -69,12 +69,12 @@
             this.tbNovelLink = new MangaUnhost.iTalk_TextBox_Small();
             this.iTalk_Label3 = new MangaUnhost.iTalk_Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.SupportList = new System.Windows.Forms.ListView();
+            this.label1 = new System.Windows.Forms.Label();
             this.iTalk_Label2 = new MangaUnhost.iTalk_Label();
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
-            this.label1 = new System.Windows.Forms.Label();
-            this.SupportList = new System.Windows.Forms.ListView();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -452,7 +452,7 @@
             // MergeSpan
             // 
             this.MergeSpan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.MergeSpan.BackColor = System.Drawing.Color.Transparent;
+            this.MergeSpan.BackColor = System.Drawing.Color.White;
             this.MergeSpan.Checked = false;
             this.MergeSpan.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.MergeSpan.Location = new System.Drawing.Point(198, 123);
@@ -537,7 +537,7 @@
             // 
             // RadioTagId
             // 
-            this.RadioTagId.BackColor = System.Drawing.Color.Transparent;
+            this.RadioTagId.BackColor = System.Drawing.Color.White;
             this.RadioTagId.Checked = true;
             this.RadioTagId.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.RadioTagId.Location = new System.Drawing.Point(8, 27);
@@ -548,7 +548,7 @@
             // 
             // RadioTagClass
             // 
-            this.RadioTagClass.BackColor = System.Drawing.Color.Transparent;
+            this.RadioTagClass.BackColor = System.Drawing.Color.White;
             this.RadioTagClass.Checked = false;
             this.RadioTagClass.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.RadioTagClass.Location = new System.Drawing.Point(89, 27);
@@ -661,6 +661,24 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Sobre";
             // 
+            // SupportList
+            // 
+            this.SupportList.Location = new System.Drawing.Point(5, 159);
+            this.SupportList.Name = "SupportList";
+            this.SupportList.Size = new System.Drawing.Size(623, 267);
+            this.SupportList.TabIndex = 4;
+            this.SupportList.UseCompatibleStateImageBehavior = false;
+            this.SupportList.View = System.Windows.Forms.View.List;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(5, 143);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(102, 13);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Hosts Suportados:";
+            // 
             // iTalk_Label2
             // 
             this.iTalk_Label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -699,24 +717,6 @@
             // FolderPicker
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 143);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(102, 13);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Hosts Suportados:";
-            // 
-            // SupportList
-            // 
-            this.SupportList.Location = new System.Drawing.Point(5, 159);
-            this.SupportList.Name = "SupportList";
-            this.SupportList.Size = new System.Drawing.Size(623, 267);
-            this.SupportList.TabIndex = 4;
-            this.SupportList.UseCompatibleStateImageBehavior = false;
-            this.SupportList.View = System.Windows.Forms.View.List;
             // 
             // Main
             // 

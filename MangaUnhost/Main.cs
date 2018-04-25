@@ -20,7 +20,8 @@ namespace MangaUnhost {
         Host.IHost[] Hosts = new Host.IHost[] {
             new Host.Mangahost(),
             new Host.MangaHere(),
-            new Host.MangaKakalot()
+            new Host.MangaKakalot(),
+            new Host.UnionMangas()
         };
 
         Host.IHost AtualHost = null;
@@ -638,7 +639,7 @@ namespace MangaUnhost {
                 Domain = Domain.Substring(0, Domain.Length - 1);
 
             List<string> Links = new List<string>();
-            int Index = 1;
+            int Index = 0;
             while ((Index = Html.IndexOf("http", Index)) > 0) {
                 char End = Html[Index - 1];
                 if (End != '\'' && End != '"')
