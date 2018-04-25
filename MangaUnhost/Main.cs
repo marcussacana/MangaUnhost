@@ -641,7 +641,7 @@ namespace MangaUnhost {
 
             List<string> Links = new List<string>();
             int Index = 0;
-            while ((Index = Html.IndexOf("http", Index)) > 0) {
+            while ((Index = Html.IndexOf("http", ++Index)) > 0) {
                 char End = Html[Index - 1];
                 if (End != '\'' && End != '"')
                     continue;
