@@ -102,6 +102,7 @@ namespace MangaUnhost.Host {
         }
 
         public bool IsValidLink(string URL) {
+            URL = URL.ToLower();
             return URL.Contains("mangahere") && URL.Contains("/manga/") && Uri.IsWellFormedUriString(URL, UriKind.Absolute);
         }
 

@@ -72,6 +72,7 @@ namespace MangaUnhost.Host {
 
         public bool IsValidLink(string URL) {
             //https://nhentai.net/g/190997/
+            URL = URL.ToLower();
             return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("nhentai") && URL.Contains("/g/");
         }
 

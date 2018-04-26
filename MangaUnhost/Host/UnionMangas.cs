@@ -75,6 +75,7 @@ namespace MangaUnhost.Host {
         }
 
         public bool IsValidLink(string URL) {
+            URL = URL.ToLower();
             return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("unionmangas") && URL.Contains("/manga/");
         }
 

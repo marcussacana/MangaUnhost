@@ -13,6 +13,7 @@ namespace MangaUnhost.Host {
         string HTML;
 
         public bool IsValidLink(string URL) {
+            URL = URL.ToLower();
             return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && (URL.Contains("mangahost") || URL.Contains("mangashost"));           
         }
 

@@ -22,6 +22,7 @@ namespace MangaUnhost {
             new Host.MangaHere(),
             new Host.MangaKakalot(),
             new Host.NHentai(),
+            new Host.RawLH(),
             new Host.UnionMangas()
         };
 
@@ -54,7 +55,7 @@ namespace MangaUnhost {
 
                         AtualHost = Host;
                         new Thread(() => {
-                            string Name, URL;
+                            string Name, URL;//Fuck you AppVeyor
                             AtualHost.Initialize(ClipboardContent, out Name, out URL);
                             ShowManga(Name, URL);
                         }).Start();
@@ -420,6 +421,9 @@ namespace MangaUnhost {
             int Index = Element.ToLower().IndexOf(AttributeName);
             if (Index < 0)
                 return string.Empty;
+            if (Element.IndexOf(">") < Index)
+                return string.Empty;
+
             char Quote = '\x0';
                 while (Quote != '\'' && Quote != '"' && Index < Element.Length)
                     Quote = Element[Index++];

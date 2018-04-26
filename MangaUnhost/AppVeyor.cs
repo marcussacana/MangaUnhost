@@ -66,6 +66,9 @@ class AppVeyor {
     }
     public bool HaveUpdate() {
         try {
+            if (Debugger.IsAttached)
+                return false;
+
             string CurrentVersion = FileVersionInfo.GetVersionInfo(MainExecutable).FileVersion.Trim();
             string LastestVersion = GetLastestVersion().Trim();
             int[] CurrArr = CurrentVersion.Split('.').Select(x => int.Parse(x)).ToArray();
