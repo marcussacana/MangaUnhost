@@ -75,6 +75,7 @@
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
+            this.BntTestHosts = new MangaUnhost.iTalk_Button_1();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -649,6 +650,7 @@
             // tabPage3
             // 
             this.tabPage3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
+            this.tabPage3.Controls.Add(this.BntTestHosts);
             this.tabPage3.Controls.Add(this.SupportList);
             this.tabPage3.Controls.Add(this.label1);
             this.tabPage3.Controls.Add(this.iTalk_Label2);
@@ -720,6 +722,22 @@
             // FolderPicker
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
+            // 
+            // BntTestHosts
+            // 
+            this.BntTestHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.BntTestHosts.BackColor = System.Drawing.Color.Transparent;
+            this.BntTestHosts.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.BntTestHosts.Image = null;
+            this.BntTestHosts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.BntTestHosts.Location = new System.Drawing.Point(518, 116);
+            this.BntTestHosts.Margin = new System.Windows.Forms.Padding(2);
+            this.BntTestHosts.Name = "BntTestHosts";
+            this.BntTestHosts.Size = new System.Drawing.Size(110, 27);
+            this.BntTestHosts.TabIndex = 5;
+            this.BntTestHosts.Text = "Testar Hosts";
+            this.BntTestHosts.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.BntTestHosts.Click += new System.EventHandler(this.BntTestHosts_Click);
             // 
             // Main
             // 
@@ -804,6 +822,7 @@
         private System.Windows.Forms.CheckBox ckResume;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListView SupportList;
+        private iTalk_Button_1 BntTestHosts;
     }
 }
 

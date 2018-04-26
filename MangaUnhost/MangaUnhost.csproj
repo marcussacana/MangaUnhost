@@ -67,6 +67,7 @@
     <Compile Include="AppVeyor.cs" />
     <Compile Include="ConfigDatabase.cs" />
     <Compile Include="DNVM.cs" />
+    <Compile Include="Host\HentaiCafe.cs" />
     <Compile Include="Host\IHost.cs" />
     <Compile Include="Host\MangaHere.cs" />
     <Compile Include="Host\Mangahost.cs" />

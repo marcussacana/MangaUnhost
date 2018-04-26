@@ -13,7 +13,11 @@ namespace MangaUnhost.Host {
                 return "RawLH";
             }
         }
-
+        public string DemoUrl {
+            get {
+                return "http://rawlh.com/manga-29-to-jk-raw.html";
+            }
+        }
         public string GetChapterName(string ChapterURL) {
             //http://rawlh.com/read-29-to-jk-raw-chapter-1.html
             const string Prefix = "-chapter-";

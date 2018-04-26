@@ -6,7 +6,17 @@ using System.Text;
 namespace MangaUnhost.Host {
     class MangaKakalot : IHost {
         string HTML;
-        public string HostName { get { return "MangaKakalot"; } }
+        public string HostName {
+            get {
+                return "MangaKakalot";
+            }
+        }
+
+        public string DemoUrl {
+            get {
+                return "http://mangakakalot.com/manga/choujin_koukouseitachi_wa_isekai_demo_yoyuu_de_ikinuku_you_desu";
+            }
+        }
 
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "chapter_";
@@ -36,7 +46,7 @@ namespace MangaUnhost.Host {
 
         public string GetFullName() {
             int Index = HTML.IndexOf("manga-info-pic");
-            string Element = Main.GetElementsByAttribute(HTML, "src", "img src=", ContainsOnly: true, StartIndex: Index).First();
+            string Element = Main.GetElementsByContent(HTML, "img src=", Index).First();
             return Main.GetElementAttribute(Element, "alt");
         }
 
@@ -46,7 +56,7 @@ namespace MangaUnhost.Host {
 
         public string GetPosterUrl() {
             int Index = HTML.IndexOf("manga-info-pic");
-            string Element = Main.GetElementsByAttribute(HTML, "src", "img src=", ContainsOnly: true, StartIndex: Index).First();
+            string Element = Main.GetElementsByContent(HTML, "img src=", Index).First();
             return Main.ExtractHtmlLinks(Element, "mangakakalot.com").First();
         }
 

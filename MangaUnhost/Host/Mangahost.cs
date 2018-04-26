@@ -9,6 +9,11 @@ namespace MangaUnhost.Host {
                 return "MangaHost";
             }
         }
+        public string DemoUrl {
+            get {
+                return "https://mangahostbr.com/manga/hadi-girl-mh23848";
+            }
+        }
 
         string HTML;
 
@@ -54,7 +59,7 @@ namespace MangaUnhost.Host {
         }
         
         public string GetFullName() {
-            string[] PossibleTitles = Main.GetElementsByAttribute(HTML, "title", "| Mang", false, true);
+            string[] PossibleTitles = Main.GetElementsByContent(HTML, "| Mang");
             if (PossibleTitles != null && PossibleTitles.Length > 0)
                 return Main.ClearFileName(PossibleTitles.First().Split('|')[0].Split('>').Last());
 

@@ -18,6 +18,7 @@ namespace MangaUnhost {
     public partial class Main : Form {
 
         Host.IHost[] Hosts = new Host.IHost[] {
+            new Host.HentaiCafe(),
             new Host.Mangahost(),
             new Host.MangaHere(),
             new Host.MangaKakalot(),
@@ -39,6 +40,9 @@ namespace MangaUnhost {
             foreach (var Host in Hosts) {
                 SupportList.Items.Add(Host.HostName);
             }
+
+            if (!System.Diagnostics.Debugger.IsAttached)
+                BntTestHosts.Visible = false;
         }
         
 
@@ -55,9 +59,11 @@ namespace MangaUnhost {
 
                         AtualHost = Host;
                         new Thread(() => {
-                            string Name, URL;//Fuck you AppVeyor
-                            AtualHost.Initialize(ClipboardContent, out Name, out URL);
-                            ShowManga(Name, URL);
+                            try {
+                                string Name, URL;//Fuck you AppVeyor
+                                AtualHost.Initialize(ClipboardContent, out Name, out URL);
+                                ShowManga(Name, URL);
+                            } catch { Status = "Aguardando Link..."; }
                         }).Start();
                         break;
                     }
@@ -383,9 +389,14 @@ namespace MangaUnhost {
 
             List<string> Tags = new List<string>();
             string[] Elements = GetElements(HTML, BeginIndex, true);
-            foreach (string Element in Elements) {
-                if (!Element.ToLower().Contains("class="))
+            for (int i = 0; i < Elements.Length; i++) {
+                if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
                     continue;
+                string Element = GetElementContent(Elements, i);
+
+                if (!Element.ToLower().Contains("class"))
+                    continue;
+
                 string[] Names = GetElementAttribute(Element, "class").Split(' ');
                 bool Equal = EqualsArray(Class, Names);
                 if (Equal)
@@ -393,18 +404,116 @@ namespace MangaUnhost {
             }
             return Tags.ToArray();
         }
-        
+
         internal static string[] GetElementsByAttribute(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
             List<string> Tags = new List<string>();
-            string[] Elements = GetElements(HTML, StartIndex);
-            foreach (string Element in Elements) {
+            string[] Elements = GetElements(HTML, StartIndex, true);
+            for (int i = 0; i < Elements.Length; i++) {
+                if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
+                    continue;
+                string Element = GetElementContent(Elements, i);
                 if (!Element.ToLower().Contains(Tag.ToLower()))
                     continue;
+
                 string Attrib = GetElementAttribute(Element, Tag);
-                if ((StartsWithOnly ? Attrib.StartsWith(Content) : Attrib == Content) || (ContainsOnly && Element.Contains(Content)))
+                if ((StartsWithOnly ? Attrib.StartsWith(Content) : Attrib == Content) || ContainsOnly && Attrib.Contains(Content))
                     Tags.Add(Element);
             }
             return Tags.ToArray();
+        }
+
+        internal static string[] GetElementsByContent(string HTML, string Content, int StartIndex = 0, bool SkipJavascript = true) {
+            List<string> Elms = new List<string>();
+
+            HTML = HTML.Substring(StartIndex);
+
+            if (SkipJavascript) {
+                int Index;
+                while ((Index = HTML.ToLower().IndexOf("<script")) > 0) {
+                    int EndInd = HTML.ToLower().IndexOf("</script>", Index) + "</script>".Length;
+                    HTML = HTML.Substring(0, Index) + HTML.Substring(EndInd, HTML.Length - EndInd);
+                }
+            }
+
+            string[] Elements = GetElements(HTML, 0, true);
+            string LastValid = string.Empty;
+            for (int i = 0; i < Elements.Length; i++) {
+                if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
+                    continue;
+                string FullElm = GetElementContent(Elements, i);
+                if (FullElm.Contains(Content)) {
+                    LastValid = FullElm;
+                } else if (!string.IsNullOrWhiteSpace(LastValid)) {
+                    Elms.Add(LastValid);
+                    LastValid = string.Empty;
+                }
+            }
+
+            return Elms.ToArray();
+        }
+
+        internal static string GetElementContent(string[] Elements, int ElementIndex) {
+            if (ElementIndex >= Elements.Length)
+                return string.Empty;
+
+            string Element = string.Empty;
+            int TargetLevel = GetChildLevel(Elements, ElementIndex);
+
+            if (!Elements[ElementIndex].StartsWith("<") && !Elements[ElementIndex].StartsWith("</")) {
+                int i = ElementIndex;
+                while (i >= 0 && !Elements[i].StartsWith("<") && !Elements[i].StartsWith("</")) {
+                    i--;
+                }
+
+                if (GetChildLevel(Elements, i) == TargetLevel)
+                    ElementIndex = i;
+            }
+
+            for (int x = ElementIndex; x < Elements.Length; x++) {
+                Element += Elements[x];
+                int Level = GetChildLevel(Elements, x);
+                if (Level == TargetLevel && x != ElementIndex) {
+                    break;
+                }
+                if (x + 1 < Elements.Length) {
+                    int NxLevel = GetChildLevel(Elements, x + 1);
+                    if (NxLevel > TargetLevel && Elements[x + 1].StartsWith("</")) {
+                        Element += Elements[x + 1];
+                        break;
+                    }
+                }
+            }
+
+            return Element;
+        }
+
+        //Optmization
+        static int LastLevel = 0, LastLevelSearch = 0;
+        internal static int GetChildLevel(string[] Elements, int ElementIndex) {
+            int Level = 0;
+            if (ElementIndex >= Elements.Length)
+                return -1;
+
+            int BeginInd = 0;
+            if (LastLevelSearch < ElementIndex) {
+                Level = LastLevel;
+                BeginInd = LastLevelSearch;
+            }            
+
+            for (int i = BeginInd; i < ElementIndex; i++) {
+                string Element = Elements[i];
+                bool HasChild = Element.StartsWith("<") && !Element.StartsWith("</") && !Element.EndsWith("/>");
+                if (HasChild)
+                    Level++;
+                bool CloseChild = Element.StartsWith("</");
+                if (CloseChild)
+                    Level--;
+            }
+
+            LastLevel = Level;
+            LastLevelSearch = ElementIndex;
+
+            return Level;
         }
         internal static bool EqualsArray(string[] Class, string[] Names) {
             if (Class.Length != Names.Length)
@@ -418,7 +527,7 @@ namespace MangaUnhost {
         internal static string GetElementAttribute(string Element, string AttributeName) {
             if (!AttributeName.EndsWith("="))
                 AttributeName += '=';
-            int Index = Element.ToLower().IndexOf(AttributeName);
+            int Index = Element.ToLower().IndexOf(AttributeName.ToLower());
             if (Index < 0)
                 return string.Empty;
             if (Element.IndexOf(">") < Index)
@@ -441,15 +550,27 @@ namespace MangaUnhost {
             HtmlAgilityPack.HtmlDocument Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadHtml(HTML.Substring(StartOfIndex));
             List<string> Elements = new List<string>();
-            foreach (HtmlNode Node in Document.DocumentNode.DescendantsAndSelf()) {
-                if (Node.Descendants().Count() > 2 && !NoLimit)
-                    continue;
-                string SHTML = Node.OuterHtml;
-                if (string.IsNullOrWhiteSpace(SHTML.Trim(' ', '\t', '\n', '\r')))
-                    continue;
-                Elements.Add(SHTML);
-            }
-            return Elements.ToArray();
+            TraceChilds(Document.DocumentNode, ref Elements, NoLimit);
+            return (from x in Elements where !string.IsNullOrWhiteSpace(x) select x).ToArray();
+        }
+
+        private static void TraceChilds(HtmlNode Node, ref List<string> Elements, bool NoLimit) {
+            if (Node.Descendants().Count() > 2 && !NoLimit)
+                return;
+            string SHTML = Node.OuterHtml;
+            if (string.IsNullOrWhiteSpace(SHTML.Trim(' ', '\t', '\n', '\r')))
+                return;
+
+            if (Node.HasChildNodes) {
+                int ContentBegin = Node.OuterHtml.IndexOf(Node.InnerHtml);
+                string Open = Node.OuterHtml.Substring(0, ContentBegin).Trim();
+                string Close = Node.OuterHtml.Substring(ContentBegin + Node.InnerHtml.Length).Trim();
+                Elements.Add(Open);
+                foreach (HtmlNode Child in Node.ChildNodes)
+                    TraceChilds(Child, ref Elements, NoLimit);
+                Elements.Add(Close);
+            } else Elements.Add(SHTML);
+
         }
         
 
@@ -901,6 +1022,75 @@ namespace MangaUnhost {
         private void CaptureClipboardChanged(object sender, EventArgs e) {
             CheckUrl.Enabled = ckCaptureClipboard.Checked;
         }
-        
+
+        private void BntTestHosts_Click(object sender, EventArgs e) {
+            SupportList.Items.Clear();
+            foreach (var Host in Hosts) {
+                string Demo = Host.DemoUrl;
+                string Name, ChapterName = string.Empty, ChapterUrl = string.Empty;
+
+                int Loop = 0;
+                bool Atention = false;
+                bool Online = true;
+                bool Sucess = false;
+                while (Online && !Sucess) {
+                    Application.DoEvents();
+                    try {
+                        switch (Loop++) {
+                            case 0:
+                                Online = Host.IsValidLink(Demo);
+                                break;
+                            case 1:
+                                Host.Initialize(Demo, out Name, out Demo);
+                                Atention |= SuspectBadName(Name);
+                                break;
+                            case 2:
+                                Host.LoadPage(Demo);
+                                break;
+                            case 3:
+                                Online = Uri.IsWellFormedUriString(Host.GetPosterUrl(), UriKind.Absolute);
+                                break;
+                            case 4:
+                                ChapterUrl = Host.GetChapters().First();
+                                if (!Uri.IsWellFormedUriString(ChapterUrl, UriKind.Absolute))
+                                    Online = false;
+                                break;
+                            case 5:
+                                ChapterName = Host.GetChapterName(ChapterUrl);
+                                Atention |= SuspectBadName(ChapterName);
+                                break;
+                            case 6:
+                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8));
+                                foreach (string Page in Pages) {
+                                    if (string.IsNullOrEmpty(Page) || !Uri.IsWellFormedUriString(Page, UriKind.Absolute))
+                                        Online = false;
+                                    string FN = Page.Split('?')[0].Trim().ToLower();
+                                    if (FN.EndsWith(".png") || FN.EndsWith(".jpg") || FN.EndsWith(".bmp") || FN.EndsWith(".webp") || FN.EndsWith(".tiff"))
+                                        continue;
+
+                                    Atention |= true;
+                                }
+                                break;
+
+                            default:
+                                Sucess = true;
+                                break;
+                        }
+                    } catch { Online = false; }
+                }
+                Loop--;
+
+                SupportList.Items.Add(string.Format("Online: {1} | Atention: {2} | LastStep: {3} | Host: ({0})", Host.HostName, Online ? "True " : "False" , Atention ? "True " : "False", Loop));
+            }
+        }
+
+        private static bool SuspectBadName(string Name) {
+            if (Name.Contains("(") && Name.Contains(","))
+                return true;
+            if (Name.Length > 50)
+                return true;
+
+            return false;
+        }
     }
 }

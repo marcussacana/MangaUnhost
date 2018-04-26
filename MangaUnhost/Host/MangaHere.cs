@@ -12,6 +12,12 @@ namespace MangaUnhost.Host {
             }
         }
 
+        public string DemoUrl {
+            get {
+                return "http://www.mangahere.cc/manga/konjiki_no_moji_tsukai_yuusha_yonin_ni_makikomareta_unique_cheat/";
+            }
+        }
+
         public string GetChapterName(string ChapterURL) {            
             const string Prefix = "/manga/";
             int Index = ChapterURL.IndexOf(Prefix);
@@ -30,7 +36,7 @@ namespace MangaUnhost.Host {
         }
 
         public string[] GetChapterPages(string HTML) {
-            string[] Elements = Main.GetElementsByAttribute(HTML, "value", "www.mangahere.cc/manga", false, true);
+            string[] Elements = Main.GetElementsByAttribute(HTML, "value", "www.mangahere.cc/manga", ContainsOnly: true);
             List<string> URLs = new List<string>();
 
             foreach (string Element in Elements) {
@@ -66,13 +72,7 @@ namespace MangaUnhost.Host {
 
         public string GetFullName() {
             string Title = Main.GetElementsByClasses(HTML, 0, "title_icon").First();
-            const string Prefix = "</span>";
-            int GIndex = HTML.IndexOf(Title);
-            if (GIndex < 0)
-                throw new Exception();
-            GIndex += Title.Length;
-            Title = HTML.Substring(GIndex, HTML.Length - GIndex).Split('<')[0];            
-            
+            Title = Title.Split('>')[2].Split('<')[0];            
             return Main.GetRawNameFromUrlFolder(Title, true);
         }
 
@@ -81,7 +81,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByAttribute(HTML, "src", "img src=\"", false, true).First();
+            string Element = Main.GetElementsByContent(HTML, "img src=\"").First();
 
             return Main.ExtractHtmlLinks(Element, "www.mangahere.cc").First();
         }

@@ -55,10 +55,29 @@ namespace MangaUnhost.Host {
         /// <returns>URL Array of all Chapters</returns>
         string[] GetChapters();
 
+
+        /// <summary>
+        /// Get the Chapter name using the Chapter URL
+        /// </summary>
+        /// <param name="ChapterURL"></param>
+        /// <returns></returns>
         string GetChapterName(string ChapterURL);
 
+
+        /// <summary>
+        /// Preload table of content data
+        /// </summary>
+        /// <param name="URL"></param>
         void LoadPage(string URL);
 
+        /// <summary>
+        /// Plugin Name
+        /// </summary>
         string HostName { get; }
+
+        /// <summary>
+        /// Valid Demo URL
+        /// </summary>
+        string DemoUrl { get; }
     }
 }

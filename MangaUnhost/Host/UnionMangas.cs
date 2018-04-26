@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Web;
 
 namespace MangaUnhost.Host {
     class UnionMangas : IHost {
@@ -11,7 +12,11 @@ namespace MangaUnhost.Host {
                 return "Union Mangás";
             }
         }
-
+        public string DemoUrl {
+            get {
+                return "http://unionmangas.net/manga/karakai-jouzu-no-takagi-san";
+            }
+        }
         public string GetChapterName(string ChapterURL) {
             //unionmangas.cc/leitor/Karakai_Jouzu_no_Takagi-san/01
             const string Prefix = "/leitor/";
@@ -28,7 +33,7 @@ namespace MangaUnhost.Host {
             while (Index > 0 && HTML[Index] != '<')
                 Index--;
 
-            string[] Pages = (from x in Main.ExtractHtmlLinks(HTML.Substring(Index), "unionmangas.cc") where x.Contains("/leitor/") && x.Contains("/mangas/") select x).Distinct().ToArray();
+            string[] Pages = (from x in Main.ExtractHtmlLinks(HTML.Substring(Index), "unionmangas.cc") where x.Contains("/leitor/") && x.Contains("/mangas/") select x.Replace(" ", "%20")).Distinct().ToArray();
 
             return Pages;
         }
@@ -42,7 +47,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Title = Main.GetElementsByAttribute(HTML, "", "<title>", false, true, 0).First();
+            string Title = Main.GetElementsByContent(HTML, "<title>").First();
 
             const string Sufix = " - Union Mangás";
             Title = Title.Split('>')[1].Split('<')[0];

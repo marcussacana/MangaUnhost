@@ -12,7 +12,11 @@ namespace MangaUnhost.Host {
                 return "nhentai";
             }
         }
-
+        public string DemoUrl {
+            get {
+                return "http://nhentai.net/g/190997/";
+            }
+        }
         public string GetChapterName(string ChapterURL) {
             return "One Shot";
         }
@@ -39,7 +43,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Element = Main.GetElementsByAttribute(HTML, "", "&raquo;", false, true, 0).First();
+            string Element = Main.GetElementsByContent(HTML, "&raquo;").First();
             int Index = Element.IndexOf("&raquo;");
 
             string Name = HttpUtility.HtmlDecode(Element.Substring(0, Index).Split('>')[1].TrimEnd());
