@@ -67,6 +67,7 @@
     <Compile Include="AppVeyor.cs" />
     <Compile Include="ConfigDatabase.cs" />
     <Compile Include="DNVM.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Host\HentaiCafe.cs" />
     <Compile Include="Host\IHost.cs" />
     <Compile Include="Host\MangaHere.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Host\MangaKakalot.cs" />
     <Compile Include="Host\NHentai.cs" />
     <Compile Include="Host\RawLH.cs" />
+    <Compile Include="Host\Tsumino.cs" />
     <Compile Include="Host\UnionMangas.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>

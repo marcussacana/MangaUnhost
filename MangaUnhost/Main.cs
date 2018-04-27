@@ -24,6 +24,7 @@ namespace MangaUnhost {
             new Host.MangaKakalot(),
             new Host.NHentai(),
             new Host.RawLH(),
+            new Host.Tsumino(),
             new Host.UnionMangas()
         };
 
@@ -222,6 +223,9 @@ namespace MangaUnhost {
                 Application.DoEvents();
                 Status = string.Format("Baixando Capítulo {2} ({0}/{1})...", Pag++, Pages.Length, ID);
                 string SaveAs = WorkDir + Pag.ToString("D3") + Path.GetExtension(Page.Split('?')[0]);
+                if (string.IsNullOrEmpty(Path.GetExtension(SaveAs)))
+                    SaveAs += ".png";
+
                 if (!File.Exists(SaveAs) || new FileInfo(SaveAs).Length == 0) {
                     if (Path.GetExtension(Page).EndsWith(".webp")) {
                         SaveAs = WorkDir + Pag.ToString("D3") + ".jpg";
