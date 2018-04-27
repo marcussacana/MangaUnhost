@@ -42,7 +42,14 @@ namespace MangaUnhost.Host {
             int EndInd = HTML.IndexOf("\"", Index);
             string ID = HTML.Substring(Index, EndInd - Index);
 
-            string Info = RequestInfo(ID);
+
+            string Info = null;
+
+            for (int i = 0; i < 6 && Info == null; i++) {
+                Info = RequestInfo(ID);
+                if (!string.IsNullOrEmpty(Info))
+                    break;
+            }
 
             const string ListPrefix = "\"reader_page_urls\":[";
             Index = Info.IndexOf(ListPrefix);
@@ -84,12 +91,8 @@ namespace MangaUnhost.Host {
                 Buffer = Tmp.ToArray();
 
                 return Encoding.UTF8.GetString(Buffer);
-            } catch (Exception ex){
-                if (Token == null)
-                    throw ex;
-                LastToken = Token;
+            } catch {
                 Token = null;
-                RequestInfo(ID);
             }
 
             return null;
@@ -128,33 +131,51 @@ namespace MangaUnhost.Host {
 
                     Browser.Navigate($"https://www.tsumino.com/Read/Auth/{ID}");
                     Browser.WaitForLoad();
+                    Browser.InjectAndRunScript("var Button = document.getElementsByClassName('book-read-button')[0];Button.setAttribute('value', 'Resolva o Captcha...');Button.disabled = true;");
                     Form.Show(Main);
 
-                    Again:;
-                    try {
-                        while (Browser.Url.AbsoluteUri.ToLower().Contains("read/auth")) {
-                            Application.DoEvents();
-                            System.Threading.Thread.Sleep(10);
-                        }
-                    } catch {
-                        Form.Show(Main);
-                        goto Again;
+                    int Check = 0;
+                    string CaptchaResult = null;
+                    while (string.IsNullOrEmpty(CaptchaResult)) {
+                        Application.DoEvents();
+                        System.Threading.Thread.Sleep(2);
+                        Check++;
+                        if (Check < 100)
+                            continue;
+                        Check = 0;
+                        object rst = Browser.InjectAndRunScript("return grecaptcha.getResponse();");
+                        if (rst == null)
+                            continue;
+                        CaptchaResult = rst.ToString();
                     }
 
                     Browser.Visible = false;
-
 
                     Form.Controls.Add(Message);
 
                     Browser.WaitForLoad();
 
+                    HttpWebRequest Request = WebRequest.Create("https://www.tsumino.com/Read/AuthProcess") as HttpWebRequest;
+                    Request.UserAgent = USERAGENT;
+                    Request.Method = "POST";
+                    Request.ContentType = "application/x-www-form-urlencoded";
+
+                    string PostString = $"Id={ID}&Page=1&g-recaptcha-response={CaptchaResult}";
+
+                    byte[] Buffer = Encoding.UTF8.GetBytes(PostString);
+                    Request.ContentLength = Buffer.LongLength;
+                    var Stream = Request.GetRequestStream();
+                    Stream.Write(Buffer, 0, Buffer.Length);
+                    Stream.Close();
+
+                    var Response = Request.GetResponse();
+                    GetTokenFromHeaders(Response.Headers);
+                    Response.Close();
+
                     Form.Close();
                 }));
 
-                TokenActivated = ReqToken(ID);
-
-                if (string.IsNullOrEmpty(Token) && !string.IsNullOrEmpty(LastToken))
-                    Token = LastToken;
+                TokenActivated = ReqToken(ID);                
 
             }
 
@@ -169,9 +190,17 @@ namespace MangaUnhost.Host {
             Request.Method = "HEAD";
             Request.UserAgent = USERAGENT;
             var Response = Request.GetResponse();
-            for (int i = 0; i < Response.Headers.AllKeys.Count(); i++) {
-                if (Response.Headers.AllKeys[i].Trim().ToLower() == "set-cookie") {
-                    string Cookie = Response.Headers.Get(i);
+            GetTokenFromHeaders(Request.Headers);
+            bool TokenActivated = !Response.Headers.AllKeys.Contains("Location");
+            Response.Close();
+
+            return TokenActivated;
+        }
+
+        private void GetTokenFromHeaders(WebHeaderCollection Headers) {
+            for (int i = 0; i < Headers.AllKeys.Count(); i++) {
+                if (Headers.AllKeys[i].Trim().ToLower() == "set-cookie") {
+                    string Cookie = Headers.Get(i);
                     if (!Cookie.Contains(CookieName + "="))
                         continue;
 
@@ -182,10 +211,6 @@ namespace MangaUnhost.Host {
                     break;
                 }
             }
-            bool TokenActivated = !Response.Headers.AllKeys.Contains("Location");
-            Response.Close();
-
-            return TokenActivated;
         }
 
         Dictionary<string, string> NameMap = new Dictionary<string, string>();

@@ -14,16 +14,40 @@ namespace MangaUnhost {
             Application.DoEvents();
         }
 
-        internal static void InjectAndRunScript(this WebBrowser Browser, string Javascript) {
+        internal static object InjectAndRunScript(this WebBrowser Browser, string Javascript) {
             Application.DoEvents();
             HtmlDocument Doc = Browser.Document;
             HtmlElement Head = Doc.GetElementsByTagName("head")[0];
             HtmlElement Script = Doc.CreateElement("script");
+
             string Func = $"_inj{new Random().Next(0, int.MaxValue)}";
             Script.SetAttribute("text", $"function {Func}() {{ {Javascript} }}");
             Head.AppendChild(Script);
-            Browser.Document.InvokeScript(Func);
+            object ret = Browser.Document.InvokeScript(Func);
+
             Application.DoEvents();
+            return ret;
+        }
+
+        internal static void SetCookie(this WebBrowser Browser, string CookieName, string CookieValue) {
+            var Scr = new string[] {
+            $"var name = '{CookieName}';",
+            $"var value = '{CookieValue}';",
+            "var expires = '';",
+            "if (days) {",
+            "    var date = new Date();",
+            "    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));",
+            "    expires = '; expires=' + date.toUTCString();",
+            "}",
+            "document.cookie = name + '=' + (value || '') + expires + '; path=/';"
+        };
+
+            string Script = string.Empty;
+            foreach (var Line in Scr) {
+                Script += Line + "\n";
+            }
+
+            Browser.InjectAndRunScript(Script);
         }
 
         internal static string GetCookie(this WebBrowser Browser, string CookieName) {
@@ -52,7 +76,7 @@ namespace MangaUnhost {
 
             string Script = string.Empty;
             foreach (var Line in Scr){
-                Script += Line;
+                Script += Line + "\n";
             }
             
             Browser.InjectAndRunScript(Script);
