@@ -64,24 +64,33 @@ namespace MangaUnhost.Host {
 
 
         private string RequestInfo(string ID) {
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("http://www.tsumino.com/Read/Load");
-            Request.Method = "POST";
-            Request.UserAgent = USERAGENT;
-            Request.CookieContainer = new CookieContainer();
-            Request.CookieContainer.Add(Request.RequestUri, new Cookie(CookieName, GetToken(ID)));
-            Request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
-            byte[] Buffer = Encoding.UTF8.GetBytes($"q={ID}");
-            var Stream = Request.GetRequestStream();
-            Stream.Write(Buffer, 0, Buffer.Length);
-            Stream.Close();
-            Stream = Request.GetResponse().GetResponseStream();
+            try {
+                HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("http://www.tsumino.com/Read/Load");
+                Request.Method = "POST";
+                Request.UserAgent = USERAGENT;
+                Request.CookieContainer = new CookieContainer();
+                Request.CookieContainer.Add(Request.RequestUri, new Cookie(CookieName, GetToken(ID)));
+                Request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+                byte[] Buffer = Encoding.UTF8.GetBytes($"q={ID}");
+                var Stream = Request.GetRequestStream();
+                Stream.Write(Buffer, 0, Buffer.Length);
+                Stream.Close();
+                Stream = Request.GetResponse().GetResponseStream();
 
-            var Tmp = new MemoryStream();
-            Stream.CopyTo(Tmp);
+                var Tmp = new MemoryStream();
+                Stream.CopyTo(Tmp);
 
-            Buffer = Tmp.ToArray();
+                Buffer = Tmp.ToArray();
 
-            return Encoding.UTF8.GetString(Buffer);
+                return Encoding.UTF8.GetString(Buffer);
+            } catch (Exception ex){
+                if (Token != null)
+                    throw ex;
+                Token = null;
+                RequestInfo(ID);
+            }
+
+            return null;
         }
 
         private string GetToken(string ID) {
