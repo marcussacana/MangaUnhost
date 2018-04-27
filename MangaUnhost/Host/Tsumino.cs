@@ -24,6 +24,7 @@ namespace MangaUnhost.Host {
 
         string HTML;
         string Token;
+        string LastToken;
         string MainPage;
 
         const string CookieName = "ASP.NET_SessionId";
@@ -86,6 +87,7 @@ namespace MangaUnhost.Host {
             } catch (Exception ex){
                 if (Token == null)
                     throw ex;
+                LastToken = Token;
                 Token = null;
                 RequestInfo(ID);
             }
@@ -103,7 +105,7 @@ namespace MangaUnhost.Host {
                 Form Main = Application.OpenForms[0];
                 Main.Invoke(new MethodInvoker(() => {
                     var Form = new Form() {
-                        Size = new System.Drawing.Size(500, 570),
+                        Size = new System.Drawing.Size(500, 600),
                         ShowIcon = false,
                         ShowInTaskbar = false,
                         Text = "Resolva o Captcha",
@@ -128,9 +130,15 @@ namespace MangaUnhost.Host {
                     Browser.WaitForLoad();
                     Form.Show(Main);
 
-                    while (Browser.Url.AbsoluteUri.ToLower().Contains("read/auth")) {
-                        Application.DoEvents();
-                        System.Threading.Thread.Sleep(10);
+                    Again:;
+                    try {
+                        while (Browser.Url.AbsoluteUri.ToLower().Contains("read/auth")) {
+                            Application.DoEvents();
+                            System.Threading.Thread.Sleep(10);
+                        }
+                    } catch {
+                        Form.Show(Main);
+                        goto Again;
                     }
 
                     Browser.Visible = false;
@@ -144,6 +152,10 @@ namespace MangaUnhost.Host {
                 }));
 
                 TokenActivated = ReqToken(ID);
+
+                if (string.IsNullOrEmpty(Token) && !string.IsNullOrEmpty(LastToken))
+                    Token = LastToken;
+
             }
 
             if (string.IsNullOrWhiteSpace(Token) || !TokenActivated)
