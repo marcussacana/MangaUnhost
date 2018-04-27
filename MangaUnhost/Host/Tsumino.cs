@@ -235,7 +235,7 @@ namespace MangaUnhost.Host {
         public string GetFullName() {
             string Element = Main.GetElementsByClasses(HTML, 0, "book-title").First();
 
-            string Name = Element.Split('>')[1].Split('/')[0];
+            string Name = Element.Split('>')[1].Split('/')[0].Split('<')[0].Trim();
 
             return Name;
         }
