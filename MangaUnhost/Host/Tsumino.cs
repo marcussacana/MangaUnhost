@@ -84,7 +84,7 @@ namespace MangaUnhost.Host {
 
                 return Encoding.UTF8.GetString(Buffer);
             } catch (Exception ex){
-                if (Token != null)
+                if (Token == null)
                     throw ex;
                 Token = null;
                 RequestInfo(ID);
