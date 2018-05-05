@@ -18,6 +18,7 @@ namespace MangaUnhost {
     public partial class Main : Form {
 
         Host.IHost[] Hosts = new Host.IHost[] {
+            new Host.HeavenManga(),
             new Host.HentaiCafe(),
             new Host.Mangahost(),
             new Host.MangaHere(),
@@ -559,22 +560,30 @@ namespace MangaUnhost {
         }
 
         private static void TraceChilds(HtmlNode Node, ref List<string> Elements, bool NoLimit) {
-            if (Node.Descendants().Count() > 2 && !NoLimit)
-                return;
-            string SHTML = Node.OuterHtml;
-            if (string.IsNullOrWhiteSpace(SHTML.Trim(' ', '\t', '\n', '\r')))
-                return;
+            try {
+                if (Node.Descendants().Count() > 2 && !NoLimit)
+                    return;
+                string SHTML = Node.OuterHtml;
+                if (string.IsNullOrWhiteSpace(SHTML.Trim(' ', '\t', '\n', '\r')))
+                    return;
 
-            if (Node.HasChildNodes) {
-                int ContentBegin = Node.OuterHtml.IndexOf(Node.InnerHtml);
-                string Open = Node.OuterHtml.Substring(0, ContentBegin).Trim();
-                string Close = Node.OuterHtml.Substring(ContentBegin + Node.InnerHtml.Length).Trim();
-                Elements.Add(Open);
-                foreach (HtmlNode Child in Node.ChildNodes)
-                    TraceChilds(Child, ref Elements, NoLimit);
-                Elements.Add(Close);
-            } else Elements.Add(SHTML);
+                if (Node.HasChildNodes) {
+                    int ContentBegin = Node.OuterHtml.IndexOf(Node.InnerHtml);
+                    string Open = Node.OuterHtml.Substring(0, ContentBegin).Trim();
+                    int ClosePos = ContentBegin + Node.InnerHtml.Length;
+                    string Close;
+                    if (ClosePos >= Node.OuterHtml.Length)
+                        Close = "";
+                    else
+                        Close = Node.OuterHtml.Substring(ClosePos).Trim();
+                    Elements.Add(Open);
+                    foreach (HtmlNode Child in Node.ChildNodes)
+                        TraceChilds(Child, ref Elements, NoLimit);
+                    Elements.Add(Close);
+                } else Elements.Add(SHTML);
+            } catch (Exception ex){
 
+            }
         }
         
 

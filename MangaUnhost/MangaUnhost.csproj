@@ -68,6 +68,7 @@
     <Compile Include="ConfigDatabase.cs" />
     <Compile Include="DNVM.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Host\HeavenManga.cs" />
     <Compile Include="Host\HentaiCafe.cs" />
     <Compile Include="Host\IHost.cs" />
     <Compile Include="Host\MangaHere.cs" />
