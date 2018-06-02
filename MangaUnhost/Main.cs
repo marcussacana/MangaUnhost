@@ -113,12 +113,14 @@ namespace MangaUnhost {
 
             Status = "Obtendo informações do: " + Name;
             PictureURL = AtualHost.GetPosterUrl();
+
+            Invoke(new Invoker(ButtonLst.Controls.Clear));
             Invoke(new Invoker(() => { MainPanel.Visible = true; }));
+
             Title = Name;
             string[] Chapters = AtualHost.GetChapters();
             Actions = new List<Action>();
 
-            Invoke(new Invoker(ButtonLst.Controls.Clear));
             for (int i = 0; i < Chapters.Length; i ++)
                 Invoke(new Invoker(() => {
                     Control Button = RegisterChapter(Chapters[i], i - 1 >= 0 ? Chapters[i-1] : null);
