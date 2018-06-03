@@ -73,6 +73,7 @@
     <Compile Include="Host\IHost.cs" />
     <Compile Include="Host\MangaHere.cs" />
     <Compile Include="Host\Mangahost.cs" />
+    <Compile Include="Host\MangaNelo.cs" />
     <Compile Include="Host\MangaKakalot.cs" />
     <Compile Include="Host\NHentai.cs" />
     <Compile Include="Host\RawLH.cs" />

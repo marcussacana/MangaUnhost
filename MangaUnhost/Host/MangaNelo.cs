@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 
 namespace MangaUnhost.Host {
-    class MangaKakalot : IHost {
+    class MangaNelo : IHost {
         string HTML;
         public string HostName {
             get {
-                return "MangaKakalot";
+                return "MangaNelo";
             }
         }
 
         public string DemoUrl {
             get {
-                return "http://mangakakalot.com/manga/choujin_koukouseitachi_wa_isekai_demo_yoyuu_de_ikinuku_you_desu";
+                return "http://manganelo.com/manga/isekai_cheat_magician";
             }
         }
 
@@ -27,9 +27,9 @@ namespace MangaUnhost.Host {
 
         public string[] GetChapterPages(string HTML) {
             int Index = HTML.IndexOf("<div class=\"vung-doc\" id=\"vungdoc\">");
-            int EndIndex = HTML.IndexOf("<div style=\"text-align:center;margin-top: 15px;\">", Index);
+            int EndIndex = HTML.IndexOf("<div style=\"max-height:", Index);
 
-            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), "mangakakalot.com");
+            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), "manganelo.com");
 
             Links = (from x in Links where !x.Split('?')[0].ToLower().EndsWith(".js") && !x.Split('?')[0].ToLower().EndsWith(".css") select x).ToArray();
             //Links = (from x in Links where x.Contains("blogspot.com") select x).Distinct().ToArray();
@@ -39,7 +39,7 @@ namespace MangaUnhost.Host {
 
         public string[] GetChapters() {
             int Index = HTML.IndexOf("<div class=\"chapter-list\">");
-            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index), "mangakakalot.com");
+            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index), "manganelo.com");
 
             return (from x in Links where x.Contains("/chapter/") select x).Distinct().ToArray();
         }
@@ -57,11 +57,11 @@ namespace MangaUnhost.Host {
         public string GetPosterUrl() {
             int Index = HTML.IndexOf("manga-info-pic");
             string Element = Main.GetElementsByContent(HTML, "img src=", Index).First();
-            return Main.ExtractHtmlLinks(Element, "mangakakalot.com").First();
+            return Main.ExtractHtmlLinks(Element, "manganelo.com").First();
         }
 
         public void Initialize(string URL, out string Name, out string Page) {
-            //http://mangakakalot.com/manga/tales_of_demons_and_gods
+            //http://manganelo.com/manga/isekai_cheat_magician
             if (!IsValidLink(URL))
                 throw new Exception();
 
@@ -78,7 +78,7 @@ namespace MangaUnhost.Host {
         public bool IsValidLink(string URL) {
             URL = URL.ToLower();
             return Uri.IsWellFormedUriString(URL, UriKind.Absolute) 
-                && URL.Contains("mangakakalot.com") 
+                && URL.Contains("manganelo.com")
                 && URL.Contains("/manga/");
         }
 

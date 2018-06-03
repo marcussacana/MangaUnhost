@@ -221,6 +221,7 @@ namespace MangaUnhost.Host {
             if (Elements.Length == 0)
                 Links.Add(MainPage);
             else {
+                NameMap = new Dictionary<string, string>();
                 foreach (string Element in Elements) {
                     string Link = Main.ExtractHtmlLinks(Element, "www.tsumino.com").First();
                     Links.Add(Link);

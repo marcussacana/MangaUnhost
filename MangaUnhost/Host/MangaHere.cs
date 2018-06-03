@@ -29,7 +29,7 @@ namespace MangaUnhost.Host {
 
 
             try {
-                return double.Parse(Name.Trim('c', ' ')).ToString();
+                return double.Parse(Name.Trim('c', ' ').Replace(".", ",")).ToString().Replace(",", ".");
             } catch {
                 return Name;
             }

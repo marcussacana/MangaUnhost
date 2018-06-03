@@ -23,6 +23,7 @@ namespace MangaUnhost {
             new Host.Mangahost(),
             new Host.MangaHere(),
             new Host.MangaKakalot(),
+            new Host.MangaNelo(),
             new Host.NHentai(),
             new Host.RawLH(),
             new Host.Tsumino(),
