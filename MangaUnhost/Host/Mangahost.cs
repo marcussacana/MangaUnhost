@@ -107,10 +107,11 @@ namespace MangaUnhost.Host {
                         Pictures.Add(Str);
                 }
             }
+
             if (Main.CanSort(Pictures))
                 return Pictures.Distinct().OrderBy(x => int.Parse(Main.GetFileName(x))).ToArray();
             else
-                return Pictures.ToArray();
+                return Pictures.Distinct().ToArray();
         }
 
 
