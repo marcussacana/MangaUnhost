@@ -35,7 +35,7 @@ namespace MangaUnhost {
         public Main() {
             InitializeComponent();
 
-            string Title = "MangaUnhost - v" + AppVeyor.CurrentVersion;
+            string Title = "MangaUnhost - v" + GitHub.CurrentVersion;
             Text = Title;
             iTalk_ThemeContainer1.Text = Title;
             TBSaveAs.Text = AppDomain.CurrentDomain.BaseDirectory + "Biblioteca";

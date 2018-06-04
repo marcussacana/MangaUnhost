@@ -15,7 +15,8 @@ namespace MangaUnhost {
         }
 
         private static void Updater() {
-            AppVeyor Updater = new AppVeyor("Marcussacana", "MangaUnhost", "MangaUnhost\\bin\\MangaUnhost.zip");
+            GitHub Updater = new GitHub("Marcussacana", "MangaUnhost");
+
             string Result = Updater.FinishUpdate();
             if (Result != null) {
                 System.Diagnostics.Process.Start(Result);
