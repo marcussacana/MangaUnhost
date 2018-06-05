@@ -46,6 +46,8 @@ namespace MangaUnhost {
 
             if (!System.Diagnostics.Debugger.IsAttached)
                 BntTestHosts.Visible = false;
+
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00000FF0;
         }
         
 
@@ -364,6 +366,7 @@ namespace MangaUnhost {
                     Request.Referer = "http://proxy-it.nordvpn.com";
                 }
 
+
                 Request.UseDefaultCredentials = true;
                 Request.Method = "GET";
                 WebResponse Response = Request.GetResponse();
@@ -651,7 +654,7 @@ namespace MangaUnhost {
             }
 
             BntListLink_Click(null, null);
-            ProgressBar.Maximum = ListView.Items.Count;
+            //ProgressBar.Maximum = ListView.Items.Count;
 
             string Dir = FolderPicker.SelectedPath;
             if (!Dir.EndsWith("\\"))
@@ -660,7 +663,8 @@ namespace MangaUnhost {
                 Application.DoEvents();
                 string Cap = ListView.Items[i].SubItems[0].Text;
                 string Link = ListView.Items[i].SubItems[1].Text;
-                string Text = DumpNovel(Link);
+                string[] Images;
+                string Text = DumpNovel(Link, out Images);
 
                 if (string.IsNullOrEmpty(Text)) {
                     MessageBox.Show("Failed to dump the text, check your configs.", "Novel Dumper", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -669,16 +673,28 @@ namespace MangaUnhost {
 
                 if (AutoTl.Checked)
                     Text = Translate(Text);
+
+                Text += "\r\nFrom: " + Link;
+
+                int Pic = 0;
                 File.WriteAllText(Dir + string.Format("{0}.txt", Cap), Text, Encoding.UTF8);
-                ProgressBar.Value = (int)(((double)ProgressBar.Maximum*i)/100);
-            }
-            ProgressBar.Maximum = 100;
-            ProgressBar.Value = 100;
+                if (cbSaveImages.Checked)
+                    foreach (string Image in Images) {
+                        try {
+                            Download(Image, Dir + string.Format("{0}-{1}.png", Cap, ++Pic));
+                        } catch { }
+                    }
+                ProgressBar.Value = (int)(((double)i / ListView.Items.Count) * 100);
 #if !DEBUG
             } catch (Exception ex) {
                 MessageBox.Show("Falha ao baixar os capítulos, Razão:\n" + ex.Message);
             }
+#else
+            }
 #endif
+            ProgressBar.Maximum = 100;
+            ProgressBar.Value = 100;
+
             Abort:;
             GroupConfig.Enabled = true;
             tbNovelLink.Enabled = true;
@@ -693,7 +709,7 @@ namespace MangaUnhost {
             return Novel.Trim('\r', '\n', ' ');
         }
 
-        private string DumpNovel(string Url) {
+        private string DumpNovel(string Url, out string[] Images) {
             HtmlAgilityPack.HtmlDocument Document = new HtmlAgilityPack.HtmlDocument();
             string HTML = Download(Url, Encoding.UTF8);
             Document.LoadHtml(HTML);
@@ -703,7 +719,7 @@ namespace MangaUnhost {
             } else {
                 Nodes = GetTagsWithClass(Document, new List<string>(HtmlFilter.Text.Split(' '))).ToArray();
             }
-
+            List<string> Pics = new List<string>();
             List<string> BlackList = new List<string>() {
                 "script", "style"
             };
@@ -713,6 +729,16 @@ namespace MangaUnhost {
                 bool Breaked = false;
                 uint Spans = 0;
                 foreach (HtmlNode SubNode in Node.DescendantsAndSelf()) {
+                    if (SubNode.NodeType == HtmlNodeType.Element && SubNode.Name.ToLower() == "img") {
+                        for (int i = 0; i < SubNode.Attributes.Count; i++) {
+                            var Element = SubNode.Attributes.ElementAt(i);
+                            if (Element.Name.ToLower() != "src")
+                                continue;
+
+                            Pics.Add(Element.Value);
+                        }
+                    }
+
                     if (SubNode.NodeType == HtmlNodeType.Text) {
                         try {
                             if (BlackList.Contains(SubNode.Name.ToLower()) || BlackList.Contains(SubNode.ParentNode.Name.ToLower())) {
@@ -762,7 +788,7 @@ namespace MangaUnhost {
                 Novel = Result;
                 Result = HttpUtility.HtmlDecode(Result);
             }
-
+            Images = Pics.ToArray();
             return Result.Trim('\r', '\n', ' ');
         }
         public static List<HtmlNode> GetTagsWithClass(HtmlAgilityPack.HtmlDocument Document, List<string> Class) {        

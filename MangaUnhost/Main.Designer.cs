@@ -54,6 +54,7 @@
             this.removerDaListaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.forçarProfundidadeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GroupConfig = new MangaUnhost.iTalk_GroupBox();
+            this.cbSaveImages = new MangaUnhost.iTalk_CheckBox();
             this.MergeSpan = new MangaUnhost.iTalk_CheckBox();
             this.iTalk_Label6 = new MangaUnhost.iTalk_Label();
             this.BaseCap = new MangaUnhost.iTalk_NumericUpDown();
@@ -69,13 +70,13 @@
             this.tbNovelLink = new MangaUnhost.iTalk_TextBox_Small();
             this.iTalk_Label3 = new MangaUnhost.iTalk_Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.BntTestHosts = new MangaUnhost.iTalk_Button_1();
             this.SupportList = new System.Windows.Forms.ListView();
             this.label1 = new System.Windows.Forms.Label();
             this.iTalk_Label2 = new MangaUnhost.iTalk_Label();
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
-            this.BntTestHosts = new MangaUnhost.iTalk_Button_1();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -432,6 +433,7 @@
             this.GroupConfig.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.GroupConfig.BackColor = System.Drawing.Color.Transparent;
+            this.GroupConfig.Controls.Add(this.cbSaveImages);
             this.GroupConfig.Controls.Add(this.MergeSpan);
             this.GroupConfig.Controls.Add(this.iTalk_Label6);
             this.GroupConfig.Controls.Add(this.BaseCap);
@@ -449,6 +451,18 @@
             this.GroupConfig.Size = new System.Drawing.Size(625, 150);
             this.GroupConfig.TabIndex = 2;
             this.GroupConfig.Text = "Configuração de Filtro";
+            // 
+            // cbSaveImages
+            // 
+            this.cbSaveImages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cbSaveImages.BackColor = System.Drawing.Color.White;
+            this.cbSaveImages.Checked = true;
+            this.cbSaveImages.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cbSaveImages.Location = new System.Drawing.Point(198, 102);
+            this.cbSaveImages.Name = "cbSaveImages";
+            this.cbSaveImages.Size = new System.Drawing.Size(120, 15);
+            this.cbSaveImages.TabIndex = 13;
+            this.cbSaveImages.Text = "Imagens";
             // 
             // MergeSpan
             // 
@@ -663,6 +677,22 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Sobre";
             // 
+            // BntTestHosts
+            // 
+            this.BntTestHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.BntTestHosts.BackColor = System.Drawing.Color.Transparent;
+            this.BntTestHosts.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.BntTestHosts.Image = null;
+            this.BntTestHosts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.BntTestHosts.Location = new System.Drawing.Point(518, 116);
+            this.BntTestHosts.Margin = new System.Windows.Forms.Padding(2);
+            this.BntTestHosts.Name = "BntTestHosts";
+            this.BntTestHosts.Size = new System.Drawing.Size(110, 27);
+            this.BntTestHosts.TabIndex = 5;
+            this.BntTestHosts.Text = "Testar Hosts";
+            this.BntTestHosts.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.BntTestHosts.Click += new System.EventHandler(this.BntTestHosts_Click);
+            // 
             // SupportList
             // 
             this.SupportList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -722,22 +752,6 @@
             // FolderPicker
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
-            // 
-            // BntTestHosts
-            // 
-            this.BntTestHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BntTestHosts.BackColor = System.Drawing.Color.Transparent;
-            this.BntTestHosts.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.BntTestHosts.Image = null;
-            this.BntTestHosts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.BntTestHosts.Location = new System.Drawing.Point(518, 116);
-            this.BntTestHosts.Margin = new System.Windows.Forms.Padding(2);
-            this.BntTestHosts.Name = "BntTestHosts";
-            this.BntTestHosts.Size = new System.Drawing.Size(110, 27);
-            this.BntTestHosts.TabIndex = 5;
-            this.BntTestHosts.Text = "Testar Hosts";
-            this.BntTestHosts.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.BntTestHosts.Click += new System.EventHandler(this.BntTestHosts_Click);
             // 
             // Main
             // 
@@ -823,6 +837,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListView SupportList;
         private iTalk_Button_1 BntTestHosts;
+        private iTalk_CheckBox cbSaveImages;
     }
 }
 
