@@ -20,12 +20,8 @@ namespace MangaUnhost.Host {
 
         public string GetChapterName(string ChapterURL) {            
             const string Prefix = "/manga/";
-            int Index = ChapterURL.IndexOf(Prefix);
-            if (Index < 0)
-                throw new Exception();
-            Index += Prefix.Length;
 
-            string Name = ChapterURL.Substring(Index, ChapterURL.Length - Index).Split('/')[1];
+            string Name = ChapterURL.Substring(ChapterURL.TrimEnd('/').LastIndexOf('/')).Split('/')[1];
 
 
             try {
