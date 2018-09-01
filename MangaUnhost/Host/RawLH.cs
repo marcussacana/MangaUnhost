@@ -7,7 +7,11 @@ using System.Web;
 namespace MangaUnhost.Host {
     class RawLH : IHost {
         string HTML;
-
+        public bool NeedsProxy {
+            get {
+                return false;
+            }
+        }
         public string HostName {
             get {
                 return "RawLH";

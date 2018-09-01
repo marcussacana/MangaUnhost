@@ -7,6 +7,11 @@ using System.Web;
 namespace MangaUnhost.Host {
     class NHentai : IHost {
         string HTML;
+        public bool NeedsProxy {
+            get {
+                return true;
+            }
+        }
         public string HostName {
             get {
                 return "nhentai";
@@ -29,7 +34,7 @@ namespace MangaUnhost.Host {
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
                 string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
-                string pHTML = Main.Download(Page, Encoding.UTF8);
+                string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8);
 
                 Page = Main.GetElementsByClasses(pHTML, 0, "fit-horizontal").First();
                 Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
@@ -70,7 +75,7 @@ namespace MangaUnhost.Host {
 
             string ID = URL.Substring(URL.IndexOf("/g/") + 3).Split('/')[0];
 
-            Page = $"https://nhentai.net/g/{ID}";
+            Page = $"https://nhentai.net/g/{ID}/";
             Name = "Unk";
         }
 

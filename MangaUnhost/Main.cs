@@ -30,7 +30,7 @@ namespace MangaUnhost {
             new Host.UnionMangas()
         };
 
-        Host.IHost AtualHost = null;
+        static Host.IHost AtualHost = null;
         
         public Main() {
             InitializeComponent();
@@ -48,6 +48,21 @@ namespace MangaUnhost {
                 BntTestHosts.Visible = false;
 
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00000FF0;
+
+            Tools.OnLoadProxies += (a, b) => {
+                if (LastStatus != null)
+                    return;
+
+                LastStatus = Status;
+                Status = "Obtendo Proxies...";
+            };
+            Tools.OnProxiesLoaded += (a, b) => {
+                if (LastStatus == null)
+                    return;
+
+                Status = LastStatus;
+                LastStatus = null;
+            };
         }
         
 
@@ -84,6 +99,7 @@ namespace MangaUnhost {
                 Invoke(new Invoker(() => { StatusLBL.Text = value; }));
             }
         }
+        private string LastStatus = null;
 
         private string Title {
             get {
@@ -349,8 +365,9 @@ namespace MangaUnhost {
             MEM.Close();
             return DATA;
         }
-        
-        internal static void Download(string URL, Stream Output, int tries = 4) {
+
+        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false) {
+            string CurrentProxy = null;
             try {
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
                 //Bypass a fucking bug in the fucking .net framework
@@ -366,6 +383,10 @@ namespace MangaUnhost {
                     Request.Referer = "http://proxy-it.nordvpn.com";
                 }
 
+                if (AtualHost.NeedsProxy) {
+                    CurrentProxy = Tools.Proxy;
+                    Request.Proxy = new WebProxy(CurrentProxy);
+                }
 
                 Request.UseDefaultCredentials = true;
                 Request.Method = "GET";
@@ -380,17 +401,28 @@ namespace MangaUnhost {
                         Output.Write(Buffer, 0, bytesRead);
                     } while (bytesRead > 0);
                 }
-            }
-            catch (Exception ex){
+
+                if (CurrentProxy != null)
+                    Tools.WorkingProxy = CurrentProxy;
+                
+            } catch (Exception ex) {
                 if (tries < 0) {
                     if (DialogResult.Yes == MessageBox.Show(string.Format("Connection Error: {0}\nIgnore?", ex.Message), "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Error))
                         return;
                     else
                         throw ex;
-                 }
+                }
+                if (tries - 1 < 0 && !ProxyChanged) {
+                    Tools.RefreshProxy();
+                    ProxyChanged = true;
+                    tries = 4;
+                }
+
+                if (CurrentProxy != null)
+                    Tools.BlackListProxy(CurrentProxy);
 
                 Thread.Sleep(1000);
-                Download(URL, Output, tries-1);
+                Download(URL, Output, tries - 1, ProxyChanged);
             }
         }
 

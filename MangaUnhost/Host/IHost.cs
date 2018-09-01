@@ -79,5 +79,10 @@ namespace MangaUnhost.Host {
         /// Valid Demo URL
         /// </summary>
         string DemoUrl { get; }
+
+        /// <summary>
+        /// Says if needs a proxy to contact this server
+        /// </summary>
+        bool NeedsProxy { get; }
     }
 }

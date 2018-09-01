@@ -10,6 +10,11 @@ using System.Windows.Forms;
 namespace MangaUnhost.Host {
 
     class Tsumino : IHost {
+        public bool NeedsProxy {
+            get {
+                return false;
+            }
+        }
         public string HostName {
             get {
                 return "Tsumino";

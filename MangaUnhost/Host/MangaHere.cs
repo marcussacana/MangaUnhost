@@ -5,8 +5,12 @@ using System.Text;
 
 namespace MangaUnhost.Host {
     class MangaHere : IHost {
-
         string HTML;
+        public bool NeedsProxy {
+            get {
+                return false;
+            }
+        }
         public string HostName { get {
                 return "MangaHere";
             }

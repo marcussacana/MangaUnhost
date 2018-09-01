@@ -7,6 +7,11 @@ using System.Web;
 namespace MangaUnhost.Host {
     class UnionMangas : IHost {
         string HTML;
+        public bool NeedsProxy {
+            get {
+                return false;
+            }
+        }
         public string HostName {
             get {
                 return "Union Mangás";
