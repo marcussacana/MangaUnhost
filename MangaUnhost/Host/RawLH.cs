@@ -38,7 +38,7 @@ namespace MangaUnhost.Host {
 
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
-                string Link = Main.GetElementAttribute(Element, "src");
+                string Link = Main.GetElementAttribute(Element, "src").TrimEnd('\n');
                 Link = HttpUtility.HtmlDecode(Link);
                 if (Link.Contains("&url=")) {
                     Link = Link.Substring(Link.IndexOf("&url=") + 5).Trim();

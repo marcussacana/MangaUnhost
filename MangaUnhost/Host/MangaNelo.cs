@@ -36,7 +36,8 @@ namespace MangaUnhost.Host {
 
             string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), "manganelo.com");
 
-            Links = (from x in Links where !x.Split('?')[0].ToLower().EndsWith(".js") && !x.Split('?')[0].ToLower().EndsWith(".css") select x).ToArray();
+            Links = (from x in Links where !x.Split('?')[0].ToLower().EndsWith(".js") && 
+                     !x.Split('?')[0].ToLower().EndsWith(".css") && !x.Split('?')[0].ToLower().EndsWith(".php") select x).ToArray();
             //Links = (from x in Links where x.Contains("blogspot.com") select x).Distinct().ToArray();
 
             return Links;

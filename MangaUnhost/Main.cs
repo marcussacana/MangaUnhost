@@ -383,7 +383,7 @@ namespace MangaUnhost {
                     Request.Referer = "http://proxy-it.nordvpn.com";
                 }
 
-                if (AtualHost.NeedsProxy) {
+                if (AtualHost?.NeedsProxy == true) {
                     CurrentProxy = Tools.Proxy;
                     Request.Proxy = new WebProxy(CurrentProxy);
                 }
@@ -412,7 +412,7 @@ namespace MangaUnhost {
                     else
                         throw ex;
                 }
-                if (tries - 1 < 0 && !ProxyChanged) {
+                if (tries - 1 < 0 && !ProxyChanged && AtualHost?.NeedsProxy == true) {
                     Tools.RefreshProxy();
                     ProxyChanged = true;
                     tries = 4;

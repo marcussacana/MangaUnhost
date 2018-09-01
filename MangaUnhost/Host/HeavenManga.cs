@@ -36,6 +36,7 @@ namespace MangaUnhost.Host {
             int BID = HTML.IndexOf("<center>");
             int Len = HTML.IndexOf("<span style=", BID) - BID;
             HTML = HTML.Substring(BID, Len);
+            HTML = HTML.Substring(HTML.IndexOf("<p>"));
             string[] Links = Main.ExtractHtmlLinks(HTML, "heavenmanga.today");
 
             return Links;
