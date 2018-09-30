@@ -33,6 +33,8 @@ namespace MangaUnhost.Host {
         public string[] GetChapterPages(string HTML) {
             int Index = HTML.IndexOf("<div class=\"vung-doc\" id=\"vungdoc\">");
             int EndIndex = HTML.IndexOf("<div style=\"text-align:center;margin-top: 15px;\">", Index);
+            if (EndIndex < 0)
+                EndIndex = HTML.IndexOf("<div style=\"text-align:center;\">", Index);
 
             string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), "mangakakalot.com");
 
