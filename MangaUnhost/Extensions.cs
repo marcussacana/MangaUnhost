@@ -9,7 +9,7 @@ namespace MangaUnhost {
         internal static void WaitForLoad(this WebBrowser Browser) {
             while (Browser.ReadyState != WebBrowserReadyState.Complete) {
                 Application.DoEvents();
-                System.Threading.Thread.Sleep(50);
+                System.Threading.Thread.Sleep(10);
             }
             Application.DoEvents();
         }

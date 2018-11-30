@@ -243,7 +243,7 @@ namespace MangaUnhost.Host {
 
             string Name = Element.Split('>')[1].Split('/')[0].Split('<')[0].Trim();
 
-            return Name;
+            return HttpUtility.HtmlDecode(Name);
         }
 
         public string GetName(string CodedName) {
