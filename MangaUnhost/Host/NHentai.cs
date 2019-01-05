@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Web;
 
@@ -34,8 +35,8 @@ namespace MangaUnhost.Host {
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
                 string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
-                string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8);
-
+                string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false);
+                
                 Page = Main.GetElementsByClasses(pHTML, 0, "fit-horizontal").First();
                 Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
             }
@@ -87,6 +88,25 @@ namespace MangaUnhost.Host {
 
         public void LoadPage(string URL) {
             HTML = Main.Download(URL, Encoding.UTF8);
+        }
+
+        Dictionary<string, bool> ProxyCache = new Dictionary<string, bool>();
+        public bool ValidateProxy(string Proxy) {
+            if (ProxyCache.ContainsKey(Proxy))
+                return ProxyCache[Proxy];
+
+            try {
+                HttpWebRequest Request = WebRequest.Create(GetChapters()[0]) as HttpWebRequest;
+                Request.Proxy = new WebProxy(Proxy);
+                Request.Timeout = 10 * 1000;
+                Request.Method = "GET";
+                var Resp = Request.GetResponse() as HttpWebResponse;
+                if (Resp.StatusCode != HttpStatusCode.OK || !Resp.ResponseUri.Host.ToLower().Contains("nhentai.net"))
+                    return ProxyCache[Proxy] = false;
+                return ProxyCache[Proxy] = true;
+            } catch {
+                return ProxyCache[Proxy] = false;
+            }
         }
     }
 }

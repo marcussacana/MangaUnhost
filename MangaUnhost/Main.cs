@@ -205,8 +205,8 @@ namespace MangaUnhost {
         }
 
         private void DownloadChapter(string URL, bool Open = false, string Next = null) {
-            string ID = AtualHost.GetChapterName(URL);
-            string NID = Next == null ? null : AtualHost.GetChapterName(Next);
+            string ID = AtualHost.GetChapterName(URL).TrimStart('0');
+            string NID = Next == null ? null : AtualHost.GetChapterName(Next).TrimStart('0');
 
             Status = string.Format("Baixando Informações do Capítulo {0}...", ID);
             string Manga = URL;
@@ -216,11 +216,12 @@ namespace MangaUnhost {
             foreach (string Remove in Removes)
                 Validated = Validated.Replace(Remove, "");
 
-            string CapDir = TBSaveAs.Text + string.Format("\\{0}\\", Validated);
-            string WorkDir = TBSaveAs.Text + string.Format("\\{0}\\Capítulo {1}\\", Validated, ID);            
-            string CapName = string.Format("Capítulo {0}", ID);
+            string CapDir = TBSaveAs.Text + $"\\{Validated}\\";
+            string WorkDir = $"{CapDir}Capítulos\\Capítulo {ID}\\";            
+            string CapName = $"Capítulo {ID}";
+            string BookPath = CapDir + "Capítulos\\" + CapName + ".html";
 
-            if (File.Exists(CapDir + CapName + ".html") && ckResume.Checked) {
+            if ((File.Exists(CapDir + CapName + ".html") || File.Exists(BookPath)) && ckResume.Checked) {
                 Status = "Aguardando Link...";
                 return;
             }
@@ -238,6 +239,8 @@ namespace MangaUnhost {
             if (File.Exists(WorkDir + "Pages.lst"))
                 File.Delete(WorkDir + "Pages.lst");
 
+            if (!File.Exists(CapDir + "Cover.png"))
+                DownloadImage(AtualHost.GetPosterUrl(), CapDir + "Cover.png");
 
             File.WriteAllText(CapDir + "Online.url", string.Format(Properties.Resources.UrlFile, OpenMangaUrl));
             TextWriter FileList = File.CreateText(WorkDir + "Pages.lst");
@@ -248,29 +251,60 @@ namespace MangaUnhost {
                 if (string.IsNullOrEmpty(Path.GetExtension(SaveAs)))
                     SaveAs += ".png";
 
-                if (!File.Exists(SaveAs) || new FileInfo(SaveAs).Length == 0) {
-                    if (Path.GetExtension(Page).EndsWith(".webp")) {
-                        SaveAs = WorkDir + Pag.ToString("D3") + ".jpg";
-                        if (!File.Exists(SaveAs)) {
-                            MemoryStream MEM = new MemoryStream();
-                            Download(Page, MEM);
-                            MEM.Seek(0, SeekOrigin.Begin);
-                            Bitmap PageTexture = DecodeWebP(MEM);
-                            PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Jpeg);
+                SaveAs = DownloadImage(Page, SaveAs);
 
-                            new Thread(() => ValidateWebP(SaveAs, PageTexture, MEM.ToArray())).Start();
-
-                            MEM.Close();
-                        }
-                    } else
-                        Download(Page, SaveAs);
-                }
                 FileList.WriteLine(SaveAs.Substring(WorkDir.Length, SaveAs.Length - WorkDir.Length));
             }
             FileList.Close();
-            if (ckGenReader.Checked)
-                GenerateBook(WorkDir, CapDir, NID, CapName);
+
+            if (ckGenReader.Checked) {
+                GenerateBook(WorkDir, CapDir, NID, CapName, BookPath);
+                AppendIndex(CapDir, CapName);
+            }
+
             Status = "Aguardando Link...";
+        }
+
+        private string DownloadImage(string Url, string SaveAs) {
+            if (Path.GetExtension(Url).ToLower().EndsWith(".webp")) {
+                SaveAs = Path.GetDirectoryName(SaveAs) + Path.GetFileNameWithoutExtension(SaveAs) + ".png";
+                MemoryStream MEM = new MemoryStream();
+                Download(Url, MEM);
+                MEM.Seek(0, SeekOrigin.Begin);
+                Bitmap PageTexture = DecodeWebP(MEM);
+                PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
+
+                new Thread(() => ValidateWebP(SaveAs, PageTexture, MEM.ToArray())).Start();
+
+                MEM.Close();
+            } else
+                Download(Url, SaveAs);
+
+            return SaveAs;
+        }
+
+        private void AppendIndex(string CapDir, string CapName) {
+            string IndexPath = CapDir + "Índice.html";
+            if (!File.Exists(IndexPath)) {
+                const string Prefix = "<DOCTYPE HTML>\r\n<html>\r\n<head>\r\n<title>Índice de Capítulos</title>\r\n<style>body{background-color: #000000;}</style>\r\n</head>\r\n<body>\r\n<div align=\"center\">\r\n<img src=\"Cover.png\" style=\"max-width:100%;\"/><br/>\r\n";
+                File.WriteAllText(IndexPath, Prefix, Encoding.UTF8);
+            }
+
+            string Content = null;
+            string New = File.ReadAllText(IndexPath, Encoding.UTF8);
+            while (New != Content) {
+                Content = New;
+                New = Content.TrimEnd('\r', '\n', ' ', '\t');
+                string[] Sufixes = new string[] { "</html>", "</body>", "</div>" };
+                foreach (string Sufix in Sufixes) {
+                    if (New.ToLower().EndsWith(Sufix))
+                        New = New.Substring(0, New.Length - Sufix.Length);
+                }
+            }
+            New += $"\r\n<a href=\".\\Capítulos\\{CapName}.html\" style=\"color: #FFF;\">{CapName}</a></br>";
+            New += "\r\n</div>\r\n</body>\r\n</html>";
+
+            File.WriteAllText(IndexPath, New, Encoding.UTF8);
         }
 
         //Prevent Decoder Bugs
@@ -309,7 +343,7 @@ namespace MangaUnhost {
             return WebPFormat.LoadFromStream(Stream);
         }
 
-        private void GenerateBook(string MangDir, string CapsDir, string Next, string CapName) {
+        private string GenerateBook(string MangDir, string CapsDir, string Next, string CapName, string HtmlFile = null) {
             const string PrefixMask = "<DOCTYPE HTML>\r\n<html>\r\n<head>\r\n<title>{0} - HTML Reader</title>";
             const string PrefixPart2 = "\r\n<style>body{background-color: #000000;}</style>\r\n</head>\r\n<body>\r\n<div align=\"center\">";
             const string PageMask = "<img src=\"{0}\" style=\"max-width:100%;\"/><br/>";
@@ -317,9 +351,13 @@ namespace MangaUnhost {
             const string SufixMask = "</div>\r\n</body>\r\n</html>";
             Status = "Gerando Leitor...";
             string FileList = MangDir + "Pages.lst";
-            string HtmlFile = CapsDir + CapName + ".html";
+
+            if (HtmlFile == null)
+                HtmlFile = CapsDir + CapName + ".html";
+
             if (File.Exists(HtmlFile))
                 File.Delete(HtmlFile);
+
             using (TextWriter Generator = File.CreateText(HtmlFile)) {
                 Generator.WriteLine(PrefixMask, CapName);
                 Generator.WriteLine(PrefixPart2);
@@ -337,6 +375,8 @@ namespace MangaUnhost {
                 Generator.WriteLine(SufixMask);
                 Generator.Flush();
             }
+
+            return HtmlFile;
         }       
         
 
@@ -351,46 +391,45 @@ namespace MangaUnhost {
         internal static string GetFileName(string Link) {
             return Path.GetFileNameWithoutExtension(Link).Trim(' ', '(', ')', '[', ']');
         }
-        internal static string Download(string URL, Encoding CodePage) {
-            return CodePage.GetString(Download(URL));
+        internal static string Download(string URL, Encoding CodePage, int Tries = 4, bool AllowRedirect = true) {
+            return CodePage.GetString(Download(URL, Tries, AllowRedirect));
         }
-        internal static void Download(string URL, string SaveAs) {
-            byte[] Content = Download(URL);
+        internal static void Download(string URL, string SaveAs, int Tries = 4, bool AllowRedirect = true) {
+            byte[] Content = Download(URL, Tries, AllowRedirect);
             File.WriteAllBytes(SaveAs, Content);
         }
-        internal static byte[] Download(string URL) {
+        internal static byte[] Download(string URL, int tries = 4, bool AllowRedirect = true) {
             MemoryStream MEM = new MemoryStream();
-            Download(URL, MEM);
+            Download(URL, MEM, tries, ThrownRedirect: !AllowRedirect);
             byte[] DATA = MEM.ToArray();
             MEM.Close();
             return DATA;
         }
 
-        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false) {
+        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false) {
             string CurrentProxy = null;
             try {
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
-                //Bypass a fucking bug in the fucking .net framework
-                if (Request.Address.AbsoluteUri != URL && tries <= 2) {
-                    /*
-                    WebClient WC = new WebClient();
-                    WC.QueryString.Add("action", "shorturl");
-                    WC.QueryString.Add("format", "simple");
-                    WC.QueryString.Add("url", URL);
-                    URL = WC.DownloadString("https://u.nu/api.php");*/
-
-                    Request = (HttpWebRequest)WebRequest.Create("http://proxy-it.nordvpn.com/browse.php?u=" + URL);
-                    Request.Referer = "http://proxy-it.nordvpn.com";
+                if (Request.Address.AbsoluteUri.Trim('\\', '/') != URL.Trim('\\', '/') && tries <= 2) {
+                    if (System.Diagnostics.Debugger.IsAttached)
+                        MessageBox.Show($"ERROR\nABURI: {Request.Address.AbsoluteUri}\n\nURL: {URL}", "DEBUG MESSAGE");
                 }
 
-                if (AtualHost?.NeedsProxy == true) {
-                    CurrentProxy = Tools.Proxy;
+                if (AtualHost?.NeedsProxy == true && tries > 1) {
+                    do {
+                        if (CurrentProxy != null)
+                            Tools.BlackListProxy(CurrentProxy);                        
+
+                        CurrentProxy = Tools.Proxy;
+                    } while (!AtualHost.ValidateProxy(CurrentProxy));
+
                     Request.Proxy = new WebProxy(CurrentProxy);
                 }
 
                 Request.UseDefaultCredentials = true;
                 Request.Method = "GET";
-                WebResponse Response = Request.GetResponse();
+                Request.Timeout = (15 + (10 * (4 - tries))) * 1000;
+                HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
                 byte[] FC = new byte[0];
                 using (Stream Reader = Response.GetResponseStream()) {
                     byte[] Buffer = new byte[1024];
@@ -401,6 +440,13 @@ namespace MangaUnhost {
                         Output.Write(Buffer, 0, bytesRead);
                     } while (bytesRead > 0);
                 }
+
+                if (Response.ResponseUri != Request.RequestUri && ThrownRedirect && tries > 0) 
+                    throw new Exception();
+                
+
+                if (Response.StatusCode != HttpStatusCode.OK && tries > 0)
+                    throw new Exception();
 
                 if (CurrentProxy != null)
                     Tools.WorkingProxy = CurrentProxy;
@@ -1156,6 +1202,7 @@ namespace MangaUnhost {
 
                 SupportList.Items.Add(string.Format("Online: {1} | Atention: {2} | LastStep: {3} | Host: ({0})", Host.HostName, Online ? "True " : "False" , Atention ? "True " : "False", Loop));
             }
+            MessageBox.Show("Host test cleared", "MangaUnhost Debugger");
         }
 
         private static bool SuspectBadName(string Name) {

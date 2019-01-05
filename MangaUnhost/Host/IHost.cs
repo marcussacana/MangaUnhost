@@ -71,6 +71,13 @@ namespace MangaUnhost.Host {
         void LoadPage(string URL);
 
         /// <summary>
+        /// Validate if is a compatible proxy
+        /// </summary>
+        /// <param name="Proxy"></param>
+        /// <returns></returns>
+        bool ValidateProxy(string Proxy);
+
+        /// <summary>
         /// Plugin Name
         /// </summary>
         string HostName { get; }

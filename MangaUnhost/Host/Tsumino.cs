@@ -281,5 +281,9 @@ namespace MangaUnhost.Host {
             HTML = Main.Download(URL, Encoding.UTF8);
             MainPage = URL;
         }
+
+        public bool ValidateProxy(string Proxy) {
+            throw new NotImplementedException();
+        }
     }
 }

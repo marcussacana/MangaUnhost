@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
@@ -9,31 +10,34 @@ internal static class Tools {
     internal static EventHandler OnProxiesLoaded;
     static List<string> BlackList = new List<string>();
     
-    const int PROXIES = 5;//Big values = more slow but more safe, small values = more fast, but less safe
-    static string[] ProxList = new string[PROXIES + 1];
+    const int PROXIES = 3;//Big values = more slow but more safe, small values = more fast, but less safe
+    static string[] ProxyList = new string[PROXIES + 1];
     static int pid = 0;
     internal static string WorkingProxy = null;
     internal static string Proxy {
         get {
-            if (ProxList[1] == null)
+            if (ProxyList[1] == null || EverytingBlacklisted)
                 RefreshProxy();
 
-            if (pid >= ProxList.Length)
+            if (pid >= ProxyList.Length)
                 pid = 0;
 
-            string CurrentProxy = ProxList[pid++];
-            if (BlackList.Contains(CurrentProxy) && CurrentProxy != null)
+            string CurrentProxy = ProxyList[pid++];
+            if (BlackList.Contains(CurrentProxy) && CurrentProxy != null) 
                 return Proxy;
+            
             return CurrentProxy;
         }
     }
+
+    private static bool EverytingBlacklisted => (from x in ProxyList where !BlackList.Contains(x) && x != null select x).Count() == 0;
 
     internal static void BlackListProxy(string Proxy) => BlackList.Add(Proxy);
 
     internal static void RefreshProxy() {
         OnLoadProxies?.Invoke(null, null);
 
-        ProxList = new string[PROXIES + 1];
+        ProxyList = new string[PROXIES + 1];
         string[] Proxies = FreeProxy();
         for (int i = 0; i < PROXIES; i++) {
             Proxies[i] = Proxies[i].ToLower().Replace("http://", "").Replace("https://", "");
@@ -42,9 +46,9 @@ internal static class Tools {
                 continue;
             }
 
-            ProxList[i + 1] = Proxies[i];
+            ProxyList[i + 1] = Proxies[i];
         }
-        ProxList[0] = null;
+        ProxyList[0] = null;
 
         OnProxiesLoaded?.Invoke(null, null);
     }
@@ -80,24 +84,18 @@ internal static class Tools {
     }
 
     internal static bool ValidateProxy(string Proxy) {
-        bool Result = false;
+        bool? Result = null;
 
         var Thread = new Thread(() => {
             try {
-                WebClient Client = new WebClient();
-                Client.Proxy = new WebProxy(Proxy);
-                Client.DownloadString("https://www.google.com.br/ping");
-            } catch (Exception ex) {
-                if (ex.GetType().Name == "WebException") {
-                    WebException we = (WebException)ex;
-                    HttpWebResponse response = (HttpWebResponse)we.Response;
-                    //We just want know if the proxy has connected with the google servers
-                    if (response == null)
-                        return;
-
-                    if (response.StatusCode == HttpStatusCode.BadRequest)
+                using (var client = new WebClient()) {
+                    client.Proxy = new WebProxy(Proxy);
+                    using (client.OpenRead("http://clients3.google.com/generate_204"))
                         Result = true;
+
                 }
+            } catch {
+                Result = false;
             }
         });
 
@@ -105,12 +103,12 @@ internal static class Tools {
         DateTime Begin = DateTime.Now;
         Thread.Start();
 
-        while ((DateTime.Now - Begin).TotalSeconds <= 10) {
+        while ((DateTime.Now - Begin).TotalSeconds <= 10 && !Result.HasValue) {
             Thread.Sleep(10);
         }
         Thread?.Abort();
 
-        return Result;
+        return Result ?? false;
     }
 
 

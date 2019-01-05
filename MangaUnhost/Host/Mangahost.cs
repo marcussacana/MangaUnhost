@@ -157,5 +157,9 @@ namespace MangaUnhost.Host {
             URL = URL.Substring(Index, URL.Length - Index);
             return URL.Split('/')[3];
         }
+
+        public bool ValidateProxy(string Proxy) {
+            throw new NotImplementedException();
+        }
     }
 }

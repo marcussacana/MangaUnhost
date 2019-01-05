@@ -109,5 +109,9 @@ namespace MangaUnhost.Host {
         public void LoadPage(string URL) {
             HTML = Main.Download(URL, Encoding.UTF8);
         }
+
+        public bool ValidateProxy(string Proxy) {
+            throw new NotImplementedException();
+        }
     }
 }

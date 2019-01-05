@@ -37,7 +37,9 @@ namespace MangaUnhost.Host {
             string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), "manganelo.com");
 
             Links = (from x in Links where !x.Split('?')[0].ToLower().EndsWith(".js") && 
-                     !x.Split('?')[0].ToLower().EndsWith(".css") && !x.Split('?')[0].ToLower().EndsWith(".php") select x).ToArray();
+                     !x.Split('?')[0].ToLower().EndsWith(".css") && !x.Split('?')[0].ToLower().EndsWith(".php")
+                      && !x.Split('?')[0].ToLower().EndsWith(".html")
+                     select x).ToArray();
             //Links = (from x in Links where x.Contains("blogspot.com") select x).Distinct().ToArray();
 
             return Links;
@@ -90,6 +92,10 @@ namespace MangaUnhost.Host {
 
         public void LoadPage(string URL) {
             HTML = Main.Download(URL, Encoding.UTF8);
+        }
+
+        public bool ValidateProxy(string Proxy) {
+            throw new NotImplementedException();
         }
     }
 }
