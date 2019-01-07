@@ -267,7 +267,7 @@ namespace MangaUnhost {
 
         private string DownloadImage(string Url, string SaveAs) {
             if (Path.GetExtension(Url).ToLower().EndsWith(".webp")) {
-                SaveAs = Path.GetDirectoryName(SaveAs) + Path.GetFileNameWithoutExtension(SaveAs) + ".png";
+                SaveAs = Path.GetDirectoryName(SaveAs) + "\\" + Path.GetFileNameWithoutExtension(SaveAs) + ".png";
                 MemoryStream MEM = new MemoryStream();
                 Download(Url, MEM);
                 MEM.Seek(0, SeekOrigin.Begin);
