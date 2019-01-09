@@ -205,8 +205,8 @@ namespace MangaUnhost {
         }
 
         private void DownloadChapter(string URL, bool Open = false, string Next = null) {
-            string ID = AtualHost.GetChapterName(URL).TrimStart('0');
-            string NID = Next == null ? null : AtualHost.GetChapterName(Next).TrimStart('0');
+            string ID = AtualHost.GetChapterName(URL).Trim().TrimStart('0');
+            string NID = Next == null ? null : AtualHost.GetChapterName(Next).Trim().TrimStart('0');
             if (string.IsNullOrWhiteSpace(ID))
                 ID = "0";
             if (string.IsNullOrWhiteSpace(NID))
