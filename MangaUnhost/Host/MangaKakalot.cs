@@ -24,8 +24,15 @@ namespace MangaUnhost.Host {
         }
 
         public string GetChapterName(string ChapterURL) {
-            const string Prefix = "chapter_";
-            string Name = ChapterURL.Substring(ChapterURL.IndexOf(Prefix) + Prefix.Length);
+            const string Prefix1 = "chapter_";
+            const string Prefix2 = "chapter-";
+            string Name = string.Empty;
+            if (ChapterURL.ToLower().Contains(Prefix1))
+                Name = ChapterURL.Substring(ChapterURL.ToLower().IndexOf(Prefix1) + Prefix1.Length);
+            else if (ChapterURL.ToLower().Contains(Prefix2))
+                Name = ChapterURL.Substring(ChapterURL.ToLower().IndexOf(Prefix2) + Prefix2.Length);
+            else
+                throw new Exception("Unsupported Manga, Report It");
 
             return Name;
         }
@@ -36,7 +43,7 @@ namespace MangaUnhost.Host {
             if (EndIndex < 0)
                 EndIndex = HTML.IndexOf("<div style=\"text-align:center;\">", Index);
 
-            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), "mangakakalot.com");
+            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), Domain);
 
             Links = (from x in Links where !x.Split('?')[0].ToLower().EndsWith(".js") && !x.Split('?')[0].ToLower().EndsWith(".php") &&
                      !x.Split('?')[0].ToLower().EndsWith(".css") && !x.Contains("/ads/") select x).ToArray();
@@ -48,7 +55,7 @@ namespace MangaUnhost.Host {
 
         public string[] GetChapters() {
             int Index = HTML.IndexOf("<div class=\"chapter-list\">");
-            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index), "mangakakalot.com");
+            string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index), Domain);
 
             return (from x in Links where x.Contains("/chapter/") select x).Distinct().ToArray();
         }
@@ -66,7 +73,7 @@ namespace MangaUnhost.Host {
         public string GetPosterUrl() {
             int Index = HTML.IndexOf("manga-info-pic");
             string Element = Main.GetElementsByContent(HTML, "img src=", Index).First();
-            return Main.ExtractHtmlLinks(Element, "mangakakalot.com").First();
+            return Main.ExtractHtmlLinks(Element, Domain).First();
         }
 
         public void Initialize(string URL, out string Name, out string Page) {
@@ -91,7 +98,9 @@ namespace MangaUnhost.Host {
                 && URL.Contains("/manga/");
         }
 
+        string Domain;
         public void LoadPage(string URL) {
+            Domain = URL.ToLower().Replace("https://", "").Replace("http://", "").Split('/')[0];
             HTML = Main.Download(URL, Encoding.UTF8);
         }
 
