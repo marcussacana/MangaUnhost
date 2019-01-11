@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -12,6 +15,57 @@ namespace MangaUnhost {
                 System.Threading.Thread.Sleep(10);
             }
             Application.DoEvents();
+        }
+
+        internal static object Locker = new object();
+        internal static void WaitForRedirect(this WebBrowser Browser) {
+            bool Navigated = false;
+            lock (Locker) {
+                Browser.Navigated += (a, b) => { Navigated = true; };
+                while (!Navigated) {
+                    Application.DoEvents();
+                    System.Threading.Thread.Sleep(10);
+                }
+            }
+        }
+        
+
+        internal static string Get(this Cookie[] Cookies, string Name) {
+            return (from x in Cookies where x.Name == Name select x.Value).First();
+        }
+
+        internal static Cookie[] GetCookies(this WebBrowser _Browser) {
+            List<Cookie> Result = new List<Cookie>();
+            List<string> Cookies = new List<string>();
+            foreach (string Part in GetGlobalCookies(_Browser.Url.AbsoluteUri).Split(';')) {
+                if (Part.ToLower().StartsWith(" path="))
+                    continue;
+                if (Part.ToLower().StartsWith(" domain="))
+                    continue;
+                if (Part.ToLower().StartsWith(" port="))
+                    continue;
+                if (!Part.Contains("="))
+                    continue;
+
+                Result.Add(new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1]));
+            }
+
+            return Result.ToArray();
+        }
+
+        //Can trigger shit antivirus
+        [DllImport("wininet.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool InternetGetCookieEx(string pchURL, string pchCookieName, StringBuilder pchCookieData, ref uint pcchCookieData, int dwFlags, IntPtr lpReserved);
+        const int INTERNET_COOKIE_HTTPONLY = 0x00002000;
+
+         static string GetGlobalCookies(string uri) {
+            uint datasize = 1024;
+            StringBuilder cookieData = new StringBuilder((int)datasize);
+            if (InternetGetCookieEx(uri, null, cookieData, ref datasize, INTERNET_COOKIE_HTTPONLY, IntPtr.Zero) && cookieData.Length > 0) {
+                return cookieData.ToString();
+            } else {
+                return null;
+            }
         }
 
         internal static object InjectAndRunScript(this WebBrowser Browser, string Javascript) {
@@ -71,7 +125,7 @@ namespace MangaUnhost {
                 "    if (c.indexOf(nameEQ) == 0)",
                 "		rst = c.substring(nameEQ.length,c.length);",
                 "}",
-                $"document.getElementById('{ID}').innerHTML = rst;",
+                $"document.getElementById('{ID}').innerHTML = rst;"
             };
 
             string Script = string.Empty;
@@ -80,7 +134,6 @@ namespace MangaUnhost {
             }
             
             Browser.InjectAndRunScript(Script);
-
             Div = Browser.Document.GetElementById(ID);
 
             if (Div.InnerHtml == "Cookie Not Found")

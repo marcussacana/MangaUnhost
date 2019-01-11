@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MangaUnhost.Host {
@@ -22,7 +22,13 @@ namespace MangaUnhost.Host {
                 return "http://mangakakalot.com/manga/choujin_koukouseitachi_wa_isekai_demo_yoyuu_de_ikinuku_you_desu";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
 
+        public string UserAgent { get { return null; } }
         public string GetChapterName(string ChapterURL) {
             const string Prefix1 = "chapter_";
             const string Prefix2 = "chapter-";
@@ -38,10 +44,18 @@ namespace MangaUnhost.Host {
         }
 
         public string[] GetChapterPages(string HTML) {
-            int Index = HTML.IndexOf("<div class=\"vung-doc\" id=\"vungdoc\">");
+            int Index = HTML.IndexOf("<div class=\"vung-doc\" id=\"vungdoc\"");
+            if (Index < 0) {
+                const string VarPrefix = "_book_link = '";
+                string Url = HTML.Substring(HTML.IndexOf(VarPrefix) + VarPrefix.Length).Split('\'')[0].TrimStart('\\');
+                Url = "http://" + Domain + "/" + Url + "/0";
+                return GetChapterPages(Main.Download(Url, Encoding.UTF8));
+            }
             int EndIndex = HTML.IndexOf("<div style=\"text-align:center;margin-top: 15px;\">", Index);
             if (EndIndex < 0)
                 EndIndex = HTML.IndexOf("<div style=\"text-align:center;\">", Index);
+            if (EndIndex < 0)
+                EndIndex = HTML.IndexOf("<div style=\"max-width:", Index);
 
             string[] Links = Main.ExtractHtmlLinks(HTML.Substring(Index, EndIndex - Index), Domain);
 

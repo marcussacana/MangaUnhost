@@ -23,6 +23,12 @@ namespace MangaUnhost.Host {
                 return "http://nhentai.net/g/190997/";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
         public string GetChapterName(string ChapterURL) {
             return "One Shot";
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Web;
 
@@ -22,6 +23,12 @@ namespace MangaUnhost.Host {
                 return "http://unionmangas.net/manga/karakai-jouzu-no-takagi-san";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
         public string GetChapterName(string ChapterURL) {
             //unionmangas.cc/leitor/Karakai_Jouzu_no_Takagi-san/01
             const string Prefix = "/leitor/";

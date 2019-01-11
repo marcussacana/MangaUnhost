@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MangaUnhost.Host {
@@ -91,5 +92,16 @@ namespace MangaUnhost.Host {
         /// Says if needs a proxy to contact this server
         /// </summary>
         bool NeedsProxy { get; }
+
+        /// <summary>
+        /// Cookies to be used when download something
+        /// </summary>
+        CookieContainer Cookies { get; }
+
+
+        /// <summary>
+        /// Force an Custom User Agent when download something
+        /// </summary>
+        string UserAgent { get; }
     }
 }

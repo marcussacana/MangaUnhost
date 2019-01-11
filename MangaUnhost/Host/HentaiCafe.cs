@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MangaUnhost.Host {
@@ -22,7 +23,13 @@ namespace MangaUnhost.Host {
                 return "https://hentai.cafe/aiue-oka-bitch-fuck/";
             }
         }
-
+    
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
         public string GetChapterName(string ChapterURL) {
             return "One Shot";
         }

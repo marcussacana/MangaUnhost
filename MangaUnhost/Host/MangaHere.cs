@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MangaUnhost.Host {
@@ -21,6 +22,12 @@ namespace MangaUnhost.Host {
                 return "http://www.mangahere.cc/manga/konjiki_no_moji_tsukai_yuusha_yonin_ni_makikomareta_unique_cheat/";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
 
         public string GetChapterName(string ChapterURL) {            
             const string Prefix = "/manga/";

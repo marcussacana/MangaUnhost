@@ -27,13 +27,18 @@ namespace MangaUnhost.Host {
             }
         }
 
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
+
         string HTML;
-        string Token;
-        string LastToken;
+        static string Token;
         string MainPage;
 
         const string CookieName = "ASP.NET_SessionId";
-        const string USERAGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36 OPR/52.0.2871.64";
         public string GetChapterName(string ChapterURL) {
             if (NameMap.ContainsKey(ChapterURL))
                 return NameMap[ChapterURL];
@@ -80,7 +85,7 @@ namespace MangaUnhost.Host {
             try {
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("http://www.tsumino.com/Read/Load");
                 Request.Method = "POST";
-                Request.UserAgent = USERAGENT;
+                Request.UserAgent = Tools.UserAgent;
                 Request.CookieContainer = new CookieContainer();
                 Request.CookieContainer.Add(Request.RequestUri, new Cookie(CookieName, GetToken(ID)));
                 Request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
@@ -161,7 +166,7 @@ namespace MangaUnhost.Host {
                     Browser.WaitForLoad();
 
                     HttpWebRequest Request = WebRequest.Create("https://www.tsumino.com/Read/AuthProcess") as HttpWebRequest;
-                    Request.UserAgent = USERAGENT;
+                    Request.UserAgent = Tools.UserAgent;
                     Request.Method = "POST";
                     Request.ContentType = "application/x-www-form-urlencoded";
 
@@ -193,7 +198,7 @@ namespace MangaUnhost.Host {
         private bool ReqToken(string ID) {
             var Request = (HttpWebRequest)WebRequest.Create($"https://www.tsumino.com/Read/View/{ID}/1");
             Request.Method = "HEAD";
-            Request.UserAgent = USERAGENT;
+            Request.UserAgent = Tools.UserAgent;
             var Response = Request.GetResponse();
             GetTokenFromHeaders(Request.Headers);
             bool TokenActivated = !Response.Headers.AllKeys.Contains("Location");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MangaUnhost.Host {
@@ -22,6 +23,12 @@ namespace MangaUnhost.Host {
                 return "http://manganelo.com/manga/isekai_cheat_magician";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
 
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "chapter_";

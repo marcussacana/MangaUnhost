@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MangaUnhost.Host {
@@ -19,6 +20,14 @@ namespace MangaUnhost.Host {
                 return "https://mangahostbr.com/manga/hadi-girl-mh23848";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+
+        public string UserAgent { get { return null; } }
+
 
         string HTML;
 

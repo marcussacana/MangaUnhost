@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Web;
 
@@ -22,6 +23,12 @@ namespace MangaUnhost.Host {
                 return "http://rawlh.com/manga-29-to-jk-raw.html";
             }
         }
+        public CookieContainer Cookies {
+            get {
+                return null;
+            }
+        }
+        public string UserAgent { get { return null; } }
         public string GetChapterName(string ChapterURL) {
             //http://rawlh.com/read-29-to-jk-raw-chapter-1.html
             const string Prefix = "-chapter-";

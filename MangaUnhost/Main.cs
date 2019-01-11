@@ -17,9 +17,12 @@ using TLIB;
 namespace MangaUnhost {
     public partial class Main : Form {
 
+        public static Main Instance = null;
+
         Host.IHost[] Hosts = new Host.IHost[] {
             new Host.HeavenManga(),
             new Host.HentaiCafe(),
+            new Host.KissManga(),
             new Host.Mangahost(),
             new Host.MangaHere(),
             new Host.MangaKakalot(),
@@ -34,6 +37,8 @@ namespace MangaUnhost {
         
         public Main() {
             InitializeComponent();
+
+            Instance = this;
 
             string Title = "MangaUnhost - v" + GitHub.CurrentVersion;
             Text = Title;
@@ -113,7 +118,7 @@ namespace MangaUnhost {
         private string PictureURL { get { return LP; } set {
                 LP = value;
                 Stream MEM = new MemoryStream();
-                Download(value, MEM);
+                Download(value, MEM, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
                 Invoker Delegate = new Invoker(() => {
                     Poster.Image = Image.FromStream(MEM);
                     MEM.Close();
@@ -231,7 +236,7 @@ namespace MangaUnhost {
                 return;
             }
 
-            string HTML = Download(Manga, Encoding.UTF8);
+            string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
             string[] Pages = AtualHost.GetChapterPages(HTML);
             int Pag = 0;
 
@@ -274,7 +279,7 @@ namespace MangaUnhost {
             if (Path.GetExtension(Url).ToLower().EndsWith(".webp")) {
                 SaveAs = Path.GetDirectoryName(SaveAs) + "\\" + Path.GetFileNameWithoutExtension(SaveAs) + ".png";
                 MemoryStream MEM = new MemoryStream();
-                Download(Url, MEM);
+                Download(Url, MEM, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
                 MEM.Seek(0, SeekOrigin.Begin);
                 Bitmap PageTexture = DecodeWebP(MEM);
                 PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
@@ -283,7 +288,7 @@ namespace MangaUnhost {
 
                 MEM.Close();
             } else
-                Download(Url, SaveAs);
+                Download(Url, SaveAs, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
 
             return SaveAs;
         }
@@ -396,22 +401,22 @@ namespace MangaUnhost {
         internal static string GetFileName(string Link) {
             return Path.GetFileNameWithoutExtension(Link).Trim(' ', '(', ')', '[', ']');
         }
-        internal static string Download(string URL, Encoding CodePage, int Tries = 4, bool AllowRedirect = true) {
-            return CodePage.GetString(Download(URL, Tries, AllowRedirect));
+        internal static string Download(string URL, Encoding CodePage, int Tries = 4, bool AllowRedirect = true, string UserAgent = null, CookieContainer Cookies = null) {
+            return CodePage.GetString(Download(URL, Tries, AllowRedirect, UserAgent: UserAgent, Cookies: Cookies));
         }
-        internal static void Download(string URL, string SaveAs, int Tries = 4, bool AllowRedirect = true) {
-            byte[] Content = Download(URL, Tries, AllowRedirect);
+        internal static void Download(string URL, string SaveAs, int Tries = 4, bool AllowRedirect = true, string UserAgent = null, CookieContainer Cookies = null) {
+            byte[] Content = Download(URL, Tries, AllowRedirect, UserAgent: UserAgent, Cookies: Cookies);
             File.WriteAllBytes(SaveAs, Content);
         }
-        internal static byte[] Download(string URL, int tries = 4, bool AllowRedirect = true) {
+        internal static byte[] Download(string URL, int tries = 4, bool AllowRedirect = true, string UserAgent = null, CookieContainer Cookies = null) {
             MemoryStream MEM = new MemoryStream();
-            Download(URL, MEM, tries, ThrownRedirect: !AllowRedirect);
+            Download(URL, MEM, tries, ThrownRedirect: !AllowRedirect, UserAgent: UserAgent, Cookies: Cookies);
             byte[] DATA = MEM.ToArray();
             MEM.Close();
             return DATA;
         }
 
-        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false) {
+        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false, string UserAgent = null, CookieContainer Cookies = null) {
             string CurrentProxy = null;
             try {
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
@@ -430,6 +435,14 @@ namespace MangaUnhost {
 
                     Request.Proxy = new WebProxy(CurrentProxy);
                 }
+
+                if (Cookies != null)
+                    Request.CookieContainer = Cookies;
+
+                if (UserAgent == null)
+                    Request.UserAgent = Tools.UserAgent;
+                else
+                    Request.UserAgent = UserAgent;
 
                 Request.UseDefaultCredentials = true;
                 Request.Method = "GET";
@@ -473,7 +486,7 @@ namespace MangaUnhost {
                     Tools.BlackListProxy(CurrentProxy);
 
                 Thread.Sleep(1000);
-                Download(URL, Output, tries - 1, ProxyChanged);
+                Download(URL, Output, tries - 1, ProxyChanged, ThrownRedirect, UserAgent, Cookies);
             }
         }
 
@@ -1185,7 +1198,7 @@ namespace MangaUnhost {
                                 Atention |= SuspectBadName(ChapterName);
                                 break;
                             case 6:
-                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8));
+                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies));
                                 foreach (string Page in Pages) {
                                     if (string.IsNullOrEmpty(Page) || !Uri.IsWellFormedUriString(Page, UriKind.Absolute))
                                         Online = false;

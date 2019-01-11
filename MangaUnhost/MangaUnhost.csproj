@@ -71,6 +71,7 @@
     <Compile Include="Host\HeavenManga.cs" />
     <Compile Include="Host\HentaiCafe.cs" />
     <Compile Include="Host\IHost.cs" />
+    <Compile Include="Host\KissManga.cs" />
     <Compile Include="Host\MangaHere.cs" />
     <Compile Include="Host\Mangahost.cs" />
     <Compile Include="Host\MangaNelo.cs" />
@@ -116,7 +117,6 @@
     <Content Include="ChpManager.csproj" />
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
