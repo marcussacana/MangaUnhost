@@ -133,7 +133,7 @@ namespace MangaUnhost {
 
             OpenMangaUrl = Page;
             AtualHost.LoadPage(Page);
-            Name = AtualHost.GetFullName();
+            Name = HttpUtility.HtmlDecode(AtualHost.GetFullName());
 
             Status = "Obtendo informações do: " + Name;
             PictureURL = AtualHost.GetPosterUrl();
