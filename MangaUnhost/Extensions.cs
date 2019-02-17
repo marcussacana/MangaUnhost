@@ -1,5 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -68,8 +72,12 @@ namespace MangaUnhost {
             }
         }
 
-        internal static object InjectAndRunScript(this WebBrowser Browser, string Javascript) {
+        internal static object InjectAndRunScript(this WebBrowser Browser, string Javascript, bool Eval = false) {
             Application.DoEvents();
+            if (Eval)
+                return Browser.Document.InvokeScript("eval", new object[] { Javascript });
+            
+
             HtmlDocument Doc = Browser.Document;
             HtmlElement Head = Doc.GetElementsByTagName("head")[0];
             HtmlElement Script = Doc.CreateElement("script");
@@ -78,23 +86,40 @@ namespace MangaUnhost {
             Script.SetAttribute("text", $"function {Func}() {{ {Javascript} }}");
             Head.AppendChild(Script);
             object ret = Browser.Document.InvokeScript(Func);
-
             Application.DoEvents();
+
             return ret;
+        }
+
+        internal static string Eval(this WebBrowser Browser, string Script) {
+            HtmlDocument Doc = Browser.Document;
+            HtmlElement Body = Doc.GetElementsByTagName("body")[0];
+            HtmlElement Div = Doc.CreateElement("div");
+            string ID = $"_rid{new Random().Next(0, int.MaxValue)}";
+            Div.SetAttribute("visible", "false");
+            Div.SetAttribute("id", ID);
+            Body.AppendChild(Div);
+
+            string JS = $"document.getElementById('{ID}').innerHTML = eval(\"{Script.ToLiteral()}\");";
+
+            Browser.Document.InvokeScript("eval", new object[] { JS });
+            Application.DoEvents();
+            Div = Browser.Document.GetElementById(ID);
+            return Div.InnerHtml;
         }
 
         internal static void SetCookie(this WebBrowser Browser, string CookieName, string CookieValue) {
             var Scr = new string[] {
-            $"var name = '{CookieName}';",
-            $"var value = '{CookieValue}';",
-            "var expires = '';",
-            "if (days) {",
-            "    var date = new Date();",
-            "    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));",
-            "    expires = '; expires=' + date.toUTCString();",
-            "}",
-            "document.cookie = name + '=' + (value || '') + expires + '; path=/';"
-        };
+                $"var name = '{CookieName}';",
+                $"var value = '{CookieValue}';",
+                "var expires = '';",
+                "if (days) {",
+                "    var date = new Date();",
+                "    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));",
+                "    expires = '; expires=' + date.toUTCString();",
+                "}",
+                "document.cookie = name + '=' + (value || '') + expires + '; path=/';"
+            };
 
             string Script = string.Empty;
             foreach (var Line in Scr) {
@@ -140,6 +165,75 @@ namespace MangaUnhost {
                 return null;
 
             return Div.InnerHtml;
+        }
+
+
+        delegate object BeautifierDel(string Scr);
+        internal static string Beautifier(this string Script) {
+            if (Main.Instance.InvokeRequired)
+                return (string)Main.Instance.Invoke(new BeautifierDel((Scr) => Scr.Beautifier()), Script);
+
+            EnsureBrowserEmulationEnabled();
+
+            WebBrowser Browser = new WebBrowser();
+            Browser.ScriptErrorsSuppressed = true;
+            Browser.Navigate("https://beautifier.io");
+            Browser.WaitForLoad();
+
+            string JS = $"the.editor.setValue(\"{Script.ToLiteral()}\");beautify();the.editor.getValue();";
+
+            return Browser.Eval(JS);
+        }
+
+        internal static string ToLiteral(this string String, bool Quote = true, bool Apostrophe = false) {
+            string Result = string.Empty;
+            foreach (char c in String) {
+                switch (c) {
+                    case '\n':
+                        Result += "\\n";
+                        break;
+                    case '\\':
+                        Result += "\\\\";
+                        break;
+                    case '\t':
+                        Result += "\\t";
+                        break;
+                    case '\r':
+                        Result += "\\r";
+                        break;
+                    case '"':
+                        if (!Quote)
+                            goto default;
+                        Result += "\\\"";
+                        break;
+                    case '\'':
+                        if (!Apostrophe)
+                            goto default;
+                        Result += "\\'";
+                        break;
+                    default:
+                        Result += c;
+                        break;
+                }
+            }
+
+            return Result;
+        }
+
+        internal static void EnsureBrowserEmulationEnabled(bool Uninstall = false) {
+            try {
+                using (
+                    var rk = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION", true)
+                ) {
+                    if (!Uninstall) {
+                        dynamic value = rk.GetValue(Path.GetFileName(Application.ExecutablePath));
+                        if (value == null)
+                            rk.SetValue(Path.GetFileName(Application.ExecutablePath), (uint)11001, RegistryValueKind.DWord);
+                    } else
+                        rk.DeleteValue(Path.GetFileName(Application.ExecutablePath));
+                }
+            } catch {
+            }
         }
     }
 }

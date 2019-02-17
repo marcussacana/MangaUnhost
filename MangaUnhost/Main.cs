@@ -24,7 +24,7 @@ namespace MangaUnhost {
             new Host.HentaiCafe(),
             new Host.KissManga(),
             new Host.Mangahost(),
-            new Host.MangaHere(),
+            //new Host.MangaHere(),
             new Host.MangaKakalot(),
             new Host.MangaNelo(),
             new Host.NHentai(),
@@ -937,7 +937,6 @@ namespace MangaUnhost {
             Links.AddRange(ExtractTagLinks(Html, Domain, "value"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "src"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "href"));
-
 
             return Links.Distinct().ToArray();
         }

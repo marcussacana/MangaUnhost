@@ -88,7 +88,7 @@ namespace MangaUnhost.Host {
             Index += Prefix.Length;
 
             Name = GetName(URL.Substring(Index).Split('/')[0]);
-            Page = URL;
+            Page = URL.Split('?')[0];
         }
 
         public bool IsValidLink(string URL) {

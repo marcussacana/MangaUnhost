@@ -65,7 +65,24 @@ namespace MangaUnhost.Host {
                         }
                     }
                 }
+                if (PHTML.IndexOf("chko = chko") >= 0) {
+                    string html = PHTML.Substring(0, PHTML.IndexOf("chko = chko"));
+                    const string Prefix = "= [\"";
+                    html = html.Substring(html.LastIndexOf(Prefix) + Prefix.Length);
+                    string EncodedKey = html.Split('"')[0];
+                    while (EncodedKey != string.Empty) {
+                        char c = EncodedKey.First();
+                        EncodedKey = EncodedKey.Substring(1);
 
+                        if (c == '\\') {
+                            string Hex = EncodedKey.Substring(1, 2);
+                            EncodedKey = EncodedKey.Substring(3);
+                            Key += (char)Convert.ToByte(Hex, 16);
+                        } else {
+                            Key += c;
+                        }
+                    }
+                }
                 return Key;
             }
         }
@@ -106,7 +123,7 @@ namespace MangaUnhost.Host {
         }
 
         public string[] GetChapters() {
-            string HTML = this.HTML.Substring(this.HTML.IndexOf("<td>"));
+            string HTML = this.HTML.Substring(this.HTML.IndexOf("<tr style="));
             HTML = HTML.Substring(0, HTML.LastIndexOf("<td>"));
             string[] Links = Main.ExtractHtmlLinks(HTML, "kissmanga.com");
 

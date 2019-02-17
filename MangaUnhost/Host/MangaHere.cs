@@ -32,8 +32,8 @@ namespace MangaUnhost.Host {
         public string GetChapterName(string ChapterURL) {            
             const string Prefix = "/manga/";
 
-            string Name = ChapterURL.Substring(ChapterURL.TrimEnd('/').LastIndexOf('/')).Split('/')[1];
-
+            string Name = ChapterURL.Substring(ChapterURL.ToLower().IndexOf(Prefix));
+            Name = Name.Split('/')[3].TrimStart('v', '0') + '.' + Name.Split('/')[4].TrimStart('c', '0');
 
             try {
                 return double.Parse(Name.Trim('c', ' ').Replace(".", ",")).ToString().Replace(",", ".");
@@ -41,31 +41,47 @@ namespace MangaUnhost.Host {
                 return Name;
             }
         }
-
+        
         public string[] GetChapterPages(string HTML) {
-            string[] Elements = Main.GetElementsByAttribute(HTML, "value", "www.mangahere.cc/manga", ContainsOnly: true);
-            List<string> URLs = new List<string>();
+            string CID = HTML.Substring(HTML.IndexOf("chapterid")).Split(';')[0].Split('=')[1].Trim();
 
-            foreach (string Element in Elements) {
-                string[] Results = Main.ExtractHtmlLinks(Element, "www.mangahere.cc");
+            int Begin = HTML.IndexOf("eval");
+            int EndInd = HTML.IndexOf("</script>", Begin);
+            string Script = HTML.Substring(0, EndInd).Substring(Begin);
+            Script = Script.Beautifier();
 
-                if (!URLs.Contains(Results[0]) && !Results[0].EndsWith("featured.html"))
-                    URLs.Add(Results[0]);
+            string Key = string.Empty;
+            bool Swich = false;
+            foreach (string Part in Script.Split(';')[0].Split('\'')) {
+                Swich = !Swich;
+                if (Swich)
+                    continue;
+
+                if (Part.Length == 1)
+                    Key += Part;
             }
 
-            List<string> Pages = new List<string>();
-            foreach (string URL in URLs) {
-                string cHTML = Main.Download(URL, Encoding.UTF8);
-                string Element = Main.GetElementsByAttribute(cHTML, "onload", "loadImg", true).First();
-                Pages.Add(Main.ExtractHtmlLinks(Element, "www.mangahere.cc").First());
-            }
+            string Page = Main.GetElementsByAttribute(HTML, "name", "og:url").First();
+            Page = Main.GetElementAttribute(Page, "content");
+            Page = Page.Substring(0, Page.LastIndexOf("/"));
 
-            return Pages.ToArray();
+            string URL = $"{Page}/chapterfun.ashx?cid={CID}&page=2&key=";
+
+            string JS = Main.Download(URL, Encoding.UTF8);
+
+
+            throw new NotImplementedException();
+            //return Pages.ToArray();
         }
 
         public string[] GetChapters() {
-            int TOCBegin = HTML.IndexOf("<div class=\"detail_list\">");
-            string[] Elements = Main.GetElementsByClasses(HTML, TOCBegin, "color_0077");
+            int TOCBegin = HTML.IndexOf("bookmarkbt");
+            while (HTML[TOCBegin] != '<')
+                TOCBegin--;
+
+            int EndInd = HTML.IndexOf("detail-main-list-ad", TOCBegin);
+
+            string[] Elements = Main.GetElementsByAttribute(HTML.Substring(0, EndInd), "target", "_blank", StartIndex: TOCBegin);
 
             List<string> URLs = new List<string>();
             foreach (string Element in Elements) {
@@ -78,8 +94,8 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Title = Main.GetElementsByClasses(HTML, 0, "title_icon").First();
-            Title = Title.Split('>')[2].Split('<')[0];            
+            string Title = Main.GetElementsByClasses(HTML, 0, "detail-info-right-title-font").First();
+            Title = Title.Split('>')[1].Split('<')[0];            
             return Main.GetRawNameFromUrlFolder(Title, true);
         }
 
@@ -88,7 +104,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByContent(HTML, "img src=\"").First();
+            string Element = Main.GetElementsByClasses(HTML, 0, "detail-info-cover-img").First();
 
             return Main.ExtractHtmlLinks(Element, "www.mangahere.cc").First();
         }
