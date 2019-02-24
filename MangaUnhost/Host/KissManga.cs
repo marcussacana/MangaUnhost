@@ -41,47 +41,27 @@ namespace MangaUnhost.Host {
             return string.Join(".", (from x in Rst.Trim('.').Split('.') select x.TrimStart('0')).ToArray());
         }
 
+        private string _key = null;
         private string Key {
             get {
+                if (_key != null)
+                    return _key;
+
                 string Key = "mshsdf832nsdbash20asdm";
-                if (PHTML.IndexOf("chko") >= 0) {
-                    Key = string.Empty;
-                    string html = PHTML.Substring(0, PHTML.IndexOf("chko"));
-                    const string Prefix = "= [\"";
-                    html = html.Substring(html.LastIndexOf(Prefix) + Prefix.Length);
-                    string EncodedKey = html.Split('"')[0];
-                    while (EncodedKey != string.Empty) {
-                        char c = EncodedKey.First();
-                        EncodedKey = EncodedKey.Substring(1);
+                string[] Tags = Main.GetElementsByContent(PHTML, "chko", SkipJavascript: false);
+                string chko = string.Empty;
+                for (int i = 0; i < Tags.Length; i++) {
+                    Tags[i] = Tags[i].Split('>')[1].Split('<')[0].Trim();
+                    Tags[i] = Tags[i].Beautifier();
 
-                        if (c == '\\') {
-                            string Hex = EncodedKey.Substring(1, 2);
-                            EncodedKey = EncodedKey.Substring(3);
-                            Key += (char)Convert.ToByte(Hex, 16);
-                        } else {
-                            Key += c;
-                        }
-                    }
+                    if (Tags[i].Contains("chko = chko"))
+                        chko = chko + Tags[i].Split('\'')[1];
+                    else 
+                        chko = Tags[i].Split('\'')[1];
+                    
                 }
-                if (PHTML.IndexOf("chko = chko") >= 0) {
-                    string html = PHTML.Substring(0, PHTML.IndexOf("chko = chko"));
-                    const string Prefix = "= [\"";
-                    html = html.Substring(html.LastIndexOf(Prefix) + Prefix.Length);
-                    string EncodedKey = html.Split('"')[0];
-                    while (EncodedKey != string.Empty) {
-                        char c = EncodedKey.First();
-                        EncodedKey = EncodedKey.Substring(1);
-
-                        if (c == '\\') {
-                            string Hex = EncodedKey.Substring(1, 2);
-                            EncodedKey = EncodedKey.Substring(3);
-                            Key += (char)Convert.ToByte(Hex, 16);
-                        } else {
-                            Key += c;
-                        }
-                    }
-                }
-                return Key;
+                _key = chko == string.Empty ? Key : chko;
+                return _key;
             }
         }
 
@@ -89,6 +69,8 @@ namespace MangaUnhost.Host {
         private string IV = "a5 e8 e2 e9 c2 72 1b e0 a8 4a d6 60 c4 72 c1 f3";
         public string[] GetChapterPages(string HTML) {
             PHTML = HTML;
+            _key = null;
+
             List<string> Pages = new List<string>();
             const string Prefix = "wrapKA(\"";
             while (HTML.IndexOf(Prefix) >= 0) {
