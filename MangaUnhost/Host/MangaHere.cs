@@ -19,12 +19,12 @@ namespace MangaUnhost.Host {
 
         public string DemoUrl {
             get {
-                return "http://www.mangahere.cc/manga/konjiki_no_moji_tsukai_yuusha_yonin_ni_makikomareta_unique_cheat/";
+                return "https://www.mangahere.cc/manga/konjiki_no_moji_tsukai_yuusha_yonin_ni_makikomareta_unique_cheat/";
             }
         }
         public CookieContainer Cookies {
             get {
-                return null;
+                return new Cookie("isAdult", "1", "/", "www.mangahere.cc").ToContainer();
             }
         }
         public string UserAgent { get { return null; } }
@@ -33,7 +33,8 @@ namespace MangaUnhost.Host {
             const string Prefix = "/manga/";
 
             string Name = ChapterURL.Substring(ChapterURL.ToLower().IndexOf(Prefix));
-            Name = Name.Split('/')[3].TrimStart('v', '0') + '.' + Name.Split('/')[4].TrimStart('c', '0');
+            int Count = Name.Split('/').Length;
+            Name = Name.Split('/')[3].TrimStart('v', '0', 'c') + (Count > 5 ? '.' + Name.Split('/')[4].TrimStart('c', '0') : "");
 
             try {
                 return double.Parse(Name.Trim('c', ' ').Replace(".", ",")).ToString().Replace(",", ".");
@@ -41,7 +42,7 @@ namespace MangaUnhost.Host {
                 return Name;
             }
         }
-        
+
         public string[] GetChapterPages(string HTML) {
             string CID = HTML.Substring(HTML.IndexOf("chapterid")).Split(';')[0].Split('=')[1].Trim();
 
@@ -61,17 +62,37 @@ namespace MangaUnhost.Host {
                     Key += Part;
             }
 
+            string tCount = HTML.Substring(HTML.IndexOf("imagecount"));
+            tCount = tCount.Substring(0, tCount.IndexOf(";")).Split('=')[1];
+
+            int PageCount = int.Parse(tCount);
+
             string Page = Main.GetElementsByAttribute(HTML, "name", "og:url").First();
             Page = Main.GetElementAttribute(Page, "content");
             Page = Page.Substring(0, Page.LastIndexOf("/"));
 
-            string URL = $"{Page}/chapterfun.ashx?cid={CID}&page=2&key=";
 
-            string JS = Main.Download(URL, Encoding.UTF8);
+            List<string> Pages = new List<string>();
 
+            for (int i = 1; i <= PageCount;) {
+                string URL = $"{Page}/chapterfun.ashx?cid={CID}&page={i}&key={Key}";
+                string JS = Main.Download(URL, Encoding.UTF8, Referrer: Page, Cookies: Cookies).Beautifier();
+                JS += "\nreturn d.join('|');";
+                string Result = (string)JS.ExecuteJavascript();
+                if (Result == null)
+                    break;
 
-            throw new NotImplementedException();
-            //return Pages.ToArray();
+                string[] cPages = Result.Split('|');
+                for (int x = 0; x < cPages.Length; x++, i++) {
+                    string cPage = cPages[x];
+                    if (cPage.StartsWith("//"))
+                        cPage = "https:" + cPage;
+
+                    Pages.Add(cPage);
+                }
+            }
+            
+            return Pages.ToArray();
         }
 
         public string[] GetChapters() {
@@ -130,7 +151,7 @@ namespace MangaUnhost.Host {
         }
 
         public void LoadPage(string URL) {
-            HTML = Main.Download(URL, Encoding.UTF8);
+            HTML = Main.Download(URL, Encoding.UTF8, Cookies: Cookies);
         }
 
         public bool ValidateProxy(string Proxy) {

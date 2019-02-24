@@ -9,6 +9,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Web;
 using System.Windows.Forms;
 
 namespace MangaUnhost {
@@ -91,6 +92,19 @@ namespace MangaUnhost {
             return ret;
         }
 
+        
+        internal static object ExecuteJavascript(this string Javascript, bool Eval = false) {
+            if (Main.Instance.InvokeRequired)
+                return Main.Instance.Invoke(new MethodInvoker(() => Javascript.ExecuteJavascript(Eval)));
+
+            using (WebBrowser Browser = new WebBrowser()) {
+                Browser.ScriptErrorsSuppressed = true;
+                Browser.Navigate("about:blank");
+                Browser.WaitForLoad();
+                return Browser.InjectAndRunScript(Javascript);
+            }
+        }
+
         internal static string Eval(this WebBrowser Browser, string Script) {
             HtmlDocument Doc = Browser.Document;
             HtmlElement Body = Doc.GetElementsByTagName("body")[0];
@@ -168,10 +182,10 @@ namespace MangaUnhost {
         }
 
 
-        delegate object BeautifierDel(string Scr);
+        delegate object MethodInvoker();
         internal static string Beautifier(this string Script) {
             if (Main.Instance.InvokeRequired)
-                return (string)Main.Instance.Invoke(new BeautifierDel((Scr) => Scr.Beautifier()), Script);
+                return (string)Main.Instance.Invoke(new MethodInvoker(() => Script.Beautifier()));
 
             EnsureBrowserEmulationEnabled();
 
@@ -182,7 +196,16 @@ namespace MangaUnhost {
 
             string JS = $"the.editor.setValue(\"{Script.ToLiteral()}\");beautify();the.editor.getValue();";
 
-            return Browser.Eval(JS);
+            return HttpUtility.HtmlDecode(Browser.Eval(JS));
+        }
+
+        internal static CookieContainer ToContainer(this Cookie Cookie) => new Cookie[] { Cookie }.ToContainer();
+        internal static CookieContainer ToContainer(this Cookie[] Cookies) {
+            CookieContainer Container = new CookieContainer();
+            foreach (var Cookie in Cookies)
+                Container.Add(Cookie);
+
+            return Container;
         }
 
         internal static string ToLiteral(this string String, bool Quote = true, bool Apostrophe = false) {

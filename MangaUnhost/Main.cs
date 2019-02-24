@@ -24,7 +24,7 @@ namespace MangaUnhost {
             new Host.HentaiCafe(),
             new Host.KissManga(),
             new Host.Mangahost(),
-            //new Host.MangaHere(),
+            new Host.MangaHere(),
             new Host.MangaKakalot(),
             new Host.MangaNelo(),
             new Host.NHentai(),
@@ -401,22 +401,22 @@ namespace MangaUnhost {
         internal static string GetFileName(string Link) {
             return Path.GetFileNameWithoutExtension(Link).Trim(' ', '(', ')', '[', ']');
         }
-        internal static string Download(string URL, Encoding CodePage, int Tries = 4, bool AllowRedirect = true, string UserAgent = null, CookieContainer Cookies = null) {
-            return CodePage.GetString(Download(URL, Tries, AllowRedirect, UserAgent: UserAgent, Cookies: Cookies));
+        internal static string Download(string URL, Encoding CodePage, int Tries = 4, bool AllowRedirect = true, string UserAgent = null, string Referrer = null, CookieContainer Cookies = null) {
+            return CodePage.GetString(Download(URL, Tries, AllowRedirect, UserAgent: UserAgent, Referrer: Referrer, Cookies: Cookies));
         }
-        internal static void Download(string URL, string SaveAs, int Tries = 4, bool AllowRedirect = true, string UserAgent = null, CookieContainer Cookies = null) {
-            byte[] Content = Download(URL, Tries, AllowRedirect, UserAgent: UserAgent, Cookies: Cookies);
+        internal static void Download(string URL, string SaveAs, int Tries = 4, bool AllowRedirect = true, string UserAgent = null, string Referrer = null, CookieContainer Cookies = null) {
+            byte[] Content = Download(URL, Tries, AllowRedirect, UserAgent: UserAgent, Referrer: Referrer, Cookies: Cookies);
             File.WriteAllBytes(SaveAs, Content);
         }
-        internal static byte[] Download(string URL, int tries = 4, bool AllowRedirect = true, string UserAgent = null, CookieContainer Cookies = null) {
+        internal static byte[] Download(string URL, int tries = 4, bool AllowRedirect = true, string UserAgent = null, string Referrer = null, CookieContainer Cookies = null) {
             MemoryStream MEM = new MemoryStream();
-            Download(URL, MEM, tries, ThrownRedirect: !AllowRedirect, UserAgent: UserAgent, Cookies: Cookies);
+            Download(URL, MEM, tries, ThrownRedirect: !AllowRedirect, UserAgent: UserAgent, Referrer: Referrer, Cookies: Cookies);
             byte[] DATA = MEM.ToArray();
             MEM.Close();
             return DATA;
         }
 
-        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false, string UserAgent = null, CookieContainer Cookies = null) {
+        internal static void Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false, string UserAgent = null, string Referrer = null, CookieContainer Cookies = null) {
             string CurrentProxy = null;
             try {
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
@@ -443,6 +443,9 @@ namespace MangaUnhost {
                     Request.UserAgent = Tools.UserAgent;
                 else
                     Request.UserAgent = UserAgent;
+
+                if (Referrer != null)
+                    Request.Referer = Referrer;
 
                 Request.UseDefaultCredentials = true;
                 Request.Method = "GET";
@@ -486,7 +489,7 @@ namespace MangaUnhost {
                     Tools.BlackListProxy(CurrentProxy);
 
                 Thread.Sleep(1000);
-                Download(URL, Output, tries - 1, ProxyChanged, ThrownRedirect, UserAgent, Cookies);
+                Download(URL, Output, tries - 1, ProxyChanged, ThrownRedirect, UserAgent, Referrer, Cookies);
             }
         }
 

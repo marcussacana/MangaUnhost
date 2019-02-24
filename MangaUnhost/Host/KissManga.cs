@@ -16,9 +16,7 @@ namespace MangaUnhost.Host {
         public bool NeedsProxy { get { return false; } }
         public CookieContainer Cookies {
             get {
-                var Cookie = new CookieContainer();
-                Cookie.Add(new Cookie(CookieName, this.Cookie, "/", Host));
-                return Cookie;
+                return new Cookie(CookieName, Cookie, "/", Host).ToContainer();
             }
         }
 
