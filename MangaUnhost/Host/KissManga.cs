@@ -51,7 +51,7 @@ namespace MangaUnhost.Host {
                 string[] Tags = Main.GetElementsByContent(PHTML, "chko", SkipJavascript: false);
                 string chko = string.Empty;
                 for (int i = 0; i < Tags.Length; i++) {
-                    Tags[i] = Tags[i].Split('>')[1].Split('<')[0].Trim();
+                    Tags[i] = Tags[i].Between('>', '<').Trim();
                     Tags[i] = Tags[i].Beautifier();
 
                     if (Tags[i].Contains("chko = chko"))
@@ -111,7 +111,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            return HTML.Substring(HTML.IndexOf("<a Class=\"bigChar\" href=\"")).Split('>')[1].Split('<')[0];
+            return HTML.Substring(HTML.IndexOf("<a Class=\"bigChar\" href=\"")).Between('>', '<');
         }
 
         public string GetName(string CodedName) {

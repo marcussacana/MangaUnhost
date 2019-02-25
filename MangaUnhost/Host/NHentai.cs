@@ -36,14 +36,14 @@ namespace MangaUnhost.Host {
         public string[] GetChapterPages(string HTML) {
             HTML = this.HTML;
             HTML = HTML.Substring(HTML.IndexOf("<div class=\"thumb-container\">"));
-            string[] Elements = Main.GetElementsByClasses(HTML, 0, "gallerythumb");
+            string[] Elements = Main.GetElementsByClasses(HTML, "gallerythumb");
 
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
                 string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
                 string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false);
                 
-                Page = Main.GetElementsByClasses(pHTML, 0, "fit-horizontal").First();
+                Page = Main.GetElementsByClasses(pHTML, "fit-horizontal").First();
                 Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
             }
 

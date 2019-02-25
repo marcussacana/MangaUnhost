@@ -41,7 +41,7 @@ namespace MangaUnhost.Host {
         }
 
         public string[] GetChapterPages(string HTML) {
-            string[] Elements = Main.GetElementsByClasses(HTML, 0, "chapter-img");
+            string[] Elements = Main.GetElementsByClasses(HTML, "chapter-img");
 
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
@@ -59,7 +59,7 @@ namespace MangaUnhost.Host {
         }
 
         public string[] GetChapters() {
-            string[] Elements = Main.GetElementsByClasses(HTML, 0, "chapter");
+            string[] Elements = Main.GetElementsByClasses(HTML, "chapter");
 
             string[] Links = new string[Elements.Length];
             for (int i = 0; i < Links.Length; i++)
@@ -70,9 +70,9 @@ namespace MangaUnhost.Host {
 
         public string GetFullName() {
             int Index = HTML.IndexOf("<meta itemprop=\"position\" content=\"2\">");
-            string Element = Main.GetElementsByAttribute(HTML, "itemprop", "name", true, false, Index).First();
+            string Element = Main.GetElementsByAttribute(HTML, "itemprop", "name", true, false, false, Index).First();
 
-            string Name = HttpUtility.HtmlDecode(Element.Split('>')[1].Split('<')[0]);
+            string Name = HttpUtility.HtmlDecode(Element.Between('>', '<'));
 
             return Name.Replace("- Raw", "").Trim();
         }
@@ -90,7 +90,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "hide").First();
+            string Element = Main.GetElementsByClasses(HTML, "hide").First();
 
             string Link = Main.ExtractHtmlLinks(Element, "rawlh.com").First();
 

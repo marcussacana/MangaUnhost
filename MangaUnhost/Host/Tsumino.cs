@@ -121,7 +121,7 @@ namespace MangaUnhost.Host {
                         Size = new System.Drawing.Size(500, 600),
                         ShowIcon = false,
                         ShowInTaskbar = false,
-                        Text = "Resolva o Captcha",
+                        Text = "Solve the Captcha",
                         FormBorderStyle = FormBorderStyle.FixedToolWindow
                     };
                     var Browser = new WebBrowser() {
@@ -131,7 +131,7 @@ namespace MangaUnhost.Host {
                         AllowWebBrowserDrop = false
                     };
                     var Message = new Label() {
-                        Text = "Processando...",
+                        Text = "Processing...",
                         Font = new System.Drawing.Font("Consola", 24),
                         Dock = DockStyle.Fill,
                         TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -141,7 +141,7 @@ namespace MangaUnhost.Host {
 
                     Browser.Navigate($"https://www.tsumino.com/Read/Auth/{ID}");
                     Browser.WaitForLoad();
-                    Browser.InjectAndRunScript("var Button = document.getElementsByClassName('book-read-button')[0];Button.setAttribute('value', 'Resolva o Captcha...');Button.disabled = true;");
+                    Browser.InjectAndRunScript("var Button = document.getElementsByClassName('book-read-button')[0];Button.setAttribute('value', 'Solve the Captcha...');Button.disabled = true;");
                     Form.Show(Main);
 
                     int Check = 0;
@@ -244,7 +244,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "book-title").First();
+            string Element = Main.GetElementsByClasses(HTML, "book-title").First();
 
             string Name = Element.Split('>')[1].Split('/')[0].Split('<')[0].Trim();
 
@@ -260,7 +260,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "book-page-image", "img-responsive").First();
+            string Element = Main.GetElementsByClasses(HTML, "book-page-image", "img-responsive").First();
 
             string Link = Main.ExtractHtmlLinks(Element, "www.tsumino.com").First();
 

@@ -497,7 +497,10 @@ namespace MangaUnhost {
             }
         }
 
-        internal static string[] GetElementsByClasses(string HTML, int BeginIndex, params string[] Class) {
+        internal static string[] GetElementsByClasses(string HTML, params string[] Class) => GetElementsByClasses(HTML, false, 0, Class);
+        internal static string[] GetElementsByClasses(string HTML, int BeginIndex, params string[] Class) => GetElementsByClasses(HTML, false, BeginIndex, Class);
+        internal static string[] GetElementsByClasses(string HTML, bool Full, params string[] Class) => GetElementsByClasses(HTML, Full, 0, Class);
+        internal static string[] GetElementsByClasses(string HTML, bool Full, int BeginIndex, params string[] Class) {
             if (Class == null || Class.Length == 0)
                 return new string[0];
 
@@ -506,26 +509,28 @@ namespace MangaUnhost {
             for (int i = 0; i < Elements.Length; i++) {
                 if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
                     continue;
-                string Element = GetElementContent(Elements, i);
+
+                string Element = Full ? GetElementFullContent(Elements, i) : GetElementContent(Elements, i);
 
                 if (!Element.ToLower().Contains("class"))
                     continue;
 
                 string[] Names = GetElementAttribute(Element, "class").Split(' ');
                 bool Equal = EqualsArray(Class, Names);
-                if (Equal)
+                if (Equal) 
                     Tags.Add(Element);
+                
             }
             return Tags.ToArray();
         }
 
-        internal static string[] GetElementsByAttribute(string HTML, string Attribute, string Value, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
+        internal static string[] GetElementsByAttribute(string HTML, string Attribute, string Value, bool StartsWithOnly = false, bool ContainsOnly = false, bool Full = false, int StartIndex = 0) {
             List<string> Tags = new List<string>();
             string[] Elements = GetElements(HTML, StartIndex, true);
             for (int i = 0; i < Elements.Length; i++) {
                 if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
                     continue;
-                string Element = GetElementContent(Elements, i);
+                string Element = Full ? GetElementFullContent(Elements, i) : GetElementContent(Elements, i);
                 if (!Element.ToLower().Contains(Attribute.ToLower()))
                     continue;
 
@@ -536,7 +541,7 @@ namespace MangaUnhost {
             return Tags.ToArray();
         }
 
-        internal static string[] GetElementsByContent(string HTML, string Content, int StartIndex = 0, bool SkipJavascript = true) {
+        internal static string[] GetElementsByContent(string HTML, string Content, int StartIndex = 0, bool SkipJavascript = true, bool Full = false) {
             List<string> Elms = new List<string>();
 
             HTML = HTML.Substring(StartIndex);
@@ -554,9 +559,9 @@ namespace MangaUnhost {
             for (int i = 0; i < Elements.Length; i++) {
                 if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
                     continue;
-                string FullElm = GetElementContent(Elements, i);
-                if (FullElm.Contains(Content)) {
-                    LastValid = FullElm;
+                string Elm = Full ? GetElementFullContent(Elements, i) : GetElementContent(Elements, i);
+                if (Elm.Contains(Content)) {
+                    LastValid = Elm;
                 } else if (!string.IsNullOrWhiteSpace(LastValid)) {
                     Elms.Add(LastValid);
                     LastValid = string.Empty;
@@ -582,7 +587,7 @@ namespace MangaUnhost {
                 if (GetChildLevel(Elements, i) == TargetLevel)
                     ElementIndex = i;
             }
-
+            
             for (int x = ElementIndex; x < Elements.Length; x++) {
                 Element += Elements[x];
                 int Level = GetChildLevel(Elements, x);
@@ -594,6 +599,49 @@ namespace MangaUnhost {
                     if (NxLevel > TargetLevel && Elements[x + 1].StartsWith("</")) {
                         Element += Elements[x + 1];
                         break;
+                    }
+                }
+            }
+
+            return Element;
+        }
+
+        internal static string GetElementFullContent(string[] Elements, int ElementIndex) {
+            if (ElementIndex >= Elements.Length)
+                return string.Empty;
+
+            string Element = string.Empty;
+            int TargetLevel = GetChildLevel(Elements, ElementIndex);
+
+            if (!Elements[ElementIndex].StartsWith("<") && !Elements[ElementIndex].StartsWith("</")) {
+                int i = ElementIndex;
+                while (i >= 0 && !Elements[i].StartsWith("<") && !Elements[i].StartsWith("</")) {
+                    i--;
+                }
+
+                if (GetChildLevel(Elements, i) == TargetLevel)
+                    ElementIndex = i;
+            }
+
+            string Tag = Elements[ElementIndex].Split(' ')[0].Trim('>', '<').ToLower();
+            for (int x = ElementIndex, d = 0; x < Elements.Length; x++) {
+                if (Elements[x].ToLower().StartsWith($"<{Tag}"))
+                    d++;
+                Element += Elements[x];
+                int Level = GetChildLevel(Elements, x);
+                if (Level == TargetLevel && x != ElementIndex) {
+                    break;
+                }
+                if (x + 1 < Elements.Length) {
+                    int NxLevel = GetChildLevel(Elements, x + 1);
+                    if (NxLevel > TargetLevel && Elements[x + 1].StartsWith("</")) {
+                        if (Elements[x + 1].ToLower() == $"</{Tag}>") {
+                            d--;
+                            if (d == 0) {
+                                Element += Elements[x + 1];
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -1208,7 +1256,7 @@ namespace MangaUnhost {
                                 Atention |= SuspectBadName(ChapterName);
                                 break;
                             case 6:
-                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies));
+                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies));
                                 foreach (string Page in Pages) {
                                     if (string.IsNullOrEmpty(Page) || !Uri.IsWellFormedUriString(Page, UriKind.Absolute))
                                         Online = false;

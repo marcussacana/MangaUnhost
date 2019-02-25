@@ -115,8 +115,8 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string Title = Main.GetElementsByClasses(HTML, 0, "detail-info-right-title-font").First();
-            Title = Title.Split('>')[1].Split('<')[0];            
+            string Title = Main.GetElementsByClasses(HTML, "detail-info-right-title-font").First();
+            Title = Title.Between('>', '<');
             return Main.GetRawNameFromUrlFolder(Title, true);
         }
 
@@ -125,7 +125,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "detail-info-cover-img").First();
+            string Element = Main.GetElementsByClasses(HTML, "detail-info-cover-img").First();
 
             return Main.ExtractHtmlLinks(Element, "www.mangahere.cc").First();
         }

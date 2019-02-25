@@ -65,10 +65,10 @@ namespace MangaUnhost.Host {
         }
 
         public string GetFullName() {
-            string[] Rsts = Main.GetElementsByClasses(HTML, 0, "name", "bigger");
+            string[] Rsts = Main.GetElementsByClasses(HTML, "name", "bigger");
             string Element = Rsts.First();
 
-            return Element.Split('>')[1].Split('<')[0];
+            return Element.Between('>', '<');
         }
 
         public string GetName(string CodedName) {

@@ -45,21 +45,21 @@ namespace MangaUnhost.Host {
 
             for (int i = 0; i < Links.Length; i++) {
                 string pHTML = Main.Download(Links[i], Encoding.UTF8);
-                Links[i] = Main.ExtractHtmlLinks(Main.GetElementsByClasses(pHTML, 0, "open").First(), "hentai.cafe").First();
+                Links[i] = Main.ExtractHtmlLinks(Main.GetElementsByClasses(pHTML, "open").First(), "hentai.cafe").First();
             }
 
             return Links;
         }
 
         public string[] GetChapters() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "x-btn", "x-btn-flat", "x-btn-rounded", "x-btn-large").First();
+            string Element = Main.GetElementsByClasses(HTML, "x-btn", "x-btn-flat", "x-btn-rounded", "x-btn-large").First();
             return new string[] { Main.ExtractHtmlLinks(Element, "hentai.cafe").First() };
         }
 
         public string GetFullName() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "entry-title").First();
-
-            string Name = Element.Split('>')[1].Split('<')[0];
+            string Element = Main.GetElementsByClasses(HTML, "entry-title").First();
+        
+            string Name = Element.Between('>', '<');
             string Result = string.Empty;
 
             bool InTag = false;

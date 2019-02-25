@@ -18,10 +18,18 @@ namespace MangaUnhost.Host {
         public string UserAgent => null;
 
         public string GetChapterName(string ChapterURL) {
-            string[] Parts = ChapterURL.Split('-');
-            string Name = string.Join("-", Parts.Take(Parts.Length - 1));
-            Name = Name.Split('-').Last();
-            return Name;
+            if (ChapterMap.ContainsKey(ChapterURL.ToLower())) {
+                try {
+                    string Name = ChapterMap[ChapterURL.ToLower()];
+                    Name = Name.Substring(Name.IndexOf("</span>"));
+
+                    Name = Name.Between('>', '<').Trim().Between(' ', ':');
+
+                    return Name;
+                } catch { }
+            }
+
+            return ChapterURL.Substring(ChapterURL.ToLower().IndexOf("/chapter-")).Split('-').Last();
         }
 
         public string[] GetChapterPages(string HTML) {
@@ -32,12 +40,20 @@ namespace MangaUnhost.Host {
             return Main.ExtractHtmlLinks(PageList, "mangahasu.se").Distinct().ToArray();
         }
 
+        Dictionary<string, string> ChapterMap = new Dictionary<string, string>();
         public string[] GetChapters() {
             string HTML = this.HTML.Substring(this.HTML.IndexOf("list-chapter"));
 
             HTML = HTML.Substring(0, HTML.IndexOf("</div>"));
 
-            return Main.ExtractHtmlLinks(HTML, "mangahasu.se");
+            string[] Links = Main.ExtractHtmlLinks(HTML, "mangahasu.se");
+            string[] Names = Main.GetElementsByClasses(HTML, true, Class: "name");
+
+            ChapterMap = new Dictionary<string, string>();
+            for (int i = 0; i < Links.Length; i++)
+                ChapterMap[Links[i].ToLower()] = Names[i];
+
+            return Links;
         }
 
         public string GetFullName() {

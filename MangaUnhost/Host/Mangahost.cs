@@ -56,7 +56,7 @@ namespace MangaUnhost.Host {
         }
 
         public string GetPosterUrl() {
-            string Element = Main.GetElementsByClasses(HTML, 0, "pull-left", "thumbnail")[0];
+            string Element = Main.GetElementsByClasses(HTML, "pull-left", "thumbnail")[0];
             return Main.GetElementAttribute(Element, "src");
         }
 
@@ -139,7 +139,7 @@ namespace MangaUnhost.Host {
             try {
                 foreach (string Element in Elements) {
                     string RealTag = Main.GetElementAttribute(Element, "data-content");
-                    string Tag = Main.GetElementsByClasses(RealTag, 0, "btn", "btn-success", "btn-white", "pull-left", "btn-small")[0];
+                    string Tag = Main.GetElementsByClasses(RealTag, "btn", "btn-success", "btn-white", "pull-left", "btn-small")[0];
                     string URL = Main.GetElementAttribute(Tag, "href");
                     Chapters.Add(URL);
                 }
@@ -148,7 +148,7 @@ namespace MangaUnhost.Host {
             }
 
             try {
-                Elements = Main.GetElementsByClasses(HTML, 0, "capitulo");
+                Elements = Main.GetElementsByClasses(HTML, "capitulo");
                 foreach (string Element in Elements) {
                     string CP = Main.GetElementAttribute(Element, "href");
                     if (string.IsNullOrWhiteSpace(CP) || Chapters.Contains(CP))
