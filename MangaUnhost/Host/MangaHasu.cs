@@ -29,13 +29,13 @@ namespace MangaUnhost.Host {
 
             string PageList = string.Join("", Elements);
 
-            return Main.ExtractHtmlLinks(PageList, "mangahasu.se");
+            return Main.ExtractHtmlLinks(PageList, "mangahasu.se").Distinct().ToArray();
         }
 
         public string[] GetChapters() {
             string HTML = this.HTML.Substring(this.HTML.IndexOf("list-chapter"));
 
-            HTML = HTML.Substring(0, this.HTML.IndexOf("</div>"));
+            HTML = HTML.Substring(0, HTML.IndexOf("</div>"));
 
             return Main.ExtractHtmlLinks(HTML, "mangahasu.se");
         }

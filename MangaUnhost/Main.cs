@@ -130,13 +130,13 @@ namespace MangaUnhost {
 
         string OpenMangaUrl = null;
         private void ShowManga(string Name, string Page) {
-            Status = "Conectando...";
+            Status = "Connecting...";
 
             OpenMangaUrl = Page;
             AtualHost.LoadPage(Page);
             Name = HttpUtility.HtmlDecode(AtualHost.GetFullName());
 
-            Status = "Obtendo informações do: " + Name;
+            Status = "Downloading Info of the: " + Name;
             PictureURL = AtualHost.GetPosterUrl();
 
             Invoke(new Invoker(ButtonLst.Controls.Clear));
@@ -158,7 +158,7 @@ namespace MangaUnhost {
                     ButtonLst.Controls.Add(Button);
                 }));
 
-            Status = "Aguardando Link...";
+            Status = "Waiting Url...";
         }
 
         internal static string ClearFileName(string Name) {
@@ -180,7 +180,7 @@ namespace MangaUnhost {
             }
 
 
-            string Text = "Capítulo " + ID;
+            string Text = "Chapter " + ID;
             iTalk_Button_1 Button = new iTalk_Button_1() {
                 Text = Text
             };
@@ -198,7 +198,7 @@ namespace MangaUnhost {
         List<Action> Actions = new List<Action>();
         private Control RegisterGetAll() {
             iTalk_Button_1 Button = new iTalk_Button_1();
-            Button.Text = "Baixar Tudo";
+            Button.Text = "Download All";
             Button.Click += (a, b) => {
                 new Thread(() => {
                     Action[] Chapters = Actions.ToArray(); 
@@ -219,7 +219,7 @@ namespace MangaUnhost {
                 NID = "0";
 
 
-            Status = string.Format("Baixando Informações do Capítulo {0}...", ID);
+            Status = string.Format("Downloading Info of the Chapter {0}...", ID);
             string Manga = URL;
 
             string[] Removes = new string[] { "?", "/", "\\", "*", ":", "\"", "|", "<", ">" };
@@ -233,7 +233,7 @@ namespace MangaUnhost {
             string BookPath = CapDir + "Capítulos\\" + CapName + ".html";
 
             if ((File.Exists(CapDir + CapName + ".html") || File.Exists(BookPath)) && ckResume.Checked) {
-                Status = "Aguardando Link...";
+                Status = "Waiting Url...";
                 return;
             }
 
@@ -241,8 +241,9 @@ namespace MangaUnhost {
             string[] Pages = AtualHost.GetChapterPages(HTML);
             int Pag = 0;
 
-            if (!Directory.Exists(WorkDir))
+            if (!Directory.Exists(WorkDir)) {
                 Directory.CreateDirectory(WorkDir);
+            }
 
             if (File.Exists(CapDir + "Online.url"))
                 File.Delete(CapDir + "Online.url");
@@ -257,7 +258,7 @@ namespace MangaUnhost {
             TextWriter FileList = File.CreateText(WorkDir + "Pages.lst");
             foreach (string Page in Pages) {
                 Application.DoEvents();
-                Status = string.Format("Baixando Capítulo {2} ({0}/{1})...", Pag++, Pages.Length, ID);
+                Status = string.Format("Downloading Chapter {2} ({0}/{1})...", Pag++, Pages.Length, ID);
                 string SaveAs = WorkDir + Pag.ToString("D3") + Path.GetExtension(Page.Split('?')[0]);
                 if (string.IsNullOrEmpty(Path.GetExtension(SaveAs)))
                     SaveAs += ".png";
@@ -270,10 +271,12 @@ namespace MangaUnhost {
 
             if (ckGenReader.Checked) {
                 GenerateBook(WorkDir, CapDir, NID, CapName, BookPath);
-                AppendIndex(CapDir, CapName);
+
+                if (NID != null)
+                    AppendIndex(CapDir, CapName);
             }
 
-            Status = "Aguardando Link...";
+            Status = "Waiting Url...";
         }
 
         private string DownloadImage(string Url, string SaveAs) {
@@ -705,17 +708,17 @@ namespace MangaUnhost {
 
         private void UpDot_Tick(object sender, EventArgs e) {
             switch (Status.ToLower()) {
-                case "aguardando link...":
-                    Status = "Aguardando Link   ";
+                case "waiting url...":
+                    Status = "Waiting Url   ";
                     break;
-                case "aguardando link   ":
-                    Status = "Aguardando Link.  ";
+                case "waiting url   ":
+                    Status = "Waiting Url.  ";
                     break;
-                case "aguardando link.  ":
-                    Status = "Aguardando Link.. ";
+                case "waiting url.  ":
+                    Status = "Waiting Url.. ";
                     break;
-                case "aguardando link.. ":
-                    Status = "Aguardando Link...";
+                case "waiting url.. ":
+                    Status = "Waiting Url...";
                     break;
             }
         }
@@ -735,7 +738,7 @@ namespace MangaUnhost {
         }
 
         private void OnFocused(object sender, EventArgs e) {
-            string Def = "Cole seu link aqui";
+            string Def = "Paste your Url Here";
             if (tbNovelLink.Text == Def)
                 tbNovelLink.Text = "";
         }
@@ -1035,7 +1038,7 @@ namespace MangaUnhost {
                 string MainHtml = Download(tbNovelLink.Text, Encoding.UTF8);
 
                 if (Clipboard.GetText().ToLower().Contains("html")) {
-                    if (MessageBox.Show("Processar HTML da área de transferência?", "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    if (MessageBox.Show("Process the HTML in the clipboard?", "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         MainHtml = Clipboard.GetText();
                 }
 
@@ -1093,7 +1096,7 @@ namespace MangaUnhost {
         }
 
         private void DelItemsClicked(object sender, EventArgs e) {
-            if (MessageBox.Show("Tem certeza que deseja remover os itens selecionados da lista?", "Atenção", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) != DialogResult.Yes)
+            if (MessageBox.Show("Are you sure to remove all entries of the list?", "Atenção", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) != DialogResult.Yes)
                 return;
 
             foreach (int I in ListView.SelectedIndices.Cast<int>()) {
@@ -1104,7 +1107,7 @@ namespace MangaUnhost {
         }
 
         private void ForceDephClicked(object sender, EventArgs e) {
-            if (MessageBox.Show("Tem certeza que deseja limitar a profundidade do caminho apenas as dos items atualmente selecionados na lista?", "Atenção", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) != DialogResult.Yes)
+            if (MessageBox.Show("Are you sure you want to limit the depth of the path only to the currently selected items in the list?", "Atenção", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) != DialogResult.Yes)
                 return;
 
             foreach (int I in ListView.SelectedIndices.Cast<int>()) {
@@ -1229,6 +1232,7 @@ namespace MangaUnhost {
             }
             MessageBox.Show("Host test cleared", "MangaUnhost Debugger");
         }
+        
 
         private static bool SuspectBadName(string Name) {
             if (Name.Contains("(") && Name.Contains(","))

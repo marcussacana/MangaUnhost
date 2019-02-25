@@ -24,7 +24,6 @@
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             this.CheckUrl = new System.Windows.Forms.Timer(this.components);
             this.iTalk_ThemeContainer1 = new MangaUnhost.iTalk_ThemeContainer();
             this.iTalk_ControlBox1 = new MangaUnhost.iTalk_ControlBox();
@@ -73,7 +72,6 @@
             this.BntTestHosts = new MangaUnhost.iTalk_Button_1();
             this.SupportList = new System.Windows.Forms.ListView();
             this.label1 = new System.Windows.Forms.Label();
-            this.iTalk_Label2 = new MangaUnhost.iTalk_Label();
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
@@ -169,11 +167,11 @@
             this.ckResume.AutoSize = true;
             this.ckResume.Checked = true;
             this.ckResume.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckResume.Location = new System.Drawing.Point(497, 367);
+            this.ckResume.Location = new System.Drawing.Point(498, 367);
             this.ckResume.Name = "ckResume";
-            this.ckResume.Size = new System.Drawing.Size(124, 17);
+            this.ckResume.Size = new System.Drawing.Size(123, 17);
             this.ckResume.TabIndex = 9;
-            this.ckResume.Text = "Resumir Download";
+            this.ckResume.Text = "Resume Download";
             this.ckResume.UseVisualStyleBackColor = true;
             // 
             // ckCaptureClipboard
@@ -182,11 +180,11 @@
             this.ckCaptureClipboard.AutoSize = true;
             this.ckCaptureClipboard.Checked = true;
             this.ckCaptureClipboard.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckCaptureClipboard.Location = new System.Drawing.Point(299, 367);
+            this.ckCaptureClipboard.Location = new System.Drawing.Point(275, 367);
             this.ckCaptureClipboard.Name = "ckCaptureClipboard";
-            this.ckCaptureClipboard.Size = new System.Drawing.Size(100, 17);
+            this.ckCaptureClipboard.Size = new System.Drawing.Size(113, 17);
             this.ckCaptureClipboard.TabIndex = 8;
-            this.ckCaptureClipboard.Text = "Capturar Links";
+            this.ckCaptureClipboard.Text = "Watch Clipboard";
             this.ckCaptureClipboard.UseVisualStyleBackColor = true;
             this.ckCaptureClipboard.CheckedChanged += new System.EventHandler(this.CaptureClipboardChanged);
             // 
@@ -196,11 +194,11 @@
             this.ckGenReader.AutoSize = true;
             this.ckGenReader.Checked = true;
             this.ckGenReader.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckGenReader.Location = new System.Drawing.Point(405, 367);
+            this.ckGenReader.Location = new System.Drawing.Point(394, 367);
             this.ckGenReader.Name = "ckGenReader";
-            this.ckGenReader.Size = new System.Drawing.Size(86, 17);
+            this.ckGenReader.Size = new System.Drawing.Size(98, 17);
             this.ckGenReader.TabIndex = 7;
-            this.ckGenReader.Text = "Gerar Leitor";
+            this.ckGenReader.Text = "Create Reader";
             this.ckGenReader.UseVisualStyleBackColor = true;
             // 
             // MainPanel
@@ -267,7 +265,7 @@
             this.StatusLBL.Name = "StatusLBL";
             this.StatusLBL.Size = new System.Drawing.Size(621, 14);
             this.StatusLBL.TabIndex = 4;
-            this.StatusLBL.Text = "Aguardando Link...";
+            this.StatusLBL.Text = "Waiting Url...";
             this.StatusLBL.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // iTalk_Label1
@@ -281,7 +279,7 @@
             this.iTalk_Label1.Name = "iTalk_Label1";
             this.iTalk_Label1.Size = new System.Drawing.Size(108, 19);
             this.iTalk_Label1.TabIndex = 2;
-            this.iTalk_Label1.Text = "Minha Biblioteca:";
+            this.iTalk_Label1.Text = "My Library:";
             // 
             // TBSaveAs
             // 
@@ -337,7 +335,7 @@
             this.Secrets.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.traduzirParaToolStripMenuItem});
             this.Secrets.Name = "Secrets";
-            this.Secrets.Size = new System.Drawing.Size(143, 26);
+            this.Secrets.Size = new System.Drawing.Size(136, 26);
             // 
             // traduzirParaToolStripMenuItem
             // 
@@ -345,8 +343,8 @@
             this.TlLang,
             this.AutoTl});
             this.traduzirParaToolStripMenuItem.Name = "traduzirParaToolStripMenuItem";
-            this.traduzirParaToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
-            this.traduzirParaToolStripMenuItem.Text = "Traduzir Para";
+            this.traduzirParaToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.traduzirParaToolStripMenuItem.Text = "Translate to";
             // 
             // TlLang
             // 
@@ -358,8 +356,8 @@
             // 
             this.AutoTl.CheckOnClick = true;
             this.AutoTl.Name = "AutoTl";
-            this.AutoTl.Size = new System.Drawing.Size(160, 22);
-            this.AutoTl.Text = "Ligar";
+            this.AutoTl.Size = new System.Drawing.Size(180, 22);
+            this.AutoTl.Text = "Enable";
             // 
             // ProgressBar
             // 
@@ -450,7 +448,7 @@
             this.GroupConfig.Padding = new System.Windows.Forms.Padding(5, 28, 5, 5);
             this.GroupConfig.Size = new System.Drawing.Size(625, 150);
             this.GroupConfig.TabIndex = 2;
-            this.GroupConfig.Text = "Configuração de Filtro";
+            this.GroupConfig.Text = "Filter Settings";
             // 
             // cbSaveImages
             // 
@@ -462,7 +460,7 @@
             this.cbSaveImages.Name = "cbSaveImages";
             this.cbSaveImages.Size = new System.Drawing.Size(120, 15);
             this.cbSaveImages.TabIndex = 13;
-            this.cbSaveImages.Text = "Imagens";
+            this.cbSaveImages.Text = "Images";
             // 
             // MergeSpan
             // 
@@ -474,7 +472,7 @@
             this.MergeSpan.Name = "MergeSpan";
             this.MergeSpan.Size = new System.Drawing.Size(120, 15);
             this.MergeSpan.TabIndex = 12;
-            this.MergeSpan.Text = "Mesclar Spans";
+            this.MergeSpan.Text = "Merge Spans";
             // 
             // iTalk_Label6
             // 
@@ -516,7 +514,7 @@
             this.BntListLink.Name = "BntListLink";
             this.BntListLink.Size = new System.Drawing.Size(99, 40);
             this.BntListLink.TabIndex = 9;
-            this.BntListLink.Text = "Listar Links";
+            this.BntListLink.Text = "List all Links";
             this.BntListLink.TextAlignment = System.Drawing.StringAlignment.Center;
             this.BntListLink.Click += new System.EventHandler(this.BntListLink_Click);
             // 
@@ -532,7 +530,7 @@
             this.BntDumpText.Name = "BntDumpText";
             this.BntDumpText.Size = new System.Drawing.Size(137, 40);
             this.BntDumpText.TabIndex = 8;
-            this.BntDumpText.Text = "Dumpar Texto";
+            this.BntDumpText.Text = "Dump Text";
             this.BntDumpText.TextAlignment = System.Drawing.StringAlignment.Center;
             this.BntDumpText.Click += new System.EventHandler(this.BntDumpText_Click);
             // 
@@ -548,7 +546,7 @@
             this.iTalk_GroupBox1.Padding = new System.Windows.Forms.Padding(5, 28, 5, 5);
             this.iTalk_GroupBox1.Size = new System.Drawing.Size(181, 50);
             this.iTalk_GroupBox1.TabIndex = 6;
-            this.iTalk_GroupBox1.Text = "Procurar Por";
+            this.iTalk_GroupBox1.Text = "Search For";
             // 
             // RadioTagId
             // 
@@ -581,7 +579,7 @@
             this.iTalk_Label5.Name = "iTalk_Label5";
             this.iTalk_Label5.Size = new System.Drawing.Size(84, 23);
             this.iTalk_Label5.TabIndex = 5;
-            this.iTalk_Label5.Text = "Tag Principal:";
+            this.iTalk_Label5.Text = "Main Tag";
             // 
             // HtmlFilter
             // 
@@ -610,7 +608,7 @@
             this.iTalk_Label4.Name = "iTalk_Label4";
             this.iTalk_Label4.Size = new System.Drawing.Size(84, 23);
             this.iTalk_Label4.TabIndex = 1;
-            this.iTalk_Label4.Text = "Filtro de Links:";
+            this.iTalk_Label4.Text = "Url Filter:";
             // 
             // Linkfilter
             // 
@@ -667,7 +665,6 @@
             this.tabPage3.Controls.Add(this.BntTestHosts);
             this.tabPage3.Controls.Add(this.SupportList);
             this.tabPage3.Controls.Add(this.label1);
-            this.tabPage3.Controls.Add(this.iTalk_Label2);
             this.tabPage3.Controls.Add(this.iTalk_HeaderLabel1);
             this.tabPage3.Location = new System.Drawing.Point(139, 4);
             this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
@@ -684,12 +681,12 @@
             this.BntTestHosts.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.BntTestHosts.Image = null;
             this.BntTestHosts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.BntTestHosts.Location = new System.Drawing.Point(518, 116);
+            this.BntTestHosts.Location = new System.Drawing.Point(518, 48);
             this.BntTestHosts.Margin = new System.Windows.Forms.Padding(2);
             this.BntTestHosts.Name = "BntTestHosts";
             this.BntTestHosts.Size = new System.Drawing.Size(110, 27);
             this.BntTestHosts.TabIndex = 5;
-            this.BntTestHosts.Text = "Testar Hosts";
+            this.BntTestHosts.Text = "Test Hosts";
             this.BntTestHosts.TextAlignment = System.Drawing.StringAlignment.Center;
             this.BntTestHosts.Click += new System.EventHandler(this.BntTestHosts_Click);
             // 
@@ -698,9 +695,9 @@
             this.SupportList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.SupportList.Location = new System.Drawing.Point(5, 159);
+            this.SupportList.Location = new System.Drawing.Point(5, 80);
             this.SupportList.Name = "SupportList";
-            this.SupportList.Size = new System.Drawing.Size(623, 267);
+            this.SupportList.Size = new System.Drawing.Size(623, 346);
             this.SupportList.TabIndex = 4;
             this.SupportList.UseCompatibleStateImageBehavior = false;
             this.SupportList.View = System.Windows.Forms.View.List;
@@ -708,25 +705,11 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 143);
+            this.label1.Location = new System.Drawing.Point(2, 62);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(102, 13);
+            this.label1.Size = new System.Drawing.Size(97, 13);
             this.label1.TabIndex = 3;
-            this.label1.Text = "Hosts Suportados:";
-            // 
-            // iTalk_Label2
-            // 
-            this.iTalk_Label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.iTalk_Label2.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_Label2.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.iTalk_Label2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_Label2.Location = new System.Drawing.Point(7, 63);
-            this.iTalk_Label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.iTalk_Label2.Name = "iTalk_Label2";
-            this.iTalk_Label2.Size = new System.Drawing.Size(622, 80);
-            this.iTalk_Label2.TabIndex = 1;
-            this.iTalk_Label2.Text = resources.GetString("iTalk_Label2.Text");
+            this.label1.Text = "Supported Hosts:";
             // 
             // iTalk_HeaderLabel1
             // 
@@ -800,7 +783,6 @@
         private System.Windows.Forms.PictureBox Poster;
         private iTalk_ControlBox iTalk_ControlBox1;
         private System.Windows.Forms.FlowLayoutPanel ButtonLst;
-        private iTalk_Label iTalk_Label2;
         private iTalk_HeaderLabel iTalk_HeaderLabel1;
         private System.Windows.Forms.CheckBox ckGenReader;
         private System.Windows.Forms.Timer UpDot;
