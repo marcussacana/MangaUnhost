@@ -24,6 +24,7 @@ namespace MangaUnhost {
             new Host.HentaiCafe(),
             new Host.KissManga(),
             new Host.Mangahost(),
+            new Host.MangaHasu(),
             new Host.MangaHere(),
             new Host.MangaKakalot(),
             new Host.MangaNelo(),
@@ -515,18 +516,18 @@ namespace MangaUnhost {
             return Tags.ToArray();
         }
 
-        internal static string[] GetElementsByAttribute(string HTML, string Tag, string Content, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
+        internal static string[] GetElementsByAttribute(string HTML, string Attribute, string Value, bool StartsWithOnly = false, bool ContainsOnly = false, int StartIndex = 0) {
             List<string> Tags = new List<string>();
             string[] Elements = GetElements(HTML, StartIndex, true);
             for (int i = 0; i < Elements.Length; i++) {
                 if (!Elements[i].StartsWith("<") || Elements[i].StartsWith("</"))
                     continue;
                 string Element = GetElementContent(Elements, i);
-                if (!Element.ToLower().Contains(Tag.ToLower()))
+                if (!Element.ToLower().Contains(Attribute.ToLower()))
                     continue;
 
-                string Attrib = GetElementAttribute(Element, Tag);
-                if ((StartsWithOnly ? Attrib.StartsWith(Content) : Attrib == Content) || ContainsOnly && Attrib.Contains(Content))
+                string Attrib = GetElementAttribute(Element, Attribute);
+                if ((StartsWithOnly ? Attrib.StartsWith(Value) : Attrib == Value) || ContainsOnly && Attrib.Contains(Value))
                     Tags.Add(Element);
             }
             return Tags.ToArray();
@@ -903,7 +904,7 @@ namespace MangaUnhost {
             return Result.ToList();
         }
 
-        public static string[] ExtractHtmlLinks(string Html, string Domain) {
+        public static string[] ExtractHtmlLinks(string Html, string Domain, string Attribute = null) {
             if (!Domain.StartsWith("http"))
                 Domain = "http://" + Domain;
             if (Domain.EndsWith("//"))
@@ -940,6 +941,10 @@ namespace MangaUnhost {
             Links.AddRange(ExtractTagLinks(Html, Domain, "value"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "src"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "href"));
+
+            if (Attribute != null)
+                Links.AddRange(ExtractTagLinks(Html, Domain, Attribute));
+
 
             return Links.Distinct().ToArray();
         }

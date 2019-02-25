@@ -208,6 +208,8 @@ namespace MangaUnhost {
             return Container;
         }
 
+        internal static string Between(this string String, char Begin, char End, int IndexA = 0, int IndexB = 0) => String.Split(Begin)[IndexA + 1].Split(End)[IndexB];  
+
         internal static string ToLiteral(this string String, bool Quote = true, bool Apostrophe = false) {
             string Result = string.Empty;
             foreach (char c in String) {
