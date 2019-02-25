@@ -8,27 +8,19 @@ using System.Web;
 namespace MangaUnhost.Host {
     class NHentai : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return true;
-            }
-        }
-        public string HostName {
-            get {
-                return "nhentai";
-            }
-        }
-        public string DemoUrl {
-            get {
-                return "http://nhentai.net/g/190997/";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
-        public string UserAgent { get { return null; } }
+
+        public bool NeedsProxy => true;
+
+        public string HostName => "nhentai";
+
+        public string DemoUrl => "http://nhentai.net/g/190997/";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
+
         public string GetChapterName(string ChapterURL) {
             return "One Shot";
         }

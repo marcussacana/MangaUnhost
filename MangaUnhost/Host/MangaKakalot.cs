@@ -6,29 +6,18 @@ using System.Text;
 namespace MangaUnhost.Host {
     class MangaKakalot : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "MangaKakalot";
-            }
-        }
+        public bool NeedsProxy => false;
 
-        public string DemoUrl {
-            get {
-                return "http://mangakakalot.com/manga/choujin_koukouseitachi_wa_isekai_demo_yoyuu_de_ikinuku_you_desu";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
+        public string HostName => "MangaKakalot";
 
-        public string UserAgent { get { return null; } }
+        public string DemoUrl => "http://mangakakalot.com/manga/choujin_koukouseitachi_wa_isekai_demo_yoyuu_de_ikinuku_you_desu";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
+
         public string GetChapterName(string ChapterURL) {
             const string Prefix1 = "chapter_";
             const string Prefix2 = "chapter-";

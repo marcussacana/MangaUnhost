@@ -10,29 +10,17 @@ using System.Windows.Forms;
 namespace MangaUnhost.Host {
 
     class Tsumino : IHost {
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "Tsumino";
-            }
-        }
+        public bool NeedsProxy => false;
 
-        public string DemoUrl {
-            get {
-                return "https://www.tsumino.com/Book/Info/7691/genko-no-ori";
-            }
-        }
+        public string HostName => "Tsumino";
 
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
-        public string UserAgent { get { return null; } }
+        public string DemoUrl => "https://www.tsumino.com/Book/Info/7691/genko-no-ori";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
 
         string HTML;
         static string Token;

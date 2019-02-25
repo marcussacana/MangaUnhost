@@ -8,27 +8,19 @@ using System.Web;
 namespace MangaUnhost.Host {
     class UnionMangas : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "Union Mangás";
-            }
-        }
-        public string DemoUrl {
-            get {
-                return "http://unionmangas.net/manga/karakai-jouzu-no-takagi-san";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
-        public string UserAgent { get { return null; } }
+
+        public bool NeedsProxy => false;
+
+        public string HostName => "Union Mangás";
+
+        public string DemoUrl => "http://unionmangas.net/manga/karakai-jouzu-no-takagi-san";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
+
         public string GetChapterName(string ChapterURL) {
             //unionmangas.cc/leitor/Karakai_Jouzu_no_Takagi-san/01
             const string Prefix = "/leitor/";

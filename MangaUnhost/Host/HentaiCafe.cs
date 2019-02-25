@@ -7,32 +7,19 @@ using System.Text;
 namespace MangaUnhost.Host {
     class HentaiCafe : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "Hentai Cafe";
-            }
-        }
+        public bool NeedsProxy => false;
 
-        public string DemoUrl {
-            get {
-                return "https://hentai.cafe/aiue-oka-bitch-fuck/";
-            }
-        }
-    
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
-        public string UserAgent { get { return null; } }
-        public string GetChapterName(string ChapterURL) {
-            return "One Shot";
-        }
+        public string HostName => "Hentai Cafe";
+
+        public string DemoUrl => "https://hentai.cafe/aiue-oka-bitch-fuck/";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
+
+        public string GetChapterName(string ChapterURL) => "One Shot";
 
         public string[] GetChapterPages(string HTML) {
             string[] PageElements = Main.GetElementsByAttribute(HTML, "onClick", "changePage(", true);

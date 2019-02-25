@@ -119,7 +119,7 @@ namespace MangaUnhost {
         private string PictureURL { get { return LP; } set {
                 LP = value;
                 Stream MEM = new MemoryStream();
-                Download(value, MEM, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
+                Download(value, MEM, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
                 Invoker Delegate = new Invoker(() => {
                     Poster.Image = Image.FromStream(MEM);
                     MEM.Close();
@@ -237,7 +237,7 @@ namespace MangaUnhost {
                 return;
             }
 
-            string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
+            string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
             string[] Pages = AtualHost.GetChapterPages(HTML);
             int Pag = 0;
 
@@ -283,7 +283,7 @@ namespace MangaUnhost {
             if (Path.GetExtension(Url).ToLower().EndsWith(".webp")) {
                 SaveAs = Path.GetDirectoryName(SaveAs) + "\\" + Path.GetFileNameWithoutExtension(SaveAs) + ".png";
                 MemoryStream MEM = new MemoryStream();
-                Download(Url, MEM, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
+                Download(Url, MEM, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
                 MEM.Seek(0, SeekOrigin.Begin);
                 Bitmap PageTexture = DecodeWebP(MEM);
                 PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
@@ -292,7 +292,7 @@ namespace MangaUnhost {
 
                 MEM.Close();
             } else
-                Download(Url, SaveAs, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies);
+                Download(Url, SaveAs, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
 
             return SaveAs;
         }
@@ -1256,7 +1256,7 @@ namespace MangaUnhost {
                                 Atention |= SuspectBadName(ChapterName);
                                 break;
                             case 6:
-                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies));
+                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies, Referrer: AtualHost.Referrer));
                                 foreach (string Page in Pages) {
                                     if (string.IsNullOrEmpty(Page) || !Uri.IsWellFormedUriString(Page, UriKind.Absolute))
                                         Online = false;

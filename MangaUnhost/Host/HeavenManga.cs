@@ -7,29 +7,17 @@ using System.Text;
 namespace MangaUnhost.Host {
     public class HeavenManga : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "Heaven Manga";
-            }
-        }
+        public bool NeedsProxy => false;
 
-        public string DemoUrl {
-            get {
-                return "http://heavenmanga.today/hentai-elf-to-majime-orc/";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
+        public string HostName => "Heaven Manga";
 
-        public string UserAgent { get { return null;  } }
+        public string DemoUrl => "http://heavenmanga.today/hentai-elf-to-majime-orc/";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
 
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "chap-";

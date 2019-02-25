@@ -9,18 +9,16 @@ using System.Windows.Forms;
 
 namespace MangaUnhost.Host {
     class KissManga : IHost {
-        public string HostName { get { return "KissManga"; } }
+        public string HostName => "KissManga";
 
-        public string DemoUrl { get { return "https://kissmanga.com/Manga/Orenchi-ni-kita-Onna-kishi-to-Inakagurashi-suru-koto-ni-natta-ken"; } }
+        public string DemoUrl => "https://kissmanga.com/Manga/Orenchi-ni-kita-Onna-kishi-to-Inakagurashi-suru-koto-ni-natta-ken";
 
-        public bool NeedsProxy { get { return false; } }
-        public CookieContainer Cookies {
-            get {
-                return new Cookie(CookieName, Cookie, "/", Host).ToContainer();
-            }
-        }
+        public bool NeedsProxy => false;
+        public CookieContainer Cookies => new Cookie(CookieName, Cookie, "/", Host).ToContainer();
 
-        public string UserAgent { get { return UA; } }
+        public string UserAgent => UA;
+
+        public string Referrer => null;
 
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "/manga/";

@@ -6,28 +6,17 @@ using System.Text;
 
 namespace MangaUnhost.Host {
     internal class Mangahost : IHost {
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName { get {
-                return "MangaHost";
-            }
-        }
-        public string DemoUrl {
-            get {
-                return "https://mangahostbr.com/manga/hadi-girl-mh23848";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
+        public bool NeedsProxy => false;
 
-        public string UserAgent { get { return null; } }
+        public string HostName => "MangaHost";
 
+        public string DemoUrl => "https://mangahostbr.com/manga/hadi-girl-mh23848";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
 
         string HTML;
 

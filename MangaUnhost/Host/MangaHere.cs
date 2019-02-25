@@ -7,27 +7,17 @@ using System.Text;
 namespace MangaUnhost.Host {
     class MangaHere : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName { get {
-                return "MangaHere";
-            }
-        }
+        public bool NeedsProxy => false;
 
-        public string DemoUrl {
-            get {
-                return "https://www.mangahere.cc/manga/konjiki_no_moji_tsukai_yuusha_yonin_ni_makikomareta_unique_cheat/";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return new Cookie("isAdult", "1", "/", "www.mangahere.cc").ToContainer();
-            }
-        }
-        public string UserAgent { get { return null; } }
+        public string HostName => "MangaHere";
+
+        public string DemoUrl => "https://www.mangahere.cc/manga/konjiki_no_moji_tsukai_yuusha_yonin_ni_makikomareta_unique_cheat/";
+
+        public CookieContainer Cookies => new Cookie("isAdult", "1", "/", "www.mangahere.cc").ToContainer();
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
 
         public string GetChapterName(string ChapterURL) {            
             const string Prefix = "/manga/";

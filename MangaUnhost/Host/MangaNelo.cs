@@ -7,28 +7,18 @@ using System.Text;
 namespace MangaUnhost.Host {
     class MangaNelo : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "MangaNelo";
-            }
-        }
 
-        public string DemoUrl {
-            get {
-                return "http://manganelo.com/manga/isekai_cheat_magician";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
-        public string UserAgent { get { return null; } }
+        public bool NeedsProxy => false;
+
+        public string HostName => "MangaNelo";
+
+        public string DemoUrl => "http://manganelo.com/manga/isekai_cheat_magician";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
 
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "chapter_";

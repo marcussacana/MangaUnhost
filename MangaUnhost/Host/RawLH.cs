@@ -8,27 +8,19 @@ using System.Web;
 namespace MangaUnhost.Host {
     class RawLH : IHost {
         string HTML;
-        public bool NeedsProxy {
-            get {
-                return false;
-            }
-        }
-        public string HostName {
-            get {
-                return "RawLH";
-            }
-        }
-        public string DemoUrl {
-            get {
-                return "http://rawlh.com/manga-29-to-jk-raw.html";
-            }
-        }
-        public CookieContainer Cookies {
-            get {
-                return null;
-            }
-        }
-        public string UserAgent { get { return null; } }
+
+        public bool NeedsProxy => false;
+
+        public string HostName => "RawLH";
+
+        public string DemoUrl => "http://rawlh.com/manga-29-to-jk-raw.html";
+
+        public CookieContainer Cookies => null;
+
+        public string UserAgent => null;
+
+        public string Referrer => null;
+
         public string GetChapterName(string ChapterURL) {
             //http://rawlh.com/read-29-to-jk-raw-chapter-1.html
             const string Prefix = "-chapter-";

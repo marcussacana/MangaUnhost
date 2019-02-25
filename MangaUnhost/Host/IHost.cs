@@ -103,5 +103,10 @@ namespace MangaUnhost.Host {
         /// Force an Custom User Agent when download something
         /// </summary>
         string UserAgent { get; }
+
+        /// <summary>
+        /// Force an Referrer when download something
+        /// </summary>
+        string Referrer { get; }
     }
 }
