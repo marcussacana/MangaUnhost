@@ -479,8 +479,6 @@ namespace MangaUnhost {
                 Request.Method = "GET";
                 Request.Timeout = (15 + (10 * (4 - tries))) * 1000;
                 HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
-                if (Response.StatusCode == HttpStatusCode.NotModified)
-                    return false;
 
                 byte[] FC = new byte[0];
                 using (Stream Reader = Response.GetResponseStream()) {
@@ -505,6 +503,9 @@ namespace MangaUnhost {
 
                 return true;
             } catch (Exception ex) {
+                if (ex is WebException && ((HttpWebResponse)((WebException)ex).Response).StatusCode == HttpStatusCode.NotModified)
+                    return false;
+
                 if (tries < 0) {
                     if (DialogResult.Yes == MessageBox.Show(string.Format("Connection Error: {0}\nIgnore?", ex.Message), "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Error))
                         return true;
