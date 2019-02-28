@@ -20,6 +20,7 @@ namespace MangaUnhost {
         public static Main Instance = null;
 
         Host.IHost[] Hosts = new Host.IHost[] {
+            new Host.Batoto(),
             new Host.HeavenManga(),
             new Host.HentaiCafe(),
             new Host.KissManga(),
@@ -136,7 +137,7 @@ namespace MangaUnhost {
             AtualHost.LoadPage(Page);
             Name = HttpUtility.HtmlDecode(AtualHost.GetFullName());
 
-            Status = "Downloading Info of the: " + Name;
+            Status = "Downloading Info of the " + Name;
             PictureURL = AtualHost.GetPosterUrl();
 
             Invoke(new Invoker(ButtonLst.Controls.Clear));
@@ -503,8 +504,10 @@ namespace MangaUnhost {
 
                 return true;
             } catch (Exception ex) {
-                if (ex is WebException && ((HttpWebResponse)((WebException)ex).Response).StatusCode == HttpStatusCode.NotModified)
-                    return false;
+                try {
+                    if (ex is WebException && ((HttpWebResponse)((WebException)ex).Response).StatusCode == HttpStatusCode.NotModified)
+                        return false;
+                } catch { }
 
                 if (tries < 0) {
                     if (DialogResult.Yes == MessageBox.Show(string.Format("Connection Error: {0}\nIgnore?", ex.Message), "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Error))
