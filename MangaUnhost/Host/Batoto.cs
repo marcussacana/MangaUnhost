@@ -49,7 +49,7 @@ namespace MangaUnhost.Host {
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
                 string Name = Element.Between('>', '<', 1);
-                if (Name.ToLower().Contains("[delete]"))
+                if (Name.ToLower().Contains("[delete]") || Name.ToLower().Contains("[deleted]"))
                     continue;
 
                 Name = Name.ToLower().Replace("ch.", "").Replace("vol.", "").Trim().Replace("  ", ".").Replace(" ", ".");
