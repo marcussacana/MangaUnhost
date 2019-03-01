@@ -86,13 +86,13 @@ namespace MangaUnhost.Host {
                 throw new Exception();
 
             Name = "Manga";
-            Page = URL;
+            Page = URL.ToLower().Replace("mangawindow.net", "bato.to");
         }
 
         public bool IsValidLink(string URL) {
             //https://bato.to/series/69445
 
-            return URL.ToLower().Contains("bato.to/series/") && URL.StartsWith("http");
+            return (URL.ToLower().Contains("bato.to/series/") || URL.ToLower().Contains("mangawindow.net/series/")) && URL.StartsWith("http");
         }
 
         string HTML = null;
