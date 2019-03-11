@@ -1324,5 +1324,46 @@ namespace MangaUnhost {
 
             return false;
         }
+
+
+        delegate CloudflareData BypassCloudflareDel(string URL, int Tries = 3);
+        public static CloudflareData BypassCloudflare(string URL, int Tries = 3) {
+            if (Instance.InvokeRequired)
+                return (CloudflareData)Instance.Invoke(new BypassCloudflareDel(BypassCloudflare), URL, Tries - 1);
+
+            string Status = Instance.Status;
+            Instance.Status = "Bypassing Cloudflare...";
+            
+
+            var Browser = new WebBrowser() {
+                ScriptErrorsSuppressed = true
+            };
+
+            Browser.Navigate(URL);
+            Browser.WaitForRedirect();
+            Browser.WaitForLoad();
+            bool Fail = Browser.DocumentText.Contains("5 seconds...");
+
+            Instance.Status = Status;
+
+            if (Fail && Tries <= 0)
+                throw new Exception("Failed to Bypass the Anti-Bot");
+
+            var Bypass = new CloudflareData() {
+                UserAgent = (string)Browser.InjectAndRunScript("return clientInformation.userAgent;"),
+                Cookie = (from x in Browser.GetCookies() where x.Name == "cf_clearance" select x).Single()
+            };
+
+            Bypass.Cookie.Domain = new Uri(URL).Host;
+
+            return Bypass;
+        }
+
+        
+    }
+
+    public struct CloudflareData {
+        public string UserAgent;
+        public Cookie Cookie;
     }
 }

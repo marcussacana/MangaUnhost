@@ -14,7 +14,7 @@ namespace MangaUnhost.Host {
         public string DemoUrl => "https://kissmanga.com/Manga/Orenchi-ni-kita-Onna-kishi-to-Inakagurashi-suru-koto-ni-natta-ken";
 
         public bool NeedsProxy => false;
-        public CookieContainer Cookies => new Cookie(CookieName, Cookie, "/", Host).ToContainer();
+        public CookieContainer Cookies => Cookie.ToContainer();
 
         public string UserAgent => UA;
 
@@ -148,37 +148,22 @@ namespace MangaUnhost.Host {
             URL = URL.ToLower();
             return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("kissmanga.com") && URL.Contains("/manga/");
         }
-
-        const string CookieName = "cf_clearance";
         string HTML = null;
-        string Cookie = null;
         string Host = null;
-        string UA = null;
+        static Cookie Cookie;
+        static string UA = null;
         public void LoadPage(string URL) {
-            if (Cookie == null)
-                Main.Instance.Invoke(new MethodInvoker(() => { Cookie = AuthBrowser(URL); }));
-
+            if (Cookie == null) {
+                var Data = Main.BypassCloudflare(URL);
+                UA = Data.UserAgent;
+                Cookie = Data.Cookie;
+            }
             Host = new Uri(URL).Host;
 
             HTML = Main.Download(URL, Encoding.UTF8, UserAgent: UserAgent, Cookies: Cookies);
         }
 
-        string AuthBrowser(string URL) {
-            var Browser = new WebBrowser() {
-                ScriptErrorsSuppressed = true
-            };
-
-            Browser.Navigate(URL);
-            Browser.WaitForRedirect();
-            Browser.WaitForLoad();
-            bool Fail = Browser.DocumentText.Contains("Please wait 5 seconds...");
-            if (Fail)
-                throw new Exception("Failed to Bypass the Anti-Bot");
-
-            UA = (string)Browser.InjectAndRunScript("return clientInformation.userAgent;");
-
-            return Browser.GetCookies().Get(CookieName);
-        }
+        
 
         public bool ValidateProxy(string Proxy) {
             throw new NotImplementedException();

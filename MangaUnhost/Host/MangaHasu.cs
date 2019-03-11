@@ -13,9 +13,9 @@ namespace MangaUnhost.Host {
 
         public bool NeedsProxy => false;
 
-        public CookieContainer Cookies => null;
+        public CookieContainer Cookies => Cookie.ToContainer();
 
-        public string UserAgent => null;
+        public string UserAgent => UA;
 
         public string Referrer => "http://mangahasu.se/";
 
@@ -42,6 +42,9 @@ namespace MangaUnhost.Host {
             return Main.ExtractHtmlLinks(PageList, "mangahasu.se").Distinct().ToArray();
         }
 
+        static Cookie Cookie = null;
+        static string UA = null;
+
         Dictionary<string, string> ChapterMap = new Dictionary<string, string>();
         public string[] GetChapters() {
             string HTML = this.HTML.Substring(this.HTML.IndexOf("list-chapter"));
@@ -54,6 +57,13 @@ namespace MangaUnhost.Host {
             ChapterMap = new Dictionary<string, string>();
             for (int i = 0; i < Links.Length; i++)
                 ChapterMap[Links[i].ToLower()] = Names[i];
+
+
+            if (Cookie == null) {
+                var Data = Main.BypassCloudflare(Links.First());
+                UA = Data.UserAgent;
+                Cookie = Data.Cookie;
+            }
 
             return Links;
         }
