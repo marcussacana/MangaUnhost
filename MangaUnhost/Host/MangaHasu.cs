@@ -25,9 +25,16 @@ namespace MangaUnhost.Host {
                     string Name = ChapterMap[ChapterURL.ToLower()];
                     Name = Name.Substring(Name.IndexOf("</span>"));
 
-                    Name = Name.Between('>', '<').Trim().Between(' ', ':');
+                    try {
+                        Name = Name.Substring(Name.ToLower().IndexOf("chapter ")).Between(' ', ' ');
+                        Name = Name.Split('<')[0].Split(':')[0];
 
-                    return Name;
+                        return Name;
+                    } catch {
+                        Name = Name.Between('>', '<').Trim().Between(' ', ':');
+
+                        return Name;
+                    }
                 } catch { }
             }
 
