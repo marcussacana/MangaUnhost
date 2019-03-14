@@ -52,7 +52,7 @@ namespace MangaUnhost {
         Bitmap CropOff(Bitmap Original, int BeginY, int EndY) {
             int OutHeight = Original.Height - (EndY - BeginY);
             if (OutHeight == 0)
-                return;
+                return Original;
 
             Bitmap Result = new Bitmap(Original.Width, OutHeight);
             using (Graphics g = Graphics.FromImage(Result)) {
