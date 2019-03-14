@@ -51,8 +51,10 @@ namespace MangaUnhost {
                 SupportList.Items.Add(Host.HostName);
             }
 
-            if (!System.Diagnostics.Debugger.IsAttached)
+            if (!System.Diagnostics.Debugger.IsAttached) {
                 BntTestHosts.Visible = false;
+                bntTestTrim.Visible = false;
+            }
 
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00000FF0;
 
@@ -297,7 +299,10 @@ namespace MangaUnhost {
                 Bitmap PageTexture = DecodeWebP(MEM);
                 PageTexture.Save(SaveAs, System.Drawing.Imaging.ImageFormat.Png);
 
-                new Thread(() => ValidateWebP(SaveAs, PageTexture, MEM.ToArray())).Start();
+                new Thread(() => {
+                    ValidateWebP(SaveAs, PageTexture, MEM.ToArray());
+                    CropFile(SaveAs);
+                }).Start();
 
                 MEM.Close();
             } else {
@@ -305,8 +310,36 @@ namespace MangaUnhost {
                     LastModify = new FileInfo(SaveAs).LastWriteTimeUtc;
 
                 Download(Url, SaveAs, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer, LastModify: LastModify);
+                CropFile(SaveAs);
             }
             return SaveAs;
+        }
+
+        private void CropFile(string ImagePath) {
+            if (InvokeRequired) {
+                Invoke(new MethodInvoker(() => CropFile(ImagePath)));
+                return;
+            }
+            if (!ckCropSpace.Checked)
+                return;
+
+            BitmapTrim Cropper;
+            Bitmap Result;
+            int Height;
+            using (Bitmap Source = Image.FromFile(ImagePath) as Bitmap) {
+                Height = Source.Height;
+                Cropper = new BitmapTrim(Source);
+                Result = Cropper.Trim();
+                Source.Dispose();
+            }
+
+            Cropper = new BitmapTrim(Result);
+            Result = Cropper.Trim(false);
+
+            if (Height == Result.Height)
+                return;
+
+            Result.Save(ImagePath);
         }
 
         private void AppendIndex(string CapDir, string CapName) {
@@ -1327,6 +1360,27 @@ namespace MangaUnhost {
 
 
         delegate CloudflareData BypassCloudflareDel(string URL, int Tries = 3);
+
+        private void bntTestTrim_Click(object sender, EventArgs e) {
+            OpenFileDialog FD = new OpenFileDialog();
+            FD.Filter = "All Image Files|*.jpg;*.png;*.jpeg;*.bmp";
+            if (FD.ShowDialog() != DialogResult.OK)
+                return;
+
+            string Out = Path.GetDirectoryName(FD.FileName) + "\\" + Path.GetFileNameWithoutExtension(FD.FileName) + "-trim" + Path.GetExtension(FD.FileName);
+
+            using (Bitmap Original = Image.FromFile(FD.FileName) as Bitmap) {
+                var Tool = new BitmapTrim(Original);
+                var Bitmap = Tool.Trim(true);
+                Tool = new BitmapTrim(Bitmap);
+                Bitmap = Tool.Trim(false);
+
+                Bitmap.Save(Out);
+
+                MessageBox.Show("Saved");
+            }
+        }
+
         public static CloudflareData BypassCloudflare(string URL, int Tries = 3) {
             if (Instance.InvokeRequired)
                 return (CloudflareData)Instance.Invoke(new BypassCloudflareDel(BypassCloudflare), URL, Tries - 1);

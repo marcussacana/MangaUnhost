@@ -75,6 +75,8 @@
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
+            this.bntTestTrim = new MangaUnhost.iTalk_Button_1();
+            this.ckCropSpace = new System.Windows.Forms.CheckBox();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -145,6 +147,7 @@
             // DownPage
             // 
             this.DownPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
+            this.DownPage.Controls.Add(this.ckCropSpace);
             this.DownPage.Controls.Add(this.ckResume);
             this.DownPage.Controls.Add(this.ckCaptureClipboard);
             this.DownPage.Controls.Add(this.ckGenReader);
@@ -356,7 +359,7 @@
             // 
             this.AutoTl.CheckOnClick = true;
             this.AutoTl.Name = "AutoTl";
-            this.AutoTl.Size = new System.Drawing.Size(180, 22);
+            this.AutoTl.Size = new System.Drawing.Size(160, 22);
             this.AutoTl.Text = "Enable";
             // 
             // ProgressBar
@@ -662,6 +665,7 @@
             // tabPage3
             // 
             this.tabPage3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
+            this.tabPage3.Controls.Add(this.bntTestTrim);
             this.tabPage3.Controls.Add(this.BntTestHosts);
             this.tabPage3.Controls.Add(this.SupportList);
             this.tabPage3.Controls.Add(this.label1);
@@ -735,6 +739,35 @@
             // FolderPicker
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
+            // 
+            // bntTestTrim
+            // 
+            this.bntTestTrim.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.bntTestTrim.BackColor = System.Drawing.Color.Transparent;
+            this.bntTestTrim.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.bntTestTrim.Image = null;
+            this.bntTestTrim.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.bntTestTrim.Location = new System.Drawing.Point(518, 17);
+            this.bntTestTrim.Margin = new System.Windows.Forms.Padding(2);
+            this.bntTestTrim.Name = "bntTestTrim";
+            this.bntTestTrim.Size = new System.Drawing.Size(110, 27);
+            this.bntTestTrim.TabIndex = 6;
+            this.bntTestTrim.Text = "Test Trim";
+            this.bntTestTrim.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.bntTestTrim.Click += new System.EventHandler(this.bntTestTrim_Click);
+            // 
+            // ckCropSpace
+            // 
+            this.ckCropSpace.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ckCropSpace.AutoSize = true;
+            this.ckCropSpace.Checked = true;
+            this.ckCropSpace.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckCropSpace.Location = new System.Drawing.Point(151, 367);
+            this.ckCropSpace.Name = "ckCropSpace";
+            this.ckCropSpace.Size = new System.Drawing.Size(118, 17);
+            this.ckCropSpace.TabIndex = 10;
+            this.ckCropSpace.Text = "Crop Empty Space";
+            this.ckCropSpace.UseVisualStyleBackColor = true;
             // 
             // Main
             // 
@@ -820,6 +853,8 @@
         private System.Windows.Forms.ListView SupportList;
         private iTalk_Button_1 BntTestHosts;
         private iTalk_CheckBox cbSaveImages;
+        private iTalk_Button_1 bntTestTrim;
+        private System.Windows.Forms.CheckBox ckCropSpace;
     }
 }
 

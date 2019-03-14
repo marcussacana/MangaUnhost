@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitmapTrim.cs" />
     <Compile Include="Github.cs" />
     <Compile Include="ConfigDatabase.cs" />
     <Compile Include="DNVM.cs" />
