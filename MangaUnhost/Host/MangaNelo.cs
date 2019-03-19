@@ -20,6 +20,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "chapter_";
             string Name = ChapterURL.Substring(ChapterURL.IndexOf(Prefix) + Prefix.Length);

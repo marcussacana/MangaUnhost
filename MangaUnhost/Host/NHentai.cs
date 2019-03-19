@@ -4,22 +4,25 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Host {
     class NHentai : IHost {
         string HTML;
 
-        public bool NeedsProxy => true;
+        public bool NeedsProxy => AccCookies != null && AccCookies.Length < 2;
 
         public string HostName => "nhentai";
 
         public string DemoUrl => "http://nhentai.net/g/190997/";
 
-        public CookieContainer Cookies => null;
+        public CookieContainer Cookies => AccCookies != null ? AccCookies.ToContainer() : null;
 
         public string UserAgent => null;
 
         public string Referrer => null;
+
+        public bool SelfChapterDownload => false;
 
         public string GetChapterName(string ChapterURL) {
             return "One Shot";
@@ -33,7 +36,7 @@ namespace MangaUnhost.Host {
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
                 string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
-                string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false);
+                string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false, Cookies: Cookies);
                 
                 Page = Main.GetElementsByClasses(pHTML, "fit-horizontal").First();
                 Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
@@ -62,9 +65,11 @@ namespace MangaUnhost.Host {
         public string GetPosterUrl() {
             int Index = HTML.IndexOf("<div id=\"cover\">");
 
-            string Link = Main.ExtractHtmlLinks(HTML.Substring(Index), "nhentai.net").First();
+            string Pic = Main.GetElementsByAttribute(HTML, "data-src", "t.nhentai.net", ContainsOnly: true).First();
 
-            return Link;
+            Pic = Main.GetElementAttribute(Pic, "data-src");
+
+            return Pic;
         }
 
         public void Initialize(string URL, out string Name, out string Page) {
@@ -84,8 +89,70 @@ namespace MangaUnhost.Host {
             return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("nhentai") && URL.Contains("/g/");
         }
 
+        //https://nhentai.net/login/
+        Cookie[] AccCookies = null;
         public void LoadPage(string URL) {
-            HTML = Main.Download(URL, Encoding.UTF8);
+            if (AccCookies == null) {
+                if (Main.Instance.InvokeRequired) {
+                    Main.Instance.Invoke(new MethodInvoker(() =>LoadPage(URL)));
+                    return;
+                }
+
+                var Form = new Form() {
+                    Size = new System.Drawing.Size(500, 600),
+                    ShowIcon = false,
+                    ShowInTaskbar = false,
+                    Text = "Login into your account",
+                    FormBorderStyle = FormBorderStyle.FixedToolWindow
+                };
+                var Browser = new WebBrowser() {
+                    Dock = DockStyle.Fill,
+                    ScriptErrorsSuppressed = true,
+                    IsWebBrowserContextMenuEnabled = false,
+                    AllowWebBrowserDrop = false,
+                    Visible = false
+                };
+                var Message = new Label() {
+                    Text = "Loading...",
+                    Font = new System.Drawing.Font("Consola", 24),
+                    Dock = DockStyle.Fill,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                    Visible = true
+                };
+
+                Form.Controls.Add(Browser);
+                Form.Controls.Add(Message);
+
+                Form.FormClosing += (a, b) => {
+                    if (AccCookies == null)
+                        b.Cancel = true;
+                };
+
+                Form.Show(Main.Instance);
+
+                Browser.Navigate("https://nhentai.net/login/");
+                Browser.WaitForLoad();
+                while (Browser.Url.LocalPath.Trim('/').ToLower() == "login") {
+                    Browser.WaitForLoad();
+
+                    Message.Visible = false;
+                    Browser.Visible = true;
+
+                    Browser.WaitForRedirect();
+
+                    Message.Visible = true;
+                    Browser.Visible = false;
+
+                    Browser.WaitForLoad();
+                }
+                
+                var Cookies = Browser.GetCookies("nhentai.net");
+                AccCookies = (from x in Cookies where x.Name == "csrftoken" || x.Name == "sessionid" select x).ToArray();
+
+                Form.Close();
+            }
+
+            HTML = Main.Download(URL, Encoding.UTF8, Cookies: Cookies);
         }
 
         Dictionary<string, bool> ProxyCache = new Dictionary<string, bool>();

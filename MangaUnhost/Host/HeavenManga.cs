@@ -19,6 +19,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "chap-";
             string CN = ChapterURL.Substring(ChapterURL.IndexOf(Prefix) + Prefix.Length).Trim('\\');

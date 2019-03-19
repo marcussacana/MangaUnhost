@@ -21,6 +21,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
         public string GetChapterName(string ChapterURL) {
             //http://rawlh.com/read-29-to-jk-raw-chapter-1.html
             const string Prefix = "-chapter-";

@@ -18,6 +18,9 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
+
         string HTML;
 
         public bool IsValidLink(string URL) {

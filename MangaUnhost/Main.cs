@@ -32,7 +32,8 @@ namespace MangaUnhost {
             new Host.NHentai(),
             new Host.RawLH(),
             new Host.Tsumino(),
-            new Host.UnionMangas()
+            new Host.UnionMangas(),
+        //    new Host.WebNovel()
         };
 
         static Host.IHost AtualHost = null;
@@ -54,6 +55,7 @@ namespace MangaUnhost {
             if (!System.Diagnostics.Debugger.IsAttached) {
                 BntTestHosts.Visible = false;
                 bntTestTrim.Visible = false;
+                bntGenReader.Visible = false;
             }
 
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00000FF0;
@@ -176,10 +178,10 @@ namespace MangaUnhost {
             return Rst;
         }
         private Control RegisterChapter(string Chapter, string NextChapter) {
-            string ID = AtualHost.GetChapterName(Chapter), ID2 = null;
+            string ID = AtualHost.GetChapterName(Chapter).TrimStart(' ', '0'), ID2 = null;
 
             if (NextChapter != null) {
-                ID2 = AtualHost.GetChapterName(NextChapter);
+                ID2 = AtualHost.GetChapterName(NextChapter).TrimStart(' ', '0');
             }
 
 
@@ -225,10 +227,13 @@ namespace MangaUnhost {
             Status = string.Format("Downloading Info of the Chapter {0}...", ID);
             string Manga = URL;
 
-            string[] Removes = new string[] { "?", "/", "\\", "*", ":", "\"", "|", "<", ">" };
-            string Validated = Title;
-            foreach (string Remove in Removes)
-                Validated = Validated.Replace(Remove, "");
+            char[] Removes = Path.GetInvalidPathChars().Union(Path.GetInvalidFileNameChars()).ToArray();
+            string Validated = string.Empty;
+            foreach (char c in Title)
+                if (!Removes.Contains(c))
+                    Validated += c;
+                else
+                    Validated += '-';
 
             string CapDir = TBSaveAs.Text + $"\\{Validated}\\";
             string WorkDir = $"{CapDir}Capítulos\\Capítulo {ID}\\";            
@@ -240,8 +245,13 @@ namespace MangaUnhost {
                 return;
             }
 
-            string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
-            string[] Pages = AtualHost.GetChapterPages(HTML);
+            string[] Pages;
+            if (AtualHost.SelfChapterDownload) {
+                Pages = AtualHost.GetChapterPages(Manga);
+            } else {
+                string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
+                Pages = AtualHost.GetChapterPages(HTML);
+            }
             int Pag = 0;
 
             if (!Directory.Exists(WorkDir)) {
@@ -1379,6 +1389,34 @@ namespace MangaUnhost {
 
                 MessageBox.Show("Saved");
             }
+        }
+
+        private void bntGenReader_Click(object sender, EventArgs e) {
+            FolderBrowserDialog fb = new FolderBrowserDialog();
+            fb.SelectedPath = TBSaveAs.Text;
+            if (fb.ShowDialog() != DialogResult.OK)
+                return;
+
+            string[] PageMaps= Directory.GetFiles(fb.SelectedPath, "Pages.lst", SearchOption.AllDirectories);
+            foreach (string Map in PageMaps)
+                LinkPages(Map);
+
+            MessageBox.Show("Finished.");
+        }
+
+        private void LinkPages(string PageListPath) {
+            string Dir = Path.GetDirectoryName(PageListPath) + "\\";
+            string[] Pages = File.ReadAllLines(PageListPath, Encoding.UTF8);
+            Pages = Pages.Where(x => !string.IsNullOrWhiteSpace(x) && File.Exists(Dir + x)).ToArray();
+            for (int i = 0; i < Pages.Length; i++) {
+                 string Current = "" + Pages[i];
+                string Next = i + 1 < Pages.Length ? "" + Path.GetFileNameWithoutExtension(Pages[i + 1]) + ".html" : "";
+                string Out = Dir + Path.GetFileNameWithoutExtension(Pages[i]) + ".html";
+
+                const string HTML = "<DOCTYPE HTML>\r\n<html>\r\n<meta charset=\"utf-8\">\r\n<head>\r\n<title>HTML Reader</title>\r\n<style>body{{background-color: #000000;}}</style>\r\n</head>\r\n<body>\r\n<div align=\"center\">\r\n<a href=\"{0}\"><img src=\"{1}\" style=\"max-width:100%;\"/></a>\r\n</div>\r\n</body>\r\n</html>";
+                File.WriteAllText(Out, string.Format(HTML, Next, Current));
+            }
+
         }
 
         public static CloudflareData BypassCloudflare(string URL, int Tries = 3) {

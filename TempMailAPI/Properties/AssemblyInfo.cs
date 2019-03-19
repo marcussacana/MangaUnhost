@@ -1,0 +1,15 @@
+﻿
+[assembly: System.Runtime.CompilerServices.RuntimeCompatibilityAttribute (WrapNonExceptionThrows = true)]
+[assembly: System.Diagnostics.DebuggableAttribute (System.Diagnostics.DebuggableAttribute.DebuggingModes.Default | System.Diagnostics.DebuggableAttribute.DebuggingModes.DisableOptimizations |
+                  System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints | System.Diagnostics.DebuggableAttribute.DebuggingModes.EnableEditAndContinue)]
+[assembly: System.Reflection.AssemblyTitle ("TempMailAPI")]
+[assembly: System.Reflection.AssemblyDescription ("Unofficial C# Wrapper for TempMail (https://temp-mail.org)")]
+[assembly: System.Reflection.AssemblyConfiguration ("")]
+[assembly: System.Reflection.AssemblyCompany ("Nonsocial")]
+[assembly: System.Reflection.AssemblyProduct ("TempMailAPI")]
+[assembly: System.Reflection.AssemblyCopyright ("Copyright ©  2018 Nonsocial")]
+[assembly: System.Reflection.AssemblyTrademark ("Nonsocial")]
+[assembly: System.Reflection.AssemblyCulture ("")]
+[assembly: System.Resources.NeutralResourcesLanguageAttribute ("pt-BR")]
+[assembly: System.Runtime.InteropServices.ComVisible (false)]
+[assembly: System.Reflection.AssemblyVersion ("1.0.0")]

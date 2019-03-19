@@ -21,6 +21,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
         public string GetChapterName(string ChapterURL) {
             //unionmangas.cc/leitor/Karakai_Jouzu_no_Takagi-san/01
             const string Prefix = "/leitor/";

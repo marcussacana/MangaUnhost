@@ -83,6 +83,7 @@
     <Compile Include="Host\RawLH.cs" />
     <Compile Include="Host\Tsumino.cs" />
     <Compile Include="Host\UnionMangas.cs" />
+    <Compile Include="Host\WebNovel.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>

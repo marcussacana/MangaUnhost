@@ -19,6 +19,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => "http://mangahasu.se/";
 
+        public bool SelfChapterDownload => false;
+
         public string GetChapterName(string ChapterURL) {
             if (ChapterMap.ContainsKey(ChapterURL.ToLower())) {
                 try {

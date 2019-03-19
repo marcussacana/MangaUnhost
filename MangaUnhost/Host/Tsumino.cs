@@ -22,6 +22,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
         string HTML;
         static string Token;
         string MainPage;

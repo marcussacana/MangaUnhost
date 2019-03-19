@@ -15,11 +15,29 @@ using System.Windows.Forms;
 namespace MangaUnhost {
     static class Extensions {
         internal static void WaitForLoad(this WebBrowser Browser) {
+            if (Browser.InvokeRequired) {
+                Browser.Invoke(new MethodInvoker(() => { Browser.WaitForLoad(); return null; }));
+                return;
+            }
+
             while (Browser.ReadyState != WebBrowserReadyState.Complete) {
                 Application.DoEvents();
                 System.Threading.Thread.Sleep(10);
             }
             Application.DoEvents();
+        }
+
+        internal static void Sleep(this WebBrowser Browser, int Seconds = 3) {
+            if (Browser.InvokeRequired) {
+                Browser.Invoke(new MethodInvoker(() => { Browser.Sleep(Seconds); return null; }));
+                return;
+            }
+            
+            DateTime Finish = DateTime.Now.AddSeconds(Seconds);
+            while (DateTime.Now <= Finish) {
+                Application.DoEvents();
+                System.Threading.Thread.Sleep(10);
+            }
         }
 
         internal static object Locker = new object();
@@ -39,20 +57,27 @@ namespace MangaUnhost {
             return (from x in Cookies where x.Name == Name select x.Value).First();
         }
 
-        internal static Cookie[] GetCookies(this WebBrowser _Browser) {
+        internal static Cookie[] GetCookies(this WebBrowser _Browser, string ForceDomain = null) {
             List<Cookie> Result = new List<Cookie>();
-            List<string> Cookies = new List<string>();
             foreach (string Part in GetGlobalCookies(_Browser.Url.AbsoluteUri).Split(';')) {
                 if (Part.ToLower().StartsWith(" path="))
                     continue;
-                if (Part.ToLower().StartsWith(" domain="))
+                if (Part.ToLower().StartsWith(" domain=")) {
+                    string Domain = Part.Split('=')[1];
+                    Cookie Cookie = Result.Last();
+                    if (!string.IsNullOrWhiteSpace(Cookie.Domain)) {
+                        Result.RemoveAt(Result.Count - 1);
+                        Cookie = new Cookie(Cookie.Name, Cookie.Value, "/", Domain);
+                        Result.Add(Cookie);
+                    }
                     continue;
+                }
                 if (Part.ToLower().StartsWith(" port="))
                     continue;
                 if (!Part.Contains("="))
                     continue;
 
-                Result.Add(new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1]));
+                Result.Add(ForceDomain == null ? new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1]) : new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1], "/", ForceDomain));
             }
 
             return Result.ToArray();
@@ -74,6 +99,9 @@ namespace MangaUnhost {
         }
 
         internal static object InjectAndRunScript(this WebBrowser Browser, string Javascript, bool Eval = false) {
+            if (Browser.InvokeRequired)
+                return Browser.Invoke(new MethodInvoker(() => Browser.InjectAndRunScript(Javascript, Eval)));
+
             Application.DoEvents();
             if (Eval)
                 return Browser.Document.InvokeScript("eval", new object[] { Javascript });

@@ -19,6 +19,8 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
+        public bool SelfChapterDownload => false;
+
         public string GetChapterName(string ChapterURL) => "One Shot";
 
         public string[] GetChapterPages(string HTML) {

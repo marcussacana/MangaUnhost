@@ -108,5 +108,10 @@ namespace MangaUnhost.Host {
         /// Force an Referrer when download something
         /// </summary>
         string Referrer { get; }
+
+        /// <summary>
+        /// When true, the GetChapterPages will receive the chapter url instead of the html
+        /// </summary>
+        bool SelfChapterDownload { get; }
     }
 }
