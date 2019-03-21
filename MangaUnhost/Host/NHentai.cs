@@ -79,9 +79,14 @@ namespace MangaUnhost.Host {
 
             string ID = URL.Substring(URL.IndexOf("/g/") + 3).Split('/')[0];
 
+           
             Page = $"https://nhentai.net/g/{ID}/";
             Name = "Unk";
+
+            InputUrl = Page;
         }
+
+        string InputUrl;
 
         public bool IsValidLink(string URL) {
             //https://nhentai.net/g/190997/
@@ -152,7 +157,25 @@ namespace MangaUnhost.Host {
                 Form.Close();
             }
 
+            SkipSlowDown();
+
             HTML = Main.Download(URL, Encoding.UTF8, Cookies: Cookies);
+        }
+
+        private void SkipSlowDown() {
+            WebBrowser Browser = null;
+            Main.Instance.Invoke(new MethodInvoker(() => Browser = new WebBrowser()));
+            Browser.AsyncNavigate(InputUrl);
+            Browser.WaitForLoad();
+
+            bool SlowDown = Browser.GetHtml().Contains("You're loading pages way too quickly");
+
+            if (SlowDown) {
+                Browser.Sleep();
+                Browser.InjectAndRunScript("document.getElementsByClassName(\"button button-wide\")[0].click();");
+                Browser.WaitForRedirect();
+                Browser.WaitForLoad();
+            }
         }
 
         Dictionary<string, bool> ProxyCache = new Dictionary<string, bool>();

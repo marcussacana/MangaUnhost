@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MangaUnhost", "MangaUnhost\MangaUnhost.csproj", "{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TempMailAPI", "TempMailAPI\TempMailAPI.csproj", "{544FEF88-030A-46BA-B665-12AD41A48853}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{544FEF88-030A-46BA-B665-12AD41A48853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{544FEF88-030A-46BA-B665-12AD41A48853}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{544FEF88-030A-46BA-B665-12AD41A48853}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{544FEF88-030A-46BA-B665-12AD41A48853}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

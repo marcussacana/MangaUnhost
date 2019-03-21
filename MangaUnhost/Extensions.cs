@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
 namespace MangaUnhost {
@@ -27,6 +28,14 @@ namespace MangaUnhost {
             Application.DoEvents();
         }
 
+        internal static string GetHtml(this WebBrowser Browser) {
+            if (Browser.InvokeRequired)
+                return (string)Browser.Invoke(new MethodInvoker(() => Browser.GetHtml()));
+            
+
+            return Browser.Document.Body.Parent.OuterHtml;
+        }
+
         internal static void Sleep(this WebBrowser Browser, int Seconds = 3) {
             if (Browser.InvokeRequired) {
                 Browser.Invoke(new MethodInvoker(() => { Browser.Sleep(Seconds); return null; }));
@@ -40,12 +49,26 @@ namespace MangaUnhost {
             }
         }
 
+        internal static void AsyncNavigate(this WebBrowser Browser, string URL) {
+            if (Browser.InvokeRequired) {
+                Browser.Invoke(new MethodInvoker(() => { Browser.AsyncNavigate(URL); return null; }));
+                return;
+            }
+
+            Browser.Navigate(URL);
+        }
+
         internal static object Locker = new object();
         internal static void WaitForRedirect(this WebBrowser Browser) {
+            if (Browser.InvokeRequired) {
+                Browser.Invoke(new MethodInvoker(() => { Browser.WaitForRedirect(); return null; }));
+                return;
+            }
+
             bool Navigated = false;
             lock (Locker) {
                 Browser.Navigated += (a, b) => { Navigated = true; };
-                while (!Navigated) {
+                while (!Navigated) { 
                     Application.DoEvents();
                     System.Threading.Thread.Sleep(10);
                 }
@@ -77,7 +100,13 @@ namespace MangaUnhost {
                 if (!Part.Contains("="))
                     continue;
 
-                Result.Add(ForceDomain == null ? new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1]) : new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1], "/", ForceDomain));
+                Cookie Output;
+                if (ForceDomain == null)
+                    Output = new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1], "/", _Browser.Url.DnsSafeHost.Replace("www.", ""));
+                else
+                    Output = new Cookie(Part.Split('=')[0].Trim(), Part.Split('=')[1], "/", ForceDomain);
+
+                Result.Add(Output);
             }
 
             return Result.ToArray();
@@ -237,8 +266,8 @@ namespace MangaUnhost {
             return Container;
         }
 
-        internal static string Between(this string String, char Begin, char End, int IndexA = 0, int IndexB = 0) => String.Split(Begin)[IndexA + 1].Split(End)[IndexB];  
-
+        internal static string Between(this string String, char Begin, char End, int IndexA = 0, int IndexB = 0) => String.Split(Begin)[IndexA + 1].Split(End)[IndexB];
+   
         internal static string ToLiteral(this string String, bool Quote = true, bool Apostrophe = false) {
             string Result = string.Empty;
             foreach (char c in String) {
@@ -288,6 +317,19 @@ namespace MangaUnhost {
                 }
             } catch {
             }
+        }
+
+        internal static string GetUserAgent(this WebBrowser Browser) => (string)Browser.InjectAndRunScript("return clientInformation.userAgent;");
+
+        internal static T GetRandomElement<T>(this T[] Array) {
+            return Array[new Random().Next(0, Array.Length)];
+        }
+
+        internal static string JsonEncode<T>(T Data) {
+            return new JavaScriptSerializer().Serialize(Data);
+        }
+        internal static T JsonDecode<T>(string Json) {
+            return (T)new JavaScriptSerializer().Deserialize(Json, typeof(T));
         }
     }
 }

@@ -48,6 +48,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +70,7 @@
     <Compile Include="ConfigDatabase.cs" />
     <Compile Include="DNVM.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="GuerrillaMail.cs" />
     <Compile Include="Host\Batoto.cs" />
     <Compile Include="Host\HeavenManga.cs" />
     <Compile Include="Host\HentaiCafe.cs" />
@@ -122,6 +124,12 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>cd "$(ProjectDir)Host"
+if not exist WebNovel.cs (
+echo //Private Code &gt;&gt; WebNovel.cs
+)</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

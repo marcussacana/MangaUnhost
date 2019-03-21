@@ -5,9 +5,11 @@ using System.Net;
 using System.Text;
 using System.Web;
 using System.Windows.Forms;
-//using TempMailAPI;
 
 namespace MangaUnhost.Host {
+    /// <summary>
+    /// This plugin is slow because he is a bot to create an fake account and earn points
+    /// </summary>
     class WebNovel : IHost {
         public string HostName => "WebNovel";
 
@@ -15,39 +17,231 @@ namespace MangaUnhost.Host {
 
         public bool NeedsProxy => false;
 
-        public CookieContainer Cookies => null;
+        public CookieContainer Cookies => CurrentCookies == null ? null : CurrentCookies.ToContainer();
 
-        public string UserAgent => null;
+        public string UserAgent => UA;
 
-        public string Referrer => null;
+        public string Referrer => Ref ?? InputURL;
 
         public bool SelfChapterDownload => true;
+
 
         public string GetChapterName(string ChapterURL) {
             return NameMap[ChapterURL];
         }
 
+        public string[] GenericComments = new string[] {
+            "I'm loving this work.",
+            "I loved this introduction.",
+            "It looks promising.",
+            "Hmm, I think I have to read some more to know if I'll like it...",
+            "I did not like the protagonist so much.",
+            "I liked the protagonist.",
+            "I'm expecting.",
+            "So far without expectations.",
+            "It started very well.",
+            "The Author started on the right foot."
+        };
+
+        public string[] GenericReplys = new string[] {
+            "I agree.",
+            "Indeed.",
+            "Truth.",
+            "I also think.",
+            "I disagree.",
+            "Do not.",
+            "I think not.",
+            "Maybe...",
+            "Who knows."
+        };
+
+
         public string[] GetChapterPages(string Link) {
+            Ref = null;
+
             string HTML = string.Empty;
             if (LockMap[Link]) {
-                //Unlock
-                Login();
-            } else {
-                HTML = Main.Download(Link, Encoding.UTF8, UserAgent: Tools.UserAgent, Referrer: InputURL);
-            }
-            string[] Elms = Main.GetElementsByClasses("j_comic_img");
+                UpdateStones();
 
-            List<string> Pages = new List<string>();
-            foreach (string Elm in Elms) {
-                string Page = Main.GetElementAttribute(Elm, "data-original");
-                Pages.Add(Page);
+                if (GetChapterPrice(Link) > AvaiableStones) {
+                    Login();
+                    EarnPoints();
+                }
+
+                if(GetChapterPrice(Link) > AvaiableStones)
+                    throw new Exception("Failed to Earn Stones");
+                
+                Unlock(Link);
             }
 
-            return Pages.ToArray();
+            ComicReader Reader;
+            while (true) {
+                try {
+                    HTML = Main.Download(Link, Encoding.UTF8, Cookies: Cookies, UserAgent: UA, Referrer: InputURL);
+                    const string Prefix = "var chapInfo =";
+                    string Script = null;
+                    Script = Main.GetElementsByContent(HTML, "\"chapterPage\":", SkipJavascript: false).First();
+
+                    Script = Script.Substring(Script.IndexOf(Prefix) + Prefix.Length);
+                    Script = Script.Substring(0, Script.IndexOf("};") + 1);
+
+                    Script = Script.Replace("\\/", "/").Replace("\\&", "&").Replace("\\ ", " ").Replace("\\\\", "\\");
+                    Reader = Extensions.JsonDecode<ComicReader>(Script);
+
+                    break;
+                } catch {
+
+                }
+            }
+
+            string[] Pages = (from x in Reader.chapterInfo.chapterPage select x.url).ToArray();
+
+            if (Reader.user.SS.HasValue)
+                AvaiableStones = Reader.user.SS.Value;
+
+            if (Pages.Length > 0)
+                LockMap[Link] = false;
+
+            Ref = Link;
+            
+                
+            return Pages;
         }
+
+        private void EarnPoints() {
+            string Status = Main.Instance.Status;
+            Main.Instance.Status = "Earning Stones...";
+
+            //Add to library and give power vote
+            Browser.AsyncNavigate("https://www.webnovel.com/book/12333953306291305");//Only book allow comment, review and vote with stone.
+            Browser.WaitForLoad();
+            //Browser.InjectAndRunScript("document.getElementsByClassName(\"j_vote_power\")[0].click();");
+            Browser.InjectAndRunScript("document.getElementsByClassName(\"_addLib\")[0].getElementsByTagName(\"span\")[0].click();");
+            Browser.Sleep();
+            Browser.InjectAndRunScript("document.getElementsByClassName(\"j_vote_power\")[0].click();");
+            Browser.Sleep();
+
+            const string ExampleBook = "https://www.webnovel.com/book/12333953306291305/35097438813479503";
+            
+            //Use 5 SS for the first time to recive 20
+            Unlock(ExampleBook, true);
+
+            //Send 5 Stars vote
+            Browser.InjectAndRunScript("document.getElementsByClassName(\"j_rate\")[0].click();");
+            Browser.Sleep();
+            Browser.InjectAndRunScript("var Stars = document.getElementsByClassName(\"mb16 pt24 fs32\")[0];Stars.getElementsByTagName(\"input\")[0].removeAttribute(\"checked\");Stars.getElementsByTagName(\"input\")[5].checked = true; Stars.getElementsByTagName(\"input\")[5].setAttribute(\"checked\", true);Stars.getElementsByTagName(\"input\")[5].click();document.getElementsByClassName(\"bt bt_block j_chap_rate\")[0].click();");
+            Browser.Sleep();
+
+            /*//Give Only XP
+            //Show Comments
+            Browser.InjectAndRunScript("document.getElementsByClassName(\"j_bottom_comments\")[0].click();");
+            Browser.Sleep();
+
+            //Comment something
+            const string PostCommentScript = "var Comment = document.getElementsByClassName(\"_scroller\")[0].getElementsByTagName(\"textarea\")[0];Comment.focus();Comment.value = \"{0}\";var Submit = Comment.form.elements[Comment.form.elements.length - 1];Submit.disabled = false;Submit.click();";
+            Browser.InjectAndRunScript(string.Format(PostCommentScript, GenericComments.GetRandomElement()));
+            Browser.Sleep();
+
+            //Reply a random comment
+            Browser.InjectAndRunScript($"document.getElementsByClassName(\"j_reply\")[0].click();");
+            Browser.InjectAndRunScript(string.Format(PostCommentScript, GenericReplys.GetRandomElement()));
+            Browser.Sleep();
+
+            //*/
+
+            //Show Claim Window (Daily tab)
+            Browser.InjectAndRunScript("document.getElementsByClassName(\"_check_in dib j_show_task_mod\")[0].click();");
+            Browser.Sleep();
+            Browser.InjectAndRunScript("var Claim = document.getElementsByClassName(\"j_claim_task\"); for (var i = 0; i < Claim.length; i++) Claim[i].click();");
+            Browser.Sleep(5);
+
+            //Claim Upgrade Tab
+            Browser.InjectAndRunScript("document.getElementsByClassName(\"j_task_nav g_tab_nav dib _slide\")[0].getElementsByTagName(\"a\")[1].click();");
+            Browser.Sleep();
+            Browser.InjectAndRunScript("var Claim = document.getElementsByClassName(\"j_claim_task\"); for (var i = 0; i < Claim.length; i++) Claim[i].click();");
+            Browser.Sleep(5);
+
+            UpdateStones();
+
+            Main.Instance.Status = Status;
+        }
+
+        private void UpdateStones() {
+            if (CurrentCookies == null) {
+                AvaiableStones = 0;
+                return;
+            }
+
+            string HTML = Main.Download(InputURL, Encoding.UTF8, UserAgent: UA, Referrer: InputURL, Cookies: Cookies);
+            HTML = HTML.Substring(HTML.IndexOf("data-ss="));
+
+            string SS = HTML.Between('"', '"');
+
+            if (int.TryParse(SS, out int Stones)) {
+                AvaiableStones = Stones;
+                return;
+            }
+            
+
+            AvaiableStones = 0;
+        }
+
+        private int GetChapterPrice(string Chapter) {
+            string HTML = Main.Download(Chapter, Encoding.UTF8, UserAgent: UA, Referrer: InputURL, Cookies: Cookies);
+
+            int Index = HTML.IndexOf("\"price\"");
+            if (Index < 0)
+                Index = HTML.IndexOf("\"SSPrice\"");
+            if (Index < 0)
+                return 0;
+
+            HTML = HTML.Substring(Index);
+
+            string SS = HTML.Between(':', ',');
+
+            if (int.TryParse(SS, out int Stones)) {
+                return Stones;
+            }
+
+            return 0;
+        }
+
+        private void Unlock(string Chapter, bool Hide = false) {
+            string Status = Main.Instance.Status;
+            if (!Hide)
+                Main.Instance.Status = "Unlocking Chapter...";
+
+            AvaiableStones -= GetChapterPrice(Chapter);
+
+            Browser.Navigate(Chapter);
+            Browser.WaitForLoad();
+
+            if (Chapter.ToLower().Contains("/book/")) {
+                Browser.InjectAndRunScript("document.getElementsByClassName(\"_bt_unlock\")[0].click();");
+            } else {
+                Browser.InjectAndRunScript("document.getElementsByClassName(\"j_unlock\")[0].click();");
+            }
+
+            Browser.Sleep(5);
+
+            Main.Instance.Status = Status;
+
+            //return true;
+        }
+
+        string UA;
+        string InputURL;
+        string Ref;
+        Cookie[] CurrentCookies;
+        WebBrowser Browser;
+        Account CurrentAccount;
+        GuerrillaMail Email;
+        string FirstChapterUrl;
+        int AvaiableStones = 30;
 
         Dictionary<string, string> NameMap = new Dictionary<string, string>();
         Dictionary<string, bool> LockMap = new Dictionary<string, bool>();
+
         public string[] GetChapters() {
             string HTML = this.HTML;
 
@@ -65,6 +259,9 @@ namespace MangaUnhost.Host {
 
             do {
                 string URL = string.Format("https://www.webnovel.com/comic/{0}/{1}", ComicId, ChapterID);
+                if (string.IsNullOrEmpty(FirstChapterUrl))
+                    FirstChapterUrl = URL;
+
                 HTML = Main.Download(URL, Encoding.UTF8, UserAgent: Tools.UserAgent, Referrer: InputURL);
 
                 ChapterID = HTML.Substring(HTML.IndexOf("nextId")).Between('\'', '\'');
@@ -122,10 +319,10 @@ namespace MangaUnhost.Host {
                 Browser.ScriptErrorsSuppressed = true;
                 Browser.Navigate(URL);
                 Browser.WaitForLoad();
+                UA = Browser.GetUserAgent();
             }));
         }
 
-        string InputURL;
 
         string HTML { get {
                 string Content = null;
@@ -136,7 +333,7 @@ namespace MangaUnhost.Host {
                 return Content;
             }
         }
-        WebBrowser Browser;
+
 
         public bool ValidateProxy(string Proxy) {
             throw new NotImplementedException();
@@ -144,34 +341,82 @@ namespace MangaUnhost.Host {
 
         //https://passport.webnovel.com/login.html
         void Login() {
-            Browser.Invoke(new MethodInvoker(() => {
-                Browser.Navigate(InputURL);
-                Browser.WaitForLoad();
-            }));
+            string Status = Main.Instance.Status;
+            Browser.AsyncNavigate(InputURL);
+            Browser.WaitForLoad();
 
             string HTML = this.HTML;
             HTML = HTML.Substring(0, HTML.IndexOf("<div class=\"oh\">"));
 
             if (HTML.Contains("Log out")) {
                 Browser.InjectAndRunScript("var Logout = document.getElementsByClassName(\"j_logout\")[0];Logout.click();");
+                Browser.WaitForRedirect();
+                Browser.WaitForLoad();
             }
 
             NewAccount();
 
+            Main.Instance.Status = "Finishing Account Registration...";
+
+            bool InRetry = false;
+
+            Retry:;
+
+            if (InRetry)
+                ConfirmEmail(Email.GetAllEmails());
+
+            Browser.AsyncNavigate("https://passport.webnovel.com/login.html");
+            Browser.WaitForLoad();
+            Browser.Sleep(5);
+
+            if (Browser.Url.AbsoluteUri.Contains("login.html")) {
+                HTML = this.HTML;
+
+                HTML = HTML.Substring(HTML.IndexOf("with Twitter") + 1);
+                HTML = HTML.Substring(HTML.IndexOf("with Twitter"));
+
+                string WithEmail = Main.ExtractHtmlLinks(HTML, "passport.webnovel.com", "href").First();
+
+                Browser.AsyncNavigate(WithEmail);
+                Browser.WaitForLoad();
+
+                Browser.InjectAndRunScript($"document.getElementsByName(\"email\")[0].value =    \"{CurrentAccount.Email}\";");
+                Browser.InjectAndRunScript($"document.getElementsByName(\"password\")[0].value = \"{CurrentAccount.Password}\";");
+                Browser.Sleep();
+                Browser.InjectAndRunScript("LoginV1.checkCode();");
+                Browser.InjectAndRunScript("document.forms[0].submit();");
+                Browser.Sleep(5);
+                Browser.WaitForLoad();
+
+                InRetry = true;
+
+                goto Retry;
+            }
+
+            CurrentCookies = Browser.GetCookies();
+
+            Browser.Sleep(5);
+            Browser.InjectAndRunScript($"document.getElementsByClassName(\"j_name\")[0].value = \"{CreatePassword()}\";var post = document.getElementsByClassName(\"bt bt_block\");post = post[post.length - 1];post.click();");
+            Browser.Sleep(5);
+
+            Main.Instance.Status = Status;
+
         }
 
-        Account CurrentAccount;
-        //TempMail Email;
         private void NewAccount() {
-        //    Email = new TempMail();
+            string Status = Main.Instance.Status;
+            Main.Instance.Status = "Creating new account...";
+
+            Email = new GuerrillaMail();
             CurrentAccount = new Account();
-        //    CurrentAccount.Email = Email.User + "@" + Email.Domain;
+            CurrentAccount.Email = Email.GetMyEmail();
             CurrentAccount.Password = CreatePassword();
 
             bool Failed = false;
 
-            Browser.Invoke(new MethodInvoker(() => {
-                Browser.Navigate("https://passport.webnovel.com/login.html");
+            try {
+
+                Browser.AsyncNavigate("https://passport.webnovel.com/login.html");
                 Browser.WaitForLoad();
 
                 //Go to Signup page
@@ -181,7 +426,7 @@ namespace MangaUnhost.Host {
                 string Register = HTML.Between('"', '"');
                 Register = HttpUtility.HtmlDecode(Register);
 
-                Browser.Navigate(Register);
+                Browser.AsyncNavigate(Register);
                 Browser.WaitForLoad();
 
                 //Go to Email Signup Page
@@ -191,13 +436,21 @@ namespace MangaUnhost.Host {
                 Register = HTML.Between('"', '"');
                 Register = HttpUtility.HtmlDecode(Register);
 
-                Browser.Navigate(Register);
+                Browser.AsyncNavigate(Register);
                 Browser.WaitForLoad();
 
                 Browser.Sleep();
 
                 Browser.InjectAndRunScript($"document.getElementsByName(\"email\")[0].value =    \"{CurrentAccount.Email}\";");
                 Browser.InjectAndRunScript($"document.getElementsByName(\"password\")[0].value = \"{CurrentAccount.Password}\";");
+
+
+
+
+                int Retries = 0;
+                again:;
+                Browser.Sleep();
+                Browser.InjectAndRunScript("LoginV1.register();");
                 Browser.InjectAndRunScript("document.forms[0].submit();");
 
                 int Loops = 0;
@@ -205,16 +458,57 @@ namespace MangaUnhost.Host {
                     Browser.Sleep();
 
                 if (Loops > 5) {
+                    if (Retries++ < 3)
+                        goto again;
                     Failed = true;
                     return;
                 }
 
-             //   var Mails = Email.GetEmailsReceived().ToArray();
-            }));
 
+
+                Main.Instance.Status = "Waiting Account Verification Email...";
+
+                Loops = 0;
+                var Mails = new List<GuerrillaMail.Email>();
+                while (Mails.Count == 0) {
+                    Browser.Sleep(10);
+                    if (Loops++ > 60) {//10 * 60 = 600 (10min)
+                        throw new Exception();
+                    }
+                    Mails = Email.GetAllEmails();
+                }
+
+                ConfirmEmail(Mails);
+
+            } catch {
+                Failed = true;
+            }
             if (Failed)
-                NewAccount();
+                NewAccount();           
+
+            Main.Instance.Status = Status;
         }
+
+        private void ConfirmEmail(List<GuerrillaMail.Email> Mails) {
+            string Status = Main.Instance.Status;
+            Main.Instance.Status = "Confiming Email...";
+
+            if (Mails.Count != 0) {
+                var Activation = Email.GetEmail(Mails.Single().mail_id);
+                string Content = Activation.mail_body.Substring(Activation.mail_body.IndexOf("<a href=\"http"));
+                string ActivationLink = Main.ExtractHtmlLinks(Content, null, "href").First();
+
+                Browser.AsyncNavigate(ActivationLink);
+                Browser.WaitForLoad();
+                Browser.WaitForRedirect();
+
+                Browser.WaitForLoad();
+                Browser.Sleep();
+            }
+
+            Main.Instance.Status = Status;
+        }
+
         string CreatePassword(int length = 10) {
             const string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
             StringBuilder res = new StringBuilder();
@@ -229,5 +523,69 @@ namespace MangaUnhost.Host {
             public string Email;
             public string Password;
         }
+
+#pragma warning disable 649
+        struct ComicReader {
+            public ComicInfo comicInfo;
+            public ChapterInfo chapterInfo;
+            public Settings settings;
+            public User user;
+        }
+        struct ComicInfo {
+            public string comicId;
+            public string comicName;
+            public int chapterNum;
+            public int actionStatus;
+            public string publisher;
+            public int auditStatus;
+            public int novelType;
+            public string CV;
+            public int inLibrary;
+        }
+        struct ChapterInfo {
+            public string chapterId;
+            public string chapterName;
+            public int chapterIndex;
+            public int price;
+            public int pageCount;
+            public string preChapterId;
+            public string nextChapterId;
+            public int isVip;
+            public int isAuth;
+            public ChapterPage[] chapterPage;
+        }
+        struct ChapterPage {
+            public string pageId;
+            public int height;
+            public int width;
+            public string url;
+        }
+        struct Settings {
+            public string tc;
+            public string tf;
+            public string ts;
+        }
+        struct User {
+            public string avatar;
+            public string nickName;
+            public string userName;
+            public string guid;
+            public int? status;
+            public int? role;
+            public string penName;
+            public int? SS;
+            public int? vSS;
+            public int? vbSS;
+            public int? bSS;
+            public int? grade;
+            public int? ES;
+            public int? totalES;
+            public int? PS;
+            public int? totalPS;
+            public int? emailStatus;
+            public int? isCheckIn;
+            public long? UUT;
+        }
+#pragma warning restore 649
     }
 }

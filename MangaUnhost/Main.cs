@@ -19,22 +19,10 @@ namespace MangaUnhost {
 
         public static Main Instance = null;
 
-        Host.IHost[] Hosts = new Host.IHost[] {
-            new Host.Batoto(),
-            new Host.HeavenManga(),
-            new Host.HentaiCafe(),
-            new Host.KissManga(),
-            new Host.Mangahost(),
-            new Host.MangaHasu(),
-            new Host.MangaHere(),
-            new Host.MangaKakalot(),
-            new Host.MangaNelo(),
-            new Host.NHentai(),
-            new Host.RawLH(),
-            new Host.Tsumino(),
-            new Host.UnionMangas(),
-        //    new Host.WebNovel()
-        };
+        Host.IHost[] Hosts = (from Asm in AppDomain.CurrentDomain.GetAssemblies()
+                              from Typ in Asm.GetTypes()
+                              where typeof(Host.IHost).IsAssignableFrom(Typ) && !Typ.IsInterface
+                              select (Host.IHost)Activator.CreateInstance(Typ)).ToArray();
 
         static Host.IHost AtualHost = null;
         
@@ -102,7 +90,7 @@ namespace MangaUnhost {
         }
 
         delegate void Invoker();
-        private string Status {
+        public string Status {
             get {
                 return StatusLBL.Text;
             }
@@ -511,7 +499,7 @@ namespace MangaUnhost {
                 if (UserAgent == null)
                     Request.UserAgent = Tools.UserAgent;
                 else
-                    Request.UserAgent = UserAgent;
+                    Request.UserAgent = UserAgent; 
 
                 if (LastModify != null)
                     Request.IfModifiedSince = LastModify.Value;
@@ -832,20 +820,14 @@ namespace MangaUnhost {
         }
 
         private void UpDot_Tick(object sender, EventArgs e) {
-            switch (Status.ToLower()) {
-                case "waiting url...":
-                    Status = "Waiting Url   ";
-                    break;
-                case "waiting url   ":
-                    Status = "Waiting Url.  ";
-                    break;
-                case "waiting url.  ":
-                    Status = "Waiting Url.. ";
-                    break;
-                case "waiting url.. ":
-                    Status = "Waiting Url...";
-                    break;
-            }
+            if (Status.EndsWith("..."))
+                Status = Status.Substring(0, Status.Length - 3) + "   ";
+            else if (Status.EndsWith(".. "))
+                Status = Status.Substring(0, Status.Length - 3) + "...";
+            else if (Status.EndsWith(".  "))
+                Status = Status.Substring(0, Status.Length - 3) + ".. ";
+            else if (Status.EndsWith("   "))
+                Status = Status.Substring(0, Status.Length - 3) + ".  ";
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e) {
@@ -1033,10 +1015,12 @@ namespace MangaUnhost {
         }
 
         public static string[] ExtractHtmlLinks(string Html, string Domain, string Attribute = null) {
-            if (!Domain.StartsWith("http"))
-                Domain = "http://" + Domain;
-            if (Domain.EndsWith("//"))
-                Domain = Domain.Substring(0, Domain.Length - 1);
+            if (Domain != null) {
+                if (!Domain.StartsWith("http"))
+                    Domain = "http://" + Domain;
+                if (Domain.EndsWith("//"))
+                    Domain = Domain.Substring(0, Domain.Length - 1);
+            }
 
             List<string> Links = new List<string>();
             int Index = 0;
@@ -1066,12 +1050,13 @@ namespace MangaUnhost {
                     Links.Add(Result);
             }
 
+            if (Attribute != null)
+                Links.AddRange(ExtractTagLinks(Html, Domain, Attribute));
+
             Links.AddRange(ExtractTagLinks(Html, Domain, "value"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "src"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "href"));
 
-            if (Attribute != null)
-                Links.AddRange(ExtractTagLinks(Html, Domain, Attribute));
 
 
             return Links.Distinct().ToArray();
@@ -1116,7 +1101,7 @@ namespace MangaUnhost {
                     Links.Add(Link);
             }
 
-            return Links.ToArray();
+            return (from x in Links select HttpUtility.HtmlDecode(x)).ToArray();
         }
 
         public List<uint> Depth = new List<uint>();

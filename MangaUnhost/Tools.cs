@@ -55,10 +55,15 @@ internal static class Tools {
 
     public const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 OPR/57.0.3098.106";
 
+    const string ProxyListAPI = "https://www.proxy-list.download/api/v1/get?type=http";
     const string GimmeProxyAPI = "http://gimmeproxy.com/api/getProxy?get=true&post=true&cookies=true&supportsHttps=true&protocol=http&minSpeed=60";
     const string PubProxyAPI = "http://pubproxy.com/api/proxy?google=true&post=true&limit=10&format=txt&speed=20&type=http";
     internal static string[] FreeProxy() {
-        return DownloadString(PubProxyAPI).Replace("\r\n", "\n").Split('\n');
+        string Response = DownloadString(PubProxyAPI);
+        if (Response == null) {
+            Response = DownloadString(ProxyListAPI);
+        }
+        return Response.Replace("\r\n", "\n").Split('\n');
     }
 
     internal static string GimmeProxy() {
@@ -77,10 +82,14 @@ internal static class Tools {
     }
 
     internal static string DownloadString(string URL) {
-        WebClient Client = new WebClient();
-        if (WorkingProxy != null)
-            Client.Proxy = new WebProxy(WorkingProxy);
-        return Client.DownloadString(URL);
+        try {
+            WebClient Client = new WebClient();
+            if (WorkingProxy != null)
+                Client.Proxy = new WebProxy(WorkingProxy);
+            return Client.DownloadString(URL);
+        } catch {
+            return null;
+        }
     }
 
     internal static bool ValidateProxy(string Proxy) {
