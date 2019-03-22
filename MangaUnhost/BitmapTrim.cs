@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace MangaUnhost {
-    internal class BitmapTrim {
+    internal class BitmapTrim : IDisposable {
         Bitmap Texture;
         public BitmapTrim(Bitmap Image) => Texture = Image;
 
@@ -70,6 +70,8 @@ namespace MangaUnhost {
                     CloneB.Dispose();
                 }
 
+                g.Dispose();
+
                 return Result;
             }
         }
@@ -106,6 +108,10 @@ namespace MangaUnhost {
                 return false;
             }
             return true;
+        }
+
+        public void Dispose() {
+            Texture.Dispose();
         }
     }
 }

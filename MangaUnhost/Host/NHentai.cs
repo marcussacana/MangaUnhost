@@ -35,11 +35,29 @@ namespace MangaUnhost.Host {
 
             List<string> Links = new List<string>();
             foreach (string Element in Elements) {
-                string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
-                string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false, Cookies: Cookies);
-                
-                Page = Main.GetElementsByClasses(pHTML, "fit-horizontal").First();
-                Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
+                bool SlowDown = false;
+                bool Failed = false;
+                Retry:;
+                try {
+                    if (SlowDown)
+                        System.Threading.Thread.Sleep(1000);
+
+                    string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
+                    string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false, Cookies: Cookies);
+
+                    Page = Main.GetElementsByClasses(pHTML, "fit-horizontal").First();
+                    Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
+
+                    Failed = false;
+                } catch (Exception ex){
+                    if (!Failed) {
+                        SlowDown = true;
+                        Failed = true;
+                        SkipSlowDown();
+                        goto Retry;
+                    }
+                    throw ex;
+                }
             }
 
             return Links.ToArray();

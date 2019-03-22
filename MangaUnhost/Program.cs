@@ -3,6 +3,8 @@ using System.Windows.Forms;
 
 namespace MangaUnhost {
     static class Program {
+        public static bool Debug = System.Diagnostics.Debugger.IsAttached;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -16,6 +18,9 @@ namespace MangaUnhost {
         }
 
         private static void Updater() {
+            if (Debug)
+                return;
+
             GitHub Updater = new GitHub("Marcussacana", "MangaUnhost");
 
             string Result = Updater.FinishUpdate();
@@ -24,7 +29,11 @@ namespace MangaUnhost {
                 Environment.Exit(0);
             }
 
-            if (Updater.HaveUpdate()) {
+            if (Updater.HaveUpdate()) { 
+                if (GitHub.CurrentVersion == "1.0") {
+                    Debug = true;
+                    return;
+                }
                 if (MessageBox.Show("Atualização Encontrada, Deseja Atualizar?", "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
                     Updater.Update();
                 }

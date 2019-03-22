@@ -31,7 +31,7 @@ namespace MangaUnhost {
 
             Instance = this;
 
-            string Title = "MangaUnhost - v" + GitHub.CurrentVersion;
+            string Title = "MangaUnhost - " + (Program.Debug ? "[DEBUG]" : $"v{GitHub.CurrentVersion}");
             Text = Title;
             iTalk_ThemeContainer1.Text = Title;
             TBSaveAs.Text = AppDomain.CurrentDomain.BaseDirectory + "Biblioteca";
@@ -40,7 +40,7 @@ namespace MangaUnhost {
                 SupportList.Items.Add(Host.HostName);
             }
 
-            if (!System.Diagnostics.Debugger.IsAttached) {
+            if (!Program.Debug) {
                 BntTestHosts.Visible = false;
                 bntTestTrim.Visible = false;
                 bntGenReader.Visible = false;
@@ -331,13 +331,15 @@ namespace MangaUnhost {
                 Source.Dispose();
             }
 
-            Cropper = new BitmapTrim(Result);
-            Result = Cropper.Trim(false);
+            using (Cropper = new BitmapTrim(Result)) {
+                Result = Cropper.Trim(false);
 
-            if (Height == Result.Height)
-                return;
+                if (Height == Result.Height)
+                    return;
 
-            Result.Save(ImagePath);
+                Result.Save(ImagePath);
+                Result.Dispose();
+            }
         }
 
         private void AppendIndex(string CapDir, string CapName) {
