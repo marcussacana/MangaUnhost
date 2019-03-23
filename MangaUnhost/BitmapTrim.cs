@@ -49,28 +49,43 @@ namespace MangaUnhost {
             return Result;
         }
 
+
         Bitmap CropOff(Bitmap Original, int BeginY, int EndY) {
+            Bitmap Result = null;
             int OutHeight = Original.Height - (EndY - BeginY);
             if (OutHeight == 0)
                 return Original;
 
-            Bitmap Result = new Bitmap(Original.Width, OutHeight);
+            const int BufferLenght = 500;
+
+            Result = new Bitmap(Original.Width, OutHeight);
             using (Graphics g = Graphics.FromImage(Result)) {
                 g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
                 if (BeginY > 0) {
-                    Bitmap CloneA = Original.Clone(new Rectangle(0, 0, Original.Width, BeginY), System.Drawing.Imaging.PixelFormat.Format32bppArgb) as Bitmap;
-                    g.DrawImageUnscaled(CloneA, 0, 0);
-                    CloneA.Dispose();
+                    for (int y = 0; y < BeginY; y += BufferLenght) {
+                        int Reaming = y + BufferLenght > BeginY ? BeginY - y : BufferLenght;
+                        using (Bitmap CloneA = Original.Clone(new Rectangle(0, y, Original.Width, Reaming), System.Drawing.Imaging.PixelFormat.DontCare) as Bitmap) {
+                            g.DrawImageUnscaled(CloneA, 0, y);
+                            g.Flush();
+                            CloneA.Dispose();
+                        }
+                    }
                 }
                 int SufixHeight = Original.Height - EndY;
                 if (SufixHeight > 0) {
-                    Bitmap CloneB = Original.Clone(new Rectangle(0, EndY, Original.Width, SufixHeight), System.Drawing.Imaging.PixelFormat.Format32bppArgb) as Bitmap;
-                    g.DrawImageUnscaled(CloneB, 0, BeginY);
-                    g.Flush();
-                    CloneB.Dispose();
+                    for (int y = 0; y < SufixHeight; y += BufferLenght) {
+                        int Reaming = y + BufferLenght > SufixHeight ? SufixHeight - y : BufferLenght;
+                        using (Bitmap CloneB = Original.Clone(new Rectangle(0, y + EndY, Original.Width, Reaming), System.Drawing.Imaging.PixelFormat.DontCare) as Bitmap) {
+                            g.DrawImage(CloneB, 0, BeginY + y);
+                            g.Flush();
+                            CloneB.Dispose();
+                        }
+                    }
                 }
 
                 g.Dispose();
+
+                Original.Dispose();
 
                 return Result;
             }

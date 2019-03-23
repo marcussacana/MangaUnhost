@@ -13,6 +13,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic;
 using System.Web;
 using TLIB;
+using System.Collections;
 
 namespace MangaUnhost {
     public partial class Main : Form {
@@ -62,6 +63,8 @@ namespace MangaUnhost {
                 Status = LastStatus;
                 LastStatus = null;
             };
+
+            new Thread(CropWorker).Start();
         }
         
 
@@ -313,6 +316,9 @@ namespace MangaUnhost {
             return SaveAs;
         }
 
+        Queue<string> CropQueue = new Queue<string>();
+
+        private object CropLocker = new object();
         private void CropFile(string ImagePath) {
             if (InvokeRequired) {
                 Invoke(new MethodInvoker(() => CropFile(ImagePath)));
@@ -321,24 +327,46 @@ namespace MangaUnhost {
             if (!ckCropSpace.Checked)
                 return;
 
-            BitmapTrim Cropper;
-            Bitmap Result;
-            int Height;
-            using (Bitmap Source = Image.FromFile(ImagePath) as Bitmap) {
-                Height = Source.Height;
-                Cropper = new BitmapTrim(Source);
-                Result = Cropper.Trim();
-                Source.Dispose();
-            }
+            CropQueue.Enqueue(ImagePath);
+        }
 
-            using (Cropper = new BitmapTrim(Result)) {
-                Result = Cropper.Trim(false);
+        bool Exited = false;
 
-                if (Height == Result.Height)
-                    return;
+        private void CropWorker() {
+            while (!Exited) {
+                while (CropQueue.Count == 0)
+                    Thread.Sleep(500);
 
-                Result.Save(ImagePath);
-                Result.Dispose();
+                string ImagePath = CropQueue.Dequeue();
+
+                Retry:;
+                int Tries = 0;
+                try {
+                    BitmapTrim Cropper;
+                    Bitmap Result;
+                    int Height;
+                    using (Bitmap Source = Image.FromFile(ImagePath) as Bitmap) {
+                        Height = Source.Height;
+                        using (Cropper = new BitmapTrim(Source)) {
+                            Result = Cropper.Trim();
+                            Source.Dispose();
+                            Cropper.Dispose();
+                        }
+                    }
+
+                    using (Cropper = new BitmapTrim(Result)) {
+                        Result = Cropper.Trim(false);
+
+                        if (Height == Result.Height)
+                            return;
+
+                        Result.Save(ImagePath);
+                        Result.Dispose();
+                    }
+                } catch {
+                    if (Tries++ < 3)
+                        goto Retry;
+                }
             }
         }
 
@@ -822,6 +850,12 @@ namespace MangaUnhost {
         }
 
         private void UpDot_Tick(object sender, EventArgs e) {
+            if (Status.ToLower().StartsWith("waiting url") && CropQueue.Count > 0)
+                Status = "Cropping Pages...";
+            else if (Status.ToLower().StartsWith("cropping pages") && CropQueue.Count == 0)
+                Status = "Waiting Url...";
+            
+
             if (Status.EndsWith("..."))
                 Status = Status.Substring(0, Status.Length - 3) + "   ";
             else if (Status.EndsWith(".. "))
@@ -833,6 +867,15 @@ namespace MangaUnhost {
         }
 
         private void OnClosing(object sender, FormClosingEventArgs e) {
+            if (CropQueue.Count > 0) {
+                bool Interrupt = MessageBox.Show("The MangaUnhost still cutting the new pages, do you want to interrupt?", "MangaUnhost", MessageBoxButtons.YesNo) == DialogResult.Yes;
+
+                if (!Interrupt) {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+            Exited = true;
             Environment.Exit(0);
         }
 
