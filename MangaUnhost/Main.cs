@@ -339,8 +339,8 @@ namespace MangaUnhost {
 
                 string ImagePath = CropQueue.Dequeue();
 
+                int Tries = 1;
                 Retry:;
-                int Tries = 0;
                 try {
                     BitmapTrim Cropper;
                     Bitmap Result;
@@ -348,6 +348,7 @@ namespace MangaUnhost {
                     using (Bitmap Source = Image.FromFile(ImagePath) as Bitmap) {
                         Height = Source.Height;
                         using (Cropper = new BitmapTrim(Source)) {
+                            Cropper.BufferLenght /= Tries;
                             Result = Cropper.Trim();
                             Source.Dispose();
                             Cropper.Dispose();
@@ -355,16 +356,19 @@ namespace MangaUnhost {
                     }
 
                     using (Cropper = new BitmapTrim(Result)) {
+                        Cropper.BufferLenght /= Tries;
                         Result = Cropper.Trim(false);
 
-                        if (Height == Result.Height)
-                            return;
+                        if (Height == Result.Height) {
+                            Result.Dispose();
+                            continue;
+                        }
 
                         Result.Save(ImagePath);
                         Result.Dispose();
                     }
                 } catch {
-                    if (Tries++ < 3)
+                    if (Tries++ <= 3)
                         goto Retry;
                 }
             }

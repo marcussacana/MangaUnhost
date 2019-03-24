@@ -50,13 +50,13 @@ namespace MangaUnhost {
         }
 
 
+
+        public int BufferLenght = 2000;
         Bitmap CropOff(Bitmap Original, int BeginY, int EndY) {
             Bitmap Result = null;
             int OutHeight = Original.Height - (EndY - BeginY);
             if (OutHeight == 0)
                 return Original;
-
-            const int BufferLenght = 500;
 
             Result = new Bitmap(Original.Width, OutHeight);
             using (Graphics g = Graphics.FromImage(Result)) {
