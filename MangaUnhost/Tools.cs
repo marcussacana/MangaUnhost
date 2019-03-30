@@ -39,8 +39,13 @@ internal static class Tools {
 
         ProxyList = new string[PROXIES + 1];
         string[] Proxies = FreeProxy();
+        if (Proxies.Length < PROXIES)
+        {
+            Proxies = Proxies.Concat(new string[PROXIES - Proxies.Length]).ToArray();
+        }
+
         for (int i = 0; i < PROXIES; i++) {
-            Proxies[i] = Proxies[i].ToLower().Replace("http://", "").Replace("https://", "");
+            Proxies[i] = Proxies[i]?.ToLower().Replace("http://", "").Replace("https://", "");
             if (BlackList.Contains(Proxies[i]) || !ValidateProxy(Proxies[i])) {
                 Proxies[i--] = GimmeProxy();
                 continue;
