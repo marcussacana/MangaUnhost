@@ -66,10 +66,13 @@ namespace MangaUnhost.Host {
                 if (GetChapterPrice(Link) > AvaiableStones) {
                     Login();
                     EarnPoints();
+                    UpdateStones();
                 }
 
-                if(GetChapterPrice(Link) > AvaiableStones)
-                    throw new Exception("Failed to Earn Stones");
+                if (GetChapterPrice(Link) > AvaiableStones)
+                {
+                    Main.Instance.Status = "Missing Stones...";
+                }
                 
                 Unlock(Link);
             }
