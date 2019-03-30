@@ -70,13 +70,17 @@ internal static class Tools {
         string Reply = string.Empty;
         string Proxy = null;
         while (Reply == string.Empty) {
-            string Response = DownloadString(GimmeProxyAPI).Replace(@" ", "");
-            Proxy = ReadJson(Response, "curl");
-            if (string.IsNullOrWhiteSpace(Proxy))
-                continue;
+            try
+            {
+                string Response = DownloadString(GimmeProxyAPI).Replace(@" ", "");
+                Proxy = ReadJson(Response, "curl");
+                if (string.IsNullOrWhiteSpace(Proxy))
+                    continue;
 
-            if (ValidateProxy(Proxy))
-                break;
+                if (ValidateProxy(Proxy))
+                    break;
+            }
+            catch { }
         }
         return Proxy;
     }
