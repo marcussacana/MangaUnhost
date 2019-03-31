@@ -16,17 +16,23 @@ internal static class Tools {
     internal static string WorkingProxy = null;
     internal static string Proxy {
         get {
-            if (ProxyList[1] == null || EverytingBlacklisted)
-                RefreshProxy();
+            try
+            {
+                if (ProxyList[1] == null || EverytingBlacklisted)
+                    RefreshProxy();
 
-            if (pid >= ProxyList.Length)
-                pid = 0;
+                if (pid >= ProxyList.Length)
+                    pid = 0;
 
-            string CurrentProxy = ProxyList[pid++];
-            if (BlackList.Contains(CurrentProxy) && CurrentProxy != null) 
-                return Proxy;
-            
-            return CurrentProxy;
+                string CurrentProxy = ProxyList[pid++];
+                if (BlackList.Contains(CurrentProxy) && CurrentProxy != null)
+                    return Proxy;
+
+                return CurrentProxy;
+            }
+            catch {
+                return null;
+            }
         }
     }
 
