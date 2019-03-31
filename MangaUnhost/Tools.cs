@@ -58,7 +58,7 @@ internal static class Tools {
         OnProxiesLoaded?.Invoke(null, null);
     }
 
-    public const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 OPR/57.0.3098.106";
+    public const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36 OPR/58.0.3135.118";
 
     const string ProxyListAPI = "https://www.proxy-list.download/api/v1/get?type=http";
     const string GimmeProxyAPI = "http://gimmeproxy.com/api/getProxy?get=true&post=true&cookies=true&supportsHttps=true&protocol=http&minSpeed=60";
@@ -85,7 +85,9 @@ internal static class Tools {
                 if (ValidateProxy(Proxy))
                     break;
             }
-            catch { }
+            catch {
+                break;
+            }
         }
         return Proxy;
     }
