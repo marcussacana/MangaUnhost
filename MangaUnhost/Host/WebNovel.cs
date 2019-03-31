@@ -599,7 +599,7 @@ namespace MangaUnhost.Host {
                 Browser = this.Browser;
 
             string Status = Main.Instance.Status;
-            Main.Instance.Status = "Confiming Email...";
+            Main.Instance.Status = "Confirming Email...";
 
             if (Mails.Count != 0) {
                 var Activation = Email.GetEmail(Mails.Single().mail_id);
