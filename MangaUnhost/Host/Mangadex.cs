@@ -49,7 +49,7 @@ namespace MangaUnhost.Host
                 throw new Exception();
 
             if (!Result.server.ToLower().Contains(".mangadex.org"))
-                Result.server = "https://s1.mangadex.org" + Result.server;
+                Result.server = "https://mangadex.org" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array)
