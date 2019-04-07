@@ -243,6 +243,13 @@ namespace MangaUnhost {
                 string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
                 Pages = AtualHost.GetChapterPages(HTML);
             }
+
+            if (Pages == null)
+            {
+                Status = "Waiting Url...";
+                return;
+            }
+
             int Pag = 0;
 
             if (!Directory.Exists(WorkDir)) {

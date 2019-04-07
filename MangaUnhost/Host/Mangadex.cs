@@ -45,8 +45,13 @@ namespace MangaUnhost.Host
 
             var Result = Extensions.JsonDecode<MangaDexApi>(Response);
 
+
+            if (Result.status == "delayed")
+                return null;
+
             if (Result.status != "OK")
                 throw new Exception();
+
 
             if (!Result.server.ToLower().Contains(".mangadex.org"))
                 Result.server = "https://mangadex.org" + Result.server;
