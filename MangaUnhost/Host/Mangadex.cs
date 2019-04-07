@@ -41,28 +41,37 @@ namespace MangaUnhost.Host
 
             string API = $"https://mangadex.org/api/?id={ID}&type=chapter&baseURL=%2Fapi";
 
-            string Response = Main.Download(API, Encoding.UTF8, Cookies: Cookies, Referrer: "https://mangadex.org", UserAgent: UA);
-
-            var Result = Extensions.JsonDecode<MangaDexApi>(Response);
-
-
-            if (Result.status == "delayed")
-                return null;
-
-            if (Result.status != "OK")
-                throw new Exception();
-
-
-            if (!Result.server.ToLower().Contains(".mangadex.org"))
-                Result.server = "https://mangadex.org" + Result.server;
-
-            List<string> Pages = new List<string>();
-            foreach (string Page in Result.page_array)
+            try
             {
-                Pages.Add($"{Result.server}{Result.hash}/{Page}");
-            }
+                string Response = Main.Download(API, Encoding.UTF8, Tries: int.MinValue, Cookies: Cookies, Referrer: "https://mangadex.org", UserAgent: UA);
 
-            return Pages.ToArray();
+                var Result = Extensions.JsonDecode<MangaDexApi>(Response);
+
+
+                if (Result.status == "delayed")
+                    return null;
+
+                if (Result.status != "OK")
+                    throw new Exception();
+
+
+
+                if (!Result.server.ToLower().Contains(".mangadex.org"))
+                    Result.server = "https://mangadex.org" + Result.server;
+
+                List<string> Pages = new List<string>();
+                foreach (string Page in Result.page_array)
+                {
+                    Pages.Add($"{Result.server}{Result.hash}/{Page}");
+                }
+
+                return Pages.ToArray();
+            }
+            catch
+            {
+
+                return null;
+            }
         }
 
         public string[] GetChapters()

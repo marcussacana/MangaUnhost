@@ -514,11 +514,15 @@ namespace MangaUnhost {
             return DATA;
         }
         
-        internal static bool Download(string URL, Stream Output, int tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false, string UserAgent = null, string Referrer = null, CookieContainer Cookies = null, DateTime? LastModify = null) {
+        internal static bool Download(string URL, Stream Output, int Tries = 4, bool ProxyChanged = false, bool ThrownRedirect = false, string UserAgent = null, string Referrer = null, CookieContainer Cookies = null, DateTime? LastModify = null) {
             string CurrentProxy = null;
             try {
+                int tries = Tries;
+                if (tries == int.MinValue)
+                    tries = 1;
+
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
-                if (Request.Address.AbsoluteUri.Trim('\\', '/') != URL.Trim('\\', '/') && tries <= 2) {
+                if (Request.Address.AbsoluteUri.Trim('\\', '/') != URL.Trim('\\', '/') && Tries <= 2) {
                     if (System.Diagnostics.Debugger.IsAttached)
                         MessageBox.Show($"ERROR\nABURI: {Request.Address.AbsoluteUri}\n\nURL: {URL}", "DEBUG MESSAGE");
                 }
@@ -581,16 +585,19 @@ namespace MangaUnhost {
                         return false;
                 } catch { }
 
-                if (tries < 0) {
+                if (Tries == int.MinValue)
+                    throw ex;
+
+                if (Tries < 0) {
                     if (DialogResult.Yes == MessageBox.Show(string.Format("Connection Error: {0}\nIgnore?", ex.Message), "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Error))
                         return true;
                     else
                         throw ex;
                 }
-                if (tries - 1 < 0 && !ProxyChanged && AtualHost?.NeedsProxy == true) {
+                if (Tries - 1 < 0 && !ProxyChanged && AtualHost?.NeedsProxy == true) {
                     Tools.RefreshProxy();
                     ProxyChanged = true;
-                    tries = 4;
+                    Tries = 4;
                 }
 
                 if (CurrentProxy != null)
@@ -598,7 +605,7 @@ namespace MangaUnhost {
 
                 Thread.Sleep(1000);
                 
-                return Download(URL, Output, tries - 1, ProxyChanged, ThrownRedirect, UserAgent, Referrer, Cookies);
+                return Download(URL, Output, Tries - 1, ProxyChanged, ThrownRedirect, UserAgent, Referrer, Cookies);
             }
 
         }
