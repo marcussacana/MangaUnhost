@@ -316,6 +316,35 @@ namespace MangaUnhost {
             }
         }
 
+        internal static int EndIndexOf(this string Origin, string Content, int BeginIndex = 0)
+        {
+            int Val = Origin.IndexOf(Content, BeginIndex);
+            if (Val == -1)
+                return -1;
+
+            return Val + Content.Length;
+        }
+
+        internal static string Substring(this string String, string AfterOf, bool CaseSensitive = false)
+        {
+            return String.Substring((CaseSensitive ? String.EndIndexOf(AfterOf) : String.ToLower().EndIndexOf(AfterOf.ToLower())));
+        }
+        internal static string Substring(this string String, string AfterOf, string BeforeOf, bool CaseSensitive = false)
+        {
+            string Result = String.Substring((CaseSensitive ? String.EndIndexOf(AfterOf) : String.ToLower().EndIndexOf(AfterOf.ToLower())));
+
+            return Result.Substring(0, (CaseSensitive ? Result.IndexOf(BeforeOf) : Result.ToLower().IndexOf(BeforeOf.ToLower())));
+        }
+
+        internal static void AddRange<Key, Value>(this Dictionary<Key, Value> Dictionary, Key[] Keys, Value[] Values)
+        {
+            if (Keys.Length != Values.Length)
+                throw new IndexOutOfRangeException();
+
+            for (int i = 0; i < Keys.Length; i++)
+                Dictionary.Add(Keys[i], Values[i]);
+        }
+
         internal static string GetUserAgent(this WebBrowser Browser) => (string)Browser.InjectAndRunScript("return clientInformation.userAgent;");
 
         internal static T GetRandomElement<T>(this T[] Array) {

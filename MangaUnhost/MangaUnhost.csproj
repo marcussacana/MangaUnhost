@@ -76,6 +76,7 @@
     <Compile Include="Host\HentaiCafe.cs" />
     <Compile Include="Host\IHost.cs" />
     <Compile Include="Host\KissManga.cs" />
+    <Compile Include="Host\Mangadex.cs" />
     <Compile Include="Host\MangaHasu.cs" />
     <Compile Include="Host\MangaHere.cs" />
     <Compile Include="Host\Mangahost.cs" />

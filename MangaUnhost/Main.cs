@@ -1466,9 +1466,15 @@ namespace MangaUnhost {
             };
 
             Browser.Navigate(URL);
-            Browser.WaitForRedirect();
             Browser.WaitForLoad();
-            bool Fail = Browser.DocumentText.Contains("5 seconds...");
+            bool Checking = Browser.DocumentText.Contains("5 seconds...") || Browser.DocumentText.Contains("Checking your browser");
+            if (Checking)
+            {
+                Browser.WaitForRedirect();
+                Browser.WaitForLoad();
+            }
+
+            bool Fail = Browser.DocumentText.Contains("5 seconds...") || Browser.DocumentText.Contains("Checking your browser");
 
             Instance.Status = Status;
 
@@ -1477,7 +1483,8 @@ namespace MangaUnhost {
 
             var Bypass = new CloudflareData() {
                 UserAgent = (string)Browser.InjectAndRunScript("return clientInformation.userAgent;"),
-                Cookie = (from x in Browser.GetCookies() where x.Name == "cf_clearance" select x).Single()
+                Cookie = (from x in Browser.GetCookies() where x.Name == "cf_clearance" select x).Single(),
+                AllCookies = Browser.GetCookies()
             };
 
             Bypass.Cookie.Domain = new Uri(URL).Host;
@@ -1491,5 +1498,7 @@ namespace MangaUnhost {
     public struct CloudflareData {
         public string UserAgent;
         public Cookie Cookie;
+
+        public Cookie[] AllCookies;
     }
 }
