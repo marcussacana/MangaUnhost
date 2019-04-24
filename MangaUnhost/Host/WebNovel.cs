@@ -212,13 +212,16 @@ namespace MangaUnhost.Host {
             Main.Instance.Status = Status;
         }
 
-        private void UpdateStones(WebBrowser Browser = null) {
+        private void UpdateStones(WebBrowser Browser = null) => AvaliableStones = CountStones(Browser);
+
+        private int CountStones(WebBrowser Browser = null)
+        {
             if (Browser == null)
                 Browser = this.Browser;
 
-            if (CurrentCookies == null) {
-                AvaliableStones = 0;
-                return;
+            if (CurrentCookies == null)
+            {
+                return 0;
             }
 
             string HTML = Main.Download(InputURL, Encoding.UTF8, UserAgent: UA, Referrer: InputURL, Cookies: Cookies);
@@ -226,13 +229,12 @@ namespace MangaUnhost.Host {
 
             string SS = HTML.Between('"', '"');
 
-            if (int.TryParse(SS, out int Stones)) {
-                AvaliableStones = Stones;
-                return;
+            if (int.TryParse(SS, out int Stones))
+            {
+                return Stones;
             }
-            
 
-            AvaliableStones = 0;
+            return 0;
         }
 
         private int GetChapterPrice(string Chapter) {
@@ -499,7 +501,39 @@ namespace MangaUnhost.Host {
             Browser.InjectAndRunScript("LoginV1.checkCode();");
             Browser.InjectAndRunScript("document.forms[0].submit();");
             Browser.Sleep(5);
-            Browser.WaitForLoad();
+
+            while (true)
+            {
+                Browser.WaitForLoad();
+                HTML = GetHTML(Browser);
+
+                if (HTML.Contains("Webnovel Guard"))
+                {
+                    var Email = new GuerrillaMail(Account?.Email);
+                    var Mails = Email.GetAllEmails();
+
+                    for (int i = 0; i < Mails.Count; i++)
+                    {
+                        var Data = Email.GetEmail(Mails[i].mail_id);
+                        if (Data.mail_body.Contains("Webnovel Guard"))
+                        {
+                            Email.DeleteSingleEmail(Mails[i].mail_id);
+                            string Code = Data.mail_body.Substring("text-align:center;\" valign=\"middle\">", "</td>").Trim();
+                            Browser.InjectAndRunScript($"document.getElementsByName(\"trustcode\")[0].value = \"{Code}\";");
+                            Browser.Sleep();
+                            Browser.InjectAndRunScript("LoginV1.checkTrustCode();");
+                            Browser.InjectAndRunScript("document.forms[0].submit();");
+                            Browser.Sleep(5);
+                            Browser.WaitForLoad();
+
+                            Browser.AsyncNavigate("https://passport.webnovel.com/login.html");
+                            Browser.WaitForLoad();
+                            break;
+                        }
+                    }
+                }
+                else break;
+            }
         }
 
         private void NewAccount(WebBrowser Browser = null) {
@@ -687,7 +721,8 @@ namespace MangaUnhost.Host {
 
                 Login(Browser, new Account() { Email = Email, Password = Pass});
                 EarnPoints(Browser, false);
-                
+
+                Ini.SetConfig($"Fake.{i}", "Points", CountStones(Browser).ToString(), FakeList);
             }
 
             Main.Instance.Status = Status;
@@ -757,7 +792,7 @@ namespace MangaUnhost.Host {
             public int? PS;
             public int? totalPS;
             public int? emailStatus;
-            public int? isCheckIn;
+            public bool? isCheckIn;
             public long? UUT;
         }
 #pragma warning restore 649

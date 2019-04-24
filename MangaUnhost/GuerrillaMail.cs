@@ -233,7 +233,7 @@ namespace MangaUnhost {
             mEmailAlias = Response.alias;
 
             /*Delete the automatic welcome email - id is always 1*/
-            DeleteSingleEmail("1");
+            DeleteSingleEmail(1);
         }
 
 
@@ -368,7 +368,7 @@ namespace MangaUnhost {
         /// Deletes a single email
         /// </summary>
         /// <param name="mail_id">mail_id of an email</param>
-        public void DeleteSingleEmail(string mail_id) {
+        public void DeleteSingleEmail(int mail_id) {
             Contact("f=del_email&email_ids[]=" + mail_id);
         }
 
