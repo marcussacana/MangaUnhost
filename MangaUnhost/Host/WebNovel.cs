@@ -216,13 +216,23 @@ namespace MangaUnhost.Host {
 
         private int CountStones(WebBrowser Browser = null)
         {
-            if (Browser == null)
-                Browser = this.Browser;
+            var Cookies = this.Cookies;
+            var InputURL = this.InputURL;
+            var UA = this.UA;
 
             if (CurrentCookies == null)
             {
-                return 0;
+                if (Browser == null)
+                    return 0;
+
+                Cookies = Browser.GetCookies().ToContainer();
+                InputURL = DemoUrl;
+                UA = Browser.GetUserAgent();
             }
+
+            if (Browser == null)
+                Browser = this.Browser;
+
 
             string HTML = Main.Download(InputURL, Encoding.UTF8, UserAgent: UA, Referrer: InputURL, Cookies: Cookies);
             HTML = HTML.Substring(HTML.IndexOf("data-ss="));

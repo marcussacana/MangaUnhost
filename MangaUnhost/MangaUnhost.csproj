@@ -124,6 +124,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChpManager.csproj" />
+    <Content Include="NoesisWebP.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
