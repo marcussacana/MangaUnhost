@@ -53,8 +53,10 @@ namespace MangaUnhost.Host
 
             List<string> Links = new List<string>();
             foreach (string Elm in Elms)
-            {
+            { 
                 string Link = Main.ExtractHtmlLinks(Elm, "manhwahentai.com").First();
+                if (!Elm.ToLower().Contains("chapter "))
+                    continue;
                 string Name = Elm.Substring("Chapter ", "</a").Trim();
 
                 Links.Add(Link);
@@ -66,7 +68,8 @@ namespace MangaUnhost.Host
 
         public string GetFullName()
         {
-            string Title = this.HTML.Substring("property=og:image:alt content=\"", "\">");
+            string Title = this.HTML.Substring("<div class=post-title>", "</h3>");
+            Title = Title.Substring("<h3>").Trim();
             return HttpUtility.HtmlDecode(Title);
         }
 
