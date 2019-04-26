@@ -132,7 +132,7 @@ namespace MangaUnhost {
             AtualHost.LoadPage(Page);
             Name = HttpUtility.HtmlDecode(AtualHost.GetFullName());
 
-            Status = "Downloading Info of the " + Name;
+            Status = $"Downloading Info of the {Name}...";
             PictureURL = AtualHost.GetPosterUrl();
 
             Invoke(new Invoker(ButtonLst.Controls.Clear));
@@ -175,6 +175,10 @@ namespace MangaUnhost {
                 ID2 = AtualHost.GetChapterName(NextChapter).TrimStart(' ', '0');
             }
 
+            if (ID == string.Empty)
+                ID = "0";
+            if (ID2 == string.Empty)
+                ID2 = "0";
 
             string Text = "Chapter " + ID;
             iTalk_Button_1 Button = new iTalk_Button_1() {
@@ -211,7 +215,7 @@ namespace MangaUnhost {
             string NID = Next == null ? null : AtualHost.GetChapterName(Next).Trim().TrimStart('0');
             if (string.IsNullOrWhiteSpace(ID))
                 ID = "0";
-            if (string.IsNullOrWhiteSpace(NID))
+            if (NID != null && string.IsNullOrWhiteSpace(NID))
                 NID = "0";
 
 
@@ -869,7 +873,9 @@ namespace MangaUnhost {
 
         private void UpDot_Tick(object sender, EventArgs e) {
             if (Status.ToLower().StartsWith("waiting url") && CropQueue.Count > 0)
-                Status = "Cropping Pages...";
+                Status = $"Cropping Pages ({CropQueue.Count} Remaining)...";
+            else if (Status.ToLower().StartsWith("cropping pages") && CropQueue.Count > 0)
+                Status = $"Cropping Pages ({CropQueue.Count} Remaining)" + Status.Substring(Status.Length - 3, 3);
             else if (Status.ToLower().StartsWith("cropping pages") && CropQueue.Count == 0)
                 Status = "Waiting Url...";
             
@@ -1090,7 +1096,12 @@ namespace MangaUnhost {
             while ((Index = Html.IndexOf("http", ++Index)) > 0) {
                 char End = Html[Index - 1];
                 if (End != '\'' && End != '"')
-                    continue;
+                {
+                    if (End == '=')
+                        End = ' ';
+                    else
+                        continue;
+                }
 
                 string Link = string.Empty;
                 while (Index < Html.Length && Html[Index] != End)
@@ -1109,7 +1120,7 @@ namespace MangaUnhost {
                         break;
                 }
 
-                if (!Link.Contains(Result))
+                if (!Links.Contains(Result))
                     Links.Add(Result);
             }
 
@@ -1381,7 +1392,10 @@ namespace MangaUnhost {
                                 Atention |= SuspectBadName(ChapterName);
                                 break;
                             case 6:
-                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies, Referrer: AtualHost.Referrer));
+                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies, Referrer: Host.Referrer));
+                                if (Pages.Length == 0)
+                                    Online = false;
+
                                 foreach (string Page in Pages) {
                                     if (string.IsNullOrEmpty(Page) || !Uri.IsWellFormedUriString(Page, UriKind.Absolute))
                                         Online = false;
@@ -1481,14 +1495,15 @@ namespace MangaUnhost {
 
             Browser.Navigate(URL);
             Browser.WaitForLoad();
-            bool Checking = Browser.DocumentText.Contains("5 seconds...") || Browser.DocumentText.Contains("Checking your browser");
-            if (Checking)
+
+            int Loop = 0;
+            while (Browser.IsCloudflareTriggered() && Loop++ < 3)
             {
                 Browser.WaitForRedirect();
                 Browser.WaitForLoad();
             }
 
-            bool Fail = Browser.DocumentText.Contains("5 seconds...") || Browser.DocumentText.Contains("Checking your browser");
+            bool Fail = Browser.IsCloudflareTriggered();
 
             Instance.Status = Status;
 

@@ -345,6 +345,7 @@ namespace MangaUnhost {
                 Dictionary.Add(Keys[i], Values[i]);
         }
 
+        public static bool IsCloudflareTriggered(this WebBrowser Browser) => Browser.DocumentText.Contains("5 seconds...") || Browser.DocumentText.Contains("Checking your browser");
         internal static string GetUserAgent(this WebBrowser Browser) => (string)Browser.InjectAndRunScript("return clientInformation.userAgent;");
 
         internal static T GetRandomElement<T>(this T[] Array) {

@@ -10,7 +10,7 @@ namespace MangaUnhost.Host {
 
         public string HostName => "MangaHost";
 
-        public string DemoUrl => "https://mangahostbr.com/manga/hadi-girl-mh23848";
+        public string DemoUrl => "https://mangahosted.com/manga/isekai-ni-tobasareta-ossan-wa-doko-e-iku-mh22164";
 
         public CookieContainer Cookies => null;
 
