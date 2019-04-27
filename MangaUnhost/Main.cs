@@ -286,9 +286,7 @@ namespace MangaUnhost {
 
             if (ckGenReader.Checked) {
                 GenerateBook(WorkDir, CapDir, NID, CapName, BookPath);
-
-                if (NID != null)
-                    AppendIndex(CapDir, CapName);
+                AppendIndex(CapDir, CapName);
             }
 
             Status = "Waiting Url...";
@@ -448,7 +446,8 @@ namespace MangaUnhost {
         private string GenerateBook(string MangDir, string CapsDir, string Next, string CapName, string HtmlFile = null) {
             const string PrefixMask = "<DOCTYPE HTML>\r\n<html>\r\n<head><meta charset=\"utf-8\">\r\n<title>{0} - HTML Reader</title>";
             const string PrefixPart2 = "\r\n<style>body{background-color: #000000;}</style>\r\n</head>\r\n<body>\r\n<div align=\"center\">";
-            const string PageMask = "<img src=\"{0}\" style=\"max-width:100%;\"/><br/>";
+            const string PageMask = "<img src=\"{0}\" style=\"max-width:100%;\" id=\"img{1}\" onload=\"img{2}.src = '{3}'\"/><br/>";
+            const string LPageMask = "<img src=\"{0}\" style=\"max-width:100%;\" id=\"img{1}\"/><br/>";
             const string ChapMask = "<a href=\".\\{0}\" style=\"color: #FFF;\">Next Chapter</a>";
             const string SufixMask = "</div>\r\n</body>\r\n</html>";
             Status = "Gerando Leitor...";
@@ -465,10 +464,18 @@ namespace MangaUnhost {
                 Generator.WriteLine(PrefixPart2);
 
                 Generator.WriteLine();
-                foreach (string Line in File.ReadAllLines(FileList)) {
-                    if (string.IsNullOrWhiteSpace(Line))
-                        continue;
-                    Generator.WriteLine(PageMask, CapName + "\\" + Line);
+                string[] Files = (from x in File.ReadAllLines(FileList) where !string.IsNullOrWhiteSpace(x) select x).ToArray();
+                for (int i = 0; i < Files.Length; i++) {
+                    string Current = Files[i];
+                    bool IsLast = i + 1 >= Files.Length;
+                    string NextPg = IsLast ? null : Files[i + 1];
+
+                    if (IsLast)
+                        Generator.WriteLine(LPageMask, null, i);
+                    else if (i == 0)
+                        Generator.WriteLine(PageMask, CapName + "\\" + Current, i, i + 1, CapName + "\\\\" + NextPg);
+                    else
+                        Generator.WriteLine(PageMask, null, i, i + 1, CapName + "\\\\" + NextPg);
                 }
                 if (Next != null) {
                     string NextName = string.Format("Capítulo {0}.html", Next);
