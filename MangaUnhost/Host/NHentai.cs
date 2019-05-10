@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Windows.Forms;
 
@@ -43,7 +44,10 @@ namespace MangaUnhost.Host {
                         System.Threading.Thread.Sleep(1000);
 
                     string Page = (from x in Main.ExtractHtmlLinks(Element, "nhentai.net") where IsValidLink(x) select x).First();
-                    string pHTML = Main.Download(Page.Replace("http:", "https:"), Encoding.UTF8, AllowRedirect: false, Cookies: Cookies);
+                    Page = Page.Replace("http:", "https:");
+                    string pHTML = Main.Download(Page, Encoding.UTF8, AllowRedirect: false, Cookies: Cookies);
+
+                    pHTML = SolveCaptcha(Page, pHTML);
 
                     Page = Main.GetElementsByClasses(pHTML, "fit-horizontal").First();
                     Links.Add(Main.ExtractHtmlLinks(Page, "nhentai.net").First());
@@ -178,11 +182,89 @@ namespace MangaUnhost.Host {
             SkipSlowDown();
 
             HTML = Main.Download(URL, Encoding.UTF8, Cookies: Cookies);
+
+            HTML = SolveCaptcha(URL, HTML);
+        }
+
+        private string SolveCaptcha(string URL, string HTML)
+        {
+            if (!HTML.Contains("<h1>Really, slow down</h1>"))
+                return HTML;
+
+            if (Main.Instance.InvokeRequired)
+                return (string)Main.Instance.Invoke(new Extensions.MethodInvoker(() => SolveCaptcha(URL, HTML)));
+            
+
+            var Form = new Form()
+            {
+                Size = new System.Drawing.Size(500, 600),
+                ShowIcon = false,
+                ShowInTaskbar = false,
+                Text = "Login into your account",
+                FormBorderStyle = FormBorderStyle.FixedToolWindow
+            };
+            var Browser = new WebBrowser()
+            {
+                Dock = DockStyle.Fill,
+                ScriptErrorsSuppressed = true,
+                IsWebBrowserContextMenuEnabled = false,
+                AllowWebBrowserDrop = false,
+                Visible = false
+            };
+            var Message = new Label()
+            {
+                Text = "Loading...",
+                Font = new System.Drawing.Font("Consola", 24),
+                Dock = DockStyle.Fill,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                Visible = true
+            };
+
+            Form.Controls.Add(Browser);
+            Form.Controls.Add(Message);
+
+            Form.FormClosing += (a, b) => {
+                if (AccCookies == null)
+                    b.Cancel = true;
+            };
+
+            Form.Show(Main.Instance);
+
+            Browser.Navigate(URL);
+            Browser.WaitForLoad();
+
+            Browser.Visible = true;
+            Message.Visible = false;
+
+            while (true)
+            {
+                object rst = Browser.InjectAndRunScript("return grecaptcha.getResponse();");
+                if (rst != null)
+                    break;
+
+                Thread.Sleep(3);
+                Application.DoEvents();
+            }
+
+            Message.Visible = true;
+            Browser.Visible = false;
+
+            Browser.InjectAndRunScript("document.forms[0].submit();");
+            Browser.WaitForRedirect();
+
+            Form.Close();
+
+            return Main.Download(URL, Encoding.UTF8, Cookies: Cookies);
         }
 
         private void SkipSlowDown() {
-            WebBrowser Browser = null;
-            Main.Instance.Invoke(new MethodInvoker(() => Browser = new WebBrowser()));
+            if (Main.Instance.InvokeRequired)
+            {
+                Main.Instance.Invoke(new MethodInvoker(() => SkipSlowDown()));
+                return;
+            }
+
+            WebBrowser Browser =  new WebBrowser();
             Browser.AsyncNavigate(InputUrl);
             Browser.WaitForLoad();
 

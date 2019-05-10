@@ -236,7 +236,7 @@ namespace MangaUnhost {
         }
 
 
-        delegate object MethodInvoker();
+        internal delegate object MethodInvoker();
         internal static string Beautifier(this string Script) {
             if (Main.Instance.InvokeRequired)
                 return (string)Main.Instance.Invoke(new MethodInvoker(() => Script.Beautifier()));
