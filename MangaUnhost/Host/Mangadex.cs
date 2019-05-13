@@ -197,7 +197,7 @@ namespace MangaUnhost.Host
                     LID = LangMap[Combo.Text];
                 }));
             else if (LID.Trim().ToLower() == "ask")
-                LID = LangMap.Values.First();
+                LID = LangMap.Values.First(); 
 
 
             HTMLs = Pages;
@@ -238,7 +238,7 @@ namespace MangaUnhost.Host
                 if (!Elm.Contains("data-id"))
                     continue;
 
-                if (Lang != null && Main.GetElementAttribute(Elm, "data-lang") != Lang)
+                if ((Lang != null && Lang != "Ask") && Main.GetElementAttribute(Elm, "data-lang") != Lang)
                     continue;
 
 
@@ -270,7 +270,7 @@ namespace MangaUnhost.Host
                 if (!Elm.Contains("data-chapter"))
                     continue;
 
-                if (Lang != null && Main.GetElementAttribute(Elm, "data-lang") != Lang)
+                if ((Lang != null && Lang != "Ask") && Main.GetElementAttribute(Elm, "data-lang") != Lang)
                     continue;
 
                 Names.Add(Main.GetElementAttribute(Elm, "data-chapter"));
