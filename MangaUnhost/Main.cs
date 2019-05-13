@@ -1517,9 +1517,11 @@ namespace MangaUnhost {
             if (Fail && Tries <= 0)
                 throw new Exception("Failed to Bypass the Anti-Bot");
 
+            string[] CFCookiesName = new string[] { "cf_clearance", "__cfduid" };
+
             var Bypass = new CloudflareData() {
                 UserAgent = (string)Browser.InjectAndRunScript("return clientInformation.userAgent;"),
-                Cookie = (from x in Browser.GetCookies() where x.Name == "cf_clearance" select x).Single(),
+                Cookie = (from x in Browser.GetCookies() where CFCookiesName.Contains(x.Name) select x).Single(),
                 AllCookies = Browser.GetCookies()
             };
 
