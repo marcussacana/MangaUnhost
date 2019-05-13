@@ -149,6 +149,7 @@ namespace MangaUnhost.Host
             else
                 LID = null;
 
+            Dictionary<string, string> LangMap = new Dictionary<string, string>();
             List<string> Pages = new List<string>();
             int PageNum = 1;
             while (true)
@@ -156,17 +157,48 @@ namespace MangaUnhost.Host
                 string Page = Main.Download(string.Format(PageMask, ID, Title, PageNum++), Encoding.UTF8, Cookies: Cookies, UserAgent: UA);
                 if (GetChapters(Page, LID).Length == 0)
                 {
-                    if (Pages.Count == 0 && LID != null)
+                    if (Pages.Count == 0 && LID != "Ask")
                     {
-                        LID = null;
+                        LID = "Ask";
                         PageNum--;
                         continue;
                     }
                     break;
                 }
 
+                EnumLanguages(Page, LangMap);
                 Pages.Add(Page);
             }
+
+            if (LID.Trim().ToLower() == "ask" && LangMap.Count > 1)
+                Main.Instance.Invoke(new MethodInvoker(() =>
+                {
+                    Form Window = new Form();
+                    Window.Size = new Size(300, 130);
+                    Window.TopMost = true;
+                    Window.StartPosition = FormStartPosition.CenterParent;
+
+                    iTalk_ThemeContainer Container = new iTalk_ThemeContainer();
+                    Container.Parent = Window;
+                    Container.Text = "Select a Language...";
+                    Container.Sizable = false;
+
+                    iTalk_ComboBox Combo = new iTalk_ComboBox();
+                    Combo.Size = new Size(260, 80);
+                    Combo.Location = new Point(10, 30);
+                    Combo.Items.AddRange(LangMap.Keys.ToArray());
+                    Combo.Parent = Container;
+                    Combo.DropDownStyle = ComboBoxStyle.DropDownList;
+                    Combo.SelectedValueChanged += (a, b) => Window.Close();
+
+                    while (string.IsNullOrWhiteSpace(Combo.Text))
+                        Window.ShowDialog(Main.Instance);
+
+                    LID = LangMap[Combo.Text];
+                }));
+            else if (LID.Trim().ToLower() == "ask")
+                LID = LangMap.Values.First();
+
 
             HTMLs = Pages;
         }
@@ -176,57 +208,31 @@ namespace MangaUnhost.Host
             throw new NotImplementedException();
         }
 
+        private void EnumLanguages(string HTML, Dictionary<string, string> Dictionary)
+        {
+            string[] Elms = GetChapterElms(HTML);
+
+            foreach (string Elm in Elms)
+            {
+                if (!Elm.Contains("data-id"))
+                    continue;
+
+                string ELang = Main.GetElementAttribute(Elm, "data-lang");
+
+                string sHTML = HTML.Substring($"data-lang=\"{ELang}\"", "user_level_guest").Substring("</div>");
+
+                var Span = Main.GetElementsByClasses(sHTML, "rounded", "flag", "*").First();
+
+                string LangName = Main.GetElementAttribute(Span, "title");
+
+                Dictionary[LangName] = ELang;
+            }
+        }
+
         private string[] GetChapters(string HTML, string Lang = null)
         {
-            string[] Elms = Main.GetElementsByClasses(HTML.Substring("chapter-container", "homepage_settings_modal"), "chapter-row", "d-flex", "row", "no-gutters", "p-2", "align-items-center", "border-bottom", "odd-row");
-
-
-            while (Lang.Trim().ToLower() == "ask")
-            {
-                Dictionary<string, string> LangMap = new Dictionary<string, string>();
-
-                foreach (string Elm in Elms)
-                {
-                    if (!Elm.Contains("data-id"))
-                        continue;
-
-                    string ELang = Main.GetElementAttribute(Elm, "data-lang");
-
-                    string sHTML = HTML.Substring($"data-lang=\"{ELang}\"", "user_level_guest").Substring("</div>");
-
-                    var Span = Main.GetElementsByClasses(sHTML, "rounded", "flag", "*").First();
-
-                    string LangName = Main.GetElementAttribute(Span, "title");
-
-                    LangMap[LangName] = ELang;
-                }
-
-                Main.Instance.Invoke(new MethodInvoker(() =>
-                  {
-                      Form Window = new Form();
-                      Window.Text = "Select a Language...";
-                      Window.Size = new Size(300, 70);
-                      Window.TopMost = true;
-                      Window.FormBorderStyle = FormBorderStyle.FixedToolWindow;
-
-                      ComboBox Combo = new ComboBox();
-                      Combo.Size = new Size(280, 80);
-                      Combo.Location = new Point(10, 10);
-                      Combo.Items.AddRange(LangMap.Keys.ToArray());
-                      Combo.Parent = Window;
-                      Combo.DropDownStyle = ComboBoxStyle.DropDownList;
-                      Combo.SelectedValueChanged += (a, b) => Window.Close();
-
-                      while (string.IsNullOrWhiteSpace(Combo.Text))
-                          Window.ShowDialog(Main.Instance);
-
-                      LID = LangMap[Combo.Text];
-                  }));
-
-                Lang = LID;
-            }
-
-                List<string> Links = new List<string>();
+            string[] Elms = GetChapterElms(HTML);
+            List<string> Links = new List<string>();
             foreach (string Elm in Elms)
             {
                 if (!Elm.Contains("data-id"))
@@ -241,9 +247,22 @@ namespace MangaUnhost.Host
 
             return Links.ToArray();
         }
+
+        private string LastHTML;
+        private string[] LastElms;
+        private string[] GetChapterElms(string HTML)
+        {
+            if (HTML == LastHTML)
+                return LastElms;
+
+            LastHTML = HTML;
+            LastElms = Main.GetElementsByClasses(HTML.Substring("chapter-container", "homepage_settings_modal"), "chapter-row", "d-flex", "row", "no-gutters", "p-2", "align-items-center", "border-bottom", "odd-row");
+
+            return LastElms;
+        }
         private string[] GetChaptersName(string HTML, string Lang = null)
         {
-            string[] Elms = Main.GetElementsByClasses(HTML, "chapter-row", "d-flex", "row", "no-gutters", "p-2", "align-items-center", "border-bottom", "odd-row");
+            string[] Elms = GetChapterElms(HTML);
 
             List<string> Names = new List<string>();
             foreach (string Elm in Elms)
