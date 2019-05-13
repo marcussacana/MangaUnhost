@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Host
 {
@@ -13,7 +15,7 @@ namespace MangaUnhost.Host
         public Mangadex()
         {
             if (!System.IO.File.Exists(IniPath))
-                Ini.SetConfig("MangaDex", "Language", "1", IniPath);
+                Ini.SetConfig("MangaDex", "Language", "Ask", IniPath);
         }
 
         public string HostName => "MangaDex";
@@ -176,9 +178,55 @@ namespace MangaUnhost.Host
 
         private string[] GetChapters(string HTML, string Lang = null)
         {
-            string[] Elms = Main.GetElementsByClasses(HTML, "chapter-row", "d-flex", "row", "no-gutters", "p-2", "align-items-center", "border-bottom", "odd-row");
+            string[] Elms = Main.GetElementsByClasses(HTML.Substring("chapter-container", "homepage_settings_modal"), "chapter-row", "d-flex", "row", "no-gutters", "p-2", "align-items-center", "border-bottom", "odd-row");
 
-            List<string> Links = new List<string>();
+
+            while (Lang.Trim().ToLower() == "ask")
+            {
+                Dictionary<string, string> LangMap = new Dictionary<string, string>();
+
+                foreach (string Elm in Elms)
+                {
+                    if (!Elm.Contains("data-id"))
+                        continue;
+
+                    string ELang = Main.GetElementAttribute(Elm, "data-lang");
+
+                    string sHTML = HTML.Substring($"data-lang=\"{ELang}\"", "user_level_guest").Substring("</div>");
+
+                    var Span = Main.GetElementsByClasses(sHTML, "rounded", "flag", "*").First();
+
+                    string LangName = Main.GetElementAttribute(Span, "title");
+
+                    LangMap[LangName] = ELang;
+                }
+
+                Main.Instance.Invoke(new MethodInvoker(() =>
+                  {
+                      Form Window = new Form();
+                      Window.Text = "Select a Language...";
+                      Window.Size = new Size(300, 70);
+                      Window.TopMost = true;
+                      Window.FormBorderStyle = FormBorderStyle.FixedToolWindow;
+
+                      ComboBox Combo = new ComboBox();
+                      Combo.Size = new Size(280, 80);
+                      Combo.Location = new Point(10, 10);
+                      Combo.Items.AddRange(LangMap.Keys.ToArray());
+                      Combo.Parent = Window;
+                      Combo.DropDownStyle = ComboBoxStyle.DropDownList;
+                      Combo.SelectedValueChanged += (a, b) => Window.Close();
+
+                      while (string.IsNullOrWhiteSpace(Combo.Text))
+                          Window.ShowDialog(Main.Instance);
+
+                      LID = LangMap[Combo.Text];
+                  }));
+
+                Lang = LID;
+            }
+
+                List<string> Links = new List<string>();
             foreach (string Elm in Elms)
             {
                 if (!Elm.Contains("data-id"))
@@ -186,6 +234,7 @@ namespace MangaUnhost.Host
 
                 if (Lang != null && Main.GetElementAttribute(Elm, "data-lang") != Lang)
                     continue;
+
 
                 Links.Add($"https://mangadex.org/chapter/{Main.GetElementAttribute(Elm, "data-id")}");
             }

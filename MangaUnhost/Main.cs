@@ -801,11 +801,16 @@ namespace MangaUnhost {
 
             return Level;
         }
-        internal static bool EqualsArray(string[] Class, string[] Names) {
-            if (Class.Length != Names.Length)
+
+        /// <summary>
+        /// Compare if two arrays are equal, * wildcard are accepted in the 'A' array
+        /// </summary>
+        /// <returns></returns>
+        internal static bool EqualsArray(string[] A, string[] B) {
+            if (A.Length != B.Length)
                 return false;
-            for (int i = 0; i < Class.Length; i++)
-                if (Class[i].ToLower() != Names[i].ToLower())
+            for (int i = 0; i < A.Length; i++)
+                if (A[i].ToLower() != B[i].ToLower() && A[i] != "*")
                     return false;
             return true;
         }
