@@ -230,6 +230,8 @@ namespace MangaUnhost {
                 else
                     Validated += '-';
 
+            MatchPath(TBSaveAs.Text, ref Validated);
+
             string CapDir = TBSaveAs.Text + $"\\{Validated}\\";
             string WorkDir = $"{CapDir}Capítulos\\Capítulo {ID}\\";            
             string CapName = $"Capítulo {ID}";
@@ -291,6 +293,26 @@ namespace MangaUnhost {
 
             Status = "Waiting Url...";
         }
+
+        private void MatchPath(string Lib, ref string Dir)
+        {
+            string[] Dirs = Directory.GetDirectories(Lib, "*", SearchOption.TopDirectoryOnly);
+            Dirs = (from x in Dirs select Path.GetFileName(x.TrimEnd('/', '\\'))).ToArray();
+            string[] MDirs = (from x in Dirs select MinifyString(x)).ToArray();
+
+            string MDir = MinifyString(Dir);
+            for (int i = 0; i < MDirs.Length; i++)
+            {
+                if (MDir == MDirs[i])
+                {
+                    Dir = Dirs[i];
+                    break;
+                }
+            }
+        }
+
+        private string MinifyString(string String) => 
+            new string((from x in String where !char.IsPunctuation(x) && !char.IsSymbol(x) && !char.IsWhiteSpace(x) select x).ToArray()).ToLower();
 
         private string DownloadImage(string Url, string SaveAs) {
             DateTime? LastModify = null;
