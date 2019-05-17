@@ -122,8 +122,16 @@ namespace MangaUnhost.Host
 
             string Path = URL.Substring("/title/");
 
-            Title = Path.Split('/')[1];
-             ID = Path.Split('/')[0];
+            if (Path.Contains("/"))
+            {
+                Title = Path.Split('/')[1];
+                ID = Path.Split('/')[0];
+            }
+            else
+            {
+                Title = "Manga";
+                ID = Path;
+            }
 
             Page = $"https://mangadex.org/title/{ID}/{Title}";
             Name = Main.GetRawNameFromUrlFolder(Title);
