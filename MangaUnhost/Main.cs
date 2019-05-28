@@ -1548,7 +1548,7 @@ namespace MangaUnhost {
 
             var Bypass = new CloudflareData() {
                 UserAgent = (string)Browser.InjectAndRunScript("return clientInformation.userAgent;"),
-                Cookie = (from x in Browser.GetCookies() where CFCookiesName.Contains(x.Name) select x).Single(),
+                Cookie = (from x in Browser.GetCookies() where CFCookiesName.Contains(x.Name) select x).First(),
                 AllCookies = Browser.GetCookies()
             };
 
