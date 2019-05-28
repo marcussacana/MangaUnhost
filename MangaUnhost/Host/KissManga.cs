@@ -14,7 +14,8 @@ namespace MangaUnhost.Host {
         public string DemoUrl => "https://kissmanga.com/Manga/Orenchi-ni-kita-Onna-kishi-to-Inakagurashi-suru-koto-ni-natta-ken";
 
         public bool NeedsProxy => false;
-        public CookieContainer Cookies => Cookie.ToContainer();
+
+        public CookieContainer Cookies => _cks;
 
         public string UserAgent => UA;
 
@@ -25,7 +26,7 @@ namespace MangaUnhost.Host {
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "/manga/";
             string Part = ChapterURL.Substring(ChapterURL.ToLower().IndexOf(Prefix) + Prefix.Length);
-            Part = Part.Split('/')[1];
+            Part = Part.Between('/', '?');
             string Rst = string.Empty;
             foreach (char c in Part) {
                 if (Rst == string.Empty && !char.IsNumber(c))
@@ -152,13 +153,14 @@ namespace MangaUnhost.Host {
         }
         string HTML = null;
         string Host = null;
-        static Cookie Cookie;
+
+        static CookieContainer _cks;
         static string UA = null;
         public void LoadPage(string URL) {
-            if (Cookie == null) {
+            if (Cookies == null) {
                 var Data = Main.BypassCloudflare(URL);
                 UA = Data.UserAgent;
-                Cookie = Data.Cookie;
+                _cks = Data.AllCookies.ToContainer();
             }
             Host = new Uri(URL).Host;
 

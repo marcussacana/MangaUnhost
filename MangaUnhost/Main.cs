@@ -934,7 +934,14 @@ namespace MangaUnhost {
                 }
             }
             Exited = true;
-            Environment.Exit(0);
+            try
+            {
+                Environment.Exit(0);
+            }
+            catch//whatafuckishappeningwiththeclr
+            {
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            }
         }
 
         private void OnShowing(object sender, EventArgs e) {

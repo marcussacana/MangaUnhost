@@ -11,7 +11,7 @@ namespace MangaUnhost.Host {
 
         public string HostName => "Heaven Manga";
 
-        public string DemoUrl => "http://heavenmanga.today/hentai-elf-to-majime-orc/";
+        public string DemoUrl => "http://heavenmanga.vip/hentai-elf-to-majime-orc/";
 
         public CookieContainer Cookies => null;
 
@@ -34,8 +34,8 @@ namespace MangaUnhost.Host {
             int BID = HTML.IndexOf("<center>");
             int Len = HTML.IndexOf("<span style=", BID) - BID;
             HTML = HTML.Substring(BID, Len);
-            HTML = HTML.Substring(HTML.IndexOf("<p>"));
-            string[] Links = Main.ExtractHtmlLinks(HTML, "heavenmanga.today");
+            //HTML = HTML.Substring(HTML.IndexOf("<p>"));
+            string[] Links = Main.ExtractHtmlLinks(HTML, "heavenmanga.vip");
 
             return Links;
         }
@@ -47,7 +47,7 @@ namespace MangaUnhost.Host {
             while ((io = HTML.IndexOf("<h2 class=\"chap\">", io + 1)) > 0) {
                 string Elm = HTML.Substring(io);
                 int EndPos = Elm.IndexOf("<span ");
-                string Link = Main.ExtractHtmlLinks(Elm.Substring(0, EndPos), "heavenmanga.today").First();
+                string Link = Main.ExtractHtmlLinks(Elm.Substring(0, EndPos), "heavenmanga.vip").First();
                 Chapters.Add(Link);
             }
 
@@ -68,7 +68,7 @@ namespace MangaUnhost.Host {
         public string GetPosterUrl() {
             string HTML = this.HTML.Substring(this.HTML.IndexOf("thumb text-center"));
             int EndInd = HTML.IndexOf("</div>");
-            string Link = Main.ExtractHtmlLinks(HTML.Substring(0, EndInd), "heavenmanga.today").First();
+            string Link = Main.ExtractHtmlLinks(HTML.Substring(0, EndInd), "heavenmanga.vip").First();
             return Link;
         }
 
@@ -76,12 +76,12 @@ namespace MangaUnhost.Host {
             if (!IsValidLink(URL))
                 throw new Exception();
 
-            Name = GetName(URL.Substring(URL.IndexOf(".today")).Split('/')[1]);
+            Name = GetName(URL.Substring(URL.IndexOf(".vip")).Split('/')[1]);
             Page = URL;
         }
 
         public bool IsValidLink(string URL) {
-            return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("heavenmanga.today") && URL.Substring(URL.IndexOf(".today")).Split('/').Length >= 2;
+            return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("heavenmanga.vip") && URL.Substring(URL.IndexOf(".vip")).Split('/').Length >= 2;
         }
 
         public void LoadPage(string URL) {
