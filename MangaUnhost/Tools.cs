@@ -1,5 +1,7 @@
-﻿using System;
+﻿using NAudio.Wave;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -137,12 +139,55 @@ internal static class Tools {
         return Result ?? false;
     }
 
+    internal static string GetTextFromSpeech(byte[] WAV)
+    {
+        HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("https://api.wit.ai/speech");
+        Request.Method = "POST";
+        Request.Headers[HttpRequestHeader.Authorization] = "Bearer NVYD6ZUJMC26US5XS2ZJJ32EDZZ654TD";
+        Request.ContentType = "audio/wav";
+        Request.ContentLength = WAV.Length;
+        Request.UserAgent = UserAgent;
+        Request.ServicePoint.Expect100Continue = false;
+
+        var POST = Request.GetRequestStream();
+        new MemoryStream(WAV).CopyTo(POST);
+        POST.Flush();
+        POST.Close();
+
+        var RESP = Request.GetResponse();
+        var GET = RESP.GetResponseStream();
+
+        var Buffer = new MemoryStream();
+        GET.CopyTo(Buffer);
+        RESP.Close();
+
+        var JSON = System.Text.Encoding.UTF8.GetString(Buffer.ToArray());
+
+        return ReadJson(JSON, "_text");
+    }
+
+    internal static byte[] Mp3ToWav(byte[] MP3) { 
+        using (MemoryStream INPUT = new MemoryStream(MP3))
+        using (Mp3FileReader mp3 = new Mp3FileReader(INPUT))
+        using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3))
+        using (MemoryStream OUTPUT = new MemoryStream()) {
+            WaveFileWriter.WriteWavFileToStream(OUTPUT, pcm);
+            return OUTPUT.ToArray();
+        }
+    }
 
     static string ReadJson(string JSON, string Name) {
         string Finding = string.Format("\"{0}\":", Name);
         int Pos = JSON.IndexOf(Finding) + Finding.Length;
-        if (Pos - Finding.Length == -1)
-            return null;
+        if (Pos - Finding.Length == -1) {
+            Finding = Finding.TrimEnd(':');
+            Pos = JSON.IndexOf(Finding) + Finding.Length;
+            if (Pos - Finding.Length == -1)
+                return null;
+            while (JSON[Pos] != ':')
+                Pos++;
+            Pos++;
+        }
 
         string Cutted = JSON.Substring(Pos, JSON.Length - Pos).TrimStart(' ', '\n', '\r');
         char Close = Cutted.StartsWith("\"") ? '"' : ',';

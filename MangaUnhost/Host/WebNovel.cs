@@ -306,19 +306,20 @@ namespace MangaUnhost.Host {
         }
 
         string UA;
+        string Token;
         string InputURL;
         string Ref;
         Cookie[] CurrentCookies;
         WebBrowser Browser;
         Account CurrentAccount;
         GuerrillaMail Email;
-        string FirstChapterUrl;
         int AvaliableStones = 30;
 
         Dictionary<string, string> NameMap = new Dictionary<string, string>();
         Dictionary<string, bool> LockMap = new Dictionary<string, bool>();
 
-        public string[] GetChapters() {
+        public string[] GetChapters()
+        {
             string HTML = GetHTML();
 
             HTML = HTML.Substring(HTML.IndexOf("comicId"));
@@ -326,35 +327,27 @@ namespace MangaUnhost.Host {
 
             string ComicId = HTML;
 
-            HTML = GetHTML();
-            HTML = HTML.Substring(HTML.IndexOf("firstChapterId"));
-            HTML = HTML.Substring(0, HTML.IndexOf("\",\""));
+            List<string> List = new List<string>();
 
-            List<string> ChapterList = new List<string>();
-            string ChapterID = HTML.Between('"', '"', 1);
+            string API = string.Format("https://www.webnovel.com/apiajax/comic/getChapterList?_csrfToken={0}&comicId={1}", Token, ComicId);
+            string JSON = Main.Download(API, Encoding.UTF8);
 
-            do {
-                string URL = string.Format("https://www.webnovel.com/comic/{0}/{1}", ComicId, ChapterID);
-                if (string.IsNullOrEmpty(FirstChapterUrl))
-                    FirstChapterUrl = URL;
+            ChapterList CList = Extensions.JsonDecode<ChapterList>(JSON);
+            for (int i = 0; i < CList.data.comicChapters.Length; i++)
+            {
+                string CID = CList.data.comicChapters[i].chapterId;
+                string CName = CList.data.comicChapters[i].chapterName;
+                string CUrl = string.Format("https://www.webnovel.com/comic/{0}/{1}", ComicId, CID);
 
-                HTML = Main.Download(URL, Encoding.UTF8, UserAgent: Tools.UserAgent, Referrer: InputURL);
+                bool IsLocked = CList.data.comicChapters[i].isVip != 0;
 
-                ChapterID = HTML.Substring(HTML.IndexOf("nextId")).Between('\'', '\'');
-                ChapterList.Add(URL);
+                List.Add(CUrl);
+                NameMap[CUrl] = CName;
+                LockMap[CUrl] = IsLocked;
+            }
 
-                bool Locked = HTML.Contains("data-islock=\"1\"");
-                string Name = HTML.Substring(HTML.IndexOf("cha-hd-progress"));
-                Name = Name.Substring(0, Name.IndexOf("</div>"));
-                Name = Name.Substring(Name.LastIndexOf("<span>"));
-                Name = Name.Between('>', '<');
 
-                NameMap[URL] = Name;
-                LockMap[URL] = Locked;
-
-            } while (ChapterID != "0");
-            
-            return ChapterList.ToArray().Reverse().ToArray();
+            return List.ToArray().Reverse().ToArray();
         }
 
         public string GetFullName() {
@@ -394,11 +387,12 @@ namespace MangaUnhost.Host {
                 Thread.Sleep(100);
 
             Main.Instance.Invoke(new MethodInvoker(() => {
-                Browser = new WebBrowser();
-                Browser.ScriptErrorsSuppressed = true;
+                Browser = MangaUnhost.Browser.Create();
                 Browser.Navigate(URL);
                 Browser.WaitForLoad();
                 UA = Browser.GetUserAgent();
+
+                Token = Browser.GetCookie("_csrfToken");
             }));
         }
 
@@ -725,8 +719,7 @@ namespace MangaUnhost.Host {
                 string Email = Ini.GetConfig($"Fake.{i}", "Email", FakeList);
                 string Pass = Ini.GetConfig($"Fake.{i}", "Password", FakeList);
 
-                WebBrowser Browser = null;
-                Main.Instance.Invoke(new MethodInvoker(() => { Browser = new WebBrowser(); Browser.ScriptErrorsSuppressed = true; }));
+                WebBrowser Browser = MangaUnhost.Browser.Create();
 
 
                 Login(Browser, new Account() { Email = Email, Password = Pass});
@@ -750,6 +743,18 @@ namespace MangaUnhost.Host {
             public Settings settings;
             public User user;
         }
+
+        struct ChapterList
+        {
+            public int code;
+            public ChapterListData data;
+            public string msg;
+        }
+
+        struct ChapterListData {
+            public ComicInfo comicInfo;
+            public ChapterInfo[] comicChapters;
+        }
         struct ComicInfo {
             public string comicId;
             public string comicName;
@@ -771,6 +776,7 @@ namespace MangaUnhost.Host {
             public string nextChapterId;
             public int isVip;
             public int isAuth;
+            public string publishTime;
             public ChapterPage[] chapterPage;
         }
         struct ChapterPage {

@@ -132,13 +132,9 @@ namespace MangaUnhost.Host {
                     Text = "Login into your account",
                     FormBorderStyle = FormBorderStyle.FixedToolWindow
                 };
-                var Browser = new WebBrowser() {
-                    Dock = DockStyle.Fill,
-                    ScriptErrorsSuppressed = true,
-                    IsWebBrowserContextMenuEnabled = false,
-                    AllowWebBrowserDrop = false,
-                    Visible = false
-                };
+
+                var Browser = MangaUnhost.Browser.Create();
+
                 var Message = new Label() {
                     Text = "Loading...",
                     Font = new System.Drawing.Font("Consola", 24),
@@ -203,14 +199,7 @@ namespace MangaUnhost.Host {
                 Text = "Login into your account",
                 FormBorderStyle = FormBorderStyle.FixedToolWindow
             };
-            var Browser = new WebBrowser()
-            {
-                Dock = DockStyle.Fill,
-                ScriptErrorsSuppressed = true,
-                IsWebBrowserContextMenuEnabled = false,
-                AllowWebBrowserDrop = false,
-                Visible = false
-            };
+            var Browser = MangaUnhost.Browser.Create();
             var Message = new Label()
             {
                 Text = "Loading...",
@@ -236,14 +225,18 @@ namespace MangaUnhost.Host {
             Browser.Visible = true;
             Message.Visible = false;
 
-            while (true)
-            {
-                object rst = Browser.InjectAndRunScript("return grecaptcha.getResponse();");
-                if (rst != null)
-                    break;
 
-                Thread.Sleep(3);
+            bool AutoSolved = false;
+            while (!Browser.CaptchaSolved())
+            {
+                Thread.Sleep(2);
                 Application.DoEvents();
+
+                if (!AutoSolved)
+                {
+                    AutoSolved = true;
+                    Browser.SolveCaptcha();
+                }
             }
 
             Message.Visible = true;
@@ -264,7 +257,8 @@ namespace MangaUnhost.Host {
                 return;
             }
 
-            WebBrowser Browser =  new WebBrowser();
+            WebBrowser Browser = MangaUnhost.Browser.Create();
+
             Browser.AsyncNavigate(InputUrl);
             Browser.WaitForLoad();
 

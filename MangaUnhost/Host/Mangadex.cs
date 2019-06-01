@@ -112,7 +112,10 @@ namespace MangaUnhost.Host
 
         public string GetPosterUrl()
         {
-            return $"https://mangadex.org/images/manga/{ID}.jpg";
+            string HTML = HTMLs.First();
+            HTML = HTML.Substring("title=\"See covers\">", "</a>");
+            return Main.ExtractHtmlLinks(HTML, "mangadex.org").First();
+           // return $"https://mangadex.org/images/manga/{ID}.jpg";
         }
 
         public void Initialize(string URL, out string Name, out string Page)

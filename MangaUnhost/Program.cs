@@ -12,7 +12,7 @@ namespace MangaUnhost {
         static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Extensions.EnsureBrowserEmulationEnabled();
+            Browser.EnsureBrowserEmulationEnabled();
             Updater();
             Application.Run(new Main());
         }

@@ -248,12 +248,19 @@ namespace MangaUnhost {
             } else {
                 string HTML = Download(Manga, Encoding.UTF8, UserAgent: AtualHost.UserAgent, Cookies: AtualHost.Cookies, Referrer: AtualHost.Referrer);
                 Pages = AtualHost.GetChapterPages(HTML);
-            }
+            } 
 
             if (Pages == null)
             {
                 Status = "Waiting Url...";
                 return;
+            }
+
+            for (int i = 0; i < Pages.Length; i++) {
+                if (Pages[i].ToLower().Contains("googleusercontent.com/gadgets/proxy"))
+                {
+                    Pages[i] = HttpUtility.UrlDecode(Pages[i].Substring("&url="));
+                }
             }
 
             int Pag = 0;
@@ -613,13 +620,26 @@ namespace MangaUnhost {
 
                 return true;
             } catch (Exception ex) {
-                try {
-                    if (ex is WebException && ((HttpWebResponse)((WebException)ex).Response).StatusCode == HttpStatusCode.NotModified)
-                        return false;
+                HttpWebResponse Response = null;
+                try
+                {
+                    if (ex is WebException)
+                        Response = ((HttpWebResponse)((WebException)ex).Response);
                 } catch { }
 
+                if (Response?.StatusCode == HttpStatusCode.NotModified)
+                        return false;
+
+                if (Response?.StatusCode == HttpStatusCode.ServiceUnavailable)
+                {
+                    var Stream = Response.GetResponseStream();
+                    Stream.CopyTo(Output);
+                    Stream.Close();
+                    return true;
+                }
+
                 if (Tries == int.MinValue)
-                    throw ex;
+                    throw ex; 
 
                 if (Tries < 0) {
                     if (DialogResult.Yes == MessageBox.Show(string.Format("Connection Error: {0}\nIgnore?", ex.Message), "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Error))
@@ -1132,6 +1152,9 @@ namespace MangaUnhost {
                     Domain = Domain.Substring(0, Domain.Length - 1);
             }
 
+            if (string.IsNullOrWhiteSpace(Html))
+                return new string[0];
+                    
             List<string> Links = new List<string>();
             int Index = 0;
             while ((Index = Html.IndexOf("http", ++Index)) > 0) {
@@ -1433,7 +1456,15 @@ namespace MangaUnhost {
                                 Atention |= SuspectBadName(ChapterName);
                                 break;
                             case 6:
-                                string[] Pages = Host.GetChapterPages(Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies, Referrer: Host.Referrer));
+
+                                string HTML = null;
+                                if (Host.SelfChapterDownload)
+                                    HTML = ChapterUrl;
+                                else
+                                    HTML = Download(ChapterUrl, Encoding.UTF8, UserAgent: Host.UserAgent, Cookies: Host.Cookies, Referrer: Host.Referrer);
+                                
+
+                                string[] Pages = Host.GetChapterPages(HTML);
                                 if (Pages.Length == 0)
                                     Online = false;
 
@@ -1528,11 +1559,9 @@ namespace MangaUnhost {
 
             string Status = Instance.Status;
             Instance.Status = "Bypassing Cloudflare...";
-            
 
-            var Browser = new WebBrowser() {
-                ScriptErrorsSuppressed = true
-            };
+
+            var Browser = MangaUnhost.Browser.Create();
 
             Browser.Navigate(URL);
             Browser.WaitForLoad();
@@ -1556,18 +1585,19 @@ namespace MangaUnhost {
             var Bypass = new CloudflareData() {
                 UserAgent = (string)Browser.InjectAndRunScript("return clientInformation.userAgent;"),
                 Cookie = (from x in Browser.GetCookies() where CFCookiesName.Contains(x.Name) select x).First(),
-                AllCookies = Browser.GetCookies()
+                AllCookies = Browser.GetCookies(),
+                HTML = Browser.GetHtml()
             };
 
             Bypass.Cookie.Domain = new Uri(URL).Host;
 
             return Bypass;
         }
-
-        
     }
 
+
     public struct CloudflareData {
+        public string HTML;
         public string UserAgent;
         public Cookie Cookie;
 

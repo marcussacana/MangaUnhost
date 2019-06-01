@@ -21,7 +21,7 @@ namespace MangaUnhost.Host {
 
         public string Referrer => null;
 
-        public bool SelfChapterDownload => false;
+        public bool SelfChapterDownload => true;
 
         public string GetChapterName(string ChapterURL) {
             const string Prefix = "/manga/";
@@ -50,7 +50,7 @@ namespace MangaUnhost.Host {
 
                 string Key = "mshsdf832nsdbash20asdm";
                 string[] Tags = Main.GetElementsByContent(PHTML, "chko", SkipJavascript: false);
-                string chko = string.Empty;
+                string chko = Key;
                 for (int i = 0; i < Tags.Length; i++) {
                     Tags[i] = Tags[i].Between('>', '<').Trim();
                     Tags[i] = Tags[i].Beautifier();
@@ -61,24 +61,49 @@ namespace MangaUnhost.Host {
                         chko = Tags[i].Split('\'')[1];
                     
                 }
-                _key = chko == string.Empty ? Key : chko;
+                _key = chko;
                 return _key;
             }
         }
 
         private string PHTML = null;
         private string IV = "a5 e8 e2 e9 c2 72 1b e0 a8 4a d6 60 c4 72 c1 f3";
-        public string[] GetChapterPages(string HTML) {
+        public string[] GetChapterPages(string Link) {
+            string HTML;
+            const string Prefix = "wrapKA(\"";
+            while (true)
+            {
+                 HTML = Main.Download(Link, Encoding.UTF8, UserAgent: UA, Cookies: Cookies, Referrer: Referrer);
+
+                if (HTML.IsCloudflareTriggered())
+                {
+                    var Bypass = Main.BypassCloudflare(Link);
+                    UA = Bypass.UserAgent;
+                    _cks = Bypass.AllCookies.ToContainer();
+                    HTML = Bypass.HTML;
+                }
+
+                if (!HTML.Contains(Prefix))
+                {
+                    this.HTML = HTML;
+                    string[] Links = GetChapters();
+                    Link = (from x in Links where x.Split('?')[0] == Link.Split('?')[0] select x).Single();
+                    continue;
+                }
+
+                break;
+            }
+
             PHTML = HTML;
             _key = null;
 
             List<string> Pages = new List<string>();
-            const string Prefix = "wrapKA(\"";
             while (HTML.IndexOf(Prefix) >= 0) {
                 HTML = HTML.Substring(HTML.IndexOf(Prefix) + Prefix.Length);
                 string Code = HTML.Split('"')[0];
                 Pages.Add(DecryptAesB64(Code));
             }
+
 
             return Pages.ToArray();
         }

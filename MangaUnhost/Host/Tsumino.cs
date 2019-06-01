@@ -105,7 +105,7 @@ namespace MangaUnhost.Host {
             }
 
             if (Token == null || !TokenActivated) {
-                Form Main = Application.OpenForms[0];
+                Form Main = MangaUnhost.Main.Instance;
                 Main.Invoke(new MethodInvoker(() => {
                     var Form = new Form() {
                         Size = new System.Drawing.Size(500, 600),
@@ -114,12 +114,10 @@ namespace MangaUnhost.Host {
                         Text = "Solve the Captcha",
                         FormBorderStyle = FormBorderStyle.FixedToolWindow
                     };
-                    var Browser = new WebBrowser() {
-                        Dock = DockStyle.Fill,
-                        ScriptErrorsSuppressed = true,
-                        IsWebBrowserContextMenuEnabled = false,
-                        AllowWebBrowserDrop = false
-                    };
+
+                    var Browser = MangaUnhost.Browser.Create();
+                    Browser.Visible = true;
+
                     var Message = new Label() {
                         Text = "Processing...",
                         Font = new System.Drawing.Font("Consola", 24),
@@ -134,20 +132,27 @@ namespace MangaUnhost.Host {
                     Browser.InjectAndRunScript("var Button = document.getElementsByClassName('book-read-button')[0];Button.setAttribute('value', 'Solve the Captcha...');Button.disabled = true;");
                     Form.Show(Main);
 
+                    bool AutoSolved = false;
                     int Check = 0;
-                    string CaptchaResult = null;
-                    while (string.IsNullOrEmpty(CaptchaResult)) {
+                    while (true) {
                         Application.DoEvents();
                         System.Threading.Thread.Sleep(2);
                         Check++;
                         if (Check < 100)
                             continue;
                         Check = 0;
-                        object rst = Browser.InjectAndRunScript("return grecaptcha.getResponse();");
-                        if (rst == null)
-                            continue;
-                        CaptchaResult = rst.ToString();
+
+                        if (Browser.CaptchaSolved())
+                            break;
+
+                        if (!AutoSolved)
+                        {
+                            AutoSolved = true;
+                            Browser.SolveCaptcha();
+                        }
                     }
+
+                    string CaptchaResult = (string)Browser.InjectAndRunScript("return grecaptcha.getResponse();");
 
                     Browser.Visible = false;
 

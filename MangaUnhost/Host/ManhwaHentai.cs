@@ -33,21 +33,25 @@ namespace MangaUnhost.Host
 
         public string[] GetChapterPages(string HTML)
         {
-            HTML = HTML.Substring("</div><div class=reading-content>", "<div class=\"ad");
+            HTML = HTML.Substring("wp-manga-current-chap", "<div class=\"ad");
 
             string[] Elements = Main.GetElementsByClasses(HTML, "wp-manga-chapter-img");
 
             string[] Links = (from x in Elements select Main.ExtractHtmlLinks(x, "manhwahentai.com").First()).ToArray();
 
             if (Links.First().Contains("\n"))
-                Links = (from x in Links select x.Substring("\n")).ToArray();
+                Links = (from x in Links select x.Substring("\n").Trim()).ToArray();
 
             return Links;
         }
 
         public string[] GetChapters()
         {
-            string HTML = this.HTML.Substring("<div class=\"listing-chapters_wrap", "<div class=c-chapter-readmore>");
+            string Sufix = "<div class=c-chapter-readmore>";
+            if (!this.HTML.Contains(Sufix))
+                Sufix = "<div class=\"c-chapter-readmore\">";
+
+            string HTML = this.HTML.Substring("<div class=\"listing-chapters_wrap", Sufix);
 
             string[] Elms = Main.GetElementsByAttribute(HTML, "href", "http", true);
 
@@ -68,7 +72,11 @@ namespace MangaUnhost.Host
 
         public string GetFullName()
         {
-            string Title = this.HTML.Substring("<div class=post-title>", "</h3>");
+            string Prefix = "<div class=post-title>";
+            if (!HTML.Contains(Prefix))
+                Prefix = "<div class=\"post-title\">";
+
+            string Title = HTML.Substring(Prefix, "</h3>");
             Title = Title.Substring("<h3>").Trim();
             return HttpUtility.HtmlDecode(Title);
         }
@@ -80,7 +88,12 @@ namespace MangaUnhost.Host
 
         public string GetPosterUrl()
         {
-            string HTML = this.HTML.Substring("<div class=summary_image>");
+            string HTML = this.HTML;
+            string Prefix = "<div class=summary_image>";
+            if (!HTML.Contains(Prefix))
+                Prefix = "<div class=\"summary_image\">";
+
+            HTML = HTML.Substring(Prefix);
             HTML = "<img " + HTML.Substring("<img ", "</a>");
 
             var Links = Main.ExtractHtmlLinks(HTML, "manhwahentai.com");
@@ -94,7 +107,13 @@ namespace MangaUnhost.Host
                 throw new Exception();
 
             URL = URL.Split('?')[0];
-            Name = URL.Substring("/manhwa/", "/");
+            try
+            {
+                Name = URL.Substring("/manhwa/", "/");
+            }
+            catch {
+                Name = URL.Substring("/manhwa/");
+            }
             Name = Main.GetRawNameFromUrlFolder(Name);
 
             Page = URL;

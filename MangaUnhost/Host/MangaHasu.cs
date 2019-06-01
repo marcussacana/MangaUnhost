@@ -9,17 +9,22 @@ namespace MangaUnhost.Host {
     class MangaHasu : IHost {
         public string HostName => "MangaHasu";
 
-        public string DemoUrl => "http://mangahasu.se/i-belong-to-house-castiello-p35077.html";
+        public string DemoUrl => (string)new Extensions.MethodInvoker(() => {
+            string Home = Main.Download(Referrer, Encoding.UTF8, UserAgent: UA, Referrer: Referrer, Cookies: Cookies);
+            Home = Home.Substring("<div class=\"wrapper_imgage\">", "</div>");
+            string[] Links = Main.ExtractHtmlLinks(Home, "mangahasu.se");
+            return Links[0];
+        }).Invoke();
 
         public bool NeedsProxy => false;
 
-        public CookieContainer Cookies => Cookie.ToContainer();
+        public CookieContainer Cookies => Cookie?.ToContainer();
 
         public string UserAgent => UA;
 
         public string Referrer => "http://mangahasu.se/";
 
-        public bool SelfChapterDownload => false;
+        public bool SelfChapterDownload => true;
 
         public string GetChapterName(string ChapterURL) {
             if (ChapterMap.ContainsKey(ChapterURL.ToLower())) {
@@ -43,7 +48,21 @@ namespace MangaUnhost.Host {
             return ChapterURL.Substring(ChapterURL.ToLower().IndexOf("/chapter-")).Split('-').Last();
         }
 
-        public string[] GetChapterPages(string HTML) {
+        public string[] GetChapterPages(string Link) {
+            string HTML = null;
+            while (true)
+            {
+                HTML = Main.Download(Link, Encoding.UTF8, UserAgent: UA, Cookies: Cookies, Referrer: Referrer);
+                if (HTML.IsCloudflareTriggered())
+                {
+                    var Bypass = Main.BypassCloudflare(Link);
+                    UA = Bypass.UserAgent;
+                    Cookie = Bypass.AllCookies;
+                    HTML = Bypass.HTML;
+                }
+                break;
+            }
+
             string[] Elements = Main.GetElementsByAttribute(HTML, "class", "page", true);
 
             string PageList = string.Join("", Elements);
@@ -51,7 +70,7 @@ namespace MangaUnhost.Host {
             return Main.ExtractHtmlLinks(PageList, "mangahasu.se").Distinct().ToArray();
         }
 
-        static Cookie Cookie = null;
+        static Cookie[] Cookie = null;
         static string UA = null;
 
         Dictionary<string, string> ChapterMap = new Dictionary<string, string>();
@@ -71,7 +90,7 @@ namespace MangaUnhost.Host {
             if (Cookie == null) {
                 var Data = Main.BypassCloudflare(Links.First());
                 UA = Data.UserAgent;
-                Cookie = Data.Cookie;
+                Cookie = Data.AllCookies;
             }
 
             return Links;
