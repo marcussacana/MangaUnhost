@@ -13,7 +13,6 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic;
 using System.Web;
 using TLIB;
-using System.Collections;
 
 namespace MangaUnhost {
     public partial class Main : Form {

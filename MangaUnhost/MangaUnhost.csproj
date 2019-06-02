@@ -80,6 +80,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="GuerrillaMail.cs" />
     <Compile Include="Host\Batoto.cs" />
+    <Compile Include="Host\GoldenMangas.cs" />
     <Compile Include="Host\HeavenManga.cs" />
     <Compile Include="Host\HentaiCafe.cs" />
     <Compile Include="Host\IHost.cs" />
