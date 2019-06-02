@@ -1155,6 +1155,9 @@ namespace MangaUnhost {
                 return new string[0];
                     
             List<string> Links = new List<string>();
+            if (Attribute != null)
+                Links.AddRange(ExtractTagLinks(Html, Domain, Attribute));
+
             int Index = 0;
             while ((Index = Html.IndexOf("http", ++Index)) > 0) {
                 char End = Html[Index - 1];
@@ -1187,14 +1190,9 @@ namespace MangaUnhost {
                     Links.Add(Result);
             }
 
-            if (Attribute != null)
-                Links.AddRange(ExtractTagLinks(Html, Domain, Attribute));
-
             Links.AddRange(ExtractTagLinks(Html, Domain, "value"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "src"));
             Links.AddRange(ExtractTagLinks(Html, Domain, "href"));
-
-
 
             return Links.Distinct().ToArray();
         }

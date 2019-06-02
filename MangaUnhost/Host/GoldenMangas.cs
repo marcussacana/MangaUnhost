@@ -64,7 +64,13 @@ namespace MangaUnhost.Host
         {
             string Data = Main.GetElementsByAttribute(HTML, "property", "og:image").First();
             Data = Main.ExtractHtmlLinks(HTML, "goldenmangas.online", "content").First();
-
+            if (Data.TrimEnd('/').ToLower().EndsWith("uploads"))
+            {
+                Data = HTML.Substring("col-sm-4 text-right");
+                Data = Main.ExtractHtmlLinks(Data, "goldenmangas.online", "src").First();
+                Data = Data.Replace("/timthumb.php?src=", "");
+                Data = Data.Split('?')[0].Split('&')[0];
+            }
             return Data;
         }
 
