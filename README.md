@@ -1,18 +1,18 @@
 
+
 # MangaUnhost
 
-Software inicialmente para baixar os mangas do MangaHost de forma organizada e prática, entretanto suporta outros hosts, veja a lista de suporte completa na aba "Sobre"
+A Software to download manga in many sites
 
-## Como Usar:
-- Baixe a compilação
-- Extraia o zip
-- Execute o MangaUnhost.exe
-- Copie o link da página principal de algum host suportado
-- Aguarde o reconhecimento do manga
-
-
-### Estado:
-![https://ci.appveyor.com/project/marcussacana/mangaunhost](https://ci.appveyor.com/api/projects/status/github/marcussacana/MangaUnhost?branch=master&retina=true)
+## How To Use:
+- Download the lastest build
+- Extract the zip
+- Run the MangaUnhost.exe
+- Copy the manga link of a supported site (see in the about tab)
+- Wait your manga be recognized
 
 
-Compilação: [Baixar](https://ci.appveyor.com/api/projects/marcussacana/mangaunhost/artifacts/MangaUnhost/bin/MangaUnhost.zip)
+### Status:
+[![img](https://ci.appveyor.com/api/projects/status/github/marcussacana/MangaUnhost?branch=master&retina=true)](https://ci.appveyor.com/project/marcussacana/mangaunhost)
+
+#### Build: [Download](https://ci.appveyor.com/api/projects/marcussacana/mangaunhost/artifacts/MangaUnhost/bin/MangaUnhost.zip)
