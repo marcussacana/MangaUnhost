@@ -1581,7 +1581,9 @@ namespace MangaUnhost {
                 Browser.SolveCaptcha();
 
                 while (Browser.IsCloudflareTriggered() && Form.Visible)
-                    Browser.Sleep();
+                    Browser.Sleep(Mileseconds: 500);
+
+                Form.Close();
             }
             else
             {
