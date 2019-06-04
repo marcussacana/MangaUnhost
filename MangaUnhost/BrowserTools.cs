@@ -297,7 +297,7 @@ namespace MangaUnhost
         internal static void SolveCaptcha(this System.Windows.Forms.WebBrowser Browser)
         {
             //Feature Not Stable Yet
-            if (!Program.Debug)
+            if (!System.Diagnostics.Debugger.IsAttached)
                 return;
 
             if (Browser.InvokeRequired)

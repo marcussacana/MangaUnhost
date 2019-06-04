@@ -108,7 +108,7 @@ namespace MangaUnhost {
         }
 
         internal static bool IsCloudflareTriggered(this WebBrowser Browser) => Browser.DocumentText.IsCloudflareTriggered();
-        internal static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser");
+        internal static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("why_captcha_headline");
         internal static string GetUserAgent(this WebBrowser Browser) => (string)Browser.InjectAndRunScript("return clientInformation.userAgent;");
 
         internal static T GetRandomElement<T>(this T[] Array) {

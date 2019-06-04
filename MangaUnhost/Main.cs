@@ -629,7 +629,7 @@ namespace MangaUnhost {
                 if (Response?.StatusCode == HttpStatusCode.NotModified)
                         return false;
 
-                if (Response?.StatusCode == HttpStatusCode.ServiceUnavailable)
+                if (Response?.StatusCode == HttpStatusCode.ServiceUnavailable || Response?.StatusCode == HttpStatusCode.Forbidden)
                 {
                     var Stream = Response.GetResponseStream();
                     Stream.CopyTo(Output);
@@ -1563,11 +1563,34 @@ namespace MangaUnhost {
             Browser.Navigate(URL);
             Browser.WaitForLoad();
 
-            int Loop = 0;
-            while (Browser.IsCloudflareTriggered() && Loop++ < 3)
+            if (Browser.GetHtml().Contains("why_captcha_headline"))
             {
-                Browser.WaitForRedirect();
-                Browser.WaitForLoad();
+                var Form = new Form()
+                {
+                    Size = new Size(400, 550),
+                    FormBorderStyle = FormBorderStyle.FixedToolWindow,
+                    StartPosition = FormStartPosition.CenterParent,
+                    Text = "Solve the Captcha"
+                };
+
+                Form.Controls.Add(Browser);
+                Form.Show(Instance);
+                Form.Focus();
+
+                Browser.Visible = true;
+                Browser.SolveCaptcha();
+
+                while (Browser.IsCloudflareTriggered() && Form.Visible)
+                    Browser.Sleep();
+            }
+            else
+            {
+                int Loop = 0;
+                while (Browser.IsCloudflareTriggered() && Loop++ < 3)
+                {
+                    Browser.WaitForRedirect();
+                    Browser.WaitForLoad();
+                }
             }
 
             bool Fail = Browser.IsCloudflareTriggered();

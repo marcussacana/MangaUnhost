@@ -15,13 +15,16 @@ namespace MangaUnhost.Host {
 
         public string DemoUrl => "http://unionmangas.net/manga/karakai-jouzu-no-takagi-san";
 
-        public CookieContainer Cookies => null;
+        public CookieContainer Cookies => cks.ToContainer();
 
-        public string UserAgent => null;
+        public string UserAgent => UA;
 
         public string Referrer => null;
 
         public bool SelfChapterDownload => false;
+
+        private string UA;
+        private Cookie[] cks;
 
         public string GetChapterName(string ChapterURL) {
             //unionmangas.cc/leitor/Karakai_Jouzu_no_Takagi-san/01
@@ -92,6 +95,13 @@ namespace MangaUnhost.Host {
 
         public void LoadPage(string URL) {
             HTML = Main.Download(URL, Encoding.UTF8);
+            while (HTML.IsCloudflareTriggered())
+            {
+                var Byp = Main.BypassCloudflare(URL);
+                cks = Byp.AllCookies;
+                UA = Byp.UserAgent;
+                HTML = Byp.HTML;
+            }
         }
 
         public bool ValidateProxy(string Proxy) {

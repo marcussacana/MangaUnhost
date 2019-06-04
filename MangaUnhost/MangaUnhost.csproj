@@ -42,7 +42,7 @@
       <HintPath>..\packages\HtmlAgilityPack.1.5.5\lib\Net40\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.mshtml">
-      <HintPath>..\..\..\..\..\..\source\repos\marcussacana\MangaUnhost\MangaUnhost\Microsoft.mshtml.dll</HintPath>
+      <HintPath>.\Microsoft.mshtml.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
