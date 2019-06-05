@@ -1528,7 +1528,7 @@ namespace MangaUnhost {
             if (fb.ShowDialog() != DialogResult.OK)
                 return;
 
-            string[] PageMaps= Directory.GetFiles(fb.SelectedPath, "Pages.lst", SearchOption.AllDirectories);
+            string[] PageMaps = Directory.GetFiles(fb.SelectedPath, "Pages.lst", SearchOption.AllDirectories);
             foreach (string Map in PageMaps)
                 LinkPages(Map);
 
@@ -1548,6 +1548,73 @@ namespace MangaUnhost {
                 File.WriteAllText(Out, string.Format(HTML, Next, Current));
             }
 
+        }
+
+        private void ChkUpdBnt_Click(object sender, EventArgs e)
+        {
+            Status = $"Enumerating Mangas...";
+            string[] Mangas = new string[0];
+            var Thread = new Thread(() => Mangas = Directory.GetFiles(TBSaveAs.Text, "*.url", SearchOption.AllDirectories));
+            Thread.Start();
+            Thread.WaitForExit();
+            List<string> MangaMsgList = new List<string>();
+            List<int> NewCountList = new List<int>();
+            for (int i = 0; i < Mangas.Length; i++)
+            {
+                Application.DoEvents();
+                string Manga = Mangas[i];
+                Status = $"Checking Updates ({i}/{Mangas.Length})...";
+                string Dir = Path.GetDirectoryName(Manga) + "\\Capítulos";
+                string Name = null;
+                int Downloaded = 0;
+                try { Downloaded = Directory.GetDirectories(Dir, "*", SearchOption.TopDirectoryOnly).Length; } catch { }
+                int Avaliable = 0;
+
+                Manga = Ini.GetConfig("InternetShortcut", "URL", Manga);
+
+                if (Downloaded == 0)
+                    continue;
+
+                Thread = new Thread(() =>
+                {
+                    foreach (var Host in Hosts)
+                    {
+                        try
+                        {
+                            if (!Host.IsValidLink(Manga))
+                                continue;
+
+                            Host.Initialize(Manga, out _, out string URL);
+                            Host.LoadPage(URL);
+                            Name = HttpUtility.HtmlDecode(Host.GetFullName());
+                            Avaliable = Host.GetChapters().Length;
+                            break;
+                        }
+                        catch { }
+                    }
+                });
+
+                Thread.Start();
+                Thread.WaitForExit();
+
+                if (Avaliable <= Downloaded)
+                    continue;
+
+                int New = Avaliable - Downloaded;
+                MangaMsgList.Add($"\"{Name}\" has {New} new chapters");
+                NewCountList.Add(New);
+            }
+
+            string[] LOG = MangaMsgList.ToArray();
+
+            Array.Sort(NewCountList.ToArray(), LOG);
+
+            Status = "Waiting Url...";
+
+            if (MangaMsgList.Count == 0)
+                MessageBox.Show("No new chapters avaliable", "MangaUnhost", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(string.Join("\n", LOG), "New Chapters Avaliable!", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         public static CloudflareData BypassCloudflare(string URL, int Tries = 3) {

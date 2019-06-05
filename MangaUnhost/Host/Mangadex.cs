@@ -12,6 +12,7 @@ namespace MangaUnhost.Host
     class Mangadex : IHost
     {
         string IniPath = AppDomain.CurrentDomain.BaseDirectory + "MangaDex.ini";
+        string[] Priority = new string[0];
         public Mangadex()
         {
             if (!System.IO.File.Exists(IniPath))
@@ -156,7 +157,13 @@ namespace MangaUnhost.Host
 
 
             if (System.IO.File.Exists(IniPath))
+            {
                 LID = Ini.GetConfig("MangaDex", "Language", IniPath);
+                if (Ini.GetConfigStatus("MangaDex", "Priority", IniPath) == Ini.ConfigStatus.Ok)
+                    Priority = Ini.GetConfig("MangaDex", "Priority", IniPath).Split('>');
+                else
+                    Priority = new string[0];
+            }
             else
                 LID = null;
 
@@ -182,6 +189,19 @@ namespace MangaUnhost.Host
             }
 
             if (LID.Trim().ToLower() == "ask" && LangMap.Count > 1)
+            {
+                if (Priority.Length > 0)
+                {
+                    foreach (string Name in Priority)
+                        foreach (var Pair in LangMap)
+                        {
+                            if (Pair.Key == Name)
+                            {
+                                LID = Pair.Value;
+                                goto EndSelection;
+                            }
+                        }
+                }
                 Main.Instance.Invoke(new MethodInvoker(() =>
                 {
                     Form Window = new Form();
@@ -205,8 +225,14 @@ namespace MangaUnhost.Host
                     while (string.IsNullOrWhiteSpace(Combo.Text))
                         Window.ShowDialog(Main.Instance);
 
+                    var DR = MessageBox.Show($"Add the {Combo.Text} language in the priority list?", "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (DR == DialogResult.Yes)
+                        Ini.SetConfig("MangaDex", "Priority", string.Join(">", Priority.Concat(new string[] { Combo.Text }).ToArray()), IniPath);
+                    
                     LID = LangMap[Combo.Text];
                 }));
+            EndSelection:;
+            }
             else if (LID.Trim().ToLower() == "ask")
                 LID = LangMap.Values.First(); 
 

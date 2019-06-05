@@ -3,6 +3,7 @@ using mshtml;
 using SHDocVw;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -49,23 +50,6 @@ namespace MangaUnhost
             //var Doc = Browser.Document.Window.GetDocument();
 
             return Browser.Document.Body.Parent.OuterHtml;
-        }
-
-        internal static void Sleep(this System.Windows.Forms.WebBrowser Browser, int Seconds = 3, int Mileseconds = 0)
-        {
-            if (Browser.InvokeRequired)
-            {
-                Browser.Invoke(new MethodInvoker(() => { Browser.Sleep(Seconds, Mileseconds); return null; }));
-                return;
-            }
-
-            DateTime Finish = DateTime.Now.AddSeconds(Seconds);
-            Finish.AddMilliseconds(Mileseconds);
-            while (DateTime.Now <= Finish)
-            {
-                Application.DoEvents();
-                System.Threading.Thread.Sleep(5);
-            }
         }
 
         internal static void AsyncNavigate(this System.Windows.Forms.WebBrowser Browser, string URL)
@@ -293,13 +277,49 @@ namespace MangaUnhost
             return Div.InnerHtml;
         }
 
+        internal static Point GetElementLocation(this System.Windows.Forms.WebBrowser Browser, string ID = null, string Class = null, string IframeSrc = null) => Browser.Document.GetElementLocation(ID, Class, IframeSrc);
+        internal static Point GetElementLocation(this HtmlDocument Document, string ID = null, string Class = null, string IframeSrc = null)
+        {
+            var Scr = new string[] {
+                "function getPosition(el) {",
+                "  var xPos = 0;",
+                "  var yPos = 0;",
+                "  while (el) {",
+                "    if (el.tagName == \"BODY\") {",
+                "      var xScroll = el.scrollLeft || document.documentElement.scrollLeft;",
+                "      var yScroll = el.scrollTop || document.documentElement.scrollTop;",
+                "      xPos += (el.offsetLeft - xScroll + el.clientLeft);",
+                "      yPos += (el.offsetTop - yScroll + el.clientTop);",
+                "    } else {",
+                "      xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);",
+                "      yPos += (el.offsetTop - el.scrollTop + el.clientTop);",
+                "    }",
+                "    el = el.offsetParent;",
+                "  }",
+                "  return {",
+                "    X: xPos,",
+                "    Y: yPos",
+                "  };",
+                "}",
+                IframeSrc != null ? $"var frames = document.getElementsByTagName(\"iframe\");\nvar frame = null;\nfor (var i = 0; i < frames.length; i++){{\n\tif (frames[i].src.toLowerCase().indexOf(\"{IframeSrc.ToLower()}\") > 0){{\n\t\tframe = frames[i];\n\t\tbreak;\n\t}}\n}}\nframe.scrollIntoView();\nJSON.stringify(getPosition(frame))" : 
+                (Class != null ?
+                    $"JSON.stringify(getPosition(document.getElementsByClassName(\"{Class}\")[0]));" :
+                    $"JSON.stringify(getPosition(document.getElementById(\"{ID}\")));")
+            };
+
+            string Script = string.Empty;
+            foreach (var Line in Scr)
+            {
+                Script += Line + "\n";
+            }
+
+            string Result = (string)Document.InjectAndRunScript(Script, true);
+            return Extensions.JsonDecode<Point>(Result);
+        }
+
         internal static int CaptchaFails = 0;
         internal static void SolveCaptcha(this System.Windows.Forms.WebBrowser Browser)
-        {
-            //Feature Not Stable Yet
-            if (!System.Diagnostics.Debugger.IsAttached)
-                return;
-
+        {/*
             if (Browser.InvokeRequired)
             {
                 Browser.Invoke(new MethodInvoker(() => { Browser.SolveCaptcha(); return null; }));
@@ -323,8 +343,13 @@ namespace MangaUnhost
                     var Anchor = Browser.GetFrameByUriPath("recaptcha/api2/anchor");
                     if (Anchor != null)
                     {
-                        Anchor.InjectAndRunScript("document.getElementsByClassName(\"rc-anchor-content\")[0].click();");
-                        Browser.Sleep(4);
+                        var Elm = Anchor.GetElementsByClassName("rc-anchor-content").First();
+                        Elm.InvokeMember("focus");
+                        Elm.InvokeMember("keydown");
+                        Elm.InvokeMember("click");
+                        //Elm.InvokeMember("click");
+                        //Anchor.InjectAndRunScript("document.getElementsByClassName(\"rc-anchor-content\")[0].click();");
+                        Browser.Sleep(40);
 
                         const string GetErrorJS = "return document.getElementsByClassName(\"rc-audiochallenge-error-message\")[0].innerHTML;";
                         const string GetAudioJS = "return document.getElementsByClassName(\"rc-audiochallenge-tdownload-link\")[0].href;";
@@ -336,11 +361,15 @@ namespace MangaUnhost
 
                             int ATries = 3;
                             while (ATries > 0)
-                            {
+                            {   ""
                                 string AudioLink = (string)Challenge.InjectAndRunScript(GetAudioJS);
                                 if (string.IsNullOrWhiteSpace(AudioLink))
                                 {
-                                    Challenge.InjectAndRunScript("document.getElementById(\"recaptcha-audio-button\").click();");
+                                    Elm = Challenge.GetElementById("recaptcha-audio-button");
+                                    Elm.InvokeMember("focus");
+                                    Elm.InvokeMember("keydown");
+                                    Elm.InvokeMember("click");
+                                    //Challenge.InjectAndRunScript("document.getElementById(\"recaptcha-audio-button\").click();");
                                     Browser.Sleep();
                                 }
                                 AudioLink = (string)Challenge.InjectAndRunScript(GetAudioJS);
@@ -386,6 +415,7 @@ namespace MangaUnhost
             catch (Exception ex){
 
             }
+            */
         }
 
         internal static bool CaptchaSolved(this System.Windows.Forms.WebBrowser Browser)
@@ -404,6 +434,23 @@ namespace MangaUnhost
             return false;
         }
 
+        internal static HtmlElement[] GetElementsByClassName(this HtmlDocument Document, string Class) => GetElementsByAttribute(Document, "class", Class);
+
+        internal static HtmlElement[] GetElementsByAttribute(this HtmlDocument Document, string Attribute, string Value)
+        {
+            List<HtmlElement> Elements = new List<HtmlElement>();
+            foreach (HtmlElement Element in Document.All)
+            {
+                string Elm = Element.OuterHtml;
+                Elm = Elm.Substring(0, Elm.IndexOf(">") + 1);
+                var id = Element.Id;
+                string EClass = Main.GetElementAttribute(Elm, Attribute);
+                if (EClass == Value.Trim())
+                    Elements.Add(Element);
+            }
+
+            return Elements.ToArray();
+        }
         internal static HtmlDocument GetFrameByUriPath(this System.Windows.Forms.WebBrowser Browser, string PathPrefix)
         {
             foreach (var Window in Browser.Document.Window.Frames.Cast<HtmlWindow>())
@@ -440,9 +487,6 @@ namespace MangaUnhost
             {
             }
         }
-
-
-
 
         private static FieldInfo ShimManager = typeof(HtmlWindow).GetField("shimManager", BindingFlags.NonPublic | BindingFlags.Instance);
         private static ConstructorInfo HtmlDocumentCtor = typeof(HtmlDocument).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];

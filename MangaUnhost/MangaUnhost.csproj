@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="BitmapTrim.cs" />
     <Compile Include="BrowserTools.cs" />
+    <Compile Include="FlexibleMessageBox.cs" />
     <Compile Include="Github.cs" />
     <Compile Include="ConfigDatabase.cs" />
     <Compile Include="DNVM.cs" />

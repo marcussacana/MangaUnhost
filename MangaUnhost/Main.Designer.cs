@@ -78,6 +78,7 @@
             this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
             this.UpDot = new System.Windows.Forms.Timer(this.components);
             this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
+            this.ChkUpdBnt = new MangaUnhost.iTalk_Button_1();
             this.iTalk_ThemeContainer1.SuspendLayout();
             this.iTalk_TabControl1.SuspendLayout();
             this.DownPage.SuspendLayout();
@@ -148,6 +149,7 @@
             // DownPage
             // 
             this.DownPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
+            this.DownPage.Controls.Add(this.ChkUpdBnt);
             this.DownPage.Controls.Add(this.ckCropSpace);
             this.DownPage.Controls.Add(this.ckResume);
             this.DownPage.Controls.Add(this.ckCaptureClipboard);
@@ -311,7 +313,7 @@
             this.TBSaveAs.Multiline = false;
             this.TBSaveAs.Name = "TBSaveAs";
             this.TBSaveAs.ReadOnly = false;
-            this.TBSaveAs.Size = new System.Drawing.Size(578, 28);
+            this.TBSaveAs.Size = new System.Drawing.Size(456, 28);
             this.TBSaveAs.TabIndex = 1;
             this.TBSaveAs.TextAlignment = System.Windows.Forms.HorizontalAlignment.Left;
             this.TBSaveAs.UseSystemPasswordChar = false;
@@ -323,7 +325,7 @@
             this.SelDirBnt.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.SelDirBnt.Image = null;
             this.SelDirBnt.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.SelDirBnt.Location = new System.Drawing.Point(586, 390);
+            this.SelDirBnt.Location = new System.Drawing.Point(464, 389);
             this.SelDirBnt.Margin = new System.Windows.Forms.Padding(2);
             this.SelDirBnt.Name = "SelDirBnt";
             this.SelDirBnt.Size = new System.Drawing.Size(42, 27);
@@ -787,6 +789,22 @@
             // 
             this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
             // 
+            // ChkUpdBnt
+            // 
+            this.ChkUpdBnt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ChkUpdBnt.BackColor = System.Drawing.Color.Transparent;
+            this.ChkUpdBnt.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.ChkUpdBnt.Image = null;
+            this.ChkUpdBnt.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.ChkUpdBnt.Location = new System.Drawing.Point(510, 389);
+            this.ChkUpdBnt.Margin = new System.Windows.Forms.Padding(2);
+            this.ChkUpdBnt.Name = "ChkUpdBnt";
+            this.ChkUpdBnt.Size = new System.Drawing.Size(119, 27);
+            this.ChkUpdBnt.TabIndex = 11;
+            this.ChkUpdBnt.Text = "Check Updates";
+            this.ChkUpdBnt.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.ChkUpdBnt.Click += new System.EventHandler(this.ChkUpdBnt_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -874,6 +892,7 @@
         private iTalk_Button_1 bntTestTrim;
         private System.Windows.Forms.CheckBox ckCropSpace;
         private iTalk_Button_1 bntGenReader;
+        private iTalk_Button_1 ChkUpdBnt;
     }
 }
 
