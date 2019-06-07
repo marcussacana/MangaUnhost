@@ -57,6 +57,9 @@ namespace MangaUnhost {
 
         internal static CookieContainer ToContainer(this Cookie Cookie) => new Cookie[] { Cookie }.ToContainer();
         internal static CookieContainer ToContainer(this Cookie[] Cookies) {
+            if (Cookies == null)
+                return new CookieContainer();
+
             CookieContainer Container = new CookieContainer();
             foreach (var Cookie in Cookies)
                 if (Cookie != null)
