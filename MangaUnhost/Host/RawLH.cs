@@ -57,7 +57,7 @@ namespace MangaUnhost.Host {
 
             string[] Links = new string[Elements.Length];
             for (int i = 0; i < Links.Length; i++)
-                Links[i] = Main.ExtractHtmlLinks(Elements[i], "rawlh.com").First();
+                Links[i] = Main.ExtractHtmlLinks(Elements[i], Domain).First();
 
             return Links;
         }
@@ -86,23 +86,29 @@ namespace MangaUnhost.Host {
         public string GetPosterUrl() {
             string Element = Main.GetElementsByClasses(HTML, "hide").First();
 
-            string Link = Main.ExtractHtmlLinks(Element, "rawlh.com").First();
+            string Link = Main.ExtractHtmlLinks(Element, Domain).First();
 
             return Link;
         }
 
+        string Domain = "rawlh.com";
         public void Initialize(string URL, out string Name, out string Page) {
             if (!IsValidLink(URL))
                 throw new Exception();
 
+            if (URL.ToLower().Contains("lhscan.net"))
+                Domain = "lhscan.net";
+            else
+                Domain = "rawlh.com";
 
-            Name = GetName(URL.Substring(URL.IndexOf("com/")).Split('/')[1]);
+
+            Name = GetName(URL.Substring(URL.ToLower().IndexOf((Domain.Split('.').Last()+"/").ToLower())).Split('/')[1]);
             Page = URL;
         }
 
         public bool IsValidLink(string URL) {
             URL = URL.ToLower();
-            return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && URL.Contains("rawlh.com") && URL.EndsWith(".html") && !URL.Contains("-chapter-");
+            return Uri.IsWellFormedUriString(URL, UriKind.Absolute) && (URL.Contains("rawlh.com") || URL.Contains("lhscan.net")) && URL.EndsWith(".html") && !URL.Contains("-chapter-");
         }
 
         public void LoadPage(string URL) {
