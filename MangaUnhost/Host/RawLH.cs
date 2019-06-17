@@ -19,7 +19,7 @@ namespace MangaUnhost.Host {
 
         public string UserAgent => null;
 
-        public string Referrer => null;
+        public string Referrer => Domain;
 
         public bool SelfChapterDownload => false;
 
