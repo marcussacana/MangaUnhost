@@ -107,7 +107,7 @@ namespace MangaUnhost {
             ClipThread = new Thread(ClipWorker);
             ClipThread.Start();
 
-            if (Program.Debug || !Program.Updater.HaveUpdate())
+            if (!Program.Updater.HaveUpdate())
                 return;
 
             if (MessageBox.Show(CurrentLanguage.UpdateFound, "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
