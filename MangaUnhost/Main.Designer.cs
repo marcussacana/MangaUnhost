@@ -1,14 +1,14 @@
 ﻿namespace MangaUnhost {
     partial class Main {
         /// <summary>
-        /// Required designer variable.
+        /// Variável de designer necessária.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        /// Clean up any resources being used.
+        /// Limpar os recursos que estão sendo usados.
         /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        /// <param name="disposing">true se for necessário descartar os recursos gerenciados; caso contrário, false.</param>
         protected override void Dispose(bool disposing) {
             if (disposing && (components != null)) {
                 components.Dispose();
@@ -16,883 +16,922 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+        #region Código gerado pelo Windows Form Designer
 
         /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
+        /// Método necessário para suporte ao Designer - não modifique 
+        /// o conteúdo deste método com o editor de código.
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
-            this.CheckUrl = new System.Windows.Forms.Timer(this.components);
-            this.iTalk_ThemeContainer1 = new MangaUnhost.iTalk_ThemeContainer();
-            this.iTalk_ControlBox1 = new MangaUnhost.iTalk_ControlBox();
-            this.iTalk_TabControl1 = new MangaUnhost.iTalk_TabControl();
-            this.DownPage = new System.Windows.Forms.TabPage();
-            this.ckCropSpace = new System.Windows.Forms.CheckBox();
-            this.ckResume = new System.Windows.Forms.CheckBox();
-            this.ckCaptureClipboard = new System.Windows.Forms.CheckBox();
-            this.ckGenReader = new System.Windows.Forms.CheckBox();
-            this.MainPanel = new MangaUnhost.iTalk_Panel();
-            this.ButtonLst = new System.Windows.Forms.FlowLayoutPanel();
-            this.Poster = new System.Windows.Forms.PictureBox();
-            this.TitleLBL = new System.Windows.Forms.Label();
-            this.StatusLBL = new System.Windows.Forms.Label();
-            this.iTalk_Label1 = new MangaUnhost.iTalk_Label();
-            this.TBSaveAs = new MangaUnhost.iTalk_TextBox_Small();
-            this.SelDirBnt = new MangaUnhost.iTalk_Button_1();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.Secrets = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.traduzirParaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.TlLang = new System.Windows.Forms.ToolStripTextBox();
-            this.AutoTl = new System.Windows.Forms.ToolStripMenuItem();
-            this.ProgressBar = new MangaUnhost.iTalk_ProgressBar();
-            this.ListView = new MangaUnhost.iTalk_Listview();
-            this.Names = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Items = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.CapManager = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.removerDaListaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.forçarProfundidadeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.GroupConfig = new MangaUnhost.iTalk_GroupBox();
-            this.cbSaveImages = new MangaUnhost.iTalk_CheckBox();
-            this.MergeSpan = new MangaUnhost.iTalk_CheckBox();
-            this.iTalk_Label6 = new MangaUnhost.iTalk_Label();
-            this.BaseCap = new MangaUnhost.iTalk_NumericUpDown();
-            this.BntListLink = new MangaUnhost.iTalk_Button_1();
-            this.BntDumpText = new MangaUnhost.iTalk_Button_2();
-            this.iTalk_GroupBox1 = new MangaUnhost.iTalk_GroupBox();
-            this.RadioTagId = new MangaUnhost.iTalk_RadioButton();
-            this.RadioTagClass = new MangaUnhost.iTalk_RadioButton();
-            this.iTalk_Label5 = new MangaUnhost.iTalk_Label();
-            this.HtmlFilter = new MangaUnhost.iTalk_TextBox_Small();
-            this.iTalk_Label4 = new MangaUnhost.iTalk_Label();
-            this.Linkfilter = new MangaUnhost.iTalk_TextBox_Small();
-            this.tbNovelLink = new MangaUnhost.iTalk_TextBox_Small();
-            this.iTalk_Label3 = new MangaUnhost.iTalk_Label();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.bntGenReader = new MangaUnhost.iTalk_Button_1();
-            this.bntTestTrim = new MangaUnhost.iTalk_Button_1();
-            this.BntTestHosts = new MangaUnhost.iTalk_Button_1();
-            this.SupportList = new System.Windows.Forms.ListView();
-            this.label1 = new System.Windows.Forms.Label();
-            this.iTalk_HeaderLabel1 = new MangaUnhost.iTalk_HeaderLabel();
-            this.UpDot = new System.Windows.Forms.Timer(this.components);
-            this.FolderPicker = new System.Windows.Forms.FolderBrowserDialog();
-            this.ChkUpdBnt = new MangaUnhost.iTalk_Button_1();
-            this.iTalk_ThemeContainer1.SuspendLayout();
-            this.iTalk_TabControl1.SuspendLayout();
-            this.DownPage.SuspendLayout();
-            this.MainPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.Poster)).BeginInit();
-            this.tabPage1.SuspendLayout();
-            this.Secrets.SuspendLayout();
-            this.CapManager.SuspendLayout();
-            this.GroupConfig.SuspendLayout();
-            this.iTalk_GroupBox1.SuspendLayout();
-            this.tabPage3.SuspendLayout();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
+            this.MainTimer = new System.Windows.Forms.Timer(this.components);
+            this.ThemeContainer = new VSContainer();
+            this.StatusBar = new VSStatusBar();
+            this.MainTabMenu = new VSTabControl();
+            this.DownloaderTab = new System.Windows.Forms.TabPage();
+            this.ContainerScrollBar = new VSVerticalScrollBar();
+            this.TitleLabel = new System.Windows.Forms.Label();
+            this.ButtonsContainer = new System.Windows.Forms.FlowLayoutPanel();
+            this.CoverBox = new System.Windows.Forms.PictureBox();
+            this.SettingsTab = new System.Windows.Forms.TabPage();
+            this.FeaturesGroupBox = new VSGroupBox();
+            this.panel6 = new System.Windows.Forms.Panel();
+            this.SkipDownEnbRadio = new System.Windows.Forms.RadioButton();
+            this.SkipDownDisRadio = new System.Windows.Forms.RadioButton();
+            this.lblSkipDownloaded = new System.Windows.Forms.Label();
+            this.panel5 = new System.Windows.Forms.Panel();
+            this.SaveAsRawRadio = new System.Windows.Forms.RadioButton();
+            this.SaveAsBmpRadio = new System.Windows.Forms.RadioButton();
+            this.lblSaveAs = new System.Windows.Forms.Label();
+            this.SaveAsJpgRadio = new System.Windows.Forms.RadioButton();
+            this.SaveAsPngRadio = new System.Windows.Forms.RadioButton();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.lblClipWatcher = new System.Windows.Forms.Label();
+            this.ClipWatcherEnbRadio = new System.Windows.Forms.RadioButton();
+            this.ClipWatcherDisRadio = new System.Windows.Forms.RadioButton();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.lblReadeGenerator = new System.Windows.Forms.Label();
+            this.ReaderGenEnbRadio = new System.Windows.Forms.RadioButton();
+            this.ReaderGenDisRadio = new System.Windows.Forms.RadioButton();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.lblImageClipping = new System.Windows.Forms.Label();
+            this.ImgClipEnbRadio = new System.Windows.Forms.RadioButton();
+            this.ImgClipDisRadio = new System.Windows.Forms.RadioButton();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.lblCaptchaSolving = new System.Windows.Forms.Label();
+            this.SemiAutoCaptchaRadio = new System.Windows.Forms.RadioButton();
+            this.ManualCaptchaRadio = new System.Windows.Forms.RadioButton();
+            this.EnvironmentGroupBox = new VSGroupBox();
+            this.lblLanguage = new System.Windows.Forms.Label();
+            this.LanguageBox = new VSComboBox();
+            this.bntLibSelect = new VSButton();
+            this.LibraryPathTBox = new VSNormalTextBox();
+            this.lblLibrary = new System.Windows.Forms.Label();
+            this.AboutTab = new System.Windows.Forms.TabPage();
+            this.SupportedHostsBox = new VSGroupBox();
+            this.SupportedHostListBox = new VSListBoxWBuiltInScrollBar();
+            this.lblCredits = new System.Windows.Forms.Label();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.DebugTab = new System.Windows.Forms.TabPage();
+            this.DbgButtonA = new VSButton();
+            this.DbgPreview = new System.Windows.Forms.PictureBox();
+            this.ThemeContainer.SuspendLayout();
+            this.MainTabMenu.SuspendLayout();
+            this.DownloaderTab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
+            this.SettingsTab.SuspendLayout();
+            this.FeaturesGroupBox.SuspendLayout();
+            this.panel6.SuspendLayout();
+            this.panel5.SuspendLayout();
+            this.panel4.SuspendLayout();
+            this.panel3.SuspendLayout();
+            this.panel2.SuspendLayout();
+            this.panel1.SuspendLayout();
+            this.EnvironmentGroupBox.SuspendLayout();
+            this.AboutTab.SuspendLayout();
+            this.SupportedHostsBox.SuspendLayout();
+            this.DebugTab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DbgPreview)).BeginInit();
             this.SuspendLayout();
             // 
-            // CheckUrl
+            // MainTimer
             // 
-            this.CheckUrl.Enabled = true;
-            this.CheckUrl.Interval = 1000;
-            this.CheckUrl.Tick += new System.EventHandler(this.CheckUrl_Tick);
+            this.MainTimer.Enabled = true;
+            this.MainTimer.Interval = 300;
+            this.MainTimer.Tick += new System.EventHandler(this.MainTimerTick);
             // 
-            // iTalk_ThemeContainer1
+            // ThemeContainer
             // 
-            this.iTalk_ThemeContainer1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
-            this.iTalk_ThemeContainer1.Controls.Add(this.iTalk_ControlBox1);
-            this.iTalk_ThemeContainer1.Controls.Add(this.iTalk_TabControl1);
-            this.iTalk_ThemeContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.iTalk_ThemeContainer1.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.iTalk_ThemeContainer1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_ThemeContainer1.Location = new System.Drawing.Point(0, 0);
-            this.iTalk_ThemeContainer1.Margin = new System.Windows.Forms.Padding(2);
-            this.iTalk_ThemeContainer1.MinimumSize = new System.Drawing.Size(698, 485);
-            this.iTalk_ThemeContainer1.Name = "iTalk_ThemeContainer1";
-            this.iTalk_ThemeContainer1.Padding = new System.Windows.Forms.Padding(2, 23, 2, 23);
-            this.iTalk_ThemeContainer1.Sizable = true;
-            this.iTalk_ThemeContainer1.Size = new System.Drawing.Size(781, 485);
-            this.iTalk_ThemeContainer1.SmartBounds = false;
-            this.iTalk_ThemeContainer1.StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultLocation;
-            this.iTalk_ThemeContainer1.TabIndex = 0;
+            this.ThemeContainer.AllowClose = true;
+            this.ThemeContainer.AllowMaximize = true;
+            this.ThemeContainer.AllowMinimize = true;
+            this.ThemeContainer.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.ThemeContainer.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.ThemeContainer.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.ThemeContainer.Controls.Add(this.StatusBar);
+            this.ThemeContainer.Controls.Add(this.MainTabMenu);
+            this.ThemeContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ThemeContainer.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.ThemeContainer.FontSize = 12;
+            this.ThemeContainer.Form = this;
+            this.ThemeContainer.FormOrWhole = VSContainer.@__FormOrWhole.Form;
+            this.ThemeContainer.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(63)))), ((int)(((byte)(63)))), ((int)(((byte)(65)))));
+            this.ThemeContainer.IconStyle = VSContainer.@__IconStyle.FormIcon;
+            this.ThemeContainer.Location = new System.Drawing.Point(0, 0);
+            this.ThemeContainer.Name = "ThemeContainer";
+            this.ThemeContainer.ShowIcon = true;
+            this.ThemeContainer.Size = new System.Drawing.Size(920, 530);
+            this.ThemeContainer.TabIndex = 0;
+            this.ThemeContainer.Text = "MangaUnhost";
             // 
-            // iTalk_ControlBox1
+            // StatusBar
             // 
-            this.iTalk_ControlBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.iTalk_ControlBox1.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_ControlBox1.Location = new System.Drawing.Point(700, -1);
-            this.iTalk_ControlBox1.Margin = new System.Windows.Forms.Padding(2);
-            this.iTalk_ControlBox1.Name = "iTalk_ControlBox1";
-            this.iTalk_ControlBox1.Size = new System.Drawing.Size(77, 19);
-            this.iTalk_ControlBox1.TabIndex = 1;
-            this.iTalk_ControlBox1.Text = "iTalk_ControlBox1";
+            this.StatusBar.AmountOfString = VSStatusBar.AmountOfStrings.Two;
+            this.StatusBar.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
+            this.StatusBar.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(27)))), ((int)(((byte)(27)))), ((int)(((byte)(29)))));
+            this.StatusBar.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.StatusBar.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.StatusBar.FirstLabelAlignment = VSStatusBar.Alignments.Left;
+            this.StatusBar.FirstLabelText = "IDLE";
+            this.StatusBar.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.StatusBar.imagetoShow = null;
+            this.StatusBar.LinesToShow = VSStatusBar.LinesCount.One;
+            this.StatusBar.Location = new System.Drawing.Point(0, 507);
+            this.StatusBar.Name = "StatusBar";
+            this.StatusBar.RectangleColor = System.Drawing.Color.Red;
+            this.StatusBar.SecondLabelAlignment = VSStatusBar.Alignments.Right;
+            this.StatusBar.SecondLabelText = "";
+            this.StatusBar.SeperatorColour = System.Drawing.Color.Transparent;
+            this.StatusBar.ShowBorder = true;
+            this.StatusBar.showImage = true;
+            this.StatusBar.ShowLine = true;
+            this.StatusBar.Size = new System.Drawing.Size(920, 23);
+            this.StatusBar.TabIndex = 1;
+            this.StatusBar.Text = "Status Bar";
+            this.StatusBar.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.StatusBar.ThirdLabelAlignment = VSStatusBar.Alignments.Center;
+            this.StatusBar.ThirdLabelText = "Label3";
+            this.StatusBar.WaitingBaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(33)))), ((int)(((byte)(122)))));
             // 
-            // iTalk_TabControl1
+            // MainTabMenu
             // 
-            this.iTalk_TabControl1.Alignment = System.Windows.Forms.TabAlignment.Left;
-            this.iTalk_TabControl1.Controls.Add(this.DownPage);
-            this.iTalk_TabControl1.Controls.Add(this.tabPage1);
-            this.iTalk_TabControl1.Controls.Add(this.tabPage3);
-            this.iTalk_TabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.iTalk_TabControl1.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
-            this.iTalk_TabControl1.ItemSize = new System.Drawing.Size(44, 135);
-            this.iTalk_TabControl1.Location = new System.Drawing.Point(2, 23);
-            this.iTalk_TabControl1.Margin = new System.Windows.Forms.Padding(2);
-            this.iTalk_TabControl1.Multiline = true;
-            this.iTalk_TabControl1.Name = "iTalk_TabControl1";
-            this.iTalk_TabControl1.SelectedIndex = 0;
-            this.iTalk_TabControl1.Size = new System.Drawing.Size(777, 439);
-            this.iTalk_TabControl1.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
-            this.iTalk_TabControl1.TabIndex = 0;
-            // 
-            // DownPage
-            // 
-            this.DownPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
-            this.DownPage.Controls.Add(this.ChkUpdBnt);
-            this.DownPage.Controls.Add(this.ckCropSpace);
-            this.DownPage.Controls.Add(this.ckResume);
-            this.DownPage.Controls.Add(this.ckCaptureClipboard);
-            this.DownPage.Controls.Add(this.ckGenReader);
-            this.DownPage.Controls.Add(this.MainPanel);
-            this.DownPage.Controls.Add(this.StatusLBL);
-            this.DownPage.Controls.Add(this.iTalk_Label1);
-            this.DownPage.Controls.Add(this.TBSaveAs);
-            this.DownPage.Controls.Add(this.SelDirBnt);
-            this.DownPage.Location = new System.Drawing.Point(139, 4);
-            this.DownPage.Margin = new System.Windows.Forms.Padding(2);
-            this.DownPage.Name = "DownPage";
-            this.DownPage.Padding = new System.Windows.Forms.Padding(2);
-            this.DownPage.Size = new System.Drawing.Size(634, 431);
-            this.DownPage.TabIndex = 0;
-            this.DownPage.Text = "Downloader";
-            // 
-            // ckCropSpace
-            // 
-            this.ckCropSpace.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ckCropSpace.AutoSize = true;
-            this.ckCropSpace.Checked = true;
-            this.ckCropSpace.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckCropSpace.Location = new System.Drawing.Point(151, 367);
-            this.ckCropSpace.Name = "ckCropSpace";
-            this.ckCropSpace.Size = new System.Drawing.Size(118, 17);
-            this.ckCropSpace.TabIndex = 10;
-            this.ckCropSpace.Text = "Crop Empty Space";
-            this.ckCropSpace.UseVisualStyleBackColor = true;
-            // 
-            // ckResume
-            // 
-            this.ckResume.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ckResume.AutoSize = true;
-            this.ckResume.Checked = true;
-            this.ckResume.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckResume.Location = new System.Drawing.Point(498, 367);
-            this.ckResume.Name = "ckResume";
-            this.ckResume.Size = new System.Drawing.Size(123, 17);
-            this.ckResume.TabIndex = 9;
-            this.ckResume.Text = "Resume Download";
-            this.ckResume.UseVisualStyleBackColor = true;
-            // 
-            // ckCaptureClipboard
-            // 
-            this.ckCaptureClipboard.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ckCaptureClipboard.AutoSize = true;
-            this.ckCaptureClipboard.Checked = true;
-            this.ckCaptureClipboard.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckCaptureClipboard.Location = new System.Drawing.Point(275, 367);
-            this.ckCaptureClipboard.Name = "ckCaptureClipboard";
-            this.ckCaptureClipboard.Size = new System.Drawing.Size(113, 17);
-            this.ckCaptureClipboard.TabIndex = 8;
-            this.ckCaptureClipboard.Text = "Watch Clipboard";
-            this.ckCaptureClipboard.UseVisualStyleBackColor = true;
-            this.ckCaptureClipboard.CheckedChanged += new System.EventHandler(this.CaptureClipboardChanged);
-            // 
-            // ckGenReader
-            // 
-            this.ckGenReader.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ckGenReader.AutoSize = true;
-            this.ckGenReader.Checked = true;
-            this.ckGenReader.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckGenReader.Location = new System.Drawing.Point(394, 367);
-            this.ckGenReader.Name = "ckGenReader";
-            this.ckGenReader.Size = new System.Drawing.Size(98, 17);
-            this.ckGenReader.TabIndex = 7;
-            this.ckGenReader.Text = "Create Reader";
-            this.ckGenReader.UseVisualStyleBackColor = true;
-            // 
-            // MainPanel
-            // 
-            this.MainPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.MainTabMenu.ActiveColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
+            this.MainTabMenu.AllowDrop = true;
+            this.MainTabMenu.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainPanel.BackColor = System.Drawing.Color.Transparent;
-            this.MainPanel.Controls.Add(this.ButtonLst);
-            this.MainPanel.Controls.Add(this.Poster);
-            this.MainPanel.Controls.Add(this.TitleLBL);
-            this.MainPanel.Location = new System.Drawing.Point(8, 5);
-            this.MainPanel.Margin = new System.Windows.Forms.Padding(2);
-            this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Padding = new System.Windows.Forms.Padding(4);
-            this.MainPanel.Size = new System.Drawing.Size(621, 343);
-            this.MainPanel.TabIndex = 6;
-            this.MainPanel.Text = "iTalk_Panel1";
-            this.MainPanel.Visible = false;
+            this.MainTabMenu.BackTabColour = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.MainTabMenu.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.MainTabMenu.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.MainTabMenu.Controls.Add(this.DownloaderTab);
+            this.MainTabMenu.Controls.Add(this.SettingsTab);
+            this.MainTabMenu.Controls.Add(this.AboutTab);
+            this.MainTabMenu.Controls.Add(this.DebugTab);
+            this.MainTabMenu.HorizontalLineColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
+            this.MainTabMenu.ItemSize = new System.Drawing.Size(240, 16);
+            this.MainTabMenu.Location = new System.Drawing.Point(1, 39);
+            this.MainTabMenu.Name = "MainTabMenu";
+            this.MainTabMenu.SelectedIndex = 0;
+            this.MainTabMenu.Size = new System.Drawing.Size(920, 467);
+            this.MainTabMenu.TabIndex = 0;
+            this.MainTabMenu.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             // 
-            // ButtonLst
+            // DownloaderTab
             // 
-            this.ButtonLst.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.DownloaderTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.DownloaderTab.Controls.Add(this.ContainerScrollBar);
+            this.DownloaderTab.Controls.Add(this.TitleLabel);
+            this.DownloaderTab.Controls.Add(this.ButtonsContainer);
+            this.DownloaderTab.Controls.Add(this.CoverBox);
+            this.DownloaderTab.Location = new System.Drawing.Point(4, 20);
+            this.DownloaderTab.Name = "DownloaderTab";
+            this.DownloaderTab.Padding = new System.Windows.Forms.Padding(3);
+            this.DownloaderTab.Size = new System.Drawing.Size(912, 443);
+            this.DownloaderTab.TabIndex = 0;
+            this.DownloaderTab.Text = "Downloader";
+            // 
+            // ContainerScrollBar
+            // 
+            this.ContainerScrollBar.AmountOfInnerLines = VSVerticalScrollBar.@__InnerLineCount.None;
+            this.ContainerScrollBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ContainerScrollBar.ArrowHoveerColour = System.Drawing.Color.FromArgb(((int)(((byte)(39)))), ((int)(((byte)(123)))), ((int)(((byte)(181)))));
+            this.ContainerScrollBar.ArrowNormalColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.ContainerScrollBar.ArrowPressedColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(113)))), ((int)(((byte)(171)))));
+            this.ContainerScrollBar.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(66)))));
+            this.ContainerScrollBar.ButtonSize = 16;
+            this.ContainerScrollBar.LargeChange = 10;
+            this.ContainerScrollBar.Location = new System.Drawing.Point(887, 60);
+            this.ContainerScrollBar.Maximum = 100;
+            this.ContainerScrollBar.Minimum = 0;
+            this.ContainerScrollBar.Name = "ContainerScrollBar";
+            this.ContainerScrollBar.OuterBorderColour = System.Drawing.Color.Empty;
+            this.ContainerScrollBar.ShowOuterBorder = false;
+            this.ContainerScrollBar.ShowThumbBorder = false;
+            this.ContainerScrollBar.Size = new System.Drawing.Size(19, 384);
+            this.ContainerScrollBar.SmallChange = 1;
+            this.ContainerScrollBar.TabIndex = 3;
+            this.ContainerScrollBar.Text = "vsVerticalScrollBar1";
+            this.ContainerScrollBar.ThumbBorderColour = System.Drawing.Color.Empty;
+            this.ContainerScrollBar.ThumbHoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(158)))), ((int)(((byte)(158)))), ((int)(((byte)(158)))));
+            this.ContainerScrollBar.ThumbNormalColour = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(104)))), ((int)(((byte)(104)))));
+            this.ContainerScrollBar.ThumbPressedColour = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(235)))), ((int)(((byte)(239)))));
+            this.ContainerScrollBar.Value = 0;
+            this.ContainerScrollBar.Visible = false;
+            // 
+            // TitleLabel
+            // 
+            this.TitleLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.TitleLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.TitleLabel.ForeColor = System.Drawing.Color.White;
+            this.TitleLabel.Location = new System.Drawing.Point(272, 1);
+            this.TitleLabel.Name = "TitleLabel";
+            this.TitleLabel.Size = new System.Drawing.Size(635, 55);
+            this.TitleLabel.TabIndex = 2;
+            this.TitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // ButtonsContainer
+            // 
+            this.ButtonsContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ButtonLst.AutoScroll = true;
-            this.ButtonLst.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ButtonLst.Location = new System.Drawing.Point(174, 67);
-            this.ButtonLst.Margin = new System.Windows.Forms.Padding(2);
-            this.ButtonLst.Name = "ButtonLst";
-            this.ButtonLst.Size = new System.Drawing.Size(439, 270);
-            this.ButtonLst.TabIndex = 8;
-            this.ButtonLst.MouseEnter += new System.EventHandler(this.OnMouseEnter);
+            this.ButtonsContainer.AutoScroll = true;
+            this.ButtonsContainer.Location = new System.Drawing.Point(272, 60);
+            this.ButtonsContainer.Name = "ButtonsContainer";
+            this.ButtonsContainer.Size = new System.Drawing.Size(634, 383);
+            this.ButtonsContainer.TabIndex = 1;
             // 
-            // Poster
+            // CoverBox
             // 
-            this.Poster.Location = new System.Drawing.Point(6, 6);
-            this.Poster.Margin = new System.Windows.Forms.Padding(2);
-            this.Poster.Name = "Poster";
-            this.Poster.Size = new System.Drawing.Size(164, 235);
-            this.Poster.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.Poster.TabIndex = 7;
-            this.Poster.TabStop = false;
+            this.CoverBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.CoverBox.Location = new System.Drawing.Point(0, 0);
+            this.CoverBox.Name = "CoverBox";
+            this.CoverBox.Size = new System.Drawing.Size(266, 443);
+            this.CoverBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.CoverBox.TabIndex = 0;
+            this.CoverBox.TabStop = false;
             // 
-            // TitleLBL
+            // SettingsTab
             // 
-            this.TitleLBL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.TitleLBL.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.TitleLBL.Location = new System.Drawing.Point(182, 6);
-            this.TitleLBL.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.TitleLBL.Name = "TitleLBL";
-            this.TitleLBL.Size = new System.Drawing.Size(431, 58);
-            this.TitleLBL.TabIndex = 6;
-            this.TitleLBL.Text = "Nome";
-            this.TitleLBL.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.SettingsTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.SettingsTab.Controls.Add(this.FeaturesGroupBox);
+            this.SettingsTab.Controls.Add(this.EnvironmentGroupBox);
+            this.SettingsTab.Location = new System.Drawing.Point(4, 20);
+            this.SettingsTab.Name = "SettingsTab";
+            this.SettingsTab.Padding = new System.Windows.Forms.Padding(3);
+            this.SettingsTab.Size = new System.Drawing.Size(912, 443);
+            this.SettingsTab.TabIndex = 1;
+            this.SettingsTab.Text = "Settings";
             // 
-            // StatusLBL
+            // FeaturesGroupBox
             // 
-            this.StatusLBL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.StatusLBL.Location = new System.Drawing.Point(8, 350);
-            this.StatusLBL.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.StatusLBL.Name = "StatusLBL";
-            this.StatusLBL.Size = new System.Drawing.Size(621, 14);
-            this.StatusLBL.TabIndex = 4;
-            this.StatusLBL.Text = "Waiting Url...";
-            this.StatusLBL.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            // 
-            // iTalk_Label1
-            // 
-            this.iTalk_Label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.iTalk_Label1.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_Label1.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.iTalk_Label1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_Label1.Location = new System.Drawing.Point(4, 368);
-            this.iTalk_Label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.iTalk_Label1.Name = "iTalk_Label1";
-            this.iTalk_Label1.Size = new System.Drawing.Size(108, 19);
-            this.iTalk_Label1.TabIndex = 2;
-            this.iTalk_Label1.Text = "My Library:";
-            // 
-            // TBSaveAs
-            // 
-            this.TBSaveAs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.TBSaveAs.BackColor = System.Drawing.Color.Transparent;
-            this.TBSaveAs.Font = new System.Drawing.Font("Tahoma", 11F);
-            this.TBSaveAs.ForeColor = System.Drawing.Color.DimGray;
-            this.TBSaveAs.Location = new System.Drawing.Point(4, 389);
-            this.TBSaveAs.Margin = new System.Windows.Forms.Padding(2);
-            this.TBSaveAs.MaxLength = 32767;
-            this.TBSaveAs.Multiline = false;
-            this.TBSaveAs.Name = "TBSaveAs";
-            this.TBSaveAs.ReadOnly = false;
-            this.TBSaveAs.Size = new System.Drawing.Size(456, 28);
-            this.TBSaveAs.TabIndex = 1;
-            this.TBSaveAs.TextAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            this.TBSaveAs.UseSystemPasswordChar = false;
-            // 
-            // SelDirBnt
-            // 
-            this.SelDirBnt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.SelDirBnt.BackColor = System.Drawing.Color.Transparent;
-            this.SelDirBnt.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.SelDirBnt.Image = null;
-            this.SelDirBnt.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.SelDirBnt.Location = new System.Drawing.Point(464, 389);
-            this.SelDirBnt.Margin = new System.Windows.Forms.Padding(2);
-            this.SelDirBnt.Name = "SelDirBnt";
-            this.SelDirBnt.Size = new System.Drawing.Size(42, 27);
-            this.SelDirBnt.TabIndex = 0;
-            this.SelDirBnt.Text = "...";
-            this.SelDirBnt.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.SelDirBnt.Click += new System.EventHandler(this.SelDirBnt_Click);
-            // 
-            // tabPage1
-            // 
-            this.tabPage1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
-            this.tabPage1.ContextMenuStrip = this.Secrets;
-            this.tabPage1.Controls.Add(this.ProgressBar);
-            this.tabPage1.Controls.Add(this.ListView);
-            this.tabPage1.Controls.Add(this.GroupConfig);
-            this.tabPage1.Controls.Add(this.tbNovelLink);
-            this.tabPage1.Controls.Add(this.iTalk_Label3);
-            this.tabPage1.Location = new System.Drawing.Point(139, 4);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Size = new System.Drawing.Size(634, 431);
-            this.tabPage1.TabIndex = 3;
-            this.tabPage1.Text = "Novel Dumper";
-            // 
-            // Secrets
-            // 
-            this.Secrets.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.traduzirParaToolStripMenuItem});
-            this.Secrets.Name = "Secrets";
-            this.Secrets.Size = new System.Drawing.Size(136, 26);
-            // 
-            // traduzirParaToolStripMenuItem
-            // 
-            this.traduzirParaToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.TlLang,
-            this.AutoTl});
-            this.traduzirParaToolStripMenuItem.Name = "traduzirParaToolStripMenuItem";
-            this.traduzirParaToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
-            this.traduzirParaToolStripMenuItem.Text = "Translate to";
-            // 
-            // TlLang
-            // 
-            this.TlLang.Name = "TlLang";
-            this.TlLang.Size = new System.Drawing.Size(100, 23);
-            this.TlLang.Text = "PT";
-            // 
-            // AutoTl
-            // 
-            this.AutoTl.CheckOnClick = true;
-            this.AutoTl.Name = "AutoTl";
-            this.AutoTl.Size = new System.Drawing.Size(160, 22);
-            this.AutoTl.Text = "Enable";
-            // 
-            // ProgressBar
-            // 
-            this.ProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ProgressBar.Font = new System.Drawing.Font("Segoe UI", 15F);
-            this.ProgressBar.Location = new System.Drawing.Point(498, 284);
-            this.ProgressBar.Maximum = ((long)(100));
-            this.ProgressBar.MinimumSize = new System.Drawing.Size(100, 100);
-            this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.ProgressColor1 = System.Drawing.Color.FromArgb(((int)(((byte)(92)))), ((int)(((byte)(92)))), ((int)(((byte)(92)))));
-            this.ProgressBar.ProgressColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(92)))), ((int)(((byte)(92)))), ((int)(((byte)(92)))));
-            this.ProgressBar.ProgressShape = MangaUnhost.iTalk_ProgressBar._ProgressShape.Round;
-            this.ProgressBar.Size = new System.Drawing.Size(130, 130);
-            this.ProgressBar.TabIndex = 4;
-            this.ProgressBar.Text = "iTalk_ProgressBar1";
-            this.ProgressBar.Value = ((long)(0));
-            // 
-            // ListView
-            // 
-            this.ListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.FeaturesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ListView.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.ListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.Names,
-            this.Items});
-            this.ListView.ContextMenuStrip = this.CapManager;
-            this.ListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.ListView.LabelEdit = true;
-            this.ListView.Location = new System.Drawing.Point(3, 270);
-            this.ListView.Name = "ListView";
-            this.ListView.Size = new System.Drawing.Size(489, 158);
-            this.ListView.TabIndex = 3;
-            this.ListView.UseCompatibleStateImageBehavior = false;
-            this.ListView.View = System.Windows.Forms.View.Details;
+            this.FeaturesGroupBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(118)))), ((int)(((byte)(196)))));
+            this.FeaturesGroupBox.Controls.Add(this.panel6);
+            this.FeaturesGroupBox.Controls.Add(this.panel5);
+            this.FeaturesGroupBox.Controls.Add(this.panel4);
+            this.FeaturesGroupBox.Controls.Add(this.panel3);
+            this.FeaturesGroupBox.Controls.Add(this.panel2);
+            this.FeaturesGroupBox.Controls.Add(this.panel1);
+            this.FeaturesGroupBox.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.FeaturesGroupBox.HeaderColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.FeaturesGroupBox.Location = new System.Drawing.Point(6, 127);
+            this.FeaturesGroupBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.FeaturesGroupBox.Name = "FeaturesGroupBox";
+            this.FeaturesGroupBox.Size = new System.Drawing.Size(897, 310);
+            this.FeaturesGroupBox.TabIndex = 1;
+            this.FeaturesGroupBox.Text = "Features";
+            this.FeaturesGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
             // 
-            // Names
+            // panel6
             // 
-            this.Names.Text = "Capítulo";
-            this.Names.Width = 58;
+            this.panel6.BackColor = System.Drawing.Color.Transparent;
+            this.panel6.Controls.Add(this.SkipDownEnbRadio);
+            this.panel6.Controls.Add(this.SkipDownDisRadio);
+            this.panel6.Controls.Add(this.lblSkipDownloaded);
+            this.panel6.Location = new System.Drawing.Point(295, 167);
+            this.panel6.Name = "panel6";
+            this.panel6.Size = new System.Drawing.Size(285, 60);
+            this.panel6.TabIndex = 11;
             // 
-            // Items
+            // SkipDownEnbRadio
             // 
-            this.Items.Text = "Url";
-            this.Items.Width = 337;
+            this.SkipDownEnbRadio.AutoSize = true;
+            this.SkipDownEnbRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SkipDownEnbRadio.ForeColor = System.Drawing.Color.White;
+            this.SkipDownEnbRadio.Location = new System.Drawing.Point(168, 32);
+            this.SkipDownEnbRadio.Name = "SkipDownEnbRadio";
+            this.SkipDownEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.SkipDownEnbRadio.TabIndex = 7;
+            this.SkipDownEnbRadio.Text = "Enabled";
+            this.SkipDownEnbRadio.UseVisualStyleBackColor = false;
+            this.SkipDownEnbRadio.CheckedChanged += new System.EventHandler(this.SkipDownloadedSwitched);
             // 
-            // CapManager
+            // SkipDownDisRadio
             // 
-            this.CapManager.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.removerDaListaToolStripMenuItem,
-            this.forçarProfundidadeToolStripMenuItem});
-            this.CapManager.Name = "CapManager";
-            this.CapManager.Size = new System.Drawing.Size(183, 48);
+            this.SkipDownDisRadio.AutoSize = true;
+            this.SkipDownDisRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SkipDownDisRadio.Checked = true;
+            this.SkipDownDisRadio.ForeColor = System.Drawing.Color.White;
+            this.SkipDownDisRadio.Location = new System.Drawing.Point(168, 3);
+            this.SkipDownDisRadio.Name = "SkipDownDisRadio";
+            this.SkipDownDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.SkipDownDisRadio.TabIndex = 6;
+            this.SkipDownDisRadio.TabStop = true;
+            this.SkipDownDisRadio.Text = "Disabled";
+            this.SkipDownDisRadio.UseVisualStyleBackColor = false;
             // 
-            // removerDaListaToolStripMenuItem
+            // lblSkipDownloaded
             // 
-            this.removerDaListaToolStripMenuItem.Name = "removerDaListaToolStripMenuItem";
-            this.removerDaListaToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
-            this.removerDaListaToolStripMenuItem.Text = "Remover da Lista";
-            this.removerDaListaToolStripMenuItem.Click += new System.EventHandler(this.DelItemsClicked);
+            this.lblSkipDownloaded.BackColor = System.Drawing.Color.Transparent;
+            this.lblSkipDownloaded.ForeColor = System.Drawing.Color.White;
+            this.lblSkipDownloaded.Location = new System.Drawing.Point(3, 0);
+            this.lblSkipDownloaded.Name = "lblSkipDownloaded";
+            this.lblSkipDownloaded.Size = new System.Drawing.Size(159, 21);
+            this.lblSkipDownloaded.TabIndex = 5;
+            this.lblSkipDownloaded.Text = "Skip Downloaded:";
+            this.lblSkipDownloaded.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // forçarProfundidadeToolStripMenuItem
+            // panel5
             // 
-            this.forçarProfundidadeToolStripMenuItem.Name = "forçarProfundidadeToolStripMenuItem";
-            this.forçarProfundidadeToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
-            this.forçarProfundidadeToolStripMenuItem.Text = "Forçar Profundidade";
-            this.forçarProfundidadeToolStripMenuItem.Click += new System.EventHandler(this.ForceDephClicked);
+            this.panel5.BackColor = System.Drawing.Color.Transparent;
+            this.panel5.Controls.Add(this.SaveAsRawRadio);
+            this.panel5.Controls.Add(this.SaveAsBmpRadio);
+            this.panel5.Controls.Add(this.lblSaveAs);
+            this.panel5.Controls.Add(this.SaveAsJpgRadio);
+            this.panel5.Controls.Add(this.SaveAsPngRadio);
+            this.panel5.Location = new System.Drawing.Point(295, 102);
+            this.panel5.Name = "panel5";
+            this.panel5.Size = new System.Drawing.Size(294, 60);
+            this.panel5.TabIndex = 10;
             // 
-            // GroupConfig
+            // SaveAsRawRadio
             // 
-            this.GroupConfig.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.SaveAsRawRadio.AutoSize = true;
+            this.SaveAsRawRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
+            this.SaveAsRawRadio.Location = new System.Drawing.Point(229, 27);
+            this.SaveAsRawRadio.Name = "SaveAsRawRadio";
+            this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsRawRadio.TabIndex = 7;
+            this.SaveAsRawRadio.Text = "RAW";
+            this.SaveAsRawRadio.UseVisualStyleBackColor = false;
+            this.SaveAsRawRadio.CheckedChanged += new System.EventHandler(this.RAWSaveAs);
+            // 
+            // SaveAsBmpRadio
+            // 
+            this.SaveAsBmpRadio.AutoSize = true;
+            this.SaveAsBmpRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SaveAsBmpRadio.ForeColor = System.Drawing.Color.White;
+            this.SaveAsBmpRadio.Location = new System.Drawing.Point(168, 27);
+            this.SaveAsBmpRadio.Name = "SaveAsBmpRadio";
+            this.SaveAsBmpRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsBmpRadio.TabIndex = 6;
+            this.SaveAsBmpRadio.Text = "BMP";
+            this.SaveAsBmpRadio.UseVisualStyleBackColor = false;
+            this.SaveAsBmpRadio.CheckedChanged += new System.EventHandler(this.BMPSaveAs);
+            // 
+            // lblSaveAs
+            // 
+            this.lblSaveAs.BackColor = System.Drawing.Color.Transparent;
+            this.lblSaveAs.ForeColor = System.Drawing.Color.White;
+            this.lblSaveAs.Location = new System.Drawing.Point(3, 0);
+            this.lblSaveAs.Name = "lblSaveAs";
+            this.lblSaveAs.Size = new System.Drawing.Size(159, 21);
+            this.lblSaveAs.TabIndex = 5;
+            this.lblSaveAs.Text = "Save As:";
+            this.lblSaveAs.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // SaveAsJpgRadio
+            // 
+            this.SaveAsJpgRadio.AutoSize = true;
+            this.SaveAsJpgRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SaveAsJpgRadio.ForeColor = System.Drawing.Color.White;
+            this.SaveAsJpgRadio.Location = new System.Drawing.Point(229, -2);
+            this.SaveAsJpgRadio.Name = "SaveAsJpgRadio";
+            this.SaveAsJpgRadio.Size = new System.Drawing.Size(50, 23);
+            this.SaveAsJpgRadio.TabIndex = 1;
+            this.SaveAsJpgRadio.Text = "JPG";
+            this.SaveAsJpgRadio.UseVisualStyleBackColor = false;
+            this.SaveAsJpgRadio.CheckedChanged += new System.EventHandler(this.JPGSaveAs);
+            // 
+            // SaveAsPngRadio
+            // 
+            this.SaveAsPngRadio.AutoSize = true;
+            this.SaveAsPngRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SaveAsPngRadio.Checked = true;
+            this.SaveAsPngRadio.ForeColor = System.Drawing.Color.White;
+            this.SaveAsPngRadio.Location = new System.Drawing.Point(168, -2);
+            this.SaveAsPngRadio.Name = "SaveAsPngRadio";
+            this.SaveAsPngRadio.Size = new System.Drawing.Size(55, 23);
+            this.SaveAsPngRadio.TabIndex = 0;
+            this.SaveAsPngRadio.TabStop = true;
+            this.SaveAsPngRadio.Text = "PNG";
+            this.SaveAsPngRadio.UseVisualStyleBackColor = false;
+            this.SaveAsPngRadio.CheckedChanged += new System.EventHandler(this.PNGSaveAs);
+            // 
+            // panel4
+            // 
+            this.panel4.BackColor = System.Drawing.Color.Transparent;
+            this.panel4.Controls.Add(this.lblClipWatcher);
+            this.panel4.Controls.Add(this.ClipWatcherEnbRadio);
+            this.panel4.Controls.Add(this.ClipWatcherDisRadio);
+            this.panel4.Location = new System.Drawing.Point(295, 36);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(285, 60);
+            this.panel4.TabIndex = 9;
+            // 
+            // lblClipWatcher
+            // 
+            this.lblClipWatcher.BackColor = System.Drawing.Color.Transparent;
+            this.lblClipWatcher.ForeColor = System.Drawing.Color.White;
+            this.lblClipWatcher.Location = new System.Drawing.Point(3, 0);
+            this.lblClipWatcher.Name = "lblClipWatcher";
+            this.lblClipWatcher.Size = new System.Drawing.Size(159, 21);
+            this.lblClipWatcher.TabIndex = 5;
+            this.lblClipWatcher.Text = "Clipboard Watcher:";
+            this.lblClipWatcher.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // ClipWatcherEnbRadio
+            // 
+            this.ClipWatcherEnbRadio.AutoSize = true;
+            this.ClipWatcherEnbRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ClipWatcherEnbRadio.ForeColor = System.Drawing.Color.White;
+            this.ClipWatcherEnbRadio.Location = new System.Drawing.Point(168, 29);
+            this.ClipWatcherEnbRadio.Name = "ClipWatcherEnbRadio";
+            this.ClipWatcherEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ClipWatcherEnbRadio.TabIndex = 1;
+            this.ClipWatcherEnbRadio.Text = "Enabled";
+            this.ClipWatcherEnbRadio.UseVisualStyleBackColor = false;
+            this.ClipWatcherEnbRadio.CheckedChanged += new System.EventHandler(this.ClipWatcherSwitched);
+            // 
+            // ClipWatcherDisRadio
+            // 
+            this.ClipWatcherDisRadio.AutoSize = true;
+            this.ClipWatcherDisRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ClipWatcherDisRadio.Checked = true;
+            this.ClipWatcherDisRadio.ForeColor = System.Drawing.Color.White;
+            this.ClipWatcherDisRadio.Location = new System.Drawing.Point(168, 0);
+            this.ClipWatcherDisRadio.Name = "ClipWatcherDisRadio";
+            this.ClipWatcherDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ClipWatcherDisRadio.TabIndex = 0;
+            this.ClipWatcherDisRadio.TabStop = true;
+            this.ClipWatcherDisRadio.Text = "Disabled";
+            this.ClipWatcherDisRadio.UseVisualStyleBackColor = false;
+            // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Transparent;
+            this.panel3.Controls.Add(this.lblReadeGenerator);
+            this.panel3.Controls.Add(this.ReaderGenEnbRadio);
+            this.panel3.Controls.Add(this.ReaderGenDisRadio);
+            this.panel3.Location = new System.Drawing.Point(7, 168);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(282, 60);
+            this.panel3.TabIndex = 8;
+            // 
+            // lblReadeGenerator
+            // 
+            this.lblReadeGenerator.BackColor = System.Drawing.Color.Transparent;
+            this.lblReadeGenerator.ForeColor = System.Drawing.Color.White;
+            this.lblReadeGenerator.Location = new System.Drawing.Point(3, 0);
+            this.lblReadeGenerator.Name = "lblReadeGenerator";
+            this.lblReadeGenerator.Size = new System.Drawing.Size(180, 21);
+            this.lblReadeGenerator.TabIndex = 5;
+            this.lblReadeGenerator.Text = "Reader Generator:";
+            this.lblReadeGenerator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // ReaderGenEnbRadio
+            // 
+            this.ReaderGenEnbRadio.AutoSize = true;
+            this.ReaderGenEnbRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ReaderGenEnbRadio.ForeColor = System.Drawing.Color.White;
+            this.ReaderGenEnbRadio.Location = new System.Drawing.Point(189, 29);
+            this.ReaderGenEnbRadio.Name = "ReaderGenEnbRadio";
+            this.ReaderGenEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ReaderGenEnbRadio.TabIndex = 1;
+            this.ReaderGenEnbRadio.Text = "Enabled";
+            this.ReaderGenEnbRadio.UseVisualStyleBackColor = false;
+            this.ReaderGenEnbRadio.CheckedChanged += new System.EventHandler(this.ReaderGeneratorSwitched);
+            // 
+            // ReaderGenDisRadio
+            // 
+            this.ReaderGenDisRadio.AutoSize = true;
+            this.ReaderGenDisRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ReaderGenDisRadio.Checked = true;
+            this.ReaderGenDisRadio.ForeColor = System.Drawing.Color.White;
+            this.ReaderGenDisRadio.Location = new System.Drawing.Point(189, 0);
+            this.ReaderGenDisRadio.Name = "ReaderGenDisRadio";
+            this.ReaderGenDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ReaderGenDisRadio.TabIndex = 0;
+            this.ReaderGenDisRadio.TabStop = true;
+            this.ReaderGenDisRadio.Text = "Disabled";
+            this.ReaderGenDisRadio.UseVisualStyleBackColor = false;
+            // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.Color.Transparent;
+            this.panel2.Controls.Add(this.lblImageClipping);
+            this.panel2.Controls.Add(this.ImgClipEnbRadio);
+            this.panel2.Controls.Add(this.ImgClipDisRadio);
+            this.panel2.Location = new System.Drawing.Point(7, 102);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(282, 60);
+            this.panel2.TabIndex = 7;
+            // 
+            // lblImageClipping
+            // 
+            this.lblImageClipping.BackColor = System.Drawing.Color.Transparent;
+            this.lblImageClipping.ForeColor = System.Drawing.Color.White;
+            this.lblImageClipping.Location = new System.Drawing.Point(3, 0);
+            this.lblImageClipping.Name = "lblImageClipping";
+            this.lblImageClipping.Size = new System.Drawing.Size(180, 21);
+            this.lblImageClipping.TabIndex = 5;
+            this.lblImageClipping.Text = "Image Clipping:";
+            this.lblImageClipping.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // ImgClipEnbRadio
+            // 
+            this.ImgClipEnbRadio.AutoSize = true;
+            this.ImgClipEnbRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ImgClipEnbRadio.ForeColor = System.Drawing.Color.White;
+            this.ImgClipEnbRadio.Location = new System.Drawing.Point(189, 27);
+            this.ImgClipEnbRadio.Name = "ImgClipEnbRadio";
+            this.ImgClipEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ImgClipEnbRadio.TabIndex = 1;
+            this.ImgClipEnbRadio.Text = "Enabled";
+            this.ImgClipEnbRadio.UseVisualStyleBackColor = false;
+            this.ImgClipEnbRadio.CheckedChanged += new System.EventHandler(this.ImgClippingSwitched);
+            // 
+            // ImgClipDisRadio
+            // 
+            this.ImgClipDisRadio.AutoSize = true;
+            this.ImgClipDisRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ImgClipDisRadio.Checked = true;
+            this.ImgClipDisRadio.ForeColor = System.Drawing.Color.White;
+            this.ImgClipDisRadio.Location = new System.Drawing.Point(189, -2);
+            this.ImgClipDisRadio.Name = "ImgClipDisRadio";
+            this.ImgClipDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ImgClipDisRadio.TabIndex = 0;
+            this.ImgClipDisRadio.TabStop = true;
+            this.ImgClipDisRadio.Text = "Disabled";
+            this.ImgClipDisRadio.UseVisualStyleBackColor = false;
+            // 
+            // panel1
+            // 
+            this.panel1.BackColor = System.Drawing.Color.Transparent;
+            this.panel1.Controls.Add(this.lblCaptchaSolving);
+            this.panel1.Controls.Add(this.SemiAutoCaptchaRadio);
+            this.panel1.Controls.Add(this.ManualCaptchaRadio);
+            this.panel1.Location = new System.Drawing.Point(7, 36);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(282, 60);
+            this.panel1.TabIndex = 6;
+            // 
+            // lblCaptchaSolving
+            // 
+            this.lblCaptchaSolving.BackColor = System.Drawing.Color.Transparent;
+            this.lblCaptchaSolving.ForeColor = System.Drawing.Color.White;
+            this.lblCaptchaSolving.Location = new System.Drawing.Point(3, 0);
+            this.lblCaptchaSolving.Name = "lblCaptchaSolving";
+            this.lblCaptchaSolving.Size = new System.Drawing.Size(180, 21);
+            this.lblCaptchaSolving.TabIndex = 5;
+            this.lblCaptchaSolving.Text = "Captcha Solving:";
+            this.lblCaptchaSolving.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // SemiAutoCaptchaRadio
+            // 
+            this.SemiAutoCaptchaRadio.AutoSize = true;
+            this.SemiAutoCaptchaRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SemiAutoCaptchaRadio.ForeColor = System.Drawing.Color.White;
+            this.SemiAutoCaptchaRadio.Location = new System.Drawing.Point(189, 28);
+            this.SemiAutoCaptchaRadio.Name = "SemiAutoCaptchaRadio";
+            this.SemiAutoCaptchaRadio.Size = new System.Drawing.Size(90, 23);
+            this.SemiAutoCaptchaRadio.TabIndex = 1;
+            this.SemiAutoCaptchaRadio.Text = "Semi Auto";
+            this.SemiAutoCaptchaRadio.UseVisualStyleBackColor = false;
+            this.SemiAutoCaptchaRadio.CheckedChanged += new System.EventHandler(this.CaptchaSolveSwitched);
+            // 
+            // ManualCaptchaRadio
+            // 
+            this.ManualCaptchaRadio.AutoSize = true;
+            this.ManualCaptchaRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ManualCaptchaRadio.Checked = true;
+            this.ManualCaptchaRadio.ForeColor = System.Drawing.Color.White;
+            this.ManualCaptchaRadio.Location = new System.Drawing.Point(189, -1);
+            this.ManualCaptchaRadio.Name = "ManualCaptchaRadio";
+            this.ManualCaptchaRadio.Size = new System.Drawing.Size(73, 23);
+            this.ManualCaptchaRadio.TabIndex = 0;
+            this.ManualCaptchaRadio.TabStop = true;
+            this.ManualCaptchaRadio.Text = "Manual";
+            this.ManualCaptchaRadio.UseVisualStyleBackColor = false;
+            // 
+            // EnvironmentGroupBox
+            // 
+            this.EnvironmentGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.GroupConfig.BackColor = System.Drawing.Color.Transparent;
-            this.GroupConfig.Controls.Add(this.cbSaveImages);
-            this.GroupConfig.Controls.Add(this.MergeSpan);
-            this.GroupConfig.Controls.Add(this.iTalk_Label6);
-            this.GroupConfig.Controls.Add(this.BaseCap);
-            this.GroupConfig.Controls.Add(this.BntListLink);
-            this.GroupConfig.Controls.Add(this.BntDumpText);
-            this.GroupConfig.Controls.Add(this.iTalk_GroupBox1);
-            this.GroupConfig.Controls.Add(this.iTalk_Label5);
-            this.GroupConfig.Controls.Add(this.HtmlFilter);
-            this.GroupConfig.Controls.Add(this.iTalk_Label4);
-            this.GroupConfig.Controls.Add(this.Linkfilter);
-            this.GroupConfig.Location = new System.Drawing.Point(3, 118);
-            this.GroupConfig.MinimumSize = new System.Drawing.Size(136, 50);
-            this.GroupConfig.Name = "GroupConfig";
-            this.GroupConfig.Padding = new System.Windows.Forms.Padding(5, 28, 5, 5);
-            this.GroupConfig.Size = new System.Drawing.Size(625, 150);
-            this.GroupConfig.TabIndex = 2;
-            this.GroupConfig.Text = "Filter Settings";
+            this.EnvironmentGroupBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(118)))), ((int)(((byte)(196)))));
+            this.EnvironmentGroupBox.Controls.Add(this.lblLanguage);
+            this.EnvironmentGroupBox.Controls.Add(this.LanguageBox);
+            this.EnvironmentGroupBox.Controls.Add(this.bntLibSelect);
+            this.EnvironmentGroupBox.Controls.Add(this.LibraryPathTBox);
+            this.EnvironmentGroupBox.Controls.Add(this.lblLibrary);
+            this.EnvironmentGroupBox.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.EnvironmentGroupBox.HeaderColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.EnvironmentGroupBox.Location = new System.Drawing.Point(6, 6);
+            this.EnvironmentGroupBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.EnvironmentGroupBox.Name = "EnvironmentGroupBox";
+            this.EnvironmentGroupBox.Size = new System.Drawing.Size(897, 115);
+            this.EnvironmentGroupBox.TabIndex = 0;
+            this.EnvironmentGroupBox.Text = "Environment";
+            this.EnvironmentGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
             // 
-            // cbSaveImages
+            // lblLanguage
             // 
-            this.cbSaveImages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cbSaveImages.BackColor = System.Drawing.Color.White;
-            this.cbSaveImages.Checked = true;
-            this.cbSaveImages.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.cbSaveImages.Location = new System.Drawing.Point(198, 102);
-            this.cbSaveImages.Name = "cbSaveImages";
-            this.cbSaveImages.Size = new System.Drawing.Size(120, 15);
-            this.cbSaveImages.TabIndex = 13;
-            this.cbSaveImages.Text = "Images";
+            this.lblLanguage.BackColor = System.Drawing.Color.Transparent;
+            this.lblLanguage.ForeColor = System.Drawing.Color.White;
+            this.lblLanguage.Location = new System.Drawing.Point(3, 72);
+            this.lblLanguage.Name = "lblLanguage";
+            this.lblLanguage.Size = new System.Drawing.Size(81, 21);
+            this.lblLanguage.TabIndex = 4;
+            this.lblLanguage.Text = "Language:";
+            this.lblLanguage.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // MergeSpan
+            // LanguageBox
             // 
-            this.MergeSpan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.MergeSpan.BackColor = System.Drawing.Color.White;
-            this.MergeSpan.Checked = false;
-            this.MergeSpan.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.MergeSpan.Location = new System.Drawing.Point(198, 123);
-            this.MergeSpan.Name = "MergeSpan";
-            this.MergeSpan.Size = new System.Drawing.Size(120, 15);
-            this.MergeSpan.TabIndex = 12;
-            this.MergeSpan.Text = "Merge Spans";
-            // 
-            // iTalk_Label6
-            // 
-            this.iTalk_Label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.iTalk_Label6.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_Label6.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.iTalk_Label6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_Label6.Location = new System.Drawing.Point(468, 70);
-            this.iTalk_Label6.Name = "iTalk_Label6";
-            this.iTalk_Label6.Size = new System.Drawing.Size(44, 23);
-            this.iTalk_Label6.TabIndex = 11;
-            this.iTalk_Label6.Text = "Base:";
-            // 
-            // BaseCap
-            // 
-            this.BaseCap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.BaseCap.BackColor = System.Drawing.Color.Transparent;
-            this.BaseCap.Font = new System.Drawing.Font("Tahoma", 11F);
-            this.BaseCap.ForeColor = System.Drawing.Color.DimGray;
-            this.BaseCap.Location = new System.Drawing.Point(518, 65);
-            this.BaseCap.Maximum = ((long)(100000));
-            this.BaseCap.Minimum = ((long)(0));
-            this.BaseCap.MinimumSize = new System.Drawing.Size(62, 28);
-            this.BaseCap.Name = "BaseCap";
-            this.BaseCap.Size = new System.Drawing.Size(99, 28);
-            this.BaseCap.TabIndex = 10;
-            this.BaseCap.Text = "iTalk_NumericUpDown1";
-            this.BaseCap.TextAlignment = MangaUnhost.iTalk_NumericUpDown._TextAlignment.Near;
-            this.BaseCap.Value = ((long)(1));
-            // 
-            // BntListLink
-            // 
-            this.BntListLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BntListLink.BackColor = System.Drawing.Color.Transparent;
-            this.BntListLink.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.BntListLink.Image = null;
-            this.BntListLink.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.BntListLink.Location = new System.Drawing.Point(375, 102);
-            this.BntListLink.Name = "BntListLink";
-            this.BntListLink.Size = new System.Drawing.Size(99, 40);
-            this.BntListLink.TabIndex = 9;
-            this.BntListLink.Text = "List all Links";
-            this.BntListLink.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.BntListLink.Click += new System.EventHandler(this.BntListLink_Click);
-            // 
-            // BntDumpText
-            // 
-            this.BntDumpText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BntDumpText.BackColor = System.Drawing.Color.Transparent;
-            this.BntDumpText.Font = new System.Drawing.Font("Segoe UI", 14F);
-            this.BntDumpText.ForeColor = System.Drawing.Color.White;
-            this.BntDumpText.Image = null;
-            this.BntDumpText.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.BntDumpText.Location = new System.Drawing.Point(480, 102);
-            this.BntDumpText.Name = "BntDumpText";
-            this.BntDumpText.Size = new System.Drawing.Size(137, 40);
-            this.BntDumpText.TabIndex = 8;
-            this.BntDumpText.Text = "Dump Text";
-            this.BntDumpText.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.BntDumpText.Click += new System.EventHandler(this.BntDumpText_Click);
-            // 
-            // iTalk_GroupBox1
-            // 
-            this.iTalk_GroupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.iTalk_GroupBox1.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_GroupBox1.Controls.Add(this.RadioTagId);
-            this.iTalk_GroupBox1.Controls.Add(this.RadioTagClass);
-            this.iTalk_GroupBox1.Location = new System.Drawing.Point(11, 96);
-            this.iTalk_GroupBox1.MinimumSize = new System.Drawing.Size(136, 50);
-            this.iTalk_GroupBox1.Name = "iTalk_GroupBox1";
-            this.iTalk_GroupBox1.Padding = new System.Windows.Forms.Padding(5, 28, 5, 5);
-            this.iTalk_GroupBox1.Size = new System.Drawing.Size(181, 50);
-            this.iTalk_GroupBox1.TabIndex = 6;
-            this.iTalk_GroupBox1.Text = "Search For";
-            // 
-            // RadioTagId
-            // 
-            this.RadioTagId.BackColor = System.Drawing.Color.White;
-            this.RadioTagId.Checked = true;
-            this.RadioTagId.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.RadioTagId.Location = new System.Drawing.Point(8, 27);
-            this.RadioTagId.Name = "RadioTagId";
-            this.RadioTagId.Size = new System.Drawing.Size(75, 15);
-            this.RadioTagId.TabIndex = 2;
-            this.RadioTagId.Text = "Tag ID";
-            // 
-            // RadioTagClass
-            // 
-            this.RadioTagClass.BackColor = System.Drawing.Color.White;
-            this.RadioTagClass.Checked = false;
-            this.RadioTagClass.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.RadioTagClass.Location = new System.Drawing.Point(89, 27);
-            this.RadioTagClass.Name = "RadioTagClass";
-            this.RadioTagClass.Size = new System.Drawing.Size(84, 15);
-            this.RadioTagClass.TabIndex = 3;
-            this.RadioTagClass.Text = "Tag Class";
-            // 
-            // iTalk_Label5
-            // 
-            this.iTalk_Label5.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_Label5.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.iTalk_Label5.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_Label5.Location = new System.Drawing.Point(8, 70);
-            this.iTalk_Label5.Name = "iTalk_Label5";
-            this.iTalk_Label5.Size = new System.Drawing.Size(84, 23);
-            this.iTalk_Label5.TabIndex = 5;
-            this.iTalk_Label5.Text = "Main Tag";
-            // 
-            // HtmlFilter
-            // 
-            this.HtmlFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.LanguageBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.HtmlFilter.BackColor = System.Drawing.Color.Transparent;
-            this.HtmlFilter.Font = new System.Drawing.Font("Tahoma", 11F);
-            this.HtmlFilter.ForeColor = System.Drawing.Color.DimGray;
-            this.HtmlFilter.Location = new System.Drawing.Point(98, 65);
-            this.HtmlFilter.MaxLength = 32767;
-            this.HtmlFilter.Multiline = false;
-            this.HtmlFilter.Name = "HtmlFilter";
-            this.HtmlFilter.ReadOnly = false;
-            this.HtmlFilter.Size = new System.Drawing.Size(364, 28);
-            this.HtmlFilter.TabIndex = 4;
-            this.HtmlFilter.Text = "page";
-            this.HtmlFilter.TextAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            this.HtmlFilter.UseSystemPasswordChar = false;
+            this.LanguageBox.ArrowColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.LanguageBox.BackColor = System.Drawing.Color.Transparent;
+            this.LanguageBox.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
+            this.LanguageBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.LanguageBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+            this.LanguageBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.LanguageBox.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.LanguageBox.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.LanguageBox.FormattingEnabled = true;
+            this.LanguageBox.LineColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
+            this.LanguageBox.Location = new System.Drawing.Point(90, 71);
+            this.LanguageBox.Name = "LanguageBox";
+            this.LanguageBox.Size = new System.Drawing.Size(796, 26);
+            this.LanguageBox.SqaureColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
+            this.LanguageBox.SqaureHoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(52)))), ((int)(((byte)(52)))));
+            this.LanguageBox.StartIndex = 0;
+            this.LanguageBox.TabIndex = 3;
+            this.LanguageBox.SelectedIndexChanged += new System.EventHandler(this.LanguageChanged);
             // 
-            // iTalk_Label4
+            // bntLibSelect
             // 
-            this.iTalk_Label4.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_Label4.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.iTalk_Label4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_Label4.Location = new System.Drawing.Point(8, 36);
-            this.iTalk_Label4.Name = "iTalk_Label4";
-            this.iTalk_Label4.Size = new System.Drawing.Size(84, 23);
-            this.iTalk_Label4.TabIndex = 1;
-            this.iTalk_Label4.Text = "Url Filter:";
+            this.bntLibSelect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.bntLibSelect.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.bntLibSelect.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.bntLibSelect.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.bntLibSelect.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.bntLibSelect.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.bntLibSelect.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.bntLibSelect.ImageChoice = null;
+            this.bntLibSelect.Location = new System.Drawing.Point(850, 36);
+            this.bntLibSelect.Name = "bntLibSelect";
+            this.bntLibSelect.ShowBorder = true;
+            this.bntLibSelect.ShowImage = false;
+            this.bntLibSelect.ShowText = true;
+            this.bntLibSelect.Size = new System.Drawing.Size(36, 23);
+            this.bntLibSelect.TabIndex = 2;
+            this.bntLibSelect.Text = "...";
+            this.bntLibSelect.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.bntLibSelect.Click += new System.EventHandler(this.BntLibSelectClicked);
             // 
-            // Linkfilter
+            // LibraryPathTBox
             // 
-            this.Linkfilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.LibraryPathTBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.Linkfilter.BackColor = System.Drawing.Color.Transparent;
-            this.Linkfilter.Font = new System.Drawing.Font("Tahoma", 11F);
-            this.Linkfilter.ForeColor = System.Drawing.Color.DimGray;
-            this.Linkfilter.Location = new System.Drawing.Point(98, 31);
-            this.Linkfilter.MaxLength = 32767;
-            this.Linkfilter.Multiline = false;
-            this.Linkfilter.Name = "Linkfilter";
-            this.Linkfilter.ReadOnly = false;
-            this.Linkfilter.Size = new System.Drawing.Size(519, 28);
-            this.Linkfilter.TabIndex = 0;
-            this.Linkfilter.TextAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            this.Linkfilter.UseSystemPasswordChar = false;
+            this.LibraryPathTBox.BackColor = System.Drawing.Color.Transparent;
+            this.LibraryPathTBox.BackgroundColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
+            this.LibraryPathTBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.LibraryPathTBox.Location = new System.Drawing.Point(90, 36);
+            this.LibraryPathTBox.MaxLength = 32767;
+            this.LibraryPathTBox.Multiline = false;
+            this.LibraryPathTBox.Name = "LibraryPathTBox";
+            this.LibraryPathTBox.ReadOnly = true;
+            this.LibraryPathTBox.Size = new System.Drawing.Size(754, 25);
+            this.LibraryPathTBox.Style = VSNormalTextBox.Styles.NotRounded;
+            this.LibraryPathTBox.TabIndex = 1;
+            this.LibraryPathTBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.LibraryPathTBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.LibraryPathTBox.UseSystemPasswordChar = false;
             // 
-            // tbNovelLink
+            // lblLibrary
             // 
-            this.tbNovelLink.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbNovelLink.BackColor = System.Drawing.Color.Transparent;
-            this.tbNovelLink.Font = new System.Drawing.Font("Tahoma", 11F);
-            this.tbNovelLink.ForeColor = System.Drawing.Color.DimGray;
-            this.tbNovelLink.Location = new System.Drawing.Point(3, 84);
-            this.tbNovelLink.MaxLength = 32767;
-            this.tbNovelLink.Multiline = false;
-            this.tbNovelLink.Name = "tbNovelLink";
-            this.tbNovelLink.ReadOnly = false;
-            this.tbNovelLink.Size = new System.Drawing.Size(625, 28);
-            this.tbNovelLink.TabIndex = 1;
-            this.tbNovelLink.TextAlignment = System.Windows.Forms.HorizontalAlignment.Left;
-            this.tbNovelLink.UseSystemPasswordChar = false;
-            this.tbNovelLink.TextChanged += new System.EventHandler(this.NovelTextChanged);
+            this.lblLibrary.BackColor = System.Drawing.Color.Transparent;
+            this.lblLibrary.ForeColor = System.Drawing.Color.White;
+            this.lblLibrary.Location = new System.Drawing.Point(3, 39);
+            this.lblLibrary.Name = "lblLibrary";
+            this.lblLibrary.Size = new System.Drawing.Size(81, 21);
+            this.lblLibrary.TabIndex = 0;
+            this.lblLibrary.Text = "Library:";
+            this.lblLibrary.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // iTalk_Label3
+            // AboutTab
             // 
-            this.iTalk_Label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.iTalk_Label3.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_Label3.Font = new System.Drawing.Font("Segoe UI", 40F);
-            this.iTalk_Label3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(142)))), ((int)(((byte)(142)))), ((int)(((byte)(142)))));
-            this.iTalk_Label3.Location = new System.Drawing.Point(3, 0);
-            this.iTalk_Label3.Name = "iTalk_Label3";
-            this.iTalk_Label3.Size = new System.Drawing.Size(625, 81);
-            this.iTalk_Label3.TabIndex = 0;
-            this.iTalk_Label3.Text = "Novel Dumper";
-            this.iTalk_Label3.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.AboutTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.AboutTab.Controls.Add(this.SupportedHostsBox);
+            this.AboutTab.Controls.Add(this.lblCredits);
+            this.AboutTab.Controls.Add(this.lblTitle);
+            this.AboutTab.Location = new System.Drawing.Point(4, 20);
+            this.AboutTab.Name = "AboutTab";
+            this.AboutTab.Padding = new System.Windows.Forms.Padding(3);
+            this.AboutTab.Size = new System.Drawing.Size(912, 443);
+            this.AboutTab.TabIndex = 2;
+            this.AboutTab.Text = "About";
             // 
-            // tabPage3
+            // SupportedHostsBox
             // 
-            this.tabPage3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(246)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
-            this.tabPage3.Controls.Add(this.bntGenReader);
-            this.tabPage3.Controls.Add(this.bntTestTrim);
-            this.tabPage3.Controls.Add(this.BntTestHosts);
-            this.tabPage3.Controls.Add(this.SupportList);
-            this.tabPage3.Controls.Add(this.label1);
-            this.tabPage3.Controls.Add(this.iTalk_HeaderLabel1);
-            this.tabPage3.Location = new System.Drawing.Point(139, 4);
-            this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage3.Size = new System.Drawing.Size(634, 431);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "About";
-            // 
-            // bntGenReader
-            // 
-            this.bntGenReader.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bntGenReader.BackColor = System.Drawing.Color.Transparent;
-            this.bntGenReader.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.bntGenReader.Image = null;
-            this.bntGenReader.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.bntGenReader.Location = new System.Drawing.Point(373, 48);
-            this.bntGenReader.Margin = new System.Windows.Forms.Padding(2);
-            this.bntGenReader.Name = "bntGenReader";
-            this.bntGenReader.Size = new System.Drawing.Size(141, 27);
-            this.bntGenReader.TabIndex = 7;
-            this.bntGenReader.Text = "Generate Reader";
-            this.bntGenReader.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.bntGenReader.Click += new System.EventHandler(this.bntGenReader_Click);
-            // 
-            // bntTestTrim
-            // 
-            this.bntTestTrim.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bntTestTrim.BackColor = System.Drawing.Color.Transparent;
-            this.bntTestTrim.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.bntTestTrim.Image = null;
-            this.bntTestTrim.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.bntTestTrim.Location = new System.Drawing.Point(518, 17);
-            this.bntTestTrim.Margin = new System.Windows.Forms.Padding(2);
-            this.bntTestTrim.Name = "bntTestTrim";
-            this.bntTestTrim.Size = new System.Drawing.Size(110, 27);
-            this.bntTestTrim.TabIndex = 6;
-            this.bntTestTrim.Text = "Test Trim";
-            this.bntTestTrim.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.bntTestTrim.Click += new System.EventHandler(this.bntTestTrim_Click);
-            // 
-            // BntTestHosts
-            // 
-            this.BntTestHosts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BntTestHosts.BackColor = System.Drawing.Color.Transparent;
-            this.BntTestHosts.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.BntTestHosts.Image = null;
-            this.BntTestHosts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.BntTestHosts.Location = new System.Drawing.Point(518, 48);
-            this.BntTestHosts.Margin = new System.Windows.Forms.Padding(2);
-            this.BntTestHosts.Name = "BntTestHosts";
-            this.BntTestHosts.Size = new System.Drawing.Size(110, 27);
-            this.BntTestHosts.TabIndex = 5;
-            this.BntTestHosts.Text = "Test Hosts";
-            this.BntTestHosts.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.BntTestHosts.Click += new System.EventHandler(this.BntTestHosts_Click);
-            // 
-            // SupportList
-            // 
-            this.SupportList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.SupportedHostsBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.SupportList.Location = new System.Drawing.Point(5, 80);
-            this.SupportList.Name = "SupportList";
-            this.SupportList.Size = new System.Drawing.Size(623, 346);
-            this.SupportList.TabIndex = 4;
-            this.SupportList.UseCompatibleStateImageBehavior = false;
-            this.SupportList.View = System.Windows.Forms.View.List;
+            this.SupportedHostsBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(118)))), ((int)(((byte)(196)))));
+            this.SupportedHostsBox.Controls.Add(this.SupportedHostListBox);
+            this.SupportedHostsBox.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.SupportedHostsBox.HeaderColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.SupportedHostsBox.Location = new System.Drawing.Point(9, 60);
+            this.SupportedHostsBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.SupportedHostsBox.Name = "SupportedHostsBox";
+            this.SupportedHostsBox.Size = new System.Drawing.Size(897, 364);
+            this.SupportedHostsBox.TabIndex = 2;
+            this.SupportedHostsBox.Text = "Supported Hosts";
+            this.SupportedHostsBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
             // 
-            // label1
+            // SupportedHostListBox
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(2, 62);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(97, 13);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Supported Hosts:";
-            // 
-            // iTalk_HeaderLabel1
-            // 
-            this.iTalk_HeaderLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.SupportedHostListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.iTalk_HeaderLabel1.BackColor = System.Drawing.Color.Transparent;
-            this.iTalk_HeaderLabel1.Font = new System.Drawing.Font("Segoe UI", 25F);
-            this.iTalk_HeaderLabel1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.iTalk_HeaderLabel1.Location = new System.Drawing.Point(2, 2);
-            this.iTalk_HeaderLabel1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.iTalk_HeaderLabel1.Name = "iTalk_HeaderLabel1";
-            this.iTalk_HeaderLabel1.Size = new System.Drawing.Size(627, 60);
-            this.iTalk_HeaderLabel1.TabIndex = 0;
-            this.iTalk_HeaderLabel1.Text = "MangaUnhost";
-            this.iTalk_HeaderLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.SupportedHostListBox.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.SupportedHostListBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.SupportedHostListBox.DontShowInnerScrollbarBorder = false;
+            this.SupportedHostListBox.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(199)))), ((int)(((byte)(199)))));
+            this.SupportedHostListBox.Items = new VSListBoxWBuiltInScrollBar.VSListBoxItem[0];
+            this.SupportedHostListBox.Location = new System.Drawing.Point(3, 33);
+            this.SupportedHostListBox.MultiSelect = false;
+            this.SupportedHostListBox.Name = "SupportedHostListBox";
+            this.SupportedHostListBox.NonSelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
+            this.SupportedHostListBox.SelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
+            this.SupportedHostListBox.ShowWholeInnerBorder = true;
+            this.SupportedHostListBox.Size = new System.Drawing.Size(891, 319);
+            this.SupportedHostListBox.TabIndex = 0;
+            this.SupportedHostListBox.DoubleClick += new System.EventHandler(this.SupportedHostClicked);
             // 
-            // UpDot
+            // lblCredits
             // 
-            this.UpDot.Enabled = true;
-            this.UpDot.Interval = 400;
-            this.UpDot.Tick += new System.EventHandler(this.UpDot_Tick);
+            this.lblCredits.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblCredits.AutoSize = true;
+            this.lblCredits.ForeColor = System.Drawing.Color.White;
+            this.lblCredits.Location = new System.Drawing.Point(776, 427);
+            this.lblCredits.Name = "lblCredits";
+            this.lblCredits.Size = new System.Drawing.Size(132, 13);
+            this.lblCredits.TabIndex = 1;
+            this.lblCredits.Text = "Created By Marcussacana";
             // 
-            // FolderPicker
+            // lblTitle
             // 
-            this.FolderPicker.Description = "Selecione uma pasta para salvar os capitulos";
+            this.lblTitle.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.lblTitle.ForeColor = System.Drawing.Color.White;
+            this.lblTitle.Location = new System.Drawing.Point(3, 3);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(905, 72);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "MangaUnhost";
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // ChkUpdBnt
+            // DebugTab
             // 
-            this.ChkUpdBnt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ChkUpdBnt.BackColor = System.Drawing.Color.Transparent;
-            this.ChkUpdBnt.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.ChkUpdBnt.Image = null;
-            this.ChkUpdBnt.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.ChkUpdBnt.Location = new System.Drawing.Point(510, 389);
-            this.ChkUpdBnt.Margin = new System.Windows.Forms.Padding(2);
-            this.ChkUpdBnt.Name = "ChkUpdBnt";
-            this.ChkUpdBnt.Size = new System.Drawing.Size(119, 27);
-            this.ChkUpdBnt.TabIndex = 11;
-            this.ChkUpdBnt.Text = "Check Updates";
-            this.ChkUpdBnt.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.ChkUpdBnt.Click += new System.EventHandler(this.ChkUpdBnt_Click);
+            this.DebugTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.DebugTab.Controls.Add(this.DbgButtonA);
+            this.DebugTab.Controls.Add(this.DbgPreview);
+            this.DebugTab.Location = new System.Drawing.Point(4, 20);
+            this.DebugTab.Name = "DebugTab";
+            this.DebugTab.Padding = new System.Windows.Forms.Padding(3);
+            this.DebugTab.Size = new System.Drawing.Size(912, 443);
+            this.DebugTab.TabIndex = 3;
+            this.DebugTab.Text = "Debug";
+            // 
+            // DbgButtonA
+            // 
+            this.DbgButtonA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.DbgButtonA.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.DbgButtonA.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.DbgButtonA.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.DbgButtonA.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.DbgButtonA.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.DbgButtonA.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.DbgButtonA.ImageChoice = null;
+            this.DbgButtonA.Location = new System.Drawing.Point(397, 6);
+            this.DbgButtonA.Name = "DbgButtonA";
+            this.DbgButtonA.ShowBorder = true;
+            this.DbgButtonA.ShowImage = false;
+            this.DbgButtonA.ShowText = true;
+            this.DbgButtonA.Size = new System.Drawing.Size(92, 23);
+            this.DbgButtonA.TabIndex = 1;
+            this.DbgButtonA.Text = "Dbg Captcha";
+            this.DbgButtonA.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.DbgButtonA.Click += new System.EventHandler(this.DbgButtonClicked);
+            // 
+            // DbgPreview
+            // 
+            this.DbgPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.DbgPreview.BackColor = System.Drawing.Color.White;
+            this.DbgPreview.Location = new System.Drawing.Point(0, 0);
+            this.DbgPreview.Name = "DbgPreview";
+            this.DbgPreview.Size = new System.Drawing.Size(391, 443);
+            this.DbgPreview.TabIndex = 0;
+            this.DbgPreview.TabStop = false;
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(781, 485);
-            this.Controls.Add(this.iTalk_ThemeContainer1);
+            this.ClientSize = new System.Drawing.Size(920, 530);
+            this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.Margin = new System.Windows.Forms.Padding(2);
-            this.MinimumSize = new System.Drawing.Size(698, 485);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximumSize = new System.Drawing.Size(1440, 860);
             this.Name = "Main";
-            this.Text = "MangaUnhost - v0.3";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "MangaUnhost";
             this.TransparencyKey = System.Drawing.Color.Fuchsia;
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnClosing);
-            this.Shown += new System.EventHandler(this.OnShowing);
-            this.iTalk_ThemeContainer1.ResumeLayout(false);
-            this.iTalk_TabControl1.ResumeLayout(false);
-            this.DownPage.ResumeLayout(false);
-            this.DownPage.PerformLayout();
-            this.MainPanel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.Poster)).EndInit();
-            this.tabPage1.ResumeLayout(false);
-            this.Secrets.ResumeLayout(false);
-            this.CapManager.ResumeLayout(false);
-            this.GroupConfig.ResumeLayout(false);
-            this.iTalk_GroupBox1.ResumeLayout(false);
-            this.tabPage3.ResumeLayout(false);
-            this.tabPage3.PerformLayout();
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainClosing);
+            this.Shown += new System.EventHandler(this.MainShown);
+            this.ThemeContainer.ResumeLayout(false);
+            this.MainTabMenu.ResumeLayout(false);
+            this.DownloaderTab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).EndInit();
+            this.SettingsTab.ResumeLayout(false);
+            this.FeaturesGroupBox.ResumeLayout(false);
+            this.panel6.ResumeLayout(false);
+            this.panel6.PerformLayout();
+            this.panel5.ResumeLayout(false);
+            this.panel5.PerformLayout();
+            this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
+            this.panel3.ResumeLayout(false);
+            this.panel3.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
+            this.EnvironmentGroupBox.ResumeLayout(false);
+            this.AboutTab.ResumeLayout(false);
+            this.AboutTab.PerformLayout();
+            this.SupportedHostsBox.ResumeLayout(false);
+            this.DebugTab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.DbgPreview)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private iTalk_ThemeContainer iTalk_ThemeContainer1;
-        private iTalk_TabControl iTalk_TabControl1;
-        private System.Windows.Forms.TabPage DownPage;
-        private System.Windows.Forms.Label StatusLBL;
-        private iTalk_Label iTalk_Label1;
-        private iTalk_TextBox_Small TBSaveAs;
-        private iTalk_Button_1 SelDirBnt;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.Timer CheckUrl;
-        private iTalk_Panel MainPanel;
-        private System.Windows.Forms.Label TitleLBL;
-        private System.Windows.Forms.PictureBox Poster;
-        private iTalk_ControlBox iTalk_ControlBox1;
-        private System.Windows.Forms.FlowLayoutPanel ButtonLst;
-        private iTalk_HeaderLabel iTalk_HeaderLabel1;
-        private System.Windows.Forms.CheckBox ckGenReader;
-        private System.Windows.Forms.Timer UpDot;
-        private System.Windows.Forms.TabPage tabPage1;
-        private iTalk_TextBox_Small tbNovelLink;
-        private iTalk_Label iTalk_Label3;
-        private iTalk_ProgressBar ProgressBar;
-        private iTalk_Listview ListView;
-        private iTalk_GroupBox GroupConfig;
-        private iTalk_Button_2 BntDumpText;
-        private iTalk_GroupBox iTalk_GroupBox1;
-        private iTalk_RadioButton RadioTagId;
-        private iTalk_RadioButton RadioTagClass;
-        private iTalk_Label iTalk_Label5;
-        private iTalk_TextBox_Small HtmlFilter;
-        private iTalk_Label iTalk_Label4;
-        private iTalk_TextBox_Small Linkfilter;
-        private System.Windows.Forms.FolderBrowserDialog FolderPicker;
-        private System.Windows.Forms.ColumnHeader Names;
-        private System.Windows.Forms.ColumnHeader Items;
-        private iTalk_Button_1 BntListLink;
-        private iTalk_Label iTalk_Label6;
-        private iTalk_NumericUpDown BaseCap;
-        private System.Windows.Forms.ContextMenuStrip Secrets;
-        private System.Windows.Forms.ToolStripMenuItem traduzirParaToolStripMenuItem;
-        private System.Windows.Forms.ToolStripTextBox TlLang;
-        private System.Windows.Forms.ToolStripMenuItem AutoTl;
-        private System.Windows.Forms.ContextMenuStrip CapManager;
-        private System.Windows.Forms.ToolStripMenuItem removerDaListaToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem forçarProfundidadeToolStripMenuItem;
-        private iTalk_CheckBox MergeSpan;
-        private System.Windows.Forms.CheckBox ckCaptureClipboard;
-        private System.Windows.Forms.CheckBox ckResume;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ListView SupportList;
-        private iTalk_Button_1 BntTestHosts;
-        private iTalk_CheckBox cbSaveImages;
-        private iTalk_Button_1 bntTestTrim;
-        private System.Windows.Forms.CheckBox ckCropSpace;
-        private iTalk_Button_1 bntGenReader;
-        private iTalk_Button_1 ChkUpdBnt;
+        private VSContainer ThemeContainer;
+        private VSTabControl MainTabMenu;
+        private System.Windows.Forms.TabPage DownloaderTab;
+        private System.Windows.Forms.TabPage SettingsTab;
+        private System.Windows.Forms.TabPage AboutTab;
+        private System.Windows.Forms.TabPage DebugTab;
+        private System.Windows.Forms.Label TitleLabel;
+        private System.Windows.Forms.PictureBox CoverBox;
+        private System.Windows.Forms.FlowLayoutPanel ButtonsContainer;
+        private System.Windows.Forms.Timer MainTimer;
+        private VSStatusBar StatusBar;
+        private System.Windows.Forms.PictureBox DbgPreview;
+        private VSButton DbgButtonA;
+        private VSGroupBox EnvironmentGroupBox;
+        private VSButton bntLibSelect;
+        private VSNormalTextBox LibraryPathTBox;
+        private System.Windows.Forms.Label lblLibrary;
+        private System.Windows.Forms.Label lblLanguage;
+        private VSComboBox LanguageBox;
+        private VSGroupBox FeaturesGroupBox;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label lblCaptchaSolving;
+        private System.Windows.Forms.RadioButton SemiAutoCaptchaRadio;
+        private System.Windows.Forms.RadioButton ManualCaptchaRadio;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label lblImageClipping;
+        private System.Windows.Forms.RadioButton ImgClipEnbRadio;
+        private System.Windows.Forms.RadioButton ImgClipDisRadio;
+        private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Label lblClipWatcher;
+        private System.Windows.Forms.RadioButton ClipWatcherEnbRadio;
+        private System.Windows.Forms.RadioButton ClipWatcherDisRadio;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Label lblReadeGenerator;
+        private System.Windows.Forms.RadioButton ReaderGenEnbRadio;
+        private System.Windows.Forms.RadioButton ReaderGenDisRadio;
+        private System.Windows.Forms.Panel panel5;
+        private System.Windows.Forms.RadioButton SaveAsRawRadio;
+        private System.Windows.Forms.RadioButton SaveAsBmpRadio;
+        private System.Windows.Forms.Label lblSaveAs;
+        private System.Windows.Forms.RadioButton SaveAsJpgRadio;
+        private System.Windows.Forms.RadioButton SaveAsPngRadio;
+        private System.Windows.Forms.Panel panel6;
+        private System.Windows.Forms.RadioButton SkipDownEnbRadio;
+        private System.Windows.Forms.RadioButton SkipDownDisRadio;
+        private System.Windows.Forms.Label lblSkipDownloaded;
+        private VSGroupBox SupportedHostsBox;
+        private VSListBoxWBuiltInScrollBar SupportedHostListBox;
+        private System.Windows.Forms.Label lblCredits;
+        private System.Windows.Forms.Label lblTitle;
+        private VSVerticalScrollBar ContainerScrollBar;
     }
 }
 

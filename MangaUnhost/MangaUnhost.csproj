@@ -1,22 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}</ProjectGuid>
+    <ProjectGuid>{76F36A49-2397-47A6-B64D-A2493FF41BFE}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MangaUnhost</RootNamespace>
     <AssemblyName>MangaUnhost</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AssemblyVersion>1.89.0.0</AssemblyVersion>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,6 +23,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,25 +34,16 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>BookShadow.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetZip, Version=1.10.1.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
-    </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.5.5.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.5.5\lib\Net40\HtmlAgilityPack.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.mshtml">
-      <HintPath>.\Microsoft.mshtml.dll</HintPath>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NAudio.1.9.0\lib\net35\NAudio.dll</HintPath>
-    </Reference>
-    <Reference Include="Noesis.Drawing.Imaging.WebP">
-      <HintPath>.\Noesis.Drawing.Imaging.WebP.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
@@ -62,71 +54,113 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Theme">
-      <HintPath>..\packages\Theme.dll</HintPath>
-    </Reference>
-    <Reference Include="TLIB">
-      <HintPath>..\packages\TLIB.dll</HintPath>
-    </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BitmapTrim.cs" />
-    <Compile Include="BrowserTools.cs" />
-    <Compile Include="FlexibleMessageBox.cs" />
-    <Compile Include="Github.cs" />
-    <Compile Include="ConfigDatabase.cs" />
-    <Compile Include="DNVM.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="GuerrillaMail.cs" />
-    <Compile Include="Host\Batoto.cs" />
-    <Compile Include="Host\GoldenMangas.cs" />
-    <Compile Include="Host\HeavenManga.cs" />
-    <Compile Include="Host\HentaiCafe.cs" />
-    <Compile Include="Host\IHost.cs" />
-    <Compile Include="Host\KissManga.cs" />
-    <Compile Include="Host\Mangadex.cs" />
-    <Compile Include="Host\MangaHasu.cs" />
-    <Compile Include="Host\MangaHere.cs" />
-    <Compile Include="Host\Mangahost.cs" />
-    <Compile Include="Host\MangaNelo.cs" />
-    <Compile Include="Host\MangaKakalot.cs" />
-    <Compile Include="Host\ManhwaHentai.cs" />
-    <Compile Include="Host\NHentai.cs" />
-    <Compile Include="Host\RawLH.cs" />
-    <Compile Include="Host\Tsumino.cs" />
-    <Compile Include="Host\UnionMangas.cs" />
-    <Compile Include="Host\WebNovel.cs" />
-    <Compile Include="Host\Webtoons.cs" />
-    <Compile Include="Ini.cs" />
+    <Compile Include="Browser\InputTools.cs" />
+    <Compile Include="Browser\JSTools.cs" />
+    <Compile Include="Browser\reCaptcha.cs" />
+    <Compile Include="Browser\RequestEventHandler.cs" />
+    <Compile Include="Browser\RequestTools.cs" />
+    <Compile Include="Browser\StatusTools.cs" />
+    <Compile Include="Browser\UrlTools.cs" />
+    <Compile Include="Hosts\HentaiCafe.cs" />
+    <Compile Include="Hosts\NHentai.cs" />
+    <Compile Include="Hosts\Tsumino.cs" />
+    <Compile Include="Hosts\Webtoons.cs" />
+    <Compile Include="Hosts\MangaHere.cs" />
+    <Compile Include="Hosts\GoldenMangas.cs" />
+    <Compile Include="Hosts\HeavenManga.cs" />
+    <Compile Include="Hosts\LHScan.cs" />
+    <Compile Include="Hosts\MangaHasu.cs" />
+    <Compile Include="Hosts\WebNovel.cs" />
+    <Compile Include="Decoders\CommonImage.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="Hosts\Batoto.cs" />
+    <Compile Include="Hosts\MangaDex.cs" />
+    <Compile Include="Hosts\Mangakakalot.cs" />
+    <Compile Include="Hosts\MangaHost.cs" />
+    <Compile Include="Hosts\KissManga.cs" />
+    <Compile Include="Interfaces.cs" />
+    <Compile Include="Languages\Portuguese.cs" />
+    <Compile Include="Languages\English.cs" />
+    <Compile Include="DownloadingWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DownloadingWindow.Designer.cs">
+      <DependentUpon>DownloadingWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="Others\BitmapTrim.cs" />
+    <Compile Include="Others\ChapterTools.cs" />
+    <Compile Include="Others\Extensions.cs" />
+    <Compile Include="Others\Github.cs" />
+    <Compile Include="Others\GuerrillaMail.cs" />
+    <Compile Include="Others\Ini.cs" />
+    <Compile Include="Others\ProxyTools.cs" />
+    <Compile Include="Others\DataTools.cs" />
+    <Compile Include="Others\ThreadTools.cs" />
+    <Compile Include="PluginInfoPreview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PluginInfoPreview.Designer.cs">
+      <DependentUpon>PluginInfoPreview.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools.cs" />
+    <Compile Include="BrowserPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BrowserPopup.Designer.cs">
+      <DependentUpon>BrowserPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SolveCaptcha.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SolveCaptcha.Designer.cs">
+      <DependentUpon>SolveCaptcha.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Structs.cs" />
+    <Compile Include="Styles.cs" />
+    <EmbeddedResource Include="DownloadingWindow.resx">
+      <DependentUpon>DownloadingWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="PluginInfoPreview.resx">
+      <DependentUpon>PluginInfoPreview.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="packages.config" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Others\CursorTools.cs" />
+    <EmbeddedResource Include="BrowserPopup.resx">
+      <DependentUpon>BrowserPopup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SolveCaptcha.resx">
+      <DependentUpon>SolveCaptcha.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Hosts\UnionMangas.cs" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -134,35 +168,38 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ChpManager.csproj" />
-    <Content Include="NoesisWebP.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="FodyWeavers.xml" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="SHDocVw">
-      <Guid>{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>1</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
+    <PackageReference Include="CefSharp.OffScreen">
+      <Version>73.1.130</Version>
+    </PackageReference>
+    <PackageReference Include="HtmlAgilityPack">
+      <Version>1.11.12</Version>
+    </PackageReference>
+    <PackageReference Include="Ionic.Zip">
+      <Version>1.9.1.8</Version>
+    </PackageReference>
+    <PackageReference Include="NAudio">
+      <Version>1.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="Nito.AsyncEx">
+      <Version>5.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAPICodePack-Shell">
+      <Version>1.1.1</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Book.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="BookShadow.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>cd "$(ProjectDir)Host"
-if not exist WebNovel.cs (
-echo //Private Code &gt;&gt; WebNovel.cs
-)</PreBuildEvent>
+    <PostBuildEvent>cd "$(TargetDir)"
+rmdir /s /q "x64"
+rmdir /s /q "x86"</PostBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29006.145
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MangaUnhost", "MangaUnhost\MangaUnhost.csproj", "{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MangaUnhost", "MangaUnhost\MangaUnhost.csproj", "{76F36A49-2397-47A6-B64D-A2493FF41BFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2D8BFA8-FE3A-42D7-875A-22ACBC4494A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76F36A49-2397-47A6-B64D-A2493FF41BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76F36A49-2397-47A6-B64D-A2493FF41BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76F36A49-2397-47A6-B64D-A2493FF41BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76F36A49-2397-47A6-B64D-A2493FF41BFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
