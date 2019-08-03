@@ -13,8 +13,8 @@ using System.Windows.Forms;
 
 namespace MangaUnhost {
     public partial class DownloadingWindow : Form {
-        long ContentLenght;
-        long Downloaded;
+        long ContentLenght = 0;
+        long Downloaded = 0;
 
         bool Finished;
 
@@ -26,7 +26,9 @@ namespace MangaUnhost {
             this.URL = URL;
             this.SaveAs = SaveAs;
 
-            new Thread(Download).Start();
+            Shown += (sender, args) => {
+                new Thread(Download).Start();
+            };
         }
 
         private void ProgressUpdateTick(object sender, EventArgs e) {
@@ -34,7 +36,9 @@ namespace MangaUnhost {
             if (ProgressBar.StartingAngle > 359)
                 ProgressBar.StartingAngle = 0;
 
-            ProgressBar.Value = (int)((Downloaded / (decimal)ContentLenght) * 100);
+            try {
+                ProgressBar.Value = (int)((Downloaded / (decimal)ContentLenght) * 100);
+            } catch { }
 
             if (Finished)
                 Close();

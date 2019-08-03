@@ -50,7 +50,7 @@ namespace MangaUnhost {
         }
 
         private static void CefUpdater() {
-             string CefRepo = "https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/";
+            string CefRepo = "https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/";
 
             bool Outdated = false;
             if (!File.Exists(BrowserSubprocessPath))
