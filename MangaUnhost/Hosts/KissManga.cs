@@ -49,6 +49,8 @@ namespace MangaUnhost.Hosts {
             const string Prefix = "/manga/";
             string Part = ChapterURL.Substring(ChapterURL.ToLower().IndexOf(Prefix) + Prefix.Length);
             Part = Part.Between('/', '?');
+            if (Part.ToLower().Contains("ch-"))
+                Part = Part.Substring("ch-");
             string Rst = string.Empty;
             foreach (char c in Part) {
                 if (Rst == string.Empty && !char.IsNumber(c))
@@ -97,10 +99,12 @@ namespace MangaUnhost.Hosts {
                 string Key = "mshsdf832nsdbash20asdm";
                 
                 string chko = Key;
-                foreach (var Node in CurrentChapter.DocumentNode.SelectNodes("//script[contains(., \"chko\")]")) {
-                    string Script = Node.InnerHtml.Trim('\r', '\n', ' ', '\t', ';') + ";\r\nchko;";
-                    chko = (string)JSTools.EvaulateScript(Script.Replace("key = CryptoJS.SHA256(chko);", ""));
-                }
+                var Nodes = CurrentChapter.DocumentNode.SelectNodes("//script[contains(., \"chko\")]");
+                if (Nodes != null)
+                    foreach (var Node in Nodes) {
+                        string Script = Node.InnerHtml.Trim('\r', '\n', ' ', '\t', ';') + ";\r\nchko;";
+                        chko = (string)JSTools.EvaulateScript(Script.Replace("key = CryptoJS.SHA256(chko);", ""));
+                    }
                 _key = chko;
                 return _key;
             }
