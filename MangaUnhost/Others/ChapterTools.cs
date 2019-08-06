@@ -91,9 +91,9 @@ namespace MangaUnhost.Others {
                 return Default;
         }
 
-        public static void MatchLibraryPath(ref string Dir, string BaseDir, ILanguage CurrentLanguage) {
-            if (Directory.Exists(Path.Combine(BaseDir, CurrentLanguage.Library))) {
-                string[] Dirs = Directory.GetDirectories(Path.Combine(BaseDir, CurrentLanguage.Library), "*", SearchOption.TopDirectoryOnly);
+        public static void MatchLibraryPath(ref string Dir, string BaseDir) {
+            if (Directory.Exists(BaseDir)) {
+                string[] Dirs = Directory.GetDirectories(BaseDir, "*", SearchOption.TopDirectoryOnly);
                 Dirs = (from x in Dirs select Path.GetFileName(x.TrimEnd('/', '\\'))).ToArray();
                 string[] MDirs = (from x in Dirs select MinifyString(x)).ToArray();
 
