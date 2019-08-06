@@ -227,7 +227,7 @@ namespace MangaUnhost {
 
             ChapterTools.MatchLibraryPath(ref Title, CurrentLanguage);
 
-            string TitleDir = Path.Combine(Settings.LibraryPath, Title);
+            string TitleDir = Path.Combine(Settings.LibraryPath, DataTools.GetRawName(Title, FileNameMode: true));
             if (!Directory.Exists(TitleDir))
                 Directory.CreateDirectory(TitleDir);
 
