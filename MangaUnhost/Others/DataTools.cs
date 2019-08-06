@@ -100,7 +100,7 @@ namespace MangaUnhost.Others {
             }
 
             if (FileNameMode)
-                ResultName = ResultName.Replace("...", "…");
+                ResultName = ResultName.Replace("...", "");
 
             return ResultName;
         }
