@@ -25,10 +25,10 @@ namespace MangaUnhost.Others {
                 bool Last = i + 1 >= Pages.Length;
                 string Page = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i])}";
 
-                if (Last) {
+                if (Last && i != 0) {
                     Content += string.Format(Properties.Resources.ComicReaderLastPageBase, null, i);
                 } else {
-                    string NextPage = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i + 1])}";
+                    string NextPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i + 1])}";
                     Content += string.Format(Properties.Resources.ComicReaderPageBase, i == 0 ? Page : null, i, i + 1, NextPage.ToLiteral());
                 }
             }

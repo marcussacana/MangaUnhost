@@ -257,10 +257,9 @@ namespace MangaUnhost {
             if (NName != null)
                 ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, NName, out NextChapterPath, false);
 
-            if (!File.Exists(Path.Combine(TitleDir, "Online.url"))) {
-                string UrlData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
-                File.WriteAllText(Path.Combine(TitleDir, "Online.url"), UrlData);
-            }
+            string UrlData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
+            File.WriteAllText(Path.Combine(TitleDir, "Online.url"), UrlData);
+            
 
             switch (Info.ContentType) {
                 case ContentType.Comic:
