@@ -59,7 +59,7 @@ namespace MangaUnhost.Hosts {
                         Name = Name.Substring("vol. ");
 
                         var Parts = Name.Split(' ');
-                        Name = Parts[0] + "." + Parts[2];
+                        Name = /*Parts[0] + "." +*/ Parts[2];
                     } else if (Name.Contains("ch. "))
                         Name = Name.Substring("ch. ");
 
