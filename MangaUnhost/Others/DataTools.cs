@@ -7,9 +7,9 @@ using System.Net;
 
 namespace MangaUnhost.Others {
 
-    internal static class DataTools {
+    public static class DataTools {
 
-        internal static string GetTextFromSpeech(byte[] WAV) {
+        public static string GetTextFromSpeech(byte[] WAV) {
             HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("https://api.wit.ai/speech");
             Request.Method = "POST";
             Request.Headers[HttpRequestHeader.Authorization] = "Bearer NVYD6ZUJMC26US5XS2ZJJ32EDZZ654TD";
@@ -35,7 +35,7 @@ namespace MangaUnhost.Others {
             return ReadJson(JSON, "_text");
         }
 
-        internal static byte[] Mp3ToWav(byte[] MP3) {
+        public static byte[] Mp3ToWav(byte[] MP3) {
             using (MemoryStream INPUT = new MemoryStream(MP3))
             using (Mp3FileReader mp3 = new Mp3FileReader(INPUT))
             using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3))
@@ -45,7 +45,7 @@ namespace MangaUnhost.Others {
             }
         }
 
-        internal static string ReadJson(string JSON, string Name) {
+        public static string ReadJson(string JSON, string Name) {
             string Finding = string.Format("\"{0}\":", Name);
             int Pos = JSON.IndexOf(Finding) + Finding.Length;
             if (Pos - Finding.Length == -1) {
@@ -105,7 +105,7 @@ namespace MangaUnhost.Others {
             return ResultName;
         }
 
-        static internal Key ReverseMatch<Key, Value>(this Dictionary<Key, Value> Dictionary, Value ValueToSearch) {
+        static public Key ReverseMatch<Key, Value>(this Dictionary<Key, Value> Dictionary, Value ValueToSearch) {
             if (!Dictionary.ContainsValue(ValueToSearch))
                 throw new Exception("Value not Present in the Dictionary");
 
@@ -115,7 +115,7 @@ namespace MangaUnhost.Others {
             return Dictionary.Keys.ElementAt(Index);
         }
 
-        static internal int IndexOfKey<Key, Value>(this Dictionary<Key, Value> Dictionary, Key KeyToSearch) {
+        static public int IndexOfKey<Key, Value>(this Dictionary<Key, Value> Dictionary, Key KeyToSearch) {
             if (!Dictionary.ContainsKey(KeyToSearch))
                 throw new Exception("Value not Present in the Dictionary");
 

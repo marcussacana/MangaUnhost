@@ -42,10 +42,10 @@ namespace MangaUnhost.Browser {
             return url.AbsoluteUri.Split('?').FirstOrDefault() ?? string.Empty;
         }
 
-        internal static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null) =>
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null) =>
             Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Cookies);
 
-        internal static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null) {
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null) {
             if (Encoding == null)
                 Encoding = System.Text.Encoding.UTF8;
 

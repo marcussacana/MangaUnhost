@@ -6,11 +6,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-class FieldParmaters : Attribute {
+public class FieldParmaters : Attribute {
     public string Name;
     public object DefaultValue;
 }
-class AdvancedIni {
+public class AdvancedIni {
     byte[] INI;
 
     public AdvancedIni() {
@@ -274,15 +274,15 @@ internal class Const {
     public const string BOOLEAN = "System.Boolean";
 }
 
-class Ini {
-    internal static string GetConfig(string Key, string Name, string Path, bool Required = true) {
+public class Ini {
+    public static string GetConfig(string Key, string Name, string Path, bool Required = true) {
         if (GetConfigStatus(Key, Name, Path) == ConfigStatus.NoFile)
             return string.Empty;
 
         byte[] CFG = File.ReadAllBytes(Path);
         return GetConfig(Key, Name, CFG, Required);
     }
-    internal static string GetConfig(string Key, string Name, byte[] File, bool Required = true) {
+    public static string GetConfig(string Key, string Name, byte[] File, bool Required = true) {
         VerifyHeader(ref File);
 
         string[] Lines = Encoding.UTF8.GetString(File).Replace("\r\n", "\n").Split('\n');
@@ -305,7 +305,7 @@ class Ini {
         throw new Exception(string.Format("Config Error:\n[{0}]\n{1}=...", Key, Name));
     }
 
-    internal static void VerifyHeader(ref byte[] Content) {
+    public static void VerifyHeader(ref byte[] Content) {
         if (EqualsAt(Content, new byte[] { 0xEF, 0xBB, 0xBF }, 0)) {
             byte[] Tmp = new byte[Content.Length - 3];
             for (uint i = 3; i < Content.LongLength; i++)
@@ -315,7 +315,7 @@ class Ini {
         }
     }
 
-    internal static bool EqualsAt(byte[] Arr, byte[] Arr2, uint At) {
+    public static bool EqualsAt(byte[] Arr, byte[] Arr2, uint At) {
         if (Arr2.LongLength + At >= Arr.LongLength)
             return false;
 
@@ -328,14 +328,14 @@ class Ini {
     }
 
 
-    internal static void SetConfig(string Key, string Name, string Value, string CfgPath) {
+    public static void SetConfig(string Key, string Name, string Value, string CfgPath) {
         if (GetConfigStatus(Key, Name, CfgPath) == ConfigStatus.NoFile) {
             File.WriteAllText(CfgPath, $"[{Key}]\r\n{Name}={Value}", Encoding.UTF8);
         } else {
             File.WriteAllBytes(CfgPath, SetConfig(Key, Name, Value, File.ReadAllBytes(CfgPath)));
         }
     }
-    internal static byte[] SetConfig(string Key, string Name, string Value, byte[] Data) {
+    public static byte[] SetConfig(string Key, string Name, string Value, byte[] Data) {
         VerifyHeader(ref Data);
 
 
@@ -382,16 +382,16 @@ class Ini {
         return Encoding.UTF8.GetBytes(SB.ToString().Trim('\r', '\n'));
     }
 
-    internal enum ConfigStatus {
+    public enum ConfigStatus {
         NoFile, NoKey, NoName, Ok
     }
 
-    internal static ConfigStatus GetConfigStatus(string Key, string Name, string CfgPath) {
+    public static ConfigStatus GetConfigStatus(string Key, string Name, string CfgPath) {
         if (!File.Exists(CfgPath))
             return ConfigStatus.NoFile;
         return GetConfigStatus(Key, Name, File.ReadAllBytes(CfgPath));
     }
-    internal static ConfigStatus GetConfigStatus(string Key, string Name, byte[] Data) {
+    public static ConfigStatus GetConfigStatus(string Key, string Name, byte[] Data) {
         VerifyHeader(ref Data);
 
         string[] Lines = Encoding.UTF8.GetString(Data).Replace("\r\n", "\n").Split('\n');

@@ -21,7 +21,7 @@ namespace MangaUnhost.Others
             return WindMouse(FromX, FromY, TargetX, TargetY, 10.0, 5.0, 10.0 / randomSpeed, 15.0 / randomSpeed, 10.0 * randomSpeed, 10.0 * randomSpeed);
         }
 
-        static List<MimicStep> WindMouse(double xs, double ys, double xe, double ye,
+        public static List<MimicStep> WindMouse(double xs, double ys, double xe, double ye,
             double gravity, double wind, double minWait, double maxWait,
             double maxStep, double targetArea) {
 

@@ -4,16 +4,16 @@ using System.Linq;
 using System.Net;
 
 namespace MangaUnhost.Others {
-    static class ProxyTools {
-        internal static EventHandler OnLoadProxies;
-        internal static EventHandler OnProxiesLoaded;
+    public static class ProxyTools {
+        public static EventHandler OnLoadProxies;
+        public static EventHandler OnProxiesLoaded;
         static List<string> BlackList = new List<string>();
 
         const int PROXIES = 3;//Big values = more slow but more safe, small values = more fast, but less safe
         static string[] ProxyList = new string[PROXIES + 1];
         static int pid = 0;
-        internal static string WorkingProxy = null;
-        internal static string Proxy {
+        public static string WorkingProxy = null;
+        public static string Proxy {
             get {
                 try {
                     if (ProxyList[1] == null || EverytingBlacklisted)
@@ -35,9 +35,9 @@ namespace MangaUnhost.Others {
 
         private static bool EverytingBlacklisted => (from x in ProxyList where !BlackList.Contains(x) && x != null select x).Count() == 0;
 
-        internal static void BlackListProxy(string Proxy) => BlackList.Add(Proxy);
+        public static void BlackListProxy(string Proxy) => BlackList.Add(Proxy);
 
-        internal static void RefreshProxy() {
+        public static void RefreshProxy() {
             OnLoadProxies?.Invoke(null, null);
 
             ProxyList = new string[PROXIES + 1];
@@ -65,7 +65,7 @@ namespace MangaUnhost.Others {
         const string ProxyListAPI = "https://www.proxy-list.download/api/v1/get?type=http";
         const string GimmeProxyAPI = "http://gimmeproxy.com/api/getProxy?get=true&post=true&cookies=true&supportsHttps=true&protocol=http&minSpeed=60";
         const string PubProxyAPI = "http://pubproxy.com/api/proxy?google=true&post=true&limit=10&format=txt&speed=20&type=http";
-        internal static string[] FreeProxy() {
+        public static string[] FreeProxy() {
             string Response = DownloadString(PubProxyAPI);
             if (Response == null) {
                 Response = DownloadString(ProxyListAPI);
@@ -73,7 +73,7 @@ namespace MangaUnhost.Others {
             return Response.Replace("\r\n", "\n").Split('\n');
         }
 
-        internal static string GimmeProxy() {
+        public static string GimmeProxy() {
             string Reply = string.Empty;
             string Proxy = null;
             while (Reply == string.Empty) {
@@ -92,7 +92,7 @@ namespace MangaUnhost.Others {
             return Proxy;
         }
 
-        internal static string DownloadString(string URL) {
+        public static string DownloadString(string URL) {
             try {
                 WebClient Client = new WebClient();
                 if (WorkingProxy != null)
@@ -103,7 +103,7 @@ namespace MangaUnhost.Others {
             }
         }
 
-        internal static bool ValidateProxy(string Proxy) {
+        public static bool ValidateProxy(string Proxy) {
             bool? Result = null;
 
             var Thread = new System.Threading.Thread(() => {

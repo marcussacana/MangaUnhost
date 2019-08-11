@@ -7,7 +7,7 @@ using System.Linq;
 using MangaUnhost.Others;
 
 namespace MangaUnhost {
-    class GuerrillaMail : IDisposable {
+    public class GuerrillaMail : IDisposable {
         /* 
          * GuerrillaMail.cs
          * -------------------------------------------------------------

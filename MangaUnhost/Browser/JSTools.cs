@@ -71,20 +71,20 @@ namespace MangaUnhost.Browser {
             };
         }
 
-        internal static HtmlDocument GetDocument(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetDocument();
-        internal static string GetHTML(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetHTML();
-        internal static bool IsCloudflareTriggered(this ChromiumWebBrowser Browser) => Browser.GetBrowser().IsCloudflareTriggered();
+        public static HtmlDocument GetDocument(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetDocument();
+        public static string GetHTML(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetHTML();
+        public static bool IsCloudflareTriggered(this ChromiumWebBrowser Browser) => Browser.GetBrowser().IsCloudflareTriggered();
 
-        internal static HtmlDocument GetDocument(this IBrowser Browser) {
+        public static HtmlDocument GetDocument(this IBrowser Browser) {
             var Document = new HtmlDocument();
             Document.LoadHtml(Browser.GetHTML());
             return Document;
         }
 
-        internal static string GetHTML(this IBrowser Browser) =>
+        public static string GetHTML(this IBrowser Browser) =>
             AsyncContext.Run(async () => await Browser.MainFrame.GetSourceAsync());
-        internal static bool IsCloudflareTriggered(this IBrowser Browser) => Browser.GetHTML().IsCloudflareTriggered();
-        internal static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("why_captcha_headline");
+        public static bool IsCloudflareTriggered(this IBrowser Browser) => Browser.GetHTML().IsCloudflareTriggered();
+        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("why_captcha_headline");
 
     }
 }
