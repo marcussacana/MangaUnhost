@@ -18,6 +18,7 @@ namespace MangaUnhost {
     public struct CloudflareData {
         public CookieContainer Cookies;
         public string UserAgent;
+        public string HTML;
     }
 
     public struct PluginInfo {

@@ -1,14 +1,17 @@
-﻿using HtmlAgilityPack;
+﻿using CefSharp.OffScreen;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Web;
 
 namespace MangaUnhost.Hosts {
     class Mangakakalot : IHost {
+        string CurrentUrl;
         HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
@@ -26,7 +29,15 @@ namespace MangaUnhost.Hosts {
         public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
             int ID = ChapterLinks.Count;
 
-            foreach (var Node in Document.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a")) {
+            var Nodes = Document.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
+
+            if (Nodes == null || Nodes.Count <= 0) {
+                var BrowserDoc = new HtmlDocument();
+                BrowserDoc.LoadHtml(JSTools.BypassCloudFlare(CurrentUrl).HTML);
+                Nodes = BrowserDoc.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
+            }
+
+            foreach (var Node in Nodes) {
                 string Name = HttpUtility.HtmlDecode(Node.InnerText).ToLower();
                 string Link = Node.GetAttributeValue("href", string.Empty);
 
@@ -53,8 +64,13 @@ namespace MangaUnhost.Hosts {
         private string[] GetChapterPages(int ID) {
             var Page = GetChapterHtml(ID);
             List<string> Pages = new List<string>();
-            
-            foreach (var Node in Page.DocumentNode.SelectNodes("//*[@id=\"vungdoc\"]/img"))
+
+            var Nodes = Page.DocumentNode.SelectNodes("//*[@id=\"vungdoc\"]/img");
+
+            if (Nodes == null || Nodes.Count <= 0)
+                Nodes = Page.DocumentNode.SelectNodes("//*[@id=\"vungdoc\"]/div/img");
+
+            foreach (var Node in Nodes)
                 Pages.Add(Node.GetAttributeValue("src", ""));
             
             return Pages.ToArray();
@@ -76,27 +92,33 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                Version = new Version(1, 2)
             };
         }
 
         public bool IsValidUri(Uri Uri) {
-            return (Uri.Host.ToLower().Contains("mangakakalot") || Uri.Host.ToLower().Contains("manganelo"))
-                && Uri.AbsolutePath.ToLower().Contains("/manga/");
+            string[] AllowedDomains = new string[] { "mangakakalot", "manganelo", "truyenmoi" };
+            return (from x in AllowedDomains where Uri.Host.ToLower().Contains(x) select x).Count() > 0
+                && (Uri.AbsolutePath.ToLower().Contains("/manga/") || Uri.AbsolutePath.ToLower().Contains("/doc"));
         }
 
         public ComicInfo LoadUri(Uri Uri) {
+            CurrentUrl = Uri.AbsoluteUri;
             Document = new HtmlDocument();
             Document.LoadUrl(Uri);
 
             ComicInfo Info = new ComicInfo();
 
-            Info.Title = Document.SelectSingleNode("//h1").InnerText;
+            Info.Title = (Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h1") ??
+                Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h2")).InnerText;
+
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            Info.Cover = new Uri(Document
+            string CoverUrl = Document
                 .SelectSingleNode("//div[@class=\"manga-info-pic\"]/img")
-                .GetAttributeValue("src", string.Empty)).TryDownload();
+                .GetAttributeValue("src", string.Empty);
+
+            Info.Cover = (CoverUrl.StartsWith("/") ? new Uri(new Uri("http://" + Uri.Host), CoverUrl) : new Uri(CoverUrl)).TryDownload();
 
             Info.ContentType = ContentType.Comic;
 

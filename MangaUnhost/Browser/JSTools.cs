@@ -59,6 +59,8 @@ namespace MangaUnhost.Browser {
                 }
             }
 
+            Browser.WaitForLoad();
+            var HTML = Browser.GetHTML();
             var Cookies = Browser.GetCookies().ToContainer();
 
             DefaultBrowser.Load("about:blank");
@@ -67,7 +69,8 @@ namespace MangaUnhost.Browser {
 
             return new CloudflareData() {
                 Cookies = Cookies,
-                UserAgent = Browser.GetUserAgent()
+                UserAgent = Browser.GetUserAgent(),
+                HTML = HTML
             };
         }
 

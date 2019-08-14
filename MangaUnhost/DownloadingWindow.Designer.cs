@@ -80,7 +80,7 @@
             this.ProgressBar.Location = new System.Drawing.Point(89, 62);
             this.ProgressBar.Maximum = 100;
             this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.ProgressColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(66)))));
+            this.ProgressBar.ProgressColour = System.Drawing.Color.White;
             this.ProgressBar.RotationAngle = 255;
             this.ProgressBar.ShowText = true;
             this.ProgressBar.Size = new System.Drawing.Size(78, 78);
