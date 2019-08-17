@@ -20,7 +20,7 @@ namespace MangaUnhost.Hosts {
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
         Dictionary<int, string> ChapterPages = new Dictionary<int, string>();
 
-        static CloudflareData? Cloudflare;
+        CloudflareData? Cloudflare;
 
         public string DownloadChapter(int ID) {
             throw new NotImplementedException();
@@ -184,13 +184,13 @@ namespace MangaUnhost.Hosts {
             return Info;
         }
 
-        public static byte[] TryDownload(Uri URL) {
+        public byte[] TryDownload(Uri URL) {
             if (Cloudflare == null)
                 return URL.TryDownload(AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError });
             else
                 return URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies);
         }
-        public static byte[] Download(Uri URL) {
+        public byte[] Download(Uri URL) {
             if (Cloudflare == null)
                 return URL.TryDownload(AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError }) ?? throw new Exception("Failed to Download");
             else

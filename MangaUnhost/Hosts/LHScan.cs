@@ -72,7 +72,8 @@ namespace MangaUnhost.Hosts {
 
         public bool IsValidUri(Uri Uri) {
             string URL = Uri.AbsoluteUri.ToLower();
-            return (URL.Contains("rawlh.com") || URL.Contains("lhscan.net")) && URL.EndsWith(".html") && !URL.Contains("-chapter-");
+            return (URL.Contains("rawlh.com") || URL.Contains("lhscan.net") || URL.Contains("18lhplus.com"))
+                && URL.EndsWith(".html") && !URL.Contains("-chapter-");
         }
 
         public ComicInfo LoadUri(Uri Uri) {
