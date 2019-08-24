@@ -45,7 +45,7 @@ namespace MangaUnhost.Hosts {
                     Name = Name.Substring(0, Name.LastIndexOf('-')).Substring("#").Trim();
                     ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty);
                 }
-                ChapterNames[ID] = DataTools.GetRawName(Name);
+                ChapterNames[ID] = DataTools.GetRawName(Name.Split('-').First());
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
             }
         }

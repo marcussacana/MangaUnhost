@@ -8,11 +8,12 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>MangaUnhost</RootNamespace>
     <AssemblyName>MangaUnhost</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -67,7 +68,7 @@
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\StatusTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
-    <Compile Include="Hosts\*.cs"/>
+    <Compile Include="Hosts\*.cs" />
     <Compile Include="Decoders\CommonImage.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Interfaces.cs" />
