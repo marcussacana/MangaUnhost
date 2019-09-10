@@ -76,7 +76,7 @@ namespace MangaUnhost.Hosts {
         }
 
         public bool IsValidUri(Uri Uri) {
-            return Uri.Host.ToLower().Contains("unionmangas") && Uri.AbsolutePath.Contains("/manga/");
+            return Uri.Host.ToLower().Contains("union") && Uri.Host.ToLower().Contains(".top") && Uri.AbsolutePath.Contains("/manga/");
         }
 
         public ComicInfo LoadUri(Uri Uri) {
