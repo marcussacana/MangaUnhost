@@ -194,7 +194,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd "$(TargetDir)"
-REM rmdir /s /q "x64"
-REM rmdir /s /q "x86"</PostBuildEvent>
+rmdir /s /q "x64"
+rmdir /s /q "x86"</PostBuildEvent>
   </PropertyGroup>
 </Project>
