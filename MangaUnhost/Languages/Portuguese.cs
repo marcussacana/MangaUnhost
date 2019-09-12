@@ -83,6 +83,13 @@
 
         public string VersionLbl => "Versão:";
 
+
+        public string NewChapters => "{0} Novos Capítulos";
+
+        public string OpenSite => "Abrir Site";
+
+        public string Download => "Baixar";
+
         public string Yes => "Sim";
         public string No => "Não";
 

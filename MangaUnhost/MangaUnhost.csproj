@@ -68,6 +68,12 @@
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\StatusTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
+    <Compile Include="ComicPreview.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ComicPreview.Designer.cs">
+      <DependentUpon>ComicPreview.cs</DependentUpon>
+    </Compile>
     <Compile Include="Hosts\*.cs" />
     <Compile Include="Decoders\CommonImage.cs" />
     <Compile Include="Enums.cs" />
@@ -117,6 +123,9 @@
     </Compile>
     <Compile Include="Structs.cs" />
     <Compile Include="Styles.cs" />
+    <EmbeddedResource Include="ComicPreview.resx">
+      <DependentUpon>ComicPreview.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="DownloadingWindow.resx">
       <DependentUpon>DownloadingWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -185,7 +194,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd "$(TargetDir)"
-rmdir /s /q "x64"
-rmdir /s /q "x86"</PostBuildEvent>
+REM rmdir /s /q "x64"
+REM rmdir /s /q "x86"</PostBuildEvent>
   </PropertyGroup>
 </Project>

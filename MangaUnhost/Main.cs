@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Drawing.Imaging;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MangaUnhost {
     public partial class Main : Form {
@@ -19,15 +20,9 @@ namespace MangaUnhost {
 
         Settings Settings = new Settings();
 
-        IHost[] Hosts = (from Asm in AppDomain.CurrentDomain.GetAssemblies()
-                         from Typ in Asm.GetTypes()
-                         where typeof(IHost).IsAssignableFrom(Typ) && !Typ.IsInterface
-                         select (IHost)Activator.CreateInstance(Typ)).OrderBy(x => x.GetPluginInfo().Name).ToArray();
+        IHost[] Hosts = GetHostsInstances();
 
-        ILanguage[] Languages = (from Asm in AppDomain.CurrentDomain.GetAssemblies()
-                                 from Typ in Asm.GetTypes()
-                                 where typeof(ILanguage).IsAssignableFrom(Typ) && !Typ.IsInterface
-                                 select (ILanguage)Activator.CreateInstance(Typ)).OrderBy(x => x.LanguageName).ToArray();
+        ILanguage[] Languages = GetLanguagesInstance();
 
         Queue<string> ClipQueue = new Queue<string>();
 
@@ -443,6 +438,7 @@ namespace MangaUnhost {
             DownloaderTab.Text = CurrentLanguage.DownloaderTab;
             SettingsTab.Text = CurrentLanguage.SettingsTab;
             AboutTab.Text = CurrentLanguage.AboutTab;
+            LibraryTab.Text = CurrentLanguage.Library;
 
             EnvironmentGroupBox.Text = CurrentLanguage.EnvironmentBox;
             FeaturesGroupBox.Text = CurrentLanguage.FeaturesBox;
@@ -520,6 +516,35 @@ namespace MangaUnhost {
                 if (Status == CurrentLanguage.ClippingImages)
                     Status = CurrentLanguage.IDLE;
             }
+        }
+
+
+        public void FocusDownloader() => MainTabMenu.SelectTab(DownloaderTab);
+        
+        public static IHost[] GetHostsInstances() =>
+            (from Asm in AppDomain.CurrentDomain.GetAssemblies()
+             from Typ in Asm.GetTypes()
+             where typeof(IHost).IsAssignableFrom(Typ) && !Typ.IsInterface
+             select (IHost)Activator.CreateInstance(Typ)).OrderBy(x => x.GetPluginInfo().Name).ToArray();
+
+
+        public static ILanguage[] GetLanguagesInstance() =>
+            (from Asm in AppDomain.CurrentDomain.GetAssemblies()
+             from Typ in Asm.GetTypes()
+             where typeof(ILanguage).IsAssignableFrom(Typ) && !Typ.IsInterface
+             select (ILanguage)Activator.CreateInstance(Typ)).OrderBy(x => x.LanguageName).ToArray();
+
+        private void OnTabChanged(object sender, EventArgs e)
+        {
+            if (MainTabMenu.SelectedTab != LibraryTab)
+                return;
+
+            LibraryContainer.Controls.Clear();
+            foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
+                LibraryContainer.Controls.Add(new ComicPreview(Comic));
+
+            foreach (var Control in LibraryContainer.Controls)
+                ((ComicPreview)Control).GetComicInfo();
         }
     }
 }

@@ -86,8 +86,11 @@ namespace MangaUnhost.Hosts {
                     select new KeyValuePair<int, string>(x, ChapterNames[x]));
         }
 
+        private static string LastLang = null;
         private string SelectLanguage(string[] Avaliable) {
-            return DataTools.PromptOption("Select a Language", Avaliable);
+            if (Avaliable.Contains(LastLang))
+                return LastLang;
+            return LastLang = DataTools.PromptOption("Select a Language", Avaliable);
         }
 
         private string GetNextPage(string Page) {

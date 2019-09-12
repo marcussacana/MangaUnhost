@@ -34,6 +34,8 @@
             this.TitleLabel = new System.Windows.Forms.Label();
             this.ButtonsContainer = new System.Windows.Forms.FlowLayoutPanel();
             this.CoverBox = new System.Windows.Forms.PictureBox();
+            this.LibraryTab = new System.Windows.Forms.TabPage();
+            this.LibraryContainer = new System.Windows.Forms.FlowLayoutPanel();
             this.SettingsTab = new System.Windows.Forms.TabPage();
             this.FeaturesGroupBox = new VSGroupBox();
             this.panel6 = new System.Windows.Forms.Panel();
@@ -80,6 +82,7 @@
             this.MainTabMenu.SuspendLayout();
             this.DownloaderTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
+            this.LibraryTab.SuspendLayout();
             this.SettingsTab.SuspendLayout();
             this.FeaturesGroupBox.SuspendLayout();
             this.panel6.SuspendLayout();
@@ -121,7 +124,7 @@
             this.ThemeContainer.Location = new System.Drawing.Point(0, 0);
             this.ThemeContainer.Name = "ThemeContainer";
             this.ThemeContainer.ShowIcon = true;
-            this.ThemeContainer.Size = new System.Drawing.Size(920, 530);
+            this.ThemeContainer.Size = new System.Drawing.Size(838, 530);
             this.ThemeContainer.TabIndex = 0;
             this.ThemeContainer.Text = "MangaUnhost";
             // 
@@ -146,7 +149,7 @@
             this.StatusBar.ShowBorder = true;
             this.StatusBar.showImage = true;
             this.StatusBar.ShowLine = true;
-            this.StatusBar.Size = new System.Drawing.Size(920, 23);
+            this.StatusBar.Size = new System.Drawing.Size(838, 23);
             this.StatusBar.TabIndex = 1;
             this.StatusBar.Text = "Status Bar";
             this.StatusBar.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
@@ -165,6 +168,7 @@
             this.MainTabMenu.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.MainTabMenu.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.MainTabMenu.Controls.Add(this.DownloaderTab);
+            this.MainTabMenu.Controls.Add(this.LibraryTab);
             this.MainTabMenu.Controls.Add(this.SettingsTab);
             this.MainTabMenu.Controls.Add(this.AboutTab);
             this.MainTabMenu.Controls.Add(this.DebugTab);
@@ -173,9 +177,10 @@
             this.MainTabMenu.Location = new System.Drawing.Point(1, 39);
             this.MainTabMenu.Name = "MainTabMenu";
             this.MainTabMenu.SelectedIndex = 0;
-            this.MainTabMenu.Size = new System.Drawing.Size(920, 467);
+            this.MainTabMenu.Size = new System.Drawing.Size(838, 467);
             this.MainTabMenu.TabIndex = 0;
             this.MainTabMenu.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.MainTabMenu.SelectedIndexChanged += new System.EventHandler(this.OnTabChanged);
             // 
             // DownloaderTab
             // 
@@ -187,7 +192,7 @@
             this.DownloaderTab.Location = new System.Drawing.Point(4, 20);
             this.DownloaderTab.Name = "DownloaderTab";
             this.DownloaderTab.Padding = new System.Windows.Forms.Padding(3);
-            this.DownloaderTab.Size = new System.Drawing.Size(912, 443);
+            this.DownloaderTab.Size = new System.Drawing.Size(830, 443);
             this.DownloaderTab.TabIndex = 0;
             this.DownloaderTab.Text = "Downloader";
             // 
@@ -202,7 +207,7 @@
             this.ContainerScrollBar.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(66)))));
             this.ContainerScrollBar.ButtonSize = 16;
             this.ContainerScrollBar.LargeChange = 10;
-            this.ContainerScrollBar.Location = new System.Drawing.Point(887, 60);
+            this.ContainerScrollBar.Location = new System.Drawing.Point(805, 60);
             this.ContainerScrollBar.Maximum = 100;
             this.ContainerScrollBar.Minimum = 0;
             this.ContainerScrollBar.Name = "ContainerScrollBar";
@@ -228,7 +233,7 @@
             this.TitleLabel.ForeColor = System.Drawing.Color.White;
             this.TitleLabel.Location = new System.Drawing.Point(272, 1);
             this.TitleLabel.Name = "TitleLabel";
-            this.TitleLabel.Size = new System.Drawing.Size(635, 55);
+            this.TitleLabel.Size = new System.Drawing.Size(553, 55);
             this.TitleLabel.TabIndex = 2;
             this.TitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -240,7 +245,7 @@
             this.ButtonsContainer.AutoScroll = true;
             this.ButtonsContainer.Location = new System.Drawing.Point(272, 60);
             this.ButtonsContainer.Name = "ButtonsContainer";
-            this.ButtonsContainer.Size = new System.Drawing.Size(634, 383);
+            this.ButtonsContainer.Size = new System.Drawing.Size(552, 383);
             this.ButtonsContainer.TabIndex = 1;
             // 
             // CoverBox
@@ -253,6 +258,26 @@
             this.CoverBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.CoverBox.TabIndex = 0;
             this.CoverBox.TabStop = false;
+            // 
+            // LibraryTab
+            // 
+            this.LibraryTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.LibraryTab.Controls.Add(this.LibraryContainer);
+            this.LibraryTab.Location = new System.Drawing.Point(4, 20);
+            this.LibraryTab.Name = "LibraryTab";
+            this.LibraryTab.Padding = new System.Windows.Forms.Padding(3);
+            this.LibraryTab.Size = new System.Drawing.Size(912, 443);
+            this.LibraryTab.TabIndex = 4;
+            this.LibraryTab.Text = "Library";
+            // 
+            // LibraryContainer
+            // 
+            this.LibraryContainer.AutoScroll = true;
+            this.LibraryContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LibraryContainer.Location = new System.Drawing.Point(3, 3);
+            this.LibraryContainer.Name = "LibraryContainer";
+            this.LibraryContainer.Size = new System.Drawing.Size(906, 437);
+            this.LibraryContainer.TabIndex = 0;
             // 
             // SettingsTab
             // 
@@ -840,7 +865,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(920, 530);
+            this.ClientSize = new System.Drawing.Size(838, 530);
             this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -855,6 +880,7 @@
             this.MainTabMenu.ResumeLayout(false);
             this.DownloaderTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).EndInit();
+            this.LibraryTab.ResumeLayout(false);
             this.SettingsTab.ResumeLayout(false);
             this.FeaturesGroupBox.ResumeLayout(false);
             this.panel6.ResumeLayout(false);
@@ -932,6 +958,8 @@
         private System.Windows.Forms.Label lblCredits;
         private System.Windows.Forms.Label lblTitle;
         private VSVerticalScrollBar ContainerScrollBar;
+        private System.Windows.Forms.TabPage LibraryTab;
+        private System.Windows.Forms.FlowLayoutPanel LibraryContainer;
     }
 }
 

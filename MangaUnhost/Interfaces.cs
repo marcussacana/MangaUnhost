@@ -120,9 +120,15 @@ namespace MangaUnhost {
         string SupportNovelLbl { get; }
         string VersionLbl { get; }
 
+        //Comic Preview
+        string NewChapters { get; }
+        string OpenSite { get; }
+        string Download { get; }
+
         string Yes { get; }
         string No { get; }
 
         string UpdateFound { get; }
+
     }
 }

@@ -121,7 +121,7 @@ namespace MangaUnhost.Hosts {
 
         public static byte[] TryDownload(Uri URL) {
             while (UserAgent == null)
-                UserAgent = JSTools.DefaultBrowser.GetBrowser().GetUserAgent();
+                UserAgent = JSTools.DefaultBrowser.GetUserAgent();
 
             return URL.TryDownload(UserAgent: UserAgent);
         }

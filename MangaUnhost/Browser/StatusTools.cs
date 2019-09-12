@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 
 namespace MangaUnhost.Browser {
     public static class InfoTools {
-        public static bool IsLoading(this IBrowser Browser) {
+        public static bool IsLoading(this IBrowser Browser)
+        {
             if (Browser.IsLoading)
                 return true;
             var Status = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.GetDocumentStatus).GetAwaiter().GetResult().Result;
@@ -27,8 +28,11 @@ namespace MangaUnhost.Browser {
 
         public static string GetUserAgent(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetUserAgent();
 
-        public static string GetUserAgent(this IBrowser Browser) {
+        public static string GetUserAgent(this IBrowser Browser)
+        {
             return (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.GetUserAgent).GetAwaiter().GetResult().Result;
         }
+
+        delegate object Invoker();
     }
 }
