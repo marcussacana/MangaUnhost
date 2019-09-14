@@ -27,6 +27,11 @@ namespace MangaUnhost
         ComicInfo ComicInfo;
         IHost ComicHost = null;
         Uri ComicUrl = null;
+
+
+        static Dictionary<string, ComicInfo> InfoCache = new Dictionary<string, ComicInfo>();
+        static Dictionary<string, int> CountCache = new Dictionary<string, int>();
+
         public ComicPreview(string ComicDir)
         {
             InitializeComponent();
@@ -92,17 +97,25 @@ namespace MangaUnhost
         {
             try
             {
-                if (ComicHost == null)
+                if (ComicHost == null && !InfoCache.ContainsKey(ComicPath))
                     throw new NullReferenceException();
 
-                Nito.AsyncEx.AsyncContext.Run(() => {
-                    try
+                if (InfoCache.ContainsKey(ComicPath))
+                    ComicInfo = InfoCache[ComicPath];
+                else
+                {
+                    Nito.AsyncEx.AsyncContext.Run(() =>
                     {
-                        ComicInfo = ComicHost.LoadUri(ComicUrl);
-                    } catch {
-                        Invoke(new MethodInvoker(() => Visible = false));
-                    }
-                });
+                        try
+                        {
+                            InfoCache[ComicPath] = ComicInfo = ComicHost.LoadUri(ComicUrl);
+                        }
+                        catch
+                        {
+                            Invoke(new MethodInvoker(() => Visible = false));
+                        }
+                    });
+                }
 
                 if (!CoverFound)
                 {
@@ -143,7 +156,13 @@ namespace MangaUnhost
                     if (ChapsFound)
                         DownloadedChapters = Directory.GetDirectories(ChapPath).Length;
 
-                    int NewChapters = ComicHost.EnumChapters().Count() - DownloadedChapters;
+                    int ChapCount = 0;
+                    if (CountCache.ContainsKey(ComicPath))
+                        ChapCount = CountCache[ComicPath];
+                    else
+                        CountCache[ComicPath] = ChapCount = ComicHost.EnumChapters().Count();
+
+                    int NewChapters =  ChapCount - DownloadedChapters;
 
                     Invoke(new MethodInvoker(() =>
                     {

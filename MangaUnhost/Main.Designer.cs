@@ -258,6 +258,7 @@
             this.CoverBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.CoverBox.TabIndex = 0;
             this.CoverBox.TabStop = false;
+            this.CoverBox.Click += new System.EventHandler(this.MainCoverClicked);
             // 
             // LibraryTab
             // 
@@ -266,7 +267,7 @@
             this.LibraryTab.Location = new System.Drawing.Point(4, 20);
             this.LibraryTab.Name = "LibraryTab";
             this.LibraryTab.Padding = new System.Windows.Forms.Padding(3);
-            this.LibraryTab.Size = new System.Drawing.Size(912, 443);
+            this.LibraryTab.Size = new System.Drawing.Size(830, 443);
             this.LibraryTab.TabIndex = 4;
             this.LibraryTab.Text = "Library";
             // 
@@ -276,7 +277,7 @@
             this.LibraryContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.LibraryContainer.Location = new System.Drawing.Point(3, 3);
             this.LibraryContainer.Name = "LibraryContainer";
-            this.LibraryContainer.Size = new System.Drawing.Size(906, 437);
+            this.LibraryContainer.Size = new System.Drawing.Size(824, 437);
             this.LibraryContainer.TabIndex = 0;
             // 
             // SettingsTab
@@ -287,7 +288,7 @@
             this.SettingsTab.Location = new System.Drawing.Point(4, 20);
             this.SettingsTab.Name = "SettingsTab";
             this.SettingsTab.Padding = new System.Windows.Forms.Padding(3);
-            this.SettingsTab.Size = new System.Drawing.Size(912, 443);
+            this.SettingsTab.Size = new System.Drawing.Size(830, 443);
             this.SettingsTab.TabIndex = 1;
             this.SettingsTab.Text = "Settings";
             // 
@@ -750,7 +751,7 @@
             this.AboutTab.Location = new System.Drawing.Point(4, 20);
             this.AboutTab.Name = "AboutTab";
             this.AboutTab.Padding = new System.Windows.Forms.Padding(3);
-            this.AboutTab.Size = new System.Drawing.Size(912, 443);
+            this.AboutTab.Size = new System.Drawing.Size(830, 443);
             this.AboutTab.TabIndex = 2;
             this.AboutTab.Text = "About";
             // 
@@ -824,7 +825,7 @@
             this.DebugTab.Location = new System.Drawing.Point(4, 20);
             this.DebugTab.Name = "DebugTab";
             this.DebugTab.Padding = new System.Windows.Forms.Padding(3);
-            this.DebugTab.Size = new System.Drawing.Size(912, 443);
+            this.DebugTab.Size = new System.Drawing.Size(830, 443);
             this.DebugTab.TabIndex = 3;
             this.DebugTab.Text = "Debug";
             // 

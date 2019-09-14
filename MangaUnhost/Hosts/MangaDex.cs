@@ -88,7 +88,7 @@ namespace MangaUnhost.Hosts {
 
         private static string LastLang = null;
         private string SelectLanguage(string[] Avaliable) {
-            if (Avaliable.Contains(LastLang))
+            if (LastLang != null && Avaliable.Contains(LastLang))
                 return LastLang;
             return LastLang = DataTools.PromptOption("Select a Language", Avaliable);
         }

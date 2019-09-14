@@ -56,6 +56,7 @@ namespace MangaUnhost {
 
         public static Main Instance = null;
         private string LastClipboard = null;
+        private string LastIndex = null;
 
         public Main() {
             InitializeComponent();
@@ -159,6 +160,12 @@ namespace MangaUnhost {
 
             CurrentInfo.Url = Uri;
 
+            CoverBox.Cursor = Cursors.Default;
+
+            string Path = DataTools.GetRawName(CurrentInfo.Title.Trim(), FileNameMode: true);
+            ChapterTools.MatchLibraryPath(ref Path, Settings.LibraryPath);
+            RefreshCoverLink(Path);
+
             ButtonsContainer.Controls.Clear();
 
             var Chapters = new Dictionary<int, string>();
@@ -221,6 +228,7 @@ namespace MangaUnhost {
             string Title = DataTools.GetRawName(Info.Title.Trim(), FileNameMode: true);
 
             ChapterTools.MatchLibraryPath(ref Title, Settings.LibraryPath);
+            RefreshCoverLink(Title);
 
             string TitleDir = Path.Combine(Settings.LibraryPath, Title);
             if (!Directory.Exists(TitleDir))
@@ -518,6 +526,33 @@ namespace MangaUnhost {
             }
         }
 
+        private void RefreshCoverLink(string ComicDir)
+        {
+            try
+            {
+                string Path = null;
+                foreach (var Language in Languages)
+                {
+                    string PossiblePath = System.IO.Path.Combine(Settings.LibraryPath, ComicDir, Language.Index + ".html");
+                    if (File.Exists(PossiblePath))
+                    {
+                        Path = PossiblePath;
+                    }
+                }
+
+                if (Path != null)
+                    CoverBox.Cursor = Cursors.Hand;
+
+                LastIndex = Path;
+            }
+            catch { }
+        }
+
+        private void MainCoverClicked(object sender, EventArgs e)
+        {
+            if (LastIndex != null)
+                System.Diagnostics.Process.Start(LastIndex);
+        }
 
         public void FocusDownloader() => MainTabMenu.SelectTab(DownloaderTab);
         
