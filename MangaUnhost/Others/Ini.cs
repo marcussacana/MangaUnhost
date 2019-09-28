@@ -17,6 +17,11 @@ public class AdvancedIni {
         INI = new byte[0];
     }
     public AdvancedIni(string[] Ini) {
+        if (Ini == null || Ini.Length == 0) {
+            INI = new byte[0];
+            return;
+        }
+
         StringBuilder SB = new StringBuilder();
         foreach (string Line in Ini)
             SB.AppendLine(Line);
@@ -25,7 +30,10 @@ public class AdvancedIni {
     }
 
     public AdvancedIni(string IniFile) {
-        INI = File.ReadAllBytes(IniFile);
+        if (File.Exists(IniFile))
+            INI = File.ReadAllBytes(IniFile);
+        else
+            INI = new byte[0];
     }
 
     public AdvancedIni(byte[] Data) {
@@ -44,16 +52,16 @@ public class AdvancedIni {
         AdvancedIni Instance = new AdvancedIni(File);
         Instance.Open(out Struct);
     }
-    public static void FastSave<T>(T Struct, out byte[] Data) {
-        AdvancedIni Instance = new AdvancedIni();
+    public static void FastSave<T>(T Struct, ref byte[] Data) {
+        AdvancedIni Instance = new AdvancedIni(Data);
         Instance.Save(Struct, out Data);
     }
-    public static void FastSave<T>(T Struct, out string[] Lines) {
-        AdvancedIni Instance = new AdvancedIni();
+    public static void FastSave<T>(T Struct, ref string[] Lines) {
+        AdvancedIni Instance = new AdvancedIni(Lines);
         Instance.Save(Struct, out Lines);
     }
     public static void FastSave<T>(T Struct, string File) {
-        AdvancedIni Instance = new AdvancedIni();
+        AdvancedIni Instance = new AdvancedIni(File);
         Instance.Save(Struct, File);
     }
     public void Open<T>(out T Struct) {

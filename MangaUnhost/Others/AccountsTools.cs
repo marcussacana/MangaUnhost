@@ -51,13 +51,15 @@ namespace MangaUnhost.Others
                 Ini.SetConfig(Type, "Entries", (ID + 1).ToString(), Main.SettingsPath);
             }
 
-            Ini.SetConfig($"{Type} Account.{ID}", "Login", Login, Main.SettingsPath);
             Ini.SetConfig($"{Type} Account.{ID}", "Password", Password, Main.SettingsPath);
 
             if (!string.IsNullOrWhiteSpace(Email))
                 Ini.SetConfig($"{Type} Account.{ID}", "Email", Email, Main.SettingsPath);
+
+            Ini.SetConfig($"{Type} Account.{ID}", "Login", Login, Main.SettingsPath);
         }
 
+        private static Random Random = new Random();
         public static string GeneratePassword(int Length = 10, bool Special = false)
         {
             string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -66,10 +68,9 @@ namespace MangaUnhost.Others
 
             StringBuilder res = new StringBuilder();
 
-            Random rnd = new Random();
             while (0 < Length--)
             {
-                res.Append(valid[rnd.Next(valid.Length)]);
+                res.Append(valid[Random.Next(valid.Length)]);
             }
             return res.ToString();
         }
@@ -89,7 +90,7 @@ namespace MangaUnhost.Others
                 "The Author started on the right foot."
              };
 
-            return GenericComments[new Random().Next(0, GenericComments.Length)];
+            return GenericComments[Random.Next(0, GenericComments.Length)];
         }
 
         public static string GetRandomReply()
@@ -106,7 +107,7 @@ namespace MangaUnhost.Others
                 "Who knows."
             };
 
-            return GenericReplys[new Random().Next(0, GenericReplys.Length)];
+            return GenericReplys[Random.Next(0, GenericReplys.Length)];
         }
 
         public static string PromptOption(string Question, string[] Options)
