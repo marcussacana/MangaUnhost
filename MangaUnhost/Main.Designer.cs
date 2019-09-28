@@ -767,7 +767,7 @@
             this.SupportedHostsBox.Location = new System.Drawing.Point(9, 60);
             this.SupportedHostsBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.SupportedHostsBox.Name = "SupportedHostsBox";
-            this.SupportedHostsBox.Size = new System.Drawing.Size(897, 364);
+            this.SupportedHostsBox.Size = new System.Drawing.Size(812, 364);
             this.SupportedHostsBox.TabIndex = 2;
             this.SupportedHostsBox.Text = "Supported Hosts";
             this.SupportedHostsBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
@@ -788,7 +788,7 @@
             this.SupportedHostListBox.NonSelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
             this.SupportedHostListBox.SelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
             this.SupportedHostListBox.ShowWholeInnerBorder = true;
-            this.SupportedHostListBox.Size = new System.Drawing.Size(891, 319);
+            this.SupportedHostListBox.Size = new System.Drawing.Size(806, 319);
             this.SupportedHostListBox.TabIndex = 0;
             this.SupportedHostListBox.DoubleClick += new System.EventHandler(this.SupportedHostClicked);
             // 
@@ -797,7 +797,7 @@
             this.lblCredits.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblCredits.AutoSize = true;
             this.lblCredits.ForeColor = System.Drawing.Color.White;
-            this.lblCredits.Location = new System.Drawing.Point(776, 427);
+            this.lblCredits.Location = new System.Drawing.Point(686, 427);
             this.lblCredits.Name = "lblCredits";
             this.lblCredits.Size = new System.Drawing.Size(132, 13);
             this.lblCredits.TabIndex = 1;
@@ -812,7 +812,7 @@
             this.lblTitle.ForeColor = System.Drawing.Color.White;
             this.lblTitle.Location = new System.Drawing.Point(3, 3);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(905, 72);
+            this.lblTitle.Size = new System.Drawing.Size(821, 72);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "MangaUnhost";
             this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;

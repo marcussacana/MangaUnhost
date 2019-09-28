@@ -550,6 +550,8 @@ namespace MangaUnhost {
                 return;
             }
 
+            SupportedHostListBox.ContextMenuStrip.PerformLayout();
+
 
             SupportedHostListBox.ContextMenuStrip.Show(SupportedHostListBox, Click);
         }
