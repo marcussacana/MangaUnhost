@@ -108,8 +108,16 @@ namespace MangaUnhost {
         }
 
         private void StatusCheckTick(object sender, EventArgs e) {
-            if (Browser.IsCaptchaSolved(v3) || Browser.IsReCaptchaFailed())
+            if (Browser.IsCaptchaSolved(v3))   
                 Close();
+
+            if (Browser.IsReCaptchaFailed())
+            {
+                Browser.ResetRecaptcha();
+                ThreadTools.Wait(500);
+                Close();
+            }
+            
 
             if (Clicks > 0) {
                 Clicks--;

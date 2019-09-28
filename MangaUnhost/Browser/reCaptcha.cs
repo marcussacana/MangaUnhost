@@ -285,9 +285,15 @@ namespace MangaUnhost.Browser {
                 return null;
             return Result;
         }
- 
-        public static bool IsReCaptchaFailed(this IBrowser Browser) {
+
+        public static bool IsReCaptchaFailed(this IBrowser Browser)
+        {
             return (bool)Browser.GetReCaptchaBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaIsFailed).GetAwaiter().GetResult().Result;
+        }
+
+        public static bool ResetRecaptcha(this IBrowser Browser)
+        {
+            return (bool)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaReset).GetAwaiter().GetResult().Result;
         }
 
         public static void HookReCaptcha(this ChromiumWebBrowser Browser) {
