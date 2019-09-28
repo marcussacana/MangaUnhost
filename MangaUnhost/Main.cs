@@ -630,9 +630,15 @@ namespace MangaUnhost {
             if (MainTabMenu.SelectedTab != LibraryTab)
                 return;
 
+            if (!Directory.Exists(Settings.LibraryPath))
+                return;
+
             LibraryContainer.Controls.Clear();
             foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
+            {
                 LibraryContainer.Controls.Add(new ComicPreview(Comic));
+                ThreadTools.Wait(100, true);
+            }
 
             foreach (var Control in LibraryContainer.Controls)
                 ((ComicPreview)Control).GetComicInfo();
