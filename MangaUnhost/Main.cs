@@ -71,6 +71,12 @@ namespace MangaUnhost {
             foreach (var Host in Hosts)
                 SupportedHostListBox.AddItem(Host.GetPluginInfo().Name);
 
+            SupportedHostListBox.ContextMenuStrip = new ContextMenuStrip();
+            SupportedHostListBox.ContextMenuStrip.AutoSize = true;
+            SupportedHostListBox.ContextMenuStrip.Opening += SupportedHostContextOpen;
+            SupportedHostListBox.ContextMenuStrip.ShowCheckMargin = false;
+            SupportedHostListBox.ContextMenuStrip.ShowImageMargin = false;
+
             if (File.Exists(SettingsPath)) {
                 AdvancedIni.FastOpen(out Settings, SettingsPath);
             } else {
@@ -327,6 +333,7 @@ namespace MangaUnhost {
             });
 
             OBrowser.Size = new Size(1280, 720);
+            OBrowser.InstallAdBlock();
             OBrowser.HookReCaptcha();
 
             while (!OBrowser.IsBrowserInitialized) {
@@ -498,6 +505,53 @@ namespace MangaUnhost {
 
             var Form = new PluginInfoPreview(Host, CurrentLanguage);
             Form.ShowDialog();
+        }
+
+        private void SupportedHostContextOpen(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Point Click = SupportedHostListBox.PointToClient(Cursor.Position);
+            int Index = SupportedHostListBox.GetElementIndex(Click);
+
+            if (Index < 0)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            var PluginName = SupportedHostListBox.Items[Index].Text;
+            var Host = (from x in Hosts where x.GetPluginInfo().Name == PluginName select x).Single();
+
+            if (SupportedHostListBox.ContextMenuStrip == null) {
+            }
+
+            var Actions = Host.GetPluginInfo().Actions;
+
+            if (Actions == null)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            SupportedHostListBox.ContextMenuStrip.Items.Clear();
+
+            foreach (var Action in Actions)
+            {
+                if (Action.Debug && !Program.Debug)
+                    continue;
+                var Item = new ToolStripButton(Action.Debug ? $"[DEBUG] {Action.Name}" : Action.Name);
+                Item.AutoSize = true;
+                Item.Click += (a, b) => Action.Action();
+                SupportedHostListBox.ContextMenuStrip.Items.Add(Item);
+            }
+
+            if (SupportedHostListBox.ContextMenuStrip.Items.Count == 0)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+
+            SupportedHostListBox.ContextMenuStrip.Show(SupportedHostListBox, Click);
         }
 
         private void ClipWorker() {

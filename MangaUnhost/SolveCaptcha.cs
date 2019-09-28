@@ -16,16 +16,20 @@ namespace MangaUnhost {
         Rectangle BFrameRect;
         Rectangle VerifyRect;
 
+        bool v3 = false;
+
         int Clicks = 0;
-        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser) {
+        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false) {
             InitializeComponent();
 
             this.ChromiumBrowser = ChromiumBrowser;
             Browser = ChromiumBrowser.GetBrowser();
             BrowserHost = ChromiumBrowser.GetBrowserHost();
 
+            this.v3 = v3;
+
             Shown += (a, b) => {
-                if (Browser.IsCaptchaSolved()) {
+                if (Browser.IsCaptchaSolved(v3)) {
                     Close();
                     return;
                 }
@@ -37,18 +41,26 @@ namespace MangaUnhost {
             LoadingMode(true);
             Refresh.Enabled = true;
 
-            var Thread = new System.Threading.Thread(() => {
-                Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaReset).GetAwaiter().GetResult();
-                ThreadTools.Wait(1500);
-                ChromiumBrowser.ClickImNotRobot(out _);
-                UpdateRects();
-            });
+            if (!v3)
+            {
+                var Thread = new System.Threading.Thread(() =>
+                {
+                    Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaReset).GetAwaiter().GetResult();
+                    ThreadTools.Wait(1500);
+                    ChromiumBrowser.ClickImNotRobot(out _);
+                    UpdateRects();
+                });
 
-            Thread.Start();
+                Thread.Start();
 
-            while (Thread.IsRunning()) {
-                ThreadTools.Wait(5, true);
+                while (Thread.IsRunning())
+                {
+                    ThreadTools.Wait(5, true);
+                }
+
             }
+            else
+                UpdateRects(); 
 
             LoadingMode(false);
             System.Media.SystemSounds.Beep.Play();
@@ -96,7 +108,7 @@ namespace MangaUnhost {
         }
 
         private void StatusCheckTick(object sender, EventArgs e) {
-            if (Browser.IsCaptchaSolved() || Browser.IsReCaptchaFailed())
+            if (Browser.IsCaptchaSolved(v3) || Browser.IsReCaptchaFailed())
                 Close();
 
             if (Clicks > 0) {
@@ -128,7 +140,7 @@ namespace MangaUnhost {
             if (Verify) {
                 LoadingMode(true);
                 ThreadTools.Wait(3000, true);
-                if (Browser.IsCaptchaSolved())
+                if (Browser.IsCaptchaSolved(v3))
                     Close();
                 else {
                     UpdateRects();

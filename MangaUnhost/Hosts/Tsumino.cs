@@ -125,6 +125,7 @@ namespace MangaUnhost.Hosts {
         public ComicInfo LoadUri(Uri Uri) {
             if (Browser == null) {
                 Browser = new ChromiumWebBrowser(Uri.AbsoluteUri);
+                Browser.InstallAdBlock();
                 Browser.HookReCaptcha();
 
                 Browser.WaitForLoad();

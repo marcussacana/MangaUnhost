@@ -90,7 +90,7 @@ namespace MangaUnhost.Hosts {
         private string SelectLanguage(string[] Avaliable) {
             if (LastLang != null && Avaliable.Contains(LastLang))
                 return LastLang;
-            return LastLang = DataTools.PromptOption("Select a Language", Avaliable);
+            return LastLang = AccountTools.PromptOption("Select a Language", Avaliable);
         }
 
         private string GetNextPage(string Page) {

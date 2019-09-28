@@ -82,6 +82,7 @@ namespace MangaUnhost.Hosts {
             if (Browser == null) {
                 Browser = new ChromiumWebBrowser();
                 Browser.Size = new System.Drawing.Size(500, 600);
+                Browser.InstallAdBlock();
                 Browser.HookReCaptcha();
 
                 while (!Browser.IsBrowserInitialized)

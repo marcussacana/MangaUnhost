@@ -125,41 +125,6 @@ namespace MangaUnhost.Others {
             return Index;
         }
 
-        public static string PromptOption(string Question, string[] Options) {
-            if (Options.Length == 1)
-                return Options.Single();
-
-            var Form = new System.Windows.Forms.Form {
-                Size = new System.Drawing.Size(270, 120)
-            };
-
-            VSContainer ThemeContainer = new VSContainer() {
-                Form = Form,
-                FormOrWhole = VSContainer.__FormOrWhole.Form,
-                AllowMaximize = false,
-                AllowMinimize = false,
-                Text = Question
-            };
-            Form.Controls.Add(ThemeContainer);
-
-
-            VSComboBox ComboBox = new VSComboBox() {
-                Size = new System.Drawing.Size(235, 30),
-                Location = new System.Drawing.Point(10, 40)
-            };
-
-            foreach (string Language in Options)
-                ComboBox.Items.Add(Language);
-
-            ComboBox.SelectedIndex = 0;
-
-            ThemeContainer.Controls.Add(ComboBox);
-
-            Form.ShowDialog(Main.Instance);
-
-            return ComboBox.SelectedItem.ToString();        
-        }
-
         public static string GetImageExtension(this System.Drawing.Image img) {
             if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Jpeg))
                 return "jpg";

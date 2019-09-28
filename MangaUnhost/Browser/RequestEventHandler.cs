@@ -27,6 +27,12 @@ namespace CefSharp.RequestEventHandler {
         public event EventHandler<GetAuthCredentialsEventArgs> GetAuthCredentialsEvent;
         public event EventHandler<OnRenderProcessTerminatedEventArgs> OnRenderProcessTerminatedEvent;
         public event EventHandler<OnQuotaRequestEventArgs> OnQuotaRequestEvent;
+        public event EventHandler<OnResourceRequestEventArgs> OnResourceRequestEvent;
+        /*
+        public event EventHandler<OnResourceResponseEventArgs> OnResourceResponseEvent;
+        public event EventHandler<OnBeforeResourceLoadEventArgs> OnBeforeResourceLoadEvent;
+        */
+
 
         public NetworkCredential Credential { get; private set; }
 
@@ -65,15 +71,15 @@ namespace CefSharp.RequestEventHandler {
             OnPluginCrashedEvent?.Invoke(this, args);
         }
 
-        public override bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, IFrame frame, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback) {
-            var args = new GetAuthCredentialsEventArgs(browserControl, browser, isProxy, host, port, realm, scheme, callback);
+        public override bool GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
+        {
+            var args = new GetAuthCredentialsEventArgs(chromiumWebBrowser, browser, isProxy, host, port, realm, scheme, callback);
 
             GetAuthCredentialsEvent?.Invoke(this, args);
 
             EnsureCallbackDisposal(callback);
             return args.ContinueAsync;
         }
-
         public override void OnRenderProcessTerminated(IWebBrowser chromiumWebBrowser, IBrowser browser, CefTerminationStatus status) {
             var args = new OnRenderProcessTerminatedEventArgs(chromiumWebBrowser, browser, status);
 
@@ -87,6 +93,43 @@ namespace CefSharp.RequestEventHandler {
             EnsureCallbackDisposal(callback);
             return args.ContinueAsync;
         }
+
+        public override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
+        {
+            var args = new OnResourceRequestEventArgs(chromiumWebBrowser, browser, frame, request, iNavigation, isDownload, requestInitiator, disableDefaultHandling);
+            OnResourceRequestEvent?.Invoke(this, args);
+
+            disableDefaultHandling = args.DisableDefaultHandling;
+
+            if (args.Cancel)
+                return null;
+
+            return base.GetResourceRequestHandler(chromiumWebBrowser, browser, frame, request, iNavigation, isDownload, requestInitiator, ref disableDefaultHandling);
+        }
+
+        /*
+        public override bool OnResourceResponse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response)
+        {
+            var args = new OnResourceResponseEventArgs(browserControl, browser, frame, request, response);
+            OnResourceResponseEvent?.Invoke(this, args);
+
+            if (args.Cancel)
+                return false;
+
+            return base.OnResourceResponse(browserControl, browser, frame, request, response);
+        }
+
+        public override CefReturnValue OnBeforeResourceLoad(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback)
+        {
+            var args = new OnBeforeResourceLoadEventArgs(browserControl, browser, frame, request, callback);
+            OnBeforeResourceLoadEvent?.Invoke(this, args);
+
+            if (args.ReturnValue == CefReturnValue.Cancel)
+                return args.ReturnValue;
+
+            return base.OnBeforeResourceLoad(browserControl, browser, frame, request, callback);
+        }
+        */
 
         private static void EnsureCallbackDisposal(IRequestCallback callbackToDispose) {
             if (callbackToDispose != null && !callbackToDispose.IsDisposed) {
@@ -262,12 +305,64 @@ namespace CefSharp.RequestEventHandler {
         public bool ContinueAsync { get; set; }
     }
 
-    public class OnRenderProcessTerminatedEventArgs : BaseRequestEventArgs {
+    public class OnRenderProcessTerminatedEventArgs : BaseRequestEventArgs
+    {
         public OnRenderProcessTerminatedEventArgs(IWebBrowser chromiumWebBrowser, IBrowser browser, CefTerminationStatus status)
-            : base(chromiumWebBrowser, browser) {
+            : base(chromiumWebBrowser, browser)
+        {
             Status = status;
         }
 
         public CefTerminationStatus Status { get; private set; }
+    }
+    /*
+    public class OnResourceResponseEventArgs : BaseRequestEventArgs
+    {
+        public OnResourceResponseEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) : base(browserControl, browser)
+        {
+            Frame = frame;
+            Request = request;
+            Response = response;
+        }
+        public IFrame Frame { get; private set; }
+        public IRequest Request { get; private set; }
+        public IResponse Response { get; private set; }
+        public string TargetUrl => Request.Url;
+
+        public bool Cancel { get; set; }
+    }
+    public class OnBeforeResourceLoadEventArgs : BaseRequestEventArgs
+    {
+        public OnBeforeResourceLoadEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback) : base(browserControl, browser)
+        {
+            Frame = frame;
+            Request = request;
+            Callback = callback;
+        }
+        public IFrame Frame { get; private set; }
+        public IRequest Request { get; private set; }
+        public string TargetUrl => Request.Url;
+
+        public IRequestCallback Callback { get; private set; }
+
+        public CefReturnValue ReturnValue { get; set; }
+    }
+    */
+    public class OnResourceRequestEventArgs : BaseRequestEventArgs
+    {
+        public OnResourceRequestEventArgs(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, bool disableDefaultHandling) : base(chromiumWebBrowser, browser)
+        {
+            Frame = frame;
+            Request = request;
+
+            DisableDefaultHandling = disableDefaultHandling;
+        }
+        public IFrame Frame { get; private set; }
+        public IRequest Request { get; private set; }
+        public string TargetUrl => Request.Url;
+
+        public bool DisableDefaultHandling { get; set; }
+
+        public bool Cancel { get; set; }
     }
 }

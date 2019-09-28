@@ -16,15 +16,21 @@ namespace MangaUnhost.Browser {
         }
 
         public static void WaitForLoad(this ChromiumWebBrowser Browser) {
+            Browser.WaitInitialize();
+            Browser.GetBrowser().WaitForLoad();
+        }
+        public static void WaitInitialize(this ChromiumWebBrowser Browser) {
             while (!Browser.IsBrowserInitialized)
                 ThreadTools.Wait(5, true);
-            Browser.GetBrowser().WaitForLoad();
         }
         public static void WaitForLoad(this IBrowser Browser) {
             ThreadTools.Wait(100);
             while (Browser.IsLoading())
                 ThreadTools.Wait(5, true);
         }
+
+        public static string GetCurrentUrl(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetCurrentUrl();
+        public static string GetCurrentUrl(this IBrowser Browser) => Browser.MainFrame.Url;
 
         public static string GetUserAgent(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetUserAgent();
 

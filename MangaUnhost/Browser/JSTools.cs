@@ -89,5 +89,6 @@ namespace MangaUnhost.Browser {
         public static bool IsCloudflareTriggered(this IBrowser Browser) => Browser.GetHTML().IsCloudflareTriggered();
         public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("why_captcha_headline");
 
+
     }
 }

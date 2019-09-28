@@ -61,12 +61,13 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Browser\AdBlocker.cs" />
     <Compile Include="Browser\InputTools.cs" />
     <Compile Include="Browser\JSTools.cs" />
     <Compile Include="Browser\reCaptcha.cs" />
     <Compile Include="Browser\RequestEventHandler.cs" />
     <Compile Include="Browser\RequestTools.cs" />
-    <Compile Include="Browser\StatusTools.cs" />
+    <Compile Include="Browser\InfoTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
     <Compile Include="ComicPreview.cs">
       <SubType>UserControl</SubType>
@@ -100,6 +101,7 @@
     <Compile Include="Others\Ini.cs" />
     <Compile Include="Others\ProxyTools.cs" />
     <Compile Include="Others\DataTools.cs" />
+    <Compile Include="Others\AccountsTools.cs" />
     <Compile Include="Others\ThreadTools.cs" />
     <Compile Include="PluginInfoPreview.cs">
       <SubType>Form</SubType>
@@ -167,7 +169,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CefSharp.OffScreen">
-      <Version>73.1.130</Version>
+      <Version>75.1.142</Version>
+    </PackageReference>
+    <PackageReference Include="Costura.Fody">
+      <Version>4.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="DistillNET">
+      <Version>1.6.5</Version>
     </PackageReference>
     <PackageReference Include="HtmlAgilityPack">
       <Version>1.11.12</Version>

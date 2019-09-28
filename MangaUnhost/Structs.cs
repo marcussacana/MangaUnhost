@@ -29,6 +29,24 @@ namespace MangaUnhost {
 
         public bool SupportComic;
         public bool SupportNovel;
+
+        public CustomAction[] Actions;
+    }
+
+    public struct CustomAction
+    {
+        public string Name;
+        public bool Debug;
+        public bool AutoRun;
+        public Action Action;
+    }
+
+    public struct Account
+    {
+        public string Login;
+        public string Password;
+
+        public string Email;
     }
 
     public struct Settings {

@@ -10,10 +10,24 @@ namespace MangaUnhost.Browser {
     public static class reCaptcha {
 
         public const int BFrameHidden = -9999;
-        public static bool IsCaptchaSolved(this ChromiumWebBrowser Browser) => Browser.GetBrowser().IsCaptchaSolved();
-        public static bool IsCaptchaSolved(this IBrowser Browser) {
+        public static bool IsCaptchaSolved(this ChromiumWebBrowser Browser, bool v3 = false) => Browser.GetBrowser().IsCaptchaSolved(v3);
+        public static bool IsCaptchaSolved(this IBrowser Browser, bool v3 = false) {
             if (Browser.GetReCaptchaBFrame() == null)
                 return true;
+
+            if (v3)
+            {
+                try
+                {
+                    var Point = Browser.GetReCaptchaBFrameRectangle();
+                    if (Point.Y < -999 && Point.Height <= 200)
+                        return true;
+                }
+                catch { return true; }
+
+                return false;
+            }
+
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaGetResponse).GetAwaiter().GetResult().Result;
             if (string.IsNullOrWhiteSpace(Result))
                 return false;
@@ -25,37 +39,49 @@ namespace MangaUnhost.Browser {
         /// </summary>
         /// <param name="OBrowser">The Browser Instance With the Captcha</param>
         /// <param name="Enforce">Persistent captcha, Don't return while isn't solved.</param>
-        public static void TrySolveCaptcha(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto) {
+        public static void TrySolveCaptcha(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto, bool v3 = false) {
             var Browser = OBrowser.GetBrowser();
             Browser.WaitForLoad();
             ThreadTools.Wait(1500);
             if (SolverType != CaptchaSolverType.Manual) {
-                if (!Browser.IsCaptchaSolved()) {
-                    Point Cursor;
+                if (!Browser.IsCaptchaSolved(v3)) {
+                    Point Cursor = new Point(0, 0);
 
-                    do {
-                        OBrowser.ClickImNotRobot(out Cursor);
-                        if (Browser.IsCaptchaSolved())
-                            return;                        
-                    } while (Browser.GetReCaptchaBFramePosition().Y == BFrameHidden);
+                    if (!v3)
+                    {
+                        do
+                        {
+                            OBrowser.ClickImNotRobot(out Cursor);
+                            if (Browser.IsCaptchaSolved(v3))
+                                return;
+                        } while (Browser.GetReCaptchaBFramePosition().Y == BFrameHidden);
+                    }
 
-                    for (int i = 0; i < 3 && !Browser.IsCaptchaSolved(); i++) {
-                        OBrowser.ClickAudioChallenge(Cursor, out Cursor);
-                        var Response = Browser.DecodeAudioChallenge();
-                        if (Response == null)
-                            continue;
-                        OBrowser.SolveSoundCaptcha(Response, Cursor, out Cursor);
+                    for (int i = 0; i < 3 && !Browser.IsCaptchaSolved(v3); i++) {
+                        try
+                        {
+                            OBrowser.ClickAudioChallenge(Cursor, out Cursor);
+                            var Response = Browser.DecodeAudioChallenge();
+                            if (Response == null)
+                                continue;
+                            OBrowser.SolveSoundCaptcha(Response, Cursor, out Cursor);
+                        }
+                        catch (Exception ex) {
+                            if (!Browser.IsCaptchaSolved(v3))
+                                throw ex;
+                            else break;
+                        }
                     }
                 }
             }
 
-            if (Browser.IsCaptchaSolved())
+            if (Browser.IsCaptchaSolved(v3))
                 return;
 
             do {
-                using (var Solver = new SolveCaptcha(OBrowser))
+                using (var Solver = new SolveCaptcha(OBrowser, v3))
                     Solver.ShowDialog();
-            } while (!Browser.IsCaptchaSolved());
+            } while (!Browser.IsCaptchaSolved(v3));
         }
 
         public static bool ClickImNotRobot(this ChromiumWebBrowser ChromiumBrowser, out Point NewCursorPos) {
@@ -216,6 +242,8 @@ namespace MangaUnhost.Browser {
         public static IFrame GetReCaptchaBFrame(this IBrowser Browser) {
             foreach (var ID in Browser.GetFrameIdentifiers()) {
                 var Frame = Browser.GetFrame(ID);
+                if (Frame == null)
+                    continue;
                 if (Frame.Url.Contains("/bframe?"))
                     return Frame;
             }
