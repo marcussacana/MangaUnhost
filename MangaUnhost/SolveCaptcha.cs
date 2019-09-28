@@ -11,8 +11,8 @@ namespace MangaUnhost {
 
         Graphics Graphics;
         ChromiumWebBrowser ChromiumBrowser;
-        IBrowser Browser;
-        IBrowserHost BrowserHost;
+        IBrowser Browser => ChromiumBrowser.GetBrowser();
+        IBrowserHost BrowserHost => ChromiumBrowser.GetBrowserHost();
         Rectangle BFrameRect;
         Rectangle VerifyRect;
 
@@ -23,8 +23,6 @@ namespace MangaUnhost {
             InitializeComponent();
 
             this.ChromiumBrowser = ChromiumBrowser;
-            Browser = ChromiumBrowser.GetBrowser();
-            BrowserHost = ChromiumBrowser.GetBrowserHost();
 
             this.v3 = v3;
 
