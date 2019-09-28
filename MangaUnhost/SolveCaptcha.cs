@@ -11,6 +11,7 @@ namespace MangaUnhost {
 
         Graphics Graphics;
         ChromiumWebBrowser ChromiumBrowser;
+        Action Submit;
         IBrowser Browser => ChromiumBrowser.GetBrowser();
         IBrowserHost BrowserHost => ChromiumBrowser.GetBrowserHost();
         Rectangle BFrameRect;
@@ -19,10 +20,11 @@ namespace MangaUnhost {
         bool v3 = false;
 
         int Clicks = 0;
-        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false) {
+        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false, Action Submit = null) {
             InitializeComponent();
 
             this.ChromiumBrowser = ChromiumBrowser;
+            this.Submit = Submit;
 
             this.v3 = v3;
 
@@ -58,7 +60,10 @@ namespace MangaUnhost {
 
             }
             else
-                UpdateRects(); 
+            {
+                Submit();
+                UpdateRects();
+            }
 
             LoadingMode(false);
             System.Media.SystemSounds.Beep.Play();
@@ -106,14 +111,22 @@ namespace MangaUnhost {
         }
 
         private void StatusCheckTick(object sender, EventArgs e) {
-            if (Browser.IsCaptchaSolved(v3))   
+            if (Browser.IsCaptchaSolved(v3))
+            {
                 Close();
-
+                return;
+            }
             if (Browser.IsReCaptchaFailed())
             {
                 Browser.ResetRecaptcha();
                 ThreadTools.Wait(500);
+                if (Submit != null)
+                {
+                    Submit();
+                    ThreadTools.Wait(500, true);
+                }
                 Close();
+                return;
             }
             
 

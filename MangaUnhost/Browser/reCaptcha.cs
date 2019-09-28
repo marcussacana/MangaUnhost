@@ -38,36 +38,50 @@ namespace MangaUnhost.Browser {
         /// Try Solve the Captcha, And request the user help if needed.
         /// </summary>
         /// <param name="OBrowser">The Browser Instance With the Captcha</param>
-        /// <param name="Enforce">Persistent captcha, Don't return while isn't solved.</param>
-        public static void TrySolveCaptcha(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto, bool v3 = false) {
+        public static void TrySolveCaptcha(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
+        {
             var Browser = OBrowser.GetBrowser();
             Browser.WaitForLoad();
-            ThreadTools.Wait(1500);
-            if (SolverType != CaptchaSolverType.Manual) {
-                if (!Browser.IsCaptchaSolved(v3)) {
+            ThreadTools.Wait(1500, true);
+            if (SolverType != CaptchaSolverType.Manual)
+            {
+                if (!Browser.IsCaptchaSolved())
+                {
                     Point Cursor = new Point(0, 0);
 
-                    if (!v3)
+                    do
                     {
-                        do
-                        {
-                            OBrowser.ClickImNotRobot(out Cursor);
-                            if (Browser.IsCaptchaSolved(v3))
-                                return;
-                        } while (Browser.GetReCaptchaBFramePosition().Y == BFrameHidden);
-                    }
+                        OBrowser.ClickImNotRobot(out Cursor);
+                        if (Browser.IsCaptchaSolved())
+                            return;
+                    } while (Browser.GetReCaptchaBFramePosition().Y == BFrameHidden);
 
-                    for (int i = 0; i < 3 && !Browser.IsCaptchaSolved(v3); i++) {
+
+                    for (int i = 0; i < 3 && !Browser.IsCaptchaSolved(); i++)
+                    {
+                        try
+                        {
+                            if (Browser.IsReCaptchaFailed())
+                            {
+                                Browser.ResetRecaptcha();
+                                if (Browser.IsCaptchaSolved())
+                                    break;
+                            }
+                        }
+                        catch { }
                         try
                         {
                             OBrowser.ClickAudioChallenge(Cursor, out Cursor);
+                            if (Browser.IsReCaptchaFailed())
+                                continue;
                             var Response = Browser.DecodeAudioChallenge();
                             if (Response == null)
                                 continue;
                             OBrowser.SolveSoundCaptcha(Response, Cursor, out Cursor);
                         }
-                        catch (Exception ex) {
-                            if (!Browser.IsCaptchaSolved(v3))
+                        catch (Exception ex)
+                        {
+                            if (!Browser.IsCaptchaSolved())
                                 throw ex;
                             else break;
                         }
@@ -75,13 +89,70 @@ namespace MangaUnhost.Browser {
                 }
             }
 
-            if (Browser.IsCaptchaSolved(v3))
+            if (Browser.IsCaptchaSolved())
                 return;
 
-            do {
-                using (var Solver = new SolveCaptcha(OBrowser, v3))
+            do
+            {
+                using (var Solver = new SolveCaptcha(OBrowser))
                     Solver.ShowDialog();
-            } while (!Browser.IsCaptchaSolved(v3));
+            } while (!Browser.IsCaptchaSolved());
+        }
+
+        /// <summary>
+        /// Try Solve the Recaptcha v3
+        /// </summary>
+        /// <param name="OBrowser">The Browser with the recaptcha</param>
+        /// <param name="Submit">A Event that can trigger the recaptcha</param>
+        /// <param name="Validate">A Event that can confirm if the captcha is solved</param>
+        public static void TrySolveCaptchav3(this ChromiumWebBrowser OBrowser, Action Submit, Func<bool> Validate = null, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
+        {
+            var Browser = OBrowser.GetBrowser();
+            Browser.WaitForLoad();
+            Submit();
+            ThreadTools.Wait(100, true);
+            if (SolverType != CaptchaSolverType.Manual)
+            {
+                if (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true))
+                {
+                    Point Cursor = new Point(0, 0);
+
+                    for (int i = 0; i < 3 && !(Validate?.Invoke() ?? Browser.IsCaptchaSolved(true)); i++)
+                    {
+                        try
+                        {
+                            OBrowser.ClickAudioChallenge(Cursor, out Cursor);
+                            if (Browser.IsReCaptchaFailed())
+                            {
+                                Browser.ResetRecaptcha();
+                                ThreadTools.Wait(500, true);
+                                Submit();
+                                if (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true))
+                                    break;
+                            }
+                            var Response = Browser.DecodeAudioChallenge();
+                            if (Response == null)
+                                continue;
+                            OBrowser.SolveSoundCaptcha(Response, Cursor, out Cursor);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true))
+                                throw ex;
+                            else break;
+                        }
+                    }
+                }
+            }
+
+            if (Validate?.Invoke() ?? Browser.IsCaptchaSolved(true))
+                return;
+
+            do
+            {
+                using (var Solver = new SolveCaptcha(OBrowser, true, Submit: Submit))
+                    Solver.ShowDialog();
+            } while (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true));
         }
 
         public static bool ClickImNotRobot(this ChromiumWebBrowser ChromiumBrowser, out Point NewCursorPos) {
@@ -90,7 +161,7 @@ namespace MangaUnhost.Browser {
 
             Random Random = new Random();
 
-            ThreadTools.Wait(Random.Next(999, 1999));
+            ThreadTools.Wait(Random.Next(999, 1999), true);
 
             //Get Recaptcha Position in the page
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaIframeSearch + "\r\n" + Properties.Resources.reCaptchaGetAnchorPosition).GetAwaiter().GetResult().Result;
@@ -118,17 +189,17 @@ namespace MangaUnhost.Browser {
 
             //Execute Macros
             BHost.ExecuteMove(MoveA);
-            ThreadTools.Wait(Random.Next(999, 1999));
+            ThreadTools.Wait(Random.Next(999, 1999), true);
             BHost.ExecuteClick(FakeClick.Value);
 
             BHost.ExecuteMove(MoveB);
-            ThreadTools.Wait(Random.Next(999, 1999));
+            ThreadTools.Wait(Random.Next(999, 1999), true);
             BHost.ExecuteClick(CaptchaClick);
 
             BHost.ExecuteMove(MoveC);
             NewCursorPos = PostClick;
 
-            ThreadTools.Wait(Random.Next(3599, 4599));
+            ThreadTools.Wait(Random.Next(3599, 4599), true);
 
             return Browser.IsCaptchaSolved();
         }
@@ -162,10 +233,10 @@ namespace MangaUnhost.Browser {
             var Move = CursorTools.CreateMove(CursorPos, AudioBntPos, 7);
 
             BHost.ExecuteMove(Move);
-            ThreadTools.Wait(Random.Next(999, 1999));
+            ThreadTools.Wait(Random.Next(999, 1999), true);
             BHost.ExecuteClick(AudioBntPos);
 
-            ThreadTools.Wait(Random.Next(2111, 3599));
+            ThreadTools.Wait(Random.Next(2111, 3599), true);
 
             NewCursorPos = AudioBntPos;
         }
@@ -213,10 +284,10 @@ namespace MangaUnhost.Browser {
 
             //Execute Macro
             BHost.ExecuteMove(Move);
-            ThreadTools.Wait(Random.Next(999, 1999));
+            ThreadTools.Wait(Random.Next(999, 1999), true);
             BHost.ExecuteClick(RespBoxPos);
 
-            ThreadTools.Wait(Random.Next(511, 999));
+            ThreadTools.Wait(Random.Next(511, 999), true);
 
             foreach (char Char in Response) {
                 BHost.SendChar(Char);
@@ -231,12 +302,12 @@ namespace MangaUnhost.Browser {
             //Create and Execute Macro
             Move = CursorTools.CreateMove(RespBoxPos, VerifyBntPos, 6);
             BHost.ExecuteMove(Move);
-            ThreadTools.Wait(Random.Next(999, 1999));
+            ThreadTools.Wait(Random.Next(999, 1999), true);
             BHost.ExecuteClick(VerifyBntPos);
 
             NewCursorPos = VerifyBntPos;
 
-            ThreadTools.Wait(Random.Next(3599, 4599));
+            ThreadTools.Wait(Random.Next(3599, 4599), true);
         }
 
         public static IFrame GetReCaptchaBFrame(this IBrowser Browser) {
@@ -293,7 +364,7 @@ namespace MangaUnhost.Browser {
 
         public static bool ResetRecaptcha(this IBrowser Browser)
         {
-            return (bool)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaReset).GetAwaiter().GetResult().Result;
+            return (bool)Browser.EvaluateScript(Properties.Resources.reCaptchaReset);
         }
 
         public static void HookReCaptcha(this ChromiumWebBrowser Browser) {

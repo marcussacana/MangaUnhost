@@ -12,7 +12,7 @@ namespace MangaUnhost.Others {
             while ((DateTime.Now - Begin).TotalMilliseconds < Milliseconds) {
                 AsyncContext.Run(() => Task.Delay(Delay));
 
-                if (DoEvents)
+                if (DoEvents && !Main.Instance.InvokeRequired)
                     Application.DoEvents();
             }
         }
