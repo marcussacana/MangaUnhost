@@ -64,7 +64,7 @@ namespace MangaUnhost {
         /// </summary>
         /// <param name="ID">The Chapter ID</param>
         /// <returns>The Chapter HTML</returns>
-        string DownloadChapter(int ID);
+        NovelChapter DownloadChapter(int ID);
 
         /// <summary>
         /// Get the basic plugin info

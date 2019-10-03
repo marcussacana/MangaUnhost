@@ -13,7 +13,7 @@ namespace MangaUnhost.Hosts {
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
 
-        public string DownloadChapter(int ID) {
+        public NovelChapter DownloadChapter(int ID) {
             throw new NotImplementedException();
         }
 

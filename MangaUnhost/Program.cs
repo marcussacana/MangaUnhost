@@ -65,9 +65,27 @@ namespace MangaUnhost {
             if (!Outdated)
                 return;
 
+
             string CEFName = $"CEF{(Environment.Is64BitProcess ? "x64" : "x86")}.zip";
             string Url = $"{CefRepo}{CEFName}";
             string SaveAs = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), CEFName);
+
+            string DbgPath = AppDomain.CurrentDomain.BaseDirectory;
+
+            for (int i = 0; i < 4; i++)
+            {
+                DbgPath = Path.GetDirectoryName(DbgPath);
+
+                if (Debug && File.Exists(Path.Combine(DbgPath, CEFName)))
+                {
+
+                    ZipFile DZip = new ZipFile(Path.Combine(DbgPath, CEFName));
+                    DZip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
+                    DZip.Dispose();
+                    return;
+                }
+            }
+
 
             DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
             Application.Run(Window);

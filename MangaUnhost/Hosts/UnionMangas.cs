@@ -15,7 +15,7 @@ namespace MangaUnhost.Hosts {
 
         CloudflareData? Cloudflare;
 
-        public string DownloadChapter(int ID) {
+        public NovelChapter DownloadChapter(int ID) {
             throw new NotImplementedException();
         }
 

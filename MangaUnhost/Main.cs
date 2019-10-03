@@ -12,6 +12,8 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Threading;
 using System.Threading.Tasks;
+using EPubFactory;
+using Nito.AsyncEx;
 
 namespace MangaUnhost {
     public partial class Main : Form {
@@ -247,18 +249,30 @@ namespace MangaUnhost {
             if (Settings.SkipDownloaded && File.Exists(AbsolueChapterPath.TrimEnd('\\', '/') + ".html"))
                 return;
 
-            int PageCount = Host.GetChapterPageCount(ID);
+            int PageCount = 1;
 
             if (Info.ContentType == ContentType.Comic) {
+                PageCount = Host.GetChapterPageCount(ID);
+
                 if (Directory.Exists(AbsolueChapterPath) && Directory.GetFiles(AbsolueChapterPath, "*").Length < PageCount)
                     Directory.Delete(AbsolueChapterPath, true);
+
+                if (Settings.SkipDownloaded && Directory.Exists(AbsolueChapterPath))
+                {
+                    var Pages = (from x in Directory.GetFiles(AbsolueChapterPath) select Path.GetFileName(x)).ToArray();
+                    ChapterTools.GenerateComicReader(CurrentLanguage, Pages, NextChapterPath, TitleDir, ChapterPath, Name);
+                    return;
+                }
             }
 
-            if (Settings.SkipDownloaded && Directory.Exists(AbsolueChapterPath)) {
-                var Pages = (from x in Directory.GetFiles(AbsolueChapterPath) select Path.GetFileName(x)).ToArray();
-                ChapterTools.GenerateComicReader(CurrentLanguage, Pages, NextChapterPath, TitleDir, ChapterPath, Name);
-                return;
+            if (Info.ContentType == ContentType.Novel)
+            {
+                ChapterPath = Path.Combine(AbsolueChapterPath, string.Format(CurrentLanguage.ChapterName, Name) + ".epub");
+                if (Settings.SkipDownloaded && File.Exists(ChapterPath))
+                    return;
+                
             }
+
 
             if (!Directory.Exists(AbsolueChapterPath))
                 Directory.CreateDirectory(AbsolueChapterPath);
@@ -299,9 +313,71 @@ namespace MangaUnhost {
                     }
                     
                     break;
-                case ContentType.Novel:
-                    ChapterPath = Path.Combine(TitleDir, string.Format(CurrentLanguage.ChapterName, Name) + ".html");
-                    File.WriteAllText(Host.DownloadChapter(ID), ChapterPath, System.Text.Encoding.UTF8);
+                case ContentType.Novel:                    
+                    var Chapter = Host.DownloadChapter(ID);
+                    AsyncContext.Run(async () => {
+                        using (var Epub = await EPubWriter.CreateWriterAsync(File.Create(ChapterPath), Info.Title ?? "Untitled", Chapter.Author ?? "Anon", Chapter.URL ?? "None"))
+                        {
+                            Chapter.HTML.RemoveNodes("//script");
+                            Chapter.HTML.RemoveNodes("//iframe");
+
+                            foreach (var Node in Chapter.HTML.DocumentNode.DescendantsAndSelf())
+                            {
+                                if (Node.Name == "img" && Node.GetAttributeValue("src", string.Empty) != string.Empty)
+                                {
+                                    string Src = Node.GetAttributeValue("src", string.Empty);
+                                    string RName = Path.GetFileName(Src.Substring(null, "?", IgnoreMissmatch: true));
+                                    string Mime = ResourceHandler.GetMimeType(Path.GetExtension(RName));
+
+                                    if (Node.GetAttributeValue("type", string.Empty) != string.Empty)
+                                        Mime = Node.GetAttributeValue("type", string.Empty);
+
+                                    Uri Link = new Uri(Info.Url, Src);
+
+                                    if (string.IsNullOrWhiteSpace(RName))
+                                        continue;
+
+                                    byte[] Buffer = await Link.TryDownloadAsync();
+
+                                    if (Buffer == null)
+                                        continue;
+
+                                    await Epub.AddResourceAsync(RName, Mime, Buffer);
+                                    Node.SetAttributeValue("src", RName);
+                                }
+
+                                if (Node.Name == "link" && Node.GetAttributeValue("rel", string.Empty) == "stylesheet" && Node.GetAttributeValue("href", string.Empty) != string.Empty)
+                                {
+                                    string Src = Node.GetAttributeValue("href", string.Empty);
+                                    string RName = Path.GetFileName(Src.Substring(null, "?", IgnoreMissmatch: true));
+                                    string Mime = ResourceHandler.GetMimeType(Path.GetExtension(RName));
+
+                                    if (Node.GetAttributeValue("type", string.Empty) != string.Empty)
+                                        Mime = Node.GetAttributeValue("type", string.Empty);
+
+                                    Uri Link = new Uri(Info.Url, Src);
+
+                                    if (string.IsNullOrWhiteSpace(RName))
+                                        continue;
+
+                                    byte[] Buffer = await Link.TryDownloadAsync();
+
+                                    if (Buffer == null)
+                                        continue;
+
+                                    await Epub.AddResourceAsync(RName, Mime, Buffer);
+                                    Node.SetAttributeValue("href", RName);
+                                }
+                            }
+
+                            Epub.Publisher = lblTitle.Text;
+
+                            await Epub.AddChapterAsync("chapter.xhtml", Chapter.Title, Chapter.HTML.ToHTML());
+
+
+                            await Epub.WriteEndOfPackageAsync();
+                        }
+                    });
                     break;
                 default:
                     throw new Exception("Invalid Content Type");

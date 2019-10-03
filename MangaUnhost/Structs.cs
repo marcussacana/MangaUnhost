@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Net;
 
 namespace MangaUnhost {
@@ -59,5 +60,30 @@ namespace MangaUnhost {
         public bool SkipDownloaded;
 
         public int SaveAs;
+    }
+
+
+    public struct NovelChapter
+    {
+        public string Title;
+        public string Author;
+        public string URL;
+        public HtmlDocument HTML;
+        //public NovelScript[] Scripts;
+        //public NovelResource[] Resources;
+    }
+
+    public struct NovelScript
+    {
+        public string FileName;
+        public string Mime;
+        public string Script;
+    }
+
+    public struct NovelResource
+    {
+        public string FileName;
+        public string Mime;
+        public byte[] Data;
     }
 }

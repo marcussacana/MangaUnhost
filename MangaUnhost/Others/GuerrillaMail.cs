@@ -198,20 +198,20 @@ namespace MangaUnhost {
         /// Initializer for the class with optional proxy
         /// </summary>
         /// <param name="proxy">Proxy address to request through</param>
-        public GuerrillaMail(WebProxy proxy = null) : this(null, proxy) { }
+        public GuerrillaMail(WebProxy proxy = null) : this(null, proxy: proxy) { }
 
 
         /// <summary>
         /// Initializer for the class using a custom email, with optional proxy
         /// </summary>
-        public GuerrillaMail(string email, WebProxy proxy = null) {
+        public GuerrillaMail(string email, int Domain = 0, WebProxy proxy = null) {
             if (proxy != null) {
                 mProxy = proxy;
                 mUseProxy = true;
             }
 
             if (string.IsNullOrEmpty(email)) {
-                InitializeEmail();
+                InitializeEmail(Domain: Domain);
             } else {
                 InitializeEmail(email);
             }
@@ -221,13 +221,13 @@ namespace MangaUnhost {
         /// <summary>
         /// This initializes the email and inbox on site
         /// </summary>
-        private void InitializeEmail(string email = null) {
+        private void InitializeEmail(string email = null, int Domain = 0) {
             /*Initialize the inbox*/
             string Rst;
             if (email == null) {
                 Rst = Contact("f=get_email_address");
             } else {
-                Rst = Contact("f=set_email_user", string.Format("email_user={0}&lang=en&site={1}", email, GetDomain(0)));
+                Rst = Contact("f=set_email_user", string.Format("email_user={0}&lang=en&site={1}", email, GetDomain(Domain)));
             }
             EmailInit Response = Extensions.JsonDecode<EmailInit>(Rst);
             mEmailAddress = Response.email_addr;

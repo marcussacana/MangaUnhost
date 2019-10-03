@@ -87,11 +87,43 @@ namespace MangaUnhost {
                 || Thread.ThreadState == ThreadState.WaitSleepJoin;
         }
 
+
         public static HtmlAgilityPack.HtmlNodeCollection SelectNodes(this HtmlAgilityPack.HtmlDocument Document, string XPath) => Document.DocumentNode.SelectNodes(XPath);
         public static HtmlAgilityPack.HtmlNode SelectSingleNode(this HtmlAgilityPack.HtmlDocument Document, string XPath) => Document.DocumentNode.SelectSingleNode(XPath);
         public static IEnumerable<HtmlAgilityPack.HtmlNode> Descendants(this HtmlAgilityPack.HtmlDocument Document, string name) => Document.DocumentNode.Descendants(name);
         public static string Between(this string String, char Begin, char End, int IndexA = 0, int IndexB = 0) => String.Split(Begin)[IndexA + 1].Split(End)[IndexB];
 
+        public static string ToHTML(this HtmlAgilityPack.HtmlDocument Document)
+        {
+            using (var Stream = new System.IO.MemoryStream())
+            {
+                Document.Save(Stream);
+                return Document.Encoding.GetString(Stream.ToArray());
+            }
+        }
+
+        public static void RemoveSingleNode(this HtmlAgilityPack.HtmlDocument Document, string XPath)
+        {
+            try
+            {
+                Document.DocumentNode.SelectSingleNode(XPath)?.Remove();
+            }
+            catch { }
+        }
+        public static void RemoveNodes(this HtmlAgilityPack.HtmlDocument Document, string XPath)
+        {
+            while (true)
+            {
+                try
+                {
+                    Document.DocumentNode.SelectSingleNode(XPath).Remove();
+                }
+                catch
+                {
+                    break;
+                }
+            }
+        }
         public static string ToLiteral(this string String, bool Quote = true, bool Apostrophe = false) {
             string Result = string.Empty;
             foreach (char c in String) {
@@ -135,15 +167,32 @@ namespace MangaUnhost {
             return Val + Content.Length;
         }
 
-        public static string Substring(this string String, string AfterOf, bool CaseSensitive = false)
+        public static string Substring(this string String, string AfterOf, bool CaseSensitive = false, bool IgnoreMissmatch = false)
         {
-            return String.Substring((CaseSensitive ? String.EndIndexOf(AfterOf) : String.ToLower().EndIndexOf(AfterOf.ToLower())));
+            int AfterIndex = (CaseSensitive ? String.EndIndexOf(AfterOf) : String.ToLower().EndIndexOf(AfterOf.ToLower()));
+            if (AfterIndex == -1 && IgnoreMissmatch)
+                AfterIndex = 0;
+            return String.Substring(AfterIndex);
         }
-        public static string Substring(this string String, string AfterOf, string BeforeOf, bool CaseSensitive = false)
+        public static string Substring(this string String, string AfterOf, string BeforeOf, bool CaseSensitive = false, bool IgnoreMissmatch = false)
         {
-            string Result = String.Substring((CaseSensitive ? String.EndIndexOf(AfterOf) : String.ToLower().EndIndexOf(AfterOf.ToLower())));
+            string Result = String;
 
-            return Result.Substring(0, (CaseSensitive ? Result.IndexOf(BeforeOf) : Result.ToLower().IndexOf(BeforeOf.ToLower())));
+            
+            if (AfterOf != null)
+            {
+                int AfterIndex = (CaseSensitive ? String.EndIndexOf(AfterOf) : String.ToLower().EndIndexOf(AfterOf.ToLower()));
+                if (AfterIndex == -1 && IgnoreMissmatch)
+                    AfterIndex = 0;
+
+                Result = String.Substring(AfterIndex);
+            }
+
+            int BeforeIndex = (CaseSensitive ? Result.IndexOf(BeforeOf) : Result.ToLower().IndexOf(BeforeOf.ToLower()));
+            if (BeforeIndex == -1 && IgnoreMissmatch)
+                BeforeIndex = Result.Length;
+
+            return Result.Substring(0, BeforeIndex);
         }
 
         public static void AddRange<Key, Value>(this Dictionary<Key, Value> Dictionary, Key[] Keys, Value[] Values)

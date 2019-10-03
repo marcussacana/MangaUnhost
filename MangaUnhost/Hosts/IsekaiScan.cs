@@ -12,7 +12,7 @@ namespace MangaUnhost.Hosts
     class IsekaiScan : IHost
     {
         Dictionary<int, string> LinkMap = new Dictionary<int, string>();
-        public string DownloadChapter(int ID)
+        public NovelChapter DownloadChapter(int ID)
         {
             throw new NotImplementedException();
         }
