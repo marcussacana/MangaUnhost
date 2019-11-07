@@ -146,10 +146,14 @@ namespace MangaUnhost {
             foreach (var Host in Hosts) {
                 if (!Host.IsValidUri(URL))
                     continue;
+
                 try {
                     LoadUri(URL, Host);
                     break;
-                } catch { }
+                } catch (Exception ex) {
+                    if (Program.Debug)
+                        throw ex;
+                }
 
                 StatusBar.SecondLabelText = string.Empty;
                 Status = CurrentLanguage.IDLE;
@@ -188,7 +192,10 @@ namespace MangaUnhost {
                     try {
                         IHost HostIsnt = (IHost)((VSButton)sender).Indentifier;
                         DownloadChapter(Chapters, Chapter.Key, HostIsnt, CurrentInfo);
-                    } catch { }
+                    } catch (Exception ex){
+                        if (Program.Debug)
+                            throw ex;
+                    }
                     StatusBar.SecondLabelText = string.Empty;
                     Status = CurrentLanguage.IDLE;
                 };
@@ -209,7 +216,10 @@ namespace MangaUnhost {
                         try {
                             IHost HostIsnt = (IHost)((VSButton)sender).Indentifier;
                             DownloadChapter(Chapters, Chapter.Key, HostIsnt, CurrentInfo);
-                        } catch { }
+                        } catch (Exception ex){
+                            if (Program.Debug)
+                                throw ex;
+                        }
 
                         StatusBar.SecondLabelText = string.Empty;
                         Status = CurrentLanguage.IDLE;
@@ -304,7 +314,10 @@ namespace MangaUnhost {
                                 
                                 Pages.Add(PageName);
                             }
-                        } catch { }
+                        } catch (Exception ex) {
+                            if (Program.Debug)
+                                throw ex;
+                        }
                     }
 
                     if (Settings.ReaderGenerator) {
@@ -718,6 +731,8 @@ namespace MangaUnhost {
 
             foreach (var Control in LibraryContainer.Controls)
                 ((ComicPreview)Control).GetComicInfo();
+            
+            
         }
     }
 }

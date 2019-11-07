@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace MangaUnhost {
     static class Program {
-        public static bool Debug => Debugger.IsAttached;
+        public static bool Debug => Debugger.IsAttached || File.Exists("DEBUG");
         public static string CurrentAssembly => Assembly.GetExecutingAssembly().Location;
         public static string CefDir => Path.Combine(Path.GetDirectoryName(CurrentAssembly), (Environment.Is64BitProcess ? "x64" : "x86"));
 

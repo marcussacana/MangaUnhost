@@ -309,7 +309,7 @@
             this.FeaturesGroupBox.Location = new System.Drawing.Point(6, 127);
             this.FeaturesGroupBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.FeaturesGroupBox.Name = "FeaturesGroupBox";
-            this.FeaturesGroupBox.Size = new System.Drawing.Size(897, 310);
+            this.FeaturesGroupBox.Size = new System.Drawing.Size(824, 310);
             this.FeaturesGroupBox.TabIndex = 1;
             this.FeaturesGroupBox.Text = "Features";
             this.FeaturesGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
@@ -383,7 +383,7 @@
             this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsRawRadio.Location = new System.Drawing.Point(229, 27);
             this.SaveAsRawRadio.Name = "SaveAsRawRadio";
-            this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsRawRadio.Size = new System.Drawing.Size(57, 23);
             this.SaveAsRawRadio.TabIndex = 7;
             this.SaveAsRawRadio.Text = "RAW";
             this.SaveAsRawRadio.UseVisualStyleBackColor = false;
@@ -652,7 +652,7 @@
             this.EnvironmentGroupBox.Location = new System.Drawing.Point(6, 6);
             this.EnvironmentGroupBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.EnvironmentGroupBox.Name = "EnvironmentGroupBox";
-            this.EnvironmentGroupBox.Size = new System.Drawing.Size(897, 115);
+            this.EnvironmentGroupBox.Size = new System.Drawing.Size(824, 115);
             this.EnvironmentGroupBox.TabIndex = 0;
             this.EnvironmentGroupBox.Text = "Environment";
             this.EnvironmentGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
@@ -684,7 +684,7 @@
             this.LanguageBox.LineColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
             this.LanguageBox.Location = new System.Drawing.Point(90, 71);
             this.LanguageBox.Name = "LanguageBox";
-            this.LanguageBox.Size = new System.Drawing.Size(796, 26);
+            this.LanguageBox.Size = new System.Drawing.Size(723, 26);
             this.LanguageBox.SqaureColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
             this.LanguageBox.SqaureHoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(52)))), ((int)(((byte)(52)))));
             this.LanguageBox.StartIndex = 0;
@@ -701,7 +701,7 @@
             this.bntLibSelect.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.bntLibSelect.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.bntLibSelect.ImageChoice = null;
-            this.bntLibSelect.Location = new System.Drawing.Point(850, 36);
+            this.bntLibSelect.Location = new System.Drawing.Point(777, 36);
             this.bntLibSelect.Name = "bntLibSelect";
             this.bntLibSelect.ShowBorder = true;
             this.bntLibSelect.ShowImage = false;
@@ -724,7 +724,7 @@
             this.LibraryPathTBox.Multiline = false;
             this.LibraryPathTBox.Name = "LibraryPathTBox";
             this.LibraryPathTBox.ReadOnly = true;
-            this.LibraryPathTBox.Size = new System.Drawing.Size(754, 25);
+            this.LibraryPathTBox.Size = new System.Drawing.Size(681, 25);
             this.LibraryPathTBox.Style = VSNormalTextBox.Styles.NotRounded;
             this.LibraryPathTBox.TabIndex = 1;
             this.LibraryPathTBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
