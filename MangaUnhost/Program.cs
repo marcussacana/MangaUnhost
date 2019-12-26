@@ -131,6 +131,7 @@ namespace MangaUnhost {
             var hModule = UnixGate.UnixGate.dlopen("libc.so.6", UnixGate.UnixGate.RTLD_NOW);
             var hProc = UnixGate.UnixGate.dlsym(hModule, "system");
             UnixGate.UnixGate.UnixFastCall(hProc, CMD);
+            Environment.Exit(0);
         }
 
         static Assembly LoadFromPlatformFolder(object sender, ResolveEventArgs args) {
