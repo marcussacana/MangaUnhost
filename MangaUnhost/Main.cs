@@ -101,8 +101,9 @@ namespace MangaUnhost {
             this.Shown += (sender, e) =>
             {
                 Visible = false;
-                Thread.Sleep(100);
+                Application.DoEvents();
                 Visible = true;
+                Application.DoEvents();
 
                 //Prevent Hidden incon in taskbar
                 Form frm = new Form()
