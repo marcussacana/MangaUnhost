@@ -125,7 +125,7 @@ namespace MangaUnhost {
                 Tmp.ShowDialog();
 
                 CMD = $"export WINEPREFIX=\"{TbInput.Text}\" && winecfg";
-                Ini.SetConfig("Settings", "WineLauncher", SettingsPath, CMD);
+                Ini.SetConfig("Settings", "WineLauncher", CMD, SettingsPath);
             }
 
             UnixGate.UnixGate.Initialize();
