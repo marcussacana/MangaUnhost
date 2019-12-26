@@ -28,7 +28,7 @@ namespace MangaUnhost {
 
         Queue<string> ClipQueue = new Queue<string>();
 
-        public static string SettingsPath = AppDomain.CurrentDomain.BaseDirectory + "MangaUnhost.ini";
+        public static string SettingsPath => Program.SettingsPath;
 
         string DefaultLibPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"{CurrentLanguage.Library}\\");
 

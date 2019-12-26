@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace MangaUnhost {
@@ -10,6 +11,8 @@ namespace MangaUnhost {
         public static bool Debug => Debugger.IsAttached || File.Exists("DEBUG");
         public static string CurrentAssembly => Assembly.GetExecutingAssembly().Location;
         public static string CefDir => Path.Combine(Path.GetDirectoryName(CurrentAssembly), (Environment.Is64BitProcess ? "x64" : "x86"));
+        public static string SettingsPath = AppDomain.CurrentDomain.BaseDirectory + "MangaUnhost.ini";
+
 
         public static string BrowserSubprocessPath => Path.Combine(CefDir, "CefSharp.BrowserSubprocess.exe");
 
@@ -97,6 +100,39 @@ namespace MangaUnhost {
             File.Delete(SaveAs);
         }
 
+        public static void WineHelper()
+        {
+            if (IsRealWindows)
+                return;
+            if (IntPtr.Size == 4)
+                return;
+
+            var CMD = Ini.GetConfig("Settings", "WineLauncher", SettingsPath, false);
+            if (string.IsNullOrWhiteSpace(CMD))
+            {
+                MessageBox.Show("The 64bit prefix isn't supported by this program\nPlease, Press OK and type the absolute path to a 32bit prefix.", "MangaUnhost - WINE", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Form Tmp = new Form();
+                Tmp.Size = new System.Drawing.Size(200, 40);
+                Tmp.FormBorderStyle = FormBorderStyle.FixedDialog;
+                TextBox TbInput = new TextBox();
+                TbInput.Size = new System.Drawing.Size(180, 30);
+                Tmp.Controls.Add(TbInput);
+                TbInput.Location = new System.Drawing.Point(10, 5);
+                TbInput.Text = $"/home/{Environment.UserName}/.win32";
+                Tmp.Text = "Type the Prefix Path and close the window";
+
+                Tmp.ShowDialog();
+
+                CMD = $"export WINEPREFIX=\"{TbInput.Text}\" && winecfg";
+                Ini.SetConfig("Settings", "WineLauncher", SettingsPath, CMD);
+            }
+
+            UnixGate.UnixGate.Initialize();
+            var hModule = UnixGate.UnixGate.dlopen("libc.so.6", UnixGate.UnixGate.RTLD_NOW);
+            var hProc = UnixGate.UnixGate.dlsym(hModule, "system");
+            UnixGate.UnixGate.UnixFastCall(hProc, CMD);
+        }
+
         static Assembly LoadFromPlatformFolder(object sender, ResolveEventArgs args) {
             string folderPath = Path.GetDirectoryName(CurrentAssembly);
             string assemblyPath = Path.Combine(folderPath, (Environment.Is64BitProcess ? "x64" : "x86"), new AssemblyName(args.Name).Name + ".dll");
@@ -104,5 +140,37 @@ namespace MangaUnhost {
             Assembly assembly = Assembly.LoadFrom(assemblyPath);
             return assembly;
         }
+
+
+        #region Non-Windows Support
+
+        [DllImport(@"kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+        [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        static bool? isRWin;
+
+        internal static bool IsRealWindows
+        {
+            get
+            {
+                if (isRWin.HasValue)
+                    return isRWin.Value;
+
+                IntPtr hModule = GetModuleHandle(@"ntdll.dll");
+                if (hModule == IntPtr.Zero)
+                    isRWin = false;
+                else
+                {
+                    IntPtr fptr = GetProcAddress(hModule, @"wine_get_version");
+                    isRWin = fptr == IntPtr.Zero;
+                }
+
+                return isRWin.Value;
+            }
+        }
+        #endregion
     }
 }
