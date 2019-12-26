@@ -36,6 +36,7 @@ namespace MangaUnhost {
             Application.SetCompatibleTextRenderingDefault(false);
 
             FinishUpdate();
+            WineHelper();
             CefUpdater();
 
             Application.Run(new Main());
