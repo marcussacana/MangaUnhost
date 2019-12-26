@@ -113,7 +113,7 @@ namespace MangaUnhost {
             {
                 MessageBox.Show("The 64bit prefix isn't supported by this program\nPlease, Press OK and type the absolute path to a 32bit prefix.", "MangaUnhost - WINE", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 Form Tmp = new Form();
-                Tmp.Size = new System.Drawing.Size(200, 40);
+                Tmp.Size = new System.Drawing.Size(220, 50);
                 Tmp.FormBorderStyle = FormBorderStyle.FixedDialog;
                 TextBox TbInput = new TextBox();
                 TbInput.Size = new System.Drawing.Size(180, 30);
