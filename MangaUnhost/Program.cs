@@ -112,6 +112,7 @@ namespace MangaUnhost {
             if (string.IsNullOrWhiteSpace(CMD))
             {
                 MessageBox.Show("The 64bit prefix isn't supported by this program\nPlease, Press OK and type the absolute path to a 32bit prefix.", "MangaUnhost - WINE", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
                 Form Tmp = new Form();
                 Tmp.Size = new System.Drawing.Size(330, 55);
                 Tmp.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -121,9 +122,11 @@ namespace MangaUnhost {
                 Tmp.Controls.Add(TbInput);
                 TbInput.Location = new System.Drawing.Point(10, 5);
                 TbInput.Text = $"/home/{Environment.UserName}/.win32";
-                Tmp.Text = "Type the Prefix Path and close the window";
+                Tmp.Text = "Type the Prefix Path";
 
                 Tmp.ShowDialog();
+
+                MessageBox.Show("You can change this manually in the MangaUnhost.ini later.", "MangaUnhost - WINE", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 CMD = $"export WINEPREFIX=\"{TbInput.Text}\" && wine \"{Path.GetFileName(Application.ExecutablePath)}\"";
                 Ini.SetConfig("Settings", "WineLauncher", CMD, SettingsPath);
