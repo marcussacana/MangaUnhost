@@ -97,6 +97,25 @@ namespace MangaUnhost {
             Cef.Initialize(new CefSettings() {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath
             }, false, browserProcessHandler: null);
+
+            this.Shown += (sender, e) =>
+            {
+                Visible = false;
+                Thread.Sleep(100);
+                Visible = true;
+
+                //Prevent Hidden incon in taskbar
+                Form frm = new Form()
+                {
+                    Size = new Size(1, 1)
+                };
+                frm.Shown += (a, b) => { frm.Close(); };
+                frm.ShowDialog();
+
+                TopMost = true;
+                Focus();
+                TopMost = false;
+            };
         }
 
         private void MainShown(object sender, EventArgs e) {
