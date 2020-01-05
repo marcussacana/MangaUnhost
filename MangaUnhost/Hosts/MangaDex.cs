@@ -64,7 +64,7 @@ namespace MangaUnhost.Hosts {
                         Name = Name.Substring("ch. ");
 
                     ChapterNames[ID] = DataTools.GetRawName(Name.Trim());
-                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.org"), Link).AbsoluteUri;
+                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.cc"), Link).AbsoluteUri;
                     ChapterLangs[ID] = Lang;
 
                     Ids.Add(ID++);
@@ -117,8 +117,8 @@ namespace MangaUnhost.Hosts {
             if (Result.status != "OK")
                 throw new Exception();
 
-            if (!Result.server.ToLower().Contains(".mangadex.org"))
-                Result.server = "https://mangadex.org" + Result.server;
+            if (!Result.server.ToLower().Contains(".mangadex.cc"))
+                Result.server = "https://mangadex.cc" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
@@ -148,10 +148,9 @@ namespace MangaUnhost.Hosts {
 
         public ComicInfo LoadUri(Uri Uri) {
             if (Uri.AbsoluteUri.Contains("/chapters/"))
-                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/') + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/').Replace(".com", ".cc") + "/chapters/1");
             else
-                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/') + "/chapters/1");
-
+                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/').Replace(".com", ".cc") + "/chapters/1");
 
             Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadUrl(Uri);
