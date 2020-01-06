@@ -114,13 +114,13 @@ namespace MangaUnhost.Hosts {
                 return null;
             if (Result.status != "OK")
                 throw new Exception();
-
+            
             if (!Result.server.ToLower().Contains(".mangadex.cc"))
                 Result.server = "https://mangadex.cc" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
-                Pages.Add($"{Result.server}{Result.hash}/{Page}");
+                Pages.Add($"{Result.server}{Result.hash}/{Page}".Replace(".org",  ".cc"));
             }
 
             return Pages.ToArray();
@@ -136,7 +136,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
