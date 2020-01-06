@@ -89,7 +89,7 @@ namespace MangaUnhost.Hosts
             Document.LoadUrl(Uri);
 
             ComicInfo Info = new ComicInfo();
-            Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/*[self::h3 or self::h2 or self::h1]").Trim();
+            Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/*[self::h3 or self::h2 or self::h1]").InnerText.Trim();
             if (Info.Title.ToUpper().StartsWith("HOT"))
                 Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
