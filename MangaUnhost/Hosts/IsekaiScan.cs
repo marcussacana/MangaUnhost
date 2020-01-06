@@ -95,7 +95,7 @@ namespace MangaUnhost.Hosts
             var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img");
             
             var ImgUrl = ImgNode.GetAttributeValue("data-src", "");
-            if (string.IsNullOrWhitespace(ImgUrl))
+            if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("src", "");
             
             Info.Cover = ImgUrl.TryDownload();
