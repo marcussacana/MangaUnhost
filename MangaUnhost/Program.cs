@@ -128,7 +128,7 @@ namespace MangaUnhost {
 
                 MessageBox.Show("You can change this manually in the MangaUnhost.ini later.", "MangaUnhost - WINE", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                CMD = $"export WINEPREFIX=\"{TbInput.Text}\" && wine \"{Path.GetFileName(Application.ExecutablePath)}\"";
+                CMD = $"export WINEPREFIX=\"{TbInput.Text}\" && nohup wine \"{Path.GetFileName(Application.ExecutablePath)}\" &";
                 Ini.SetConfig("Settings", "WineLauncher", CMD, SettingsPath);
             }
 

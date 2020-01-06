@@ -383,7 +383,7 @@
             this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsRawRadio.Location = new System.Drawing.Point(229, 27);
             this.SaveAsRawRadio.Name = "SaveAsRawRadio";
-            this.SaveAsRawRadio.Size = new System.Drawing.Size(57, 23);
+            this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
             this.SaveAsRawRadio.TabIndex = 7;
             this.SaveAsRawRadio.Text = "RAW";
             this.SaveAsRawRadio.UseVisualStyleBackColor = false;
@@ -870,7 +870,7 @@
             this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximumSize = new System.Drawing.Size(1440, 860);
+            this.MaximumSize = new System.Drawing.Size(1440, 763);
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "MangaUnhost";

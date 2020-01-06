@@ -5,12 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
-using System.Windows.Forms;
 
 namespace MangaUnhost.Hosts {
     class MangaDex : IHost {
         string CurrentUrl;
-        string CurrentHtml;
         HtmlAgilityPack.HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
@@ -106,7 +104,7 @@ namespace MangaUnhost.Hosts {
 
         private string[] GetChapterPages(int ID) {
             string CID = ChapterLinks[ID].Substring("/chapter/");
-            string API = $"https://mangadex.org/api/?id={CID}&type=chapter&baseURL=%2Fapi";
+            string API = $"https://mangadex.cc/api/?id={CID}&type=chapter&baseURL=%2Fapi";
 
             string JSON = Encoding.UTF8.GetString(API.TryDownload());
 
@@ -138,7 +136,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 2)
             };
         }
 
@@ -148,9 +146,9 @@ namespace MangaUnhost.Hosts {
 
         public ComicInfo LoadUri(Uri Uri) {
             if (Uri.AbsoluteUri.Contains("/chapters/"))
-                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/').Replace(".com", ".cc") + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/').Replace(".org", ".cc") + "/chapters/1");
             else
-                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/').Replace(".com", ".cc") + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/').Replace(".org", ".cc") + "/chapters/1");
 
             Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadUrl(Uri);
