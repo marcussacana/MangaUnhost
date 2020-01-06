@@ -92,7 +92,7 @@ namespace MangaUnhost.Hosts
             Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/h3").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
             
-            var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img")
+            var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img");
             
             var ImgUrl = ImgNode.GetAttributeValue("data-src", "");
             if (string.IsNullOrWhitespace(ImgUrl))
