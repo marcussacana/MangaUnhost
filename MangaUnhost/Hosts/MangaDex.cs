@@ -20,7 +20,6 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                Console.WriteLine("DEBUG: " + PageUrl);
                 yield return PageUrl.TryDownload();
             }
         }
@@ -116,12 +115,12 @@ namespace MangaUnhost.Hosts {
             if (Result.status != "OK")
                 throw new Exception();
             
-            if (!Result.server.ToLower().Contains(".mangadex.org"))
+            if (!Result.server.ToLower().Contains(".mangadex.org") && !Result.server.ToLower().Contains(".mangadex.cc"))
                 Result.server = "https://mangadex.org" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
-                Pages.Add($"{Result.server}{Result.hash}/{Page}");
+                Pages.Add($"{Result.server}{Result.hash}/{Page}".Substring(x.LastIndexOf("http")));
             }
 
             return (from x in Pages select x.Replace(".org", ".cc")).ToArray();
