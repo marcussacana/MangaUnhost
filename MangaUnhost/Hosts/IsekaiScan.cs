@@ -73,13 +73,14 @@ namespace MangaUnhost.Hosts
                 Name = "Isekai Scan",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
         public bool IsValidUri(Uri Uri)
         {
-            return Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/");
+            return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
         }
 
         HtmlDocument Document = new HtmlDocument();
