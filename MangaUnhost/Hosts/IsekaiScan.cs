@@ -30,7 +30,7 @@ namespace MangaUnhost.Hosts
             foreach (var Node in Document.SelectNodes("//li[starts-with(@class, \"wp-manga-chapter\")]/a"))
             {
                 string URL = Node.GetAttributeValue("href", "");
-                string Name = Node.InnerText.Trim();
+                string Name = Node.InnerText.Trim().ToLower();
 
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim();
@@ -91,10 +91,14 @@ namespace MangaUnhost.Hosts
             ComicInfo Info = new ComicInfo();
             Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/h3").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
-
-            Info.Cover = Document
-                .SelectSingleNode("//div[@class=\"summary_image\"]/a/img")
-                .GetAttributeValue("data-src", "").TryDownload();
+            
+            var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img")
+            
+            var ImgUrl = ImgNode.GetAttributeValue("data-src", "");
+            if (string.IsNullOrWhitespace(ImgUrl))
+                ImgUrl = ImgNode.GetAttributeValue("src", "");
+            
+            Info.Cover = ImgUrl.TryDownload();
 
             Info.ContentType = ContentType.Comic;
 
