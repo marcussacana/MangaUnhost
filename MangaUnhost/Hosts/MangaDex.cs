@@ -120,7 +120,9 @@ namespace MangaUnhost.Hosts {
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
-                Pages.Add($"{Result.server}{Result.hash}/{Page}".Substring(x.LastIndexOf("http")));
+                var Link = $"{Result.server}{Result.hash}/{Page}";
+                Link = Link..Substring(Link.LastIndexOf("http"));
+                Pages.Add(Link);
             }
 
             return (from x in Pages select x.Replace(".org", ".cc")).ToArray();
