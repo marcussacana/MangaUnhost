@@ -115,12 +115,12 @@ namespace MangaUnhost.Hosts {
             if (Result.status != "OK")
                 throw new Exception();
             
-            if (!Result.server.ToLower().Contains(".mangadex.cc"))
+            if (!Result.server.ToLower().Contains(".mangadex.cc") && !Result.server.ToLower().Contains(".mangadex.org"))
                 Result.server = "https://mangadex.cc" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
-                Pages.Add($"{Result.server}{Result.hash}/{Page}".Replace(".org",  ".cc"));
+                Pages.Add($"{Result.server}{Result.hash}/{Page}".Replace(".org", ".cc"));
             }
 
             return Pages.ToArray();
