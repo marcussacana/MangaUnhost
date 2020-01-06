@@ -36,6 +36,9 @@ namespace MangaUnhost.Hosts
                     Name = Name.Substring("chapter").Trim();
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(' ', '\t', '.');
+                    
+                if (Name.Contains("-"))
+                    Name = Name.Split('-').First().Trim();
 
                 LinkMap[ID] = URL;
 
@@ -55,7 +58,8 @@ namespace MangaUnhost.Hosts
 
             string[] Links = (from x in Chapter
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
-                              select x.GetAttributeValue("data-src", "").Trim()).ToArray();
+                              select (x.GetAttributeValue("data-src", null) ??
+                                      x.GetAttributeValue("src", "")).Trim()).ToArray();
 
             return Links;
         }
