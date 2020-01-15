@@ -1,14 +1,16 @@
-﻿using MangaUnhost.Browser;
+using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Hosts {
     class MangaDex : IHost {
         string CurrentUrl;
+        string CurrentHtml;
         HtmlAgilityPack.HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
@@ -62,7 +64,7 @@ namespace MangaUnhost.Hosts {
                         Name = Name.Substring("ch. ");
 
                     ChapterNames[ID] = DataTools.GetRawName(Name.Trim());
-                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.cc"), Link).AbsoluteUri;
+                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.org"), Link).AbsoluteUri;
                     ChapterLangs[ID] = Lang;
 
                     Ids.Add(ID++);
@@ -104,7 +106,7 @@ namespace MangaUnhost.Hosts {
 
         private string[] GetChapterPages(int ID) {
             string CID = ChapterLinks[ID].Substring("/chapter/");
-            string API = $"https://mangadex.cc/api/?id={CID}&type=chapter&baseURL=%2Fapi";
+            string API = $"https://mangadex.org/api/?id={CID}&type=chapter&baseURL=%2Fapi";
 
             string JSON = Encoding.UTF8.GetString(API.TryDownload());
 
@@ -114,18 +116,16 @@ namespace MangaUnhost.Hosts {
                 return null;
             if (Result.status != "OK")
                 throw new Exception();
-            
-            if (!Result.server.ToLower().Contains(".mangadex.org") && !Result.server.ToLower().Contains(".mangadex.cc"))
+
+            if (!Result.server.ToLower().Contains(".mangadex.org"))
                 Result.server = "https://mangadex.org" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
-                var Link = $"{Result.server}{Result.hash}/{Page}";
-                Link = Link.Substring(Link.LastIndexOf("http"));
-                Pages.Add(Link);
+                Pages.Add($"{Result.server}{Result.hash}/{Page}");
             }
 
-            return (from x in Pages select x.Replace(".org", ".cc")).ToArray();
+            return Pages.ToArray();
         }
 
         public IDecoder GetDecoder() {
@@ -138,7 +138,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 3)
+                Version = new Version(1, 0)
             };
         }
 
@@ -148,9 +148,10 @@ namespace MangaUnhost.Hosts {
 
         public ComicInfo LoadUri(Uri Uri) {
             if (Uri.AbsoluteUri.Contains("/chapters/"))
-                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/').Replace(".org", ".cc") + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/') + "/chapters/1");
             else
-                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/').Replace(".org", ".cc") + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/') + "/chapters/1");
+
 
             Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadUrl(Uri);
