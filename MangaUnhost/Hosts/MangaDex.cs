@@ -124,7 +124,8 @@ namespace MangaUnhost.Hosts {
             foreach (string Page in Result.page_array) {
                 Pages.Add($"{Result.server}{Result.hash}/{Page}");
             }
-
+            foreach (var Page in Pages)
+                Console.WriteLine(Page);
             return Pages.ToArray();
         }
 
