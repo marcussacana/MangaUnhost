@@ -71,12 +71,12 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
         public bool IsValidUri(Uri Uri) {
-            return Uri.Host.ToLower().Contains("union") && Uri.Host.ToLower().Contains(".top") && Uri.AbsolutePath.Contains("/manga/");
+            return Uri.Host.ToLower().Contains("union") && Uri.Host.ToLower().Contains(".top") && Uri.AbsolutePath.Contains("manga/");
         }
 
         public ComicInfo LoadUri(Uri Uri) {

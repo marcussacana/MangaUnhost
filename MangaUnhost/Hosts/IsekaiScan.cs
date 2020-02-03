@@ -30,12 +30,15 @@ namespace MangaUnhost.Hosts
             foreach (var Node in Document.SelectNodes("//li[starts-with(@class, \"wp-manga-chapter\")]/a"))
             {
                 string URL = Node.GetAttributeValue("href", "");
-                string Name = Node.InnerText.Trim();
+                string Name = Node.InnerText.Trim().ToLower();
 
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim();
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(' ', '\t', '.');
+                    
+                if (Name.Contains("-"))
+                    Name = Name.Split('-').First().Trim();
 
                 LinkMap[ID] = URL;
 
@@ -55,7 +58,8 @@ namespace MangaUnhost.Hosts
 
             string[] Links = (from x in Chapter
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
-                              select x.GetAttributeValue("data-src", "").Trim()).ToArray();
+                              select (x.GetAttributeValue("data-src", null) ??
+                                      x.GetAttributeValue("src", "")).Trim()).ToArray();
 
             return Links;
         }
@@ -73,13 +77,14 @@ namespace MangaUnhost.Hosts
                 Name = "Isekai Scan",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
         public bool IsValidUri(Uri Uri)
         {
-            return Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/");
+            return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
         }
 
         HtmlDocument Document = new HtmlDocument();
@@ -88,12 +93,18 @@ namespace MangaUnhost.Hosts
             Document.LoadUrl(Uri);
 
             ComicInfo Info = new ComicInfo();
-            Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/h3").InnerText;
+            Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/*[self::h3 or self::h2 or self::h1]").InnerText.Trim();
+            if (Info.Title.ToUpper().StartsWith("HOT"))
+                Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
-
-            Info.Cover = Document
-                .SelectSingleNode("//div[@class=\"summary_image\"]/a/img")
-                .GetAttributeValue("data-src", "").TryDownload();
+            
+            var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img");
+            
+            var ImgUrl = ImgNode.GetAttributeValue("data-src", "");
+            if (string.IsNullOrWhiteSpace(ImgUrl))
+                ImgUrl = ImgNode.GetAttributeValue("src", "");
+            
+            Info.Cover = ImgUrl.TryDownload();
 
             Info.ContentType = ContentType.Comic;
 
