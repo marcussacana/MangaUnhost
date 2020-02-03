@@ -233,7 +233,7 @@ namespace MangaUnhost {
                             DownloadChapter(Chapters, Chapter.Key, HostIsnt, CurrentInfo);
                         } catch (Exception ex){
                             if (Program.Debug)
-                                throw ex;
+                                throw;
                         }
 
                         StatusBar.SecondLabelText = string.Empty;
@@ -331,7 +331,7 @@ namespace MangaUnhost {
                             }
                         } catch (Exception ex) {
                             if (Program.Debug)
-                                throw ex;
+                                throw;
                         }
                     }
 

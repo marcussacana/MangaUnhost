@@ -20,7 +20,7 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                yield return PageUrl.TryDownload();
+                yield return TryDownload(new Uri(PageUrl));
             }
         }
 
@@ -62,7 +62,7 @@ namespace MangaUnhost.Hosts {
                         Name = Name.Substring("ch. ");
 
                     ChapterNames[ID] = DataTools.GetRawName(Name.Trim());
-                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.cc"), Link).AbsoluteUri;
+                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.org"), Link).AbsoluteUri;
                     ChapterLangs[ID] = Lang;
 
                     Ids.Add(ID++);
@@ -72,7 +72,7 @@ namespace MangaUnhost.Hosts {
                 if (!Empty) {
                     CurrentPage = GetNextPage(CurrentPage);
                     Page = new HtmlAgilityPack.HtmlDocument();
-                    Page.LoadUrl(CurrentPage);
+                    Page.LoadUrl(CurrentPage, Referer: "https://mangadex.org", UserAgent: CFData?.UserAgent ?? null, Cookies: CFData?.Cookies ?? null);
                 }
 
             } while (!Empty);
@@ -104,9 +104,9 @@ namespace MangaUnhost.Hosts {
 
         private string[] GetChapterPages(int ID) {
             string CID = ChapterLinks[ID].Substring("/chapter/");
-            string API = $"https://mangadex.cc/api/?id={CID}&type=chapter&baseURL=%2Fapi";
+            string API = $"https://mangadex.org/api/?id={CID}&type=chapter&baseURL=%2Fapi";
 
-            string JSON = Encoding.UTF8.GetString(API.TryDownload());
+            string JSON = TryDownload(API);
 
             MangaDexApi Result = Extensions.JsonDecode<MangaDexApi>(JSON);
 
@@ -115,8 +115,8 @@ namespace MangaUnhost.Hosts {
             if (Result.status != "OK")
                 throw new Exception();
 
-            if (!Result.server.ToLower().Contains(".mangadex.cc"))
-                Result.server = "https://mangadex.cc" + Result.server;
+            if (!Result.server.ToLower().Contains(".mangadex."))
+                Result.server = "https://mangadex.org" + Result.server;
 
             List<string> Pages = new List<string>();
             foreach (string Page in Result.page_array) {
@@ -146,27 +146,49 @@ namespace MangaUnhost.Hosts {
 
         public ComicInfo LoadUri(Uri Uri) {
             if (Uri.AbsoluteUri.Contains("/chapters/"))
-                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/').Replace(".org", ".cc") + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/') + "/chapters/1");
             else
-                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/').Replace(".org", ".cc") + "/chapters/1");
+                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/') + "/chapters/1");
 
             Document = new HtmlAgilityPack.HtmlDocument();
-            Document.LoadUrl(Uri);
+            Document.LoadUrl(Uri, Referer: "https://mangadex.org", UserAgent: CFData?.UserAgent ?? null, Cookies: CFData?.Cookies ?? null);
 
             ComicInfo Info = new ComicInfo();
 
             Info.Title = Document.SelectSingleNode("//*[@id=\"content\"]//h6/span[@class=\"mx-1\"]").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            Info.Cover = new Uri(new Uri("https://mangadex.org"), Document
+            Info.Cover = TryDownload(new Uri(new Uri("https://mangadex.org"), Document
                 .SelectSingleNode("//*[@id=\"content\"]//img[@class=\"rounded\"]")
-                .GetAttributeValue("src", string.Empty)).TryDownload();
+                .GetAttributeValue("src", string.Empty)));
 
             Info.ContentType = ContentType.Comic;
 
             CurrentUrl = Uri.AbsoluteUri;
 
             return Info;
+        }
+
+        CloudflareData? CFData = null;
+
+        private string TryDownload(string Url) {
+            var Uri = new Uri(Url);
+            var Data = TryDownload(Uri);
+
+            return Encoding.UTF8.GetString(Data);
+        }
+        private byte[] TryDownload(Uri Url) {
+            if (CFData != null) {
+                return Url.TryDownload("https://mangadex.org", CFData?.UserAgent, Cookie: CFData?.Cookies);
+            }
+            try
+            {
+                return Url.TryDownload();
+            }
+            catch {
+                CFData = JSTools.BypassCloudFlare(Url.AbsoluteUri);
+                return TryDownload(Url);
+            }
         }
 
         struct MangaDexApi {
