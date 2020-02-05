@@ -430,8 +430,6 @@ namespace MangaUnhost {
                 case SaveAs.BMP:
                     Format = ImageFormat.Bmp;
                     return "bmp";
-                case SaveAs.RAW:
-                    return null;
                 case SaveAs.AUTO:
                     Format = Bitmap.RawFormat;
                     return Bitmap.GetImageExtension();
