@@ -317,18 +317,25 @@ namespace MangaUnhost {
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
                         Application.DoEvents();
 
-                        try {
-                            using (Bitmap Result = Decoder.Decode(Data)) {
-                                string PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
-                                string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
+                        try
+                        {
+                            string PageName = $"{Pages.Count:D3}.png";
+                            string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
 
-                                Result.Save(PagePath, Format);
-
-                                if (Settings.ImageClipping)
-                                    ClipQueue.Enqueue(PagePath);
-                                
-                                Pages.Add(PageName);
+                            if ((SaveAs)Settings.SaveAs == SaveAs.RAW) {
+                                File.WriteAllBytes(PagePath, Data);
+                            } else {
+                                using (Bitmap Result = Decoder.Decode(Data)) {
+                                    PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
+                                    PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
+                                    Result.Save(PagePath, Format);
+                                }
                             }
+
+                            if (Settings.ImageClipping)
+                                ClipQueue.Enqueue(PagePath);
+
+                            Pages.Add(PageName);
                         } catch (Exception ex) {
                             if (Program.Debug)
                                 throw;
@@ -424,6 +431,8 @@ namespace MangaUnhost {
                     Format = ImageFormat.Bmp;
                     return "bmp";
                 case SaveAs.RAW:
+                    return null;
+                case SaveAs.AUTO:
                     Format = Bitmap.RawFormat;
                     return Bitmap.GetImageExtension();
                 default:
@@ -510,6 +519,11 @@ namespace MangaUnhost {
                 Settings.SaveAs = (int)SaveAs.RAW;
         }
 
+        private void AutoSaveAs(object sender, EventArgs e){
+            if (SaveAsRawRadio.Checked)
+                Settings.SaveAs = (int)SaveAs.AUTO;
+        }
+
         private void LanguageChanged(object sender, EventArgs e) {
             Settings.Language = LanguageBox.SelectedItem.ToString();
             ReloadSettings();
@@ -546,10 +560,11 @@ namespace MangaUnhost {
             SkipDownEnbRadio.Checked = Settings.SkipDownloaded;
 
             SaveAs SaveAs = (SaveAs)Settings.SaveAs;
-            SaveAsPngRadio.Checked = SaveAs == SaveAs.PNG;
-            SaveAsJpgRadio.Checked = SaveAs == SaveAs.JPG;
-            SaveAsBmpRadio.Checked = SaveAs == SaveAs.BMP;
-            SaveAsRawRadio.Checked = SaveAs == SaveAs.RAW;
+            SaveAsPngRadio.Checked  = SaveAs == SaveAs.PNG;
+            SaveAsJpgRadio.Checked  = SaveAs == SaveAs.JPG;
+            SaveAsBmpRadio.Checked  = SaveAs == SaveAs.BMP;
+            SaveAsRawRadio.Checked  = SaveAs == SaveAs.RAW;
+            SaveAsAutoRadio.Checked = SaveAs == SaveAs.AUTO;
 
 
 

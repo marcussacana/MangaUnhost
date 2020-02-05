@@ -78,6 +78,7 @@
             this.DebugTab = new System.Windows.Forms.TabPage();
             this.DbgButtonA = new VSButton();
             this.DbgPreview = new System.Windows.Forms.PictureBox();
+            this.SaveAsAutoRadio = new System.Windows.Forms.RadioButton();
             this.ThemeContainer.SuspendLayout();
             this.MainTabMenu.SuspendLayout();
             this.DownloaderTab.SuspendLayout();
@@ -366,6 +367,7 @@
             // panel5
             // 
             this.panel5.BackColor = System.Drawing.Color.Transparent;
+            this.panel5.Controls.Add(this.SaveAsAutoRadio);
             this.panel5.Controls.Add(this.SaveAsRawRadio);
             this.panel5.Controls.Add(this.SaveAsBmpRadio);
             this.panel5.Controls.Add(this.lblSaveAs);
@@ -862,6 +864,19 @@
             this.DbgPreview.TabIndex = 0;
             this.DbgPreview.TabStop = false;
             // 
+            // SaveAsAutoRadio
+            // 
+            this.SaveAsAutoRadio.AutoSize = true;
+            this.SaveAsAutoRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SaveAsAutoRadio.ForeColor = System.Drawing.Color.White;
+            this.SaveAsAutoRadio.Location = new System.Drawing.Point(106, 27);
+            this.SaveAsAutoRadio.Name = "SaveAsAutoRadio";
+            this.SaveAsAutoRadio.Size = new System.Drawing.Size(57, 23);
+            this.SaveAsAutoRadio.TabIndex = 8;
+            this.SaveAsAutoRadio.Text = "Auto";
+            this.SaveAsAutoRadio.UseVisualStyleBackColor = false;
+            this.SaveAsAutoRadio.CheckedChanged += new System.EventHandler(this.AutoSaveAs);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -961,6 +976,7 @@
         private VSVerticalScrollBar ContainerScrollBar;
         private System.Windows.Forms.TabPage LibraryTab;
         private System.Windows.Forms.FlowLayoutPanel LibraryContainer;
+        private System.Windows.Forms.RadioButton SaveAsAutoRadio;
     }
 }
 

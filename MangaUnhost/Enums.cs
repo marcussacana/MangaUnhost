@@ -10,7 +10,7 @@ namespace MangaUnhost {
     }
 
     public enum SaveAs : int {
-        PNG, JPG, BMP, RAW
+        PNG, JPG, BMP, RAW, AUTO
     }
 
     public enum CaptchaSolverType {

@@ -115,7 +115,7 @@ namespace MangaUnhost.Hosts {
             if (Result.status != "OK")
                 throw new Exception();
 
-            if (!Result.server.ToLower().Contains(".mangadex."))
+            if (!Result.server.ToLower().Contains("mangadex."))
                 Result.server = "https://mangadex.org" + Result.server;
 
             List<string> Pages = new List<string>();
@@ -136,7 +136,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
