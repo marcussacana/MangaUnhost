@@ -11,6 +11,9 @@ namespace MangaUnhost.Hosts
 {
     class IsekaiScan : IHost
     {
+
+        bool ReverseChapters = false;
+
         Dictionary<int, string> LinkMap = new Dictionary<int, string>();
         public NovelChapter DownloadChapter(int ID)
         {
@@ -27,7 +30,9 @@ namespace MangaUnhost.Hosts
         {
             int ID = LinkMap.Count;
 
-            foreach (var Node in Document.SelectNodes("//li[starts-with(@class, \"wp-manga-chapter\")]/a"))
+            var Nodes = Document.SelectNodes("//li[starts-with(@class, \"wp-manga-chapter\")]/a");
+
+            foreach (var Node in ReverseChapters ? Nodes.Reverse() : Nodes)
             {
                 string URL = Node.GetAttributeValue("href", "");
                 string Name = Node.InnerText.Trim().ToLower();
@@ -84,12 +89,18 @@ namespace MangaUnhost.Hosts
         public bool IsValidUri(Uri Uri)
         {
             return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("manga47.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
                    (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
         }
 
         HtmlDocument Document = new HtmlDocument();
         public ComicInfo LoadUri(Uri Uri)
         {
+            if (Uri.Host.ToLower().Contains("manga47.com"))
+                ReverseChapters = true;
+            else 
+                ReverseChapters = false;
+
             Document.LoadUrl(Uri);
 
             ComicInfo Info = new ComicInfo();

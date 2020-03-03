@@ -754,7 +754,7 @@ namespace MangaUnhost {
             foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
             {
                 LibraryContainer.Controls.Add(new ComicPreview(Comic));
-                ThreadTools.Wait(100, true);
+                ThreadTools.Wait(10, true);
             }
 
             foreach (var Control in LibraryContainer.Controls)
