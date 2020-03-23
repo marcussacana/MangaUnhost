@@ -9,6 +9,7 @@ using System.Web;
 
 namespace MangaUnhost.Hosts {
     class UnionMangas : IHost {
+        string CurrentHost;
         HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
@@ -86,6 +87,8 @@ namespace MangaUnhost.Hosts {
                 CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
             }
 
+            CurrentHost = Uri.Host;
+
             Document = new HtmlDocument();
             Document.LoadHtml(CurrentHtml);
 
@@ -104,10 +107,14 @@ namespace MangaUnhost.Hosts {
         }
 
         public byte[] TryDownload(Uri URL) {
+            byte[] Rst;
             if (Cloudflare == null)
-                return URL.TryDownload(AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError } );
+                Rst = URL.TryDownload(AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError } );
             else
-                return URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies);
+                Rst = URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies);
+            if (Rst == null && URL.Host != CurrentHost)
+                return new Uri(new Uri("https://" + CurrentHost), URL.PathAndQuery).TryDownload();
+            return Rst;
         }
     }
 }
