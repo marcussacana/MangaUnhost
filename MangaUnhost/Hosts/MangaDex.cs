@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Web;
 
 namespace MangaUnhost.Hosts {
@@ -57,7 +58,11 @@ namespace MangaUnhost.Hosts {
                         Name = Name.Substring("vol. ");
 
                         var Parts = Name.Split(' ');
-                        Name = /*Parts[0] + "." +*/ Parts[2];
+                        if (Parts.Length > 2)
+                            Name = Parts[2];
+                        else
+                            Name = char.ToUpper(Name[0]) + Name.Substring(1);
+
                     } else if (Name.Contains("ch. "))
                         Name = Name.Substring("ch. ");
 

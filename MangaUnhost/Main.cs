@@ -95,7 +95,7 @@ namespace MangaUnhost {
             ReloadSettings();
 
             Cef.Initialize(new CefSettings() {
-                BrowserSubprocessPath = Program.BrowserSubprocessPath
+                BrowserSubprocessPath = Program.BrowserSubprocessPath                
             }, false, browserProcessHandler: null);
 
             this.Shown += (sender, e) =>
@@ -117,8 +117,11 @@ namespace MangaUnhost {
         private void MainShown(object sender, EventArgs e) {
             TopMost = true;
             Hide();
+            Application.DoEvents();
             Show();
+            Application.DoEvents();
             BringToFront();
+            Application.DoEvents();
             Focus();
             Application.DoEvents();
             TopMost = false;

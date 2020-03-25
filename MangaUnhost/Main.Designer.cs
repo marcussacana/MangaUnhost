@@ -43,6 +43,7 @@
             this.SkipDownDisRadio = new System.Windows.Forms.RadioButton();
             this.lblSkipDownloaded = new System.Windows.Forms.Label();
             this.panel5 = new System.Windows.Forms.Panel();
+            this.SaveAsAutoRadio = new System.Windows.Forms.RadioButton();
             this.SaveAsRawRadio = new System.Windows.Forms.RadioButton();
             this.SaveAsBmpRadio = new System.Windows.Forms.RadioButton();
             this.lblSaveAs = new System.Windows.Forms.Label();
@@ -78,7 +79,6 @@
             this.DebugTab = new System.Windows.Forms.TabPage();
             this.DbgButtonA = new VSButton();
             this.DbgPreview = new System.Windows.Forms.PictureBox();
-            this.SaveAsAutoRadio = new System.Windows.Forms.RadioButton();
             this.ThemeContainer.SuspendLayout();
             this.MainTabMenu.SuspendLayout();
             this.DownloaderTab.SuspendLayout();
@@ -378,6 +378,19 @@
             this.panel5.Size = new System.Drawing.Size(294, 60);
             this.panel5.TabIndex = 10;
             // 
+            // SaveAsAutoRadio
+            // 
+            this.SaveAsAutoRadio.AutoSize = true;
+            this.SaveAsAutoRadio.BackColor = System.Drawing.Color.Transparent;
+            this.SaveAsAutoRadio.ForeColor = System.Drawing.Color.White;
+            this.SaveAsAutoRadio.Location = new System.Drawing.Point(106, 27);
+            this.SaveAsAutoRadio.Name = "SaveAsAutoRadio";
+            this.SaveAsAutoRadio.Size = new System.Drawing.Size(57, 23);
+            this.SaveAsAutoRadio.TabIndex = 8;
+            this.SaveAsAutoRadio.Text = "Auto";
+            this.SaveAsAutoRadio.UseVisualStyleBackColor = false;
+            this.SaveAsAutoRadio.CheckedChanged += new System.EventHandler(this.AutoSaveAs);
+            // 
             // SaveAsRawRadio
             // 
             this.SaveAsRawRadio.AutoSize = true;
@@ -385,7 +398,7 @@
             this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsRawRadio.Location = new System.Drawing.Point(229, 27);
             this.SaveAsRawRadio.Name = "SaveAsRawRadio";
-            this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsRawRadio.Size = new System.Drawing.Size(57, 23);
             this.SaveAsRawRadio.TabIndex = 7;
             this.SaveAsRawRadio.Text = "RAW";
             this.SaveAsRawRadio.UseVisualStyleBackColor = false;
@@ -864,19 +877,6 @@
             this.DbgPreview.TabIndex = 0;
             this.DbgPreview.TabStop = false;
             // 
-            // SaveAsAutoRadio
-            // 
-            this.SaveAsAutoRadio.AutoSize = true;
-            this.SaveAsAutoRadio.BackColor = System.Drawing.Color.Transparent;
-            this.SaveAsAutoRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsAutoRadio.Location = new System.Drawing.Point(106, 27);
-            this.SaveAsAutoRadio.Name = "SaveAsAutoRadio";
-            this.SaveAsAutoRadio.Size = new System.Drawing.Size(57, 23);
-            this.SaveAsAutoRadio.TabIndex = 8;
-            this.SaveAsAutoRadio.Text = "Auto";
-            this.SaveAsAutoRadio.UseVisualStyleBackColor = false;
-            this.SaveAsAutoRadio.CheckedChanged += new System.EventHandler(this.AutoSaveAs);
-            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -885,7 +885,7 @@
             this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximumSize = new System.Drawing.Size(1440, 763);
+            this.MaximumSize = new System.Drawing.Size(1440, 860);
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "MangaUnhost";
