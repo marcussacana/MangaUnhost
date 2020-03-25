@@ -94,5 +94,7 @@
         public string No => "Não";
 
         public string UpdateFound => "Atualização Disponível, Deseja Atualizar?";
+
+        public string SwitchLanguage => "Alterar Linguágem";
     }
 }

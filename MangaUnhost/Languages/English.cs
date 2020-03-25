@@ -96,6 +96,10 @@
         public string Yes => "Yes";
         public string No => "No";
 
+
         public string UpdateFound => "Update Avaliable, You Want update it?";
+
+
+        public string SwitchLanguage => "Switch Language";
     }
 }

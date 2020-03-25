@@ -130,5 +130,8 @@ namespace MangaUnhost {
 
         string UpdateFound { get; }
 
+
+        //Other
+        string SwitchLanguage { get; }
     }
 }

@@ -23,4 +23,10 @@ namespace MangaUnhost {
         /// </summary>
         SemiAuto
     }
+
+    [Flags]
+    public enum ActionTo {
+        About       = 0b0001,
+        ChapterList = 0b0010
+    }
 }

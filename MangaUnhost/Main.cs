@@ -35,6 +35,7 @@ namespace MangaUnhost {
         ILanguage CurrentLanguage = new Languages.English();
 
         ComicInfo CurrentInfo;
+        IHost CurrentHost;
 
         public static string Status {
             get => Instance.StatusBar.FirstLabelText;
@@ -178,11 +179,13 @@ namespace MangaUnhost {
             }
 
         }
+          
+        public void Reload(IHost Host = null) => LoadUri(CurrentInfo.Url, Host ?? CurrentHost);
 
         public void LoadUri(Uri Uri, IHost Host) {
             Status = CurrentLanguage.LoadingComic;            
 
-            var CurrentHost = CreateInstance(Host);
+            CurrentHost = CreateInstance(Host);
 
             CurrentInfo = CurrentHost.LoadUri(Uri);
             TitleLabel.Text = CurrentInfo.Title;
@@ -244,6 +247,20 @@ namespace MangaUnhost {
                     }
                 };
                 ButtonsContainer.Controls.Add(Bnt);
+            }
+
+            var Actions = (from x in CurrentHost.GetPluginInfo().Actions where x.Availability.HasFlag(ActionTo.ChapterList) select x);
+
+            if (Actions.Any()) {
+                foreach (var Action in Actions) {
+                    VSButton Bnt = new VSButton() {
+                        Size = new Size(110, 30),
+                        Text = Action.Name,
+                        Indentifier = CurrentHost
+                    };
+                    Bnt.Click += (sender, args) => Action.Action();
+                    ButtonsContainer.Controls.Add(Bnt);
+                };
             }
 
             Status = CurrentLanguage.IDLE;
@@ -644,9 +661,9 @@ namespace MangaUnhost {
             if (SupportedHostListBox.ContextMenuStrip == null) {
             }
 
-            var Actions = Host.GetPluginInfo().Actions;
+            var Actions = (from x in Host.GetPluginInfo().Actions where x.Availability.HasFlag(ActionTo.About) select x);
 
-            if (Actions == null)
+            if (!Actions.Any())
             {
                 e.Cancel = true;
                 return;

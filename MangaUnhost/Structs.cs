@@ -39,6 +39,7 @@ namespace MangaUnhost {
         public string Name;
         public bool Debug;
         public bool AutoRun;
+        public ActionTo Availability;
         public Action Action;
     }
 

@@ -32,6 +32,9 @@ namespace MangaUnhost.Hosts {
 
             bool Empty;
             List<int> Ids = new List<int>();
+            ChapterLangs = new Dictionary<int, string>();
+            ChapterLinks = new Dictionary<int, string>();
+            ChapterNames = new Dictionary<int, string>();
 
             do {
                 bool First = true;
@@ -136,13 +139,27 @@ namespace MangaUnhost.Hosts {
         }
 
         public PluginInfo GetPluginInfo() {
-            return new PluginInfo() {
+            var Info = new PluginInfo() {
                 Name = "MangaDex",
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 3)
+                Version = new Version(1, 4)
             };
+
+            if (ChapterLangs.Count > 0) {
+                Info.Actions = new CustomAction[] {
+                    new CustomAction() {
+                        Name = Main.Language.SwitchLanguage,
+                        Availability = ActionTo.ChapterList,
+                        Action = () => {
+                            LastLang = null;
+                            Main.Instance.Reload();
+                        }
+                    }
+                };
+            }
+            return Info;
         }
 
         public bool IsValidUri(Uri Uri) {
