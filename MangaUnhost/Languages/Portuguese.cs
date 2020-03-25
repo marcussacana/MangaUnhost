@@ -95,6 +95,6 @@
 
         public string UpdateFound => "Atualização Disponível, Deseja Atualizar?";
 
-        public string SwitchLanguage => "Alterar Linguágem";
+        public string SwitchLanguage => "Alterar Lingua";
     }
 }

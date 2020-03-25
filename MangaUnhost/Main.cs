@@ -98,21 +98,6 @@ namespace MangaUnhost {
             Cef.Initialize(new CefSettings() {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath                
             }, false, browserProcessHandler: null);
-
-            this.Shown += (sender, e) =>
-            {
-                //Prevent Hidden incon in taskbar
-                Form frm = new Form()
-                {
-                    Size = new Size(1, 1)
-                };
-                frm.Shown += (a, b) => { frm.Close(); };
-                frm.ShowDialog();
-
-                TopMost = true;
-                Focus();
-                TopMost = false;
-            };
         }
 
         private void MainShown(object sender, EventArgs e) {
@@ -126,6 +111,8 @@ namespace MangaUnhost {
             Focus();
             Application.DoEvents();
             TopMost = false;
+
+            Invalidate();
 
             ClipThread = new Thread(ClipWorker);
             ClipThread.Start();
@@ -203,6 +190,9 @@ namespace MangaUnhost {
 
             var Chapters = new Dictionary<int, string>();
             foreach (var Chapter in CurrentHost.EnumChapters()) {
+                if (Chapters.ContainsValue(Chapter.Value))
+                    continue;
+
                 VSButton Button = new VSButton() {
                     Size = new Size(110, 30),
                     Text = string.Format(CurrentLanguage.ChapterName, Chapter.Value),
