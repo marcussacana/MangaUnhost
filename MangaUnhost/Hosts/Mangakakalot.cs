@@ -35,6 +35,10 @@ namespace MangaUnhost.Hosts {
                 var BrowserDoc = new HtmlDocument();
                 BrowserDoc.LoadHtml(JSTools.BypassCloudFlare(CurrentUrl).HTML);
                 Nodes = BrowserDoc.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
+
+                if (Nodes == null || Nodes.Count <= 0) {
+                    Nodes = BrowserDoc.SelectNodes("//a[@class=\"chapter-name text-nowrap\"]");
+                }
             }
 
             foreach (var Node in Nodes) {
@@ -70,6 +74,9 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count <= 0)
                 Nodes = Page.DocumentNode.SelectNodes("//*[@id=\"vungdoc\"]/div/img");
 
+            if (Nodes == null || Nodes.Count <= 0)
+                Nodes = Page.DocumentNode.SelectNodes("//*[@class=\"container-chapter-reader\"]/img");
+
             foreach (var Node in Nodes)
                 Pages.Add(Node.GetAttributeValue("src", ""));
             
@@ -92,7 +99,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
@@ -110,13 +117,13 @@ namespace MangaUnhost.Hosts {
             ComicInfo Info = new ComicInfo();
 
             Info.Title = (Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h1") ??
-                Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h2")).InnerText;
+                          Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h2") ??
+                          Document.SelectSingleNode("//div[@class=\"story-info-right\"]/h1")).InnerText;
 
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            string CoverUrl = Document
-                .SelectSingleNode("//div[@class=\"manga-info-pic\"]/img")
-                .GetAttributeValue("src", string.Empty);
+            string CoverUrl = (Document.SelectSingleNode("//div[@class=\"manga-info-pic\"]/img") ??
+                               Document.SelectSingleNode("//span[@class=\"info-image\"]/img")).GetAttributeValue("src", string.Empty);
 
             Info.Cover = (CoverUrl.StartsWith("/") ? new Uri(new Uri("http://" + Uri.Host), CoverUrl) : new Uri(CoverUrl)).TryDownload();
 
