@@ -243,18 +243,21 @@ namespace MangaUnhost {
                 ButtonsContainer.Controls.Add(Bnt);
             }
 
-            var Actions = (from x in CurrentHost.GetPluginInfo().Actions where x.Availability.HasFlag(ActionTo.ChapterList) select x);
+            var PActions = CurrentHost.GetPluginInfo().Actions;
+            if (PActions != null) {
+                var Actions = (from x in PActions where x.Availability.HasFlag(ActionTo.ChapterList) select x);
 
-            if (Actions.Any()) {
-                foreach (var Action in Actions) {
-                    VSButton Bnt = new VSButton() {
-                        Size = new Size(110, 30),
-                        Text = Action.Name,
-                        Indentifier = CurrentHost
+                if (Actions.Any()) {
+                    foreach (var Action in Actions) {
+                        VSButton Bnt = new VSButton() {
+                            Size = new Size(110, 30),
+                            Text = Action.Name,
+                            Indentifier = CurrentHost
+                        };
+                        Bnt.Click += (sender, args) => Action.Action();
+                        ButtonsContainer.Controls.Add(Bnt);
                     };
-                    Bnt.Click += (sender, args) => Action.Action();
-                    ButtonsContainer.Controls.Add(Bnt);
-                };
+                }
             }
 
             Status = CurrentLanguage.IDLE;
