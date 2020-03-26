@@ -114,6 +114,10 @@ namespace MangaUnhost {
 
             Invalidate();
 
+            WindowState = FormWindowState.Minimized;
+            Application.DoEvents();
+            WindowState = FormWindowState.Normal;
+
             ClipThread = new Thread(ClipWorker);
             ClipThread.Start();
 
@@ -541,6 +545,13 @@ namespace MangaUnhost {
             string OriPath = null;
             if (CurrentLanguage != null)
                 OriPath = DefaultLibPath;
+
+            foreach (var Language in Languages) {
+                CurrentLanguage = Language;
+                if (Directory.Exists(DefaultLibPath)) {
+                    LibraryPathTBox.Text = Settings.LibraryPath = OriPath = DefaultLibPath;
+                }
+            }
 
             CurrentLanguage = (from x in Languages where x.LanguageName == Settings.Language select x).Single();
 
