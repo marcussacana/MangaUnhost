@@ -75,6 +75,9 @@
     <Compile Include="ComicPreview.Designer.cs">
       <DependentUpon>ComicPreview.cs</DependentUpon>
     </Compile>
+    <Compile Include="Downloader.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Hosts\*.cs" />
     <Compile Include="Decoders\CommonImage.cs" />
     <Compile Include="Enums.cs" />
