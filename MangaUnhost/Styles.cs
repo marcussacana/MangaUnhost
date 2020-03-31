@@ -665,6 +665,13 @@ public class VSButton : Control {
 
     #endregion
 
+    #region Functions
+    public void PerformClick()
+    {
+       OnClick(EventArgs.Empty);
+    }
+
+    #endregion
 }
 
 public class VSSeperator : Control {

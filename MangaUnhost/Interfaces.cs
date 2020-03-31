@@ -102,13 +102,16 @@ namespace MangaUnhost {
         string ChapterName { get; }
         string DownloadAll { get; }
 
+        //Status
         string Loading { get; }
         string Downloading { get; }
         string LoadingComic { get; }
         string IDLE { get; }
         string BypassingCloudFlare { get; }
         string ClippingImages { get; }
+        string QueueStatus { get; }
 
+        //Html
         string Library { get; }
         string Cover { get; }
         string Index { get; }
@@ -133,5 +136,8 @@ namespace MangaUnhost {
 
         //Other
         string SwitchLanguage { get; }
+
+        //Messages
+        string ConfirmBulk { get; }
     }
 }

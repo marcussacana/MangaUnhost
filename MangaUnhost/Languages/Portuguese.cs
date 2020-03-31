@@ -64,6 +64,8 @@
 
         public string BypassingCloudFlare => "Burlando CloudFlare...";
 
+        public string QueueStatus => "{0}/{1} na fila";
+
 
         public string IDLE => "IDLE";
 
@@ -96,5 +98,8 @@
         public string UpdateFound => "Atualização Disponível, Deseja Atualizar?";
 
         public string SwitchLanguage => "Alterar Lingua";
+
+
+        public string ConfirmBulk => "Foram detectado {0} Comics na sua lista de links.\nTem certeza que deseja fazer download em massa?";
     }
 }

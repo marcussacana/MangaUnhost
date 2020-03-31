@@ -25,9 +25,9 @@ namespace MangaUnhost {
             ChromiumBrowser.GetBrowser().WaitForLoad();
 
             Verify = FinishVerify;
-            var Screenshot = ChromiumBrowser.ScreenshotOrNull();
-            ViewRectangle = new Rectangle(0, 0, Screenshot.Width, Screenshot.Height);
+            ViewRectangle = new Rectangle(0, 0, ChromiumBrowser.Size.Width, ChromiumBrowser.Size.Height);
 
+            StartPosition = FormStartPosition.CenterScreen;
             Shown += (a, b) => {
                 Initialize();
             };
@@ -55,6 +55,7 @@ namespace MangaUnhost {
             Refresh.Enabled = true;
             StatusCheck.Enabled = true;
             LoadingMode(false);
+            Focus();
             System.Media.SystemSounds.Beep.Play();
         }
 
@@ -140,7 +141,7 @@ namespace MangaUnhost {
         public void LoadingMode(bool Enabled) {
             ScreenBox.Visible =    !Enabled;
             RadialProgBar.Visible = Enabled;
-            Refresh.Interval = Enabled ? 25 : 35;
+            Refresh.Interval = Enabled ? 30 : 35;
         }
 
         const int WM_KEYDOWN = 0x0100;

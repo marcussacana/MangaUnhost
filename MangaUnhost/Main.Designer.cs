@@ -154,7 +154,7 @@
             this.StatusBar.TabIndex = 1;
             this.StatusBar.Text = "Status Bar";
             this.StatusBar.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.StatusBar.ThirdLabelAlignment = VSStatusBar.Alignments.Center;
+            this.StatusBar.ThirdLabelAlignment = VSStatusBar.Alignments.Right;
             this.StatusBar.ThirdLabelText = "Label3";
             this.StatusBar.WaitingBaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(33)))), ((int)(((byte)(122)))));
             // 

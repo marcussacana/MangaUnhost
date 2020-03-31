@@ -66,6 +66,8 @@
 
         public string ClippingImages => "Clipping Images...";
 
+        public string QueueStatus => "{0}/{1} in queue";
+
 
         public string IDLE => "IDLE";
 
@@ -101,5 +103,8 @@
 
 
         public string SwitchLanguage => "Switch Language";
+
+
+        public string ConfirmBulk => "{0} Comics have been detected in your list of links.\nAre you sure you want to download in bulk?";
     }
 }
