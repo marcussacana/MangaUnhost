@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Configuration;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -43,6 +44,7 @@ namespace MangaUnhost {
         }
 
         private static void FinishUpdate() {
+            Updater.BypassSLL();
             if (Debug)
                 return;
 
