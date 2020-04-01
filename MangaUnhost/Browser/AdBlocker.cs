@@ -1,5 +1,5 @@
 ﻿using CefSharp.OffScreen;
-using CefSharp.RequestEventHandler;
+using CefSharp.EventHandler;
 using DistillNET;
 using System;
 using System.Collections.Generic;

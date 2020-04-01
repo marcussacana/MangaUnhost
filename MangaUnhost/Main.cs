@@ -10,10 +10,14 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Text;
 
 namespace MangaUnhost {
     public partial class Main : Form {
 
+        Thread CrawlerThread = null;
         Thread ClipThread = null;
 
         Settings Settings = new Settings();
@@ -32,11 +36,24 @@ namespace MangaUnhost {
 
         ComicInfo CurrentInfo;
         IHost CurrentHost;
-
+        
         public static string Status {
             get => Instance.StatusBar.FirstLabelText;
             set {
                 Instance.StatusBar.FirstLabelText = value;
+
+                if (Instance.InvokeRequired)
+                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
+                else
+                    Application.DoEvents();
+            }
+        }
+        public static string SubStatus
+        {
+            get => Instance.StatusBar.SecondLabelText;
+            set
+            {
+                Instance.StatusBar.SecondLabelText = value;
 
                 if (Instance.InvokeRequired)
                     Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
@@ -116,6 +133,9 @@ namespace MangaUnhost {
 
             ClipThread = new Thread(ClipWorker);
             ClipThread.Start();
+
+            CrawlerThread = new Thread(CrawlerWorker);
+            CrawlerThread.Start();
 
             if (!Program.Updater.HaveUpdate())
                 return;
@@ -298,7 +318,7 @@ namespace MangaUnhost {
 
             foreach (var Language in Languages) {
                 CurrentLanguage = Language;
-                if (Directory.Exists(DefaultLibPath)) {
+                if (!Directory.Exists(Settings.LibraryPath) && Directory.Exists(DefaultLibPath)) {
                     LibraryPathTBox.Text = Settings.LibraryPath = OriPath = DefaultLibPath;
                 }
             }
@@ -312,8 +332,10 @@ namespace MangaUnhost {
                 }
             }
 
-            if (!Directory.Exists(OriPath) || Directory.Exists(DefaultLibPath))
+            if (!Directory.Exists(Settings.LibraryPath) && Directory.Exists(DefaultLibPath))
                 LibraryPathTBox.Text = Settings.LibraryPath = DefaultLibPath;
+            
+            LibraryPathTBox.Text = Settings.LibraryPath;
 
             //Update UI Settings Status
             ClipWatcherDisRadio.Checked = false;
@@ -365,6 +387,9 @@ namespace MangaUnhost {
             SkipDownEnbRadio.Text = CurrentLanguage.Enabled;
 
             SupportedHostsBox.Text = CurrentLanguage.SupportedHostsBox;
+
+            CrawlerStartBtn.Text = CurrentLanguage.Start;
+            CrawlerCopyBtn.Text = CurrentLanguage.Copy;
 
             lblTitle.Text = $"MangaUnhost v{GitHub.CurrentVersion}";
         }
@@ -534,6 +559,68 @@ namespace MangaUnhost {
             foreach (var Control in LibraryContainer.Controls)
                 ((ComicPreview)Control).GetComicInfo();            
             
+        }
+
+        Queue<string> LinksFound = new Queue<string>();
+        string ParentLink;
+        List<string> ProcessedLinks;
+        StringBuilder ListString;
+
+        private void CrawlerStartBtn_Click(object sender, EventArgs e)
+        {
+            ListString = new StringBuilder();
+            ProcessedLinks = new List<string>();
+            ParentLink = tbCrawlerUrl.Text.Trim().ToLower().TrimEnd('/');
+            LinksFound.Enqueue(tbCrawlerUrl.Text);
+        }
+
+        private void CrawlerCopyBtn_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(ListString.ToString());
+        }
+
+        public void CrawlerWorker() {
+            while (true) {
+                while (LinksFound.Count > 0)
+                {
+                    Status = Language.Crawling;
+                    SubStatus = string.Format(Language.Reaming, LinksFound.Count);
+
+                    try
+                    {
+                        Uri Link = new Uri(LinksFound.Dequeue());
+                        ProcessedLinks.Add(Link.AbsoluteUri);
+
+                        bool Https = Link.AbsoluteUri.Trim().ToLower().StartsWith("https://");
+                        string Domain = (Https ? "https://" : "http://") + Link.Host;
+
+                        string HTML = Encoding.UTF8.GetString(Link.TryDownload(UserAgent: ProxyTools.UserAgent));
+                        List<string> Links = DataTools.ExtractHtmlLinks(HTML, Domain);
+
+                        Links = (from x in Links where !ProcessedLinks.Contains(x) select x).Distinct().ToList();
+
+                        Invoke(new MethodInvoker(() => {
+                            var List = Links.ToList();
+                            string Exp = tbCrawlerRegex.Text;
+                            if (!string.IsNullOrEmpty(Exp))
+                                List = (from x in List where Regex.IsMatch(x, Exp) select x).ToList();
+
+                            LinksListBox.AddItems(List.ToArray());
+                            foreach (var Item in List)
+                                ListString.AppendLine(Item);                            
+                        }));
+
+                        foreach (string LinkFound in (from x in Links where !ProcessedLinks.Contains(x) && !LinksFound.Contains(x) select x)) {
+                            if (LinkFound.Trim().ToLower().StartsWith(ParentLink))
+                                LinksFound.Enqueue(LinkFound);
+                        }
+                    }
+                    catch { }
+                }
+
+                Status = Language.IDLE;
+                SubStatus = string.Empty;
+            }
         }
     }
 }

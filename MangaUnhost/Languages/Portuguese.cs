@@ -55,6 +55,10 @@
 
         public string DownloadAll => "Baixar Tudo";
 
+        public string Start => "Começar";
+
+        public string Copy => "Copiar";
+
 
 
         public string Loading => "Carregando...";
@@ -65,7 +69,8 @@
         public string BypassingCloudFlare => "Burlando CloudFlare...";
 
         public string QueueStatus => "{0}/{1} na fila";
-
+        public string Crawling => "Crawling...";
+        public string Reaming => "{0} Restantes...";
 
         public string IDLE => "IDLE";
 

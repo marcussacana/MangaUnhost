@@ -1,6 +1,6 @@
 ﻿using CefSharp;
 using CefSharp.OffScreen;
-using CefSharp.RequestEventHandler;
+using CefSharp.EventHandler;
 using MangaUnhost.Others;
 using Nito.AsyncEx;
 using System;

@@ -102,6 +102,9 @@ namespace MangaUnhost {
         string ChapterName { get; }
         string DownloadAll { get; }
 
+        string Start { get; }
+        string Copy { get; }
+
         //Status
         string Loading { get; }
         string Downloading { get; }
@@ -110,6 +113,8 @@ namespace MangaUnhost {
         string BypassingCloudFlare { get; }
         string ClippingImages { get; }
         string QueueStatus { get; }
+        string Crawling { get; }
+        string Reaming { get; }
 
         //Html
         string Library { get; }

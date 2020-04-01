@@ -54,7 +54,8 @@
 
         public string DownloadAll => "Download All";
 
-
+        public string Start => "Start";
+        public string Copy => "Copy";
 
         public string Loading => "Loading...";
 
@@ -67,6 +68,8 @@
         public string ClippingImages => "Clipping Images...";
 
         public string QueueStatus => "{0}/{1} in queue";
+        public string Crawling => "Crawling...";
+        public string Reaming => "{0} Reaming... ";
 
 
         public string IDLE => "IDLE";

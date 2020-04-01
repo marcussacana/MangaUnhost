@@ -65,7 +65,7 @@
     <Compile Include="Browser\InputTools.cs" />
     <Compile Include="Browser\JSTools.cs" />
     <Compile Include="Browser\reCaptcha.cs" />
-    <Compile Include="Browser\RequestEventHandler.cs" />
+    <Compile Include="Browser\EventHandler.cs" />
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\InfoTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />

@@ -36,6 +36,14 @@
             this.CoverBox = new System.Windows.Forms.PictureBox();
             this.LibraryTab = new System.Windows.Forms.TabPage();
             this.LibraryContainer = new System.Windows.Forms.FlowLayoutPanel();
+            this.CrawlerTab = new System.Windows.Forms.TabPage();
+            this.LinksListBox = new VSListBoxWBuiltInScrollBar();
+            this.CrawlerCopyBtn = new VSButton();
+            this.lblRegex = new System.Windows.Forms.Label();
+            this.tbCrawlerRegex = new VSNormalTextBox();
+            this.CrawlerStartBtn = new VSButton();
+            this.lblUrl = new System.Windows.Forms.Label();
+            this.tbCrawlerUrl = new VSNormalTextBox();
             this.SettingsTab = new System.Windows.Forms.TabPage();
             this.FeaturesGroupBox = new VSGroupBox();
             this.panel6 = new System.Windows.Forms.Panel();
@@ -84,6 +92,7 @@
             this.DownloaderTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
             this.LibraryTab.SuspendLayout();
+            this.CrawlerTab.SuspendLayout();
             this.SettingsTab.SuspendLayout();
             this.FeaturesGroupBox.SuspendLayout();
             this.panel6.SuspendLayout();
@@ -170,6 +179,7 @@
             this.MainTabMenu.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.MainTabMenu.Controls.Add(this.DownloaderTab);
             this.MainTabMenu.Controls.Add(this.LibraryTab);
+            this.MainTabMenu.Controls.Add(this.CrawlerTab);
             this.MainTabMenu.Controls.Add(this.SettingsTab);
             this.MainTabMenu.Controls.Add(this.AboutTab);
             this.MainTabMenu.Controls.Add(this.DebugTab);
@@ -280,6 +290,141 @@
             this.LibraryContainer.Name = "LibraryContainer";
             this.LibraryContainer.Size = new System.Drawing.Size(824, 437);
             this.LibraryContainer.TabIndex = 0;
+            // 
+            // CrawlerTab
+            // 
+            this.CrawlerTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.CrawlerTab.Controls.Add(this.LinksListBox);
+            this.CrawlerTab.Controls.Add(this.CrawlerCopyBtn);
+            this.CrawlerTab.Controls.Add(this.lblRegex);
+            this.CrawlerTab.Controls.Add(this.tbCrawlerRegex);
+            this.CrawlerTab.Controls.Add(this.CrawlerStartBtn);
+            this.CrawlerTab.Controls.Add(this.lblUrl);
+            this.CrawlerTab.Controls.Add(this.tbCrawlerUrl);
+            this.CrawlerTab.Location = new System.Drawing.Point(4, 20);
+            this.CrawlerTab.Name = "CrawlerTab";
+            this.CrawlerTab.Size = new System.Drawing.Size(830, 443);
+            this.CrawlerTab.TabIndex = 5;
+            this.CrawlerTab.Text = "Crawler";
+            // 
+            // LinksListBox
+            // 
+            this.LinksListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.LinksListBox.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.LinksListBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.LinksListBox.DontShowInnerScrollbarBorder = false;
+            this.LinksListBox.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(199)))), ((int)(((byte)(199)))));
+            this.LinksListBox.Items = new VSListBoxWBuiltInScrollBar.VSListBoxItem[0];
+            this.LinksListBox.Location = new System.Drawing.Point(10, 70);
+            this.LinksListBox.MultiSelect = true;
+            this.LinksListBox.Name = "LinksListBox";
+            this.LinksListBox.NonSelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
+            this.LinksListBox.SelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
+            this.LinksListBox.ShowWholeInnerBorder = true;
+            this.LinksListBox.Size = new System.Drawing.Size(817, 370);
+            this.LinksListBox.TabIndex = 6;
+            // 
+            // CrawlerCopyBtn
+            // 
+            this.CrawlerCopyBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.CrawlerCopyBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.CrawlerCopyBtn.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.CrawlerCopyBtn.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.CrawlerCopyBtn.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.CrawlerCopyBtn.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.CrawlerCopyBtn.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.CrawlerCopyBtn.ImageChoice = null;
+            this.CrawlerCopyBtn.Location = new System.Drawing.Point(746, 39);
+            this.CrawlerCopyBtn.Name = "CrawlerCopyBtn";
+            this.CrawlerCopyBtn.ShowBorder = true;
+            this.CrawlerCopyBtn.ShowImage = false;
+            this.CrawlerCopyBtn.ShowText = true;
+            this.CrawlerCopyBtn.Size = new System.Drawing.Size(75, 23);
+            this.CrawlerCopyBtn.TabIndex = 5;
+            this.CrawlerCopyBtn.Text = "Copy";
+            this.CrawlerCopyBtn.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.CrawlerCopyBtn.Click += new System.EventHandler(this.CrawlerCopyBtn_Click);
+            // 
+            // lblRegex
+            // 
+            this.lblRegex.ForeColor = System.Drawing.Color.White;
+            this.lblRegex.Location = new System.Drawing.Point(7, 44);
+            this.lblRegex.Name = "lblRegex";
+            this.lblRegex.Size = new System.Drawing.Size(41, 13);
+            this.lblRegex.TabIndex = 4;
+            this.lblRegex.Text = "Regex:";
+            this.lblRegex.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // tbCrawlerRegex
+            // 
+            this.tbCrawlerRegex.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbCrawlerRegex.BackColor = System.Drawing.Color.Transparent;
+            this.tbCrawlerRegex.BackgroundColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
+            this.tbCrawlerRegex.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.tbCrawlerRegex.Location = new System.Drawing.Point(54, 39);
+            this.tbCrawlerRegex.MaxLength = 32767;
+            this.tbCrawlerRegex.Multiline = false;
+            this.tbCrawlerRegex.Name = "tbCrawlerRegex";
+            this.tbCrawlerRegex.ReadOnly = false;
+            this.tbCrawlerRegex.Size = new System.Drawing.Size(686, 25);
+            this.tbCrawlerRegex.Style = VSNormalTextBox.Styles.NotRounded;
+            this.tbCrawlerRegex.TabIndex = 3;
+            this.tbCrawlerRegex.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.tbCrawlerRegex.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.tbCrawlerRegex.UseSystemPasswordChar = false;
+            // 
+            // CrawlerStartBtn
+            // 
+            this.CrawlerStartBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.CrawlerStartBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.CrawlerStartBtn.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.CrawlerStartBtn.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.CrawlerStartBtn.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.CrawlerStartBtn.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.CrawlerStartBtn.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.CrawlerStartBtn.ImageChoice = null;
+            this.CrawlerStartBtn.Location = new System.Drawing.Point(746, 8);
+            this.CrawlerStartBtn.Name = "CrawlerStartBtn";
+            this.CrawlerStartBtn.ShowBorder = true;
+            this.CrawlerStartBtn.ShowImage = false;
+            this.CrawlerStartBtn.ShowText = true;
+            this.CrawlerStartBtn.Size = new System.Drawing.Size(75, 23);
+            this.CrawlerStartBtn.TabIndex = 2;
+            this.CrawlerStartBtn.Text = "Start";
+            this.CrawlerStartBtn.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.CrawlerStartBtn.Click += new System.EventHandler(this.CrawlerStartBtn_Click);
+            // 
+            // lblUrl
+            // 
+            this.lblUrl.ForeColor = System.Drawing.Color.White;
+            this.lblUrl.Location = new System.Drawing.Point(7, 8);
+            this.lblUrl.Name = "lblUrl";
+            this.lblUrl.Size = new System.Drawing.Size(41, 23);
+            this.lblUrl.TabIndex = 1;
+            this.lblUrl.Text = "Url:";
+            this.lblUrl.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // tbCrawlerUrl
+            // 
+            this.tbCrawlerUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbCrawlerUrl.BackColor = System.Drawing.Color.Transparent;
+            this.tbCrawlerUrl.BackgroundColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
+            this.tbCrawlerUrl.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.tbCrawlerUrl.Location = new System.Drawing.Point(54, 8);
+            this.tbCrawlerUrl.MaxLength = 32767;
+            this.tbCrawlerUrl.Multiline = false;
+            this.tbCrawlerUrl.Name = "tbCrawlerUrl";
+            this.tbCrawlerUrl.ReadOnly = false;
+            this.tbCrawlerUrl.Size = new System.Drawing.Size(686, 25);
+            this.tbCrawlerUrl.Style = VSNormalTextBox.Styles.NotRounded;
+            this.tbCrawlerUrl.TabIndex = 0;
+            this.tbCrawlerUrl.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.tbCrawlerUrl.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.tbCrawlerUrl.UseSystemPasswordChar = false;
             // 
             // SettingsTab
             // 
@@ -897,6 +1042,7 @@
             this.DownloaderTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).EndInit();
             this.LibraryTab.ResumeLayout(false);
+            this.CrawlerTab.ResumeLayout(false);
             this.SettingsTab.ResumeLayout(false);
             this.FeaturesGroupBox.ResumeLayout(false);
             this.panel6.ResumeLayout(false);
@@ -977,6 +1123,14 @@
         private System.Windows.Forms.TabPage LibraryTab;
         private System.Windows.Forms.FlowLayoutPanel LibraryContainer;
         private System.Windows.Forms.RadioButton SaveAsAutoRadio;
+        private System.Windows.Forms.TabPage CrawlerTab;
+        private VSListBoxWBuiltInScrollBar LinksListBox;
+        private VSButton CrawlerCopyBtn;
+        private System.Windows.Forms.Label lblRegex;
+        private VSNormalTextBox tbCrawlerRegex;
+        private VSButton CrawlerStartBtn;
+        private System.Windows.Forms.Label lblUrl;
+        private VSNormalTextBox tbCrawlerUrl;
     }
 }
 

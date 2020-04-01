@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿using HtmlAgilityPack;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -146,6 +147,50 @@ namespace MangaUnhost.Others {
                 return "tiff";
             else
                 return "wmf";
+        }
+
+        public static List<string> ExtractHtmlLinks(string HTML, string Domain)
+        {
+            bool Https = Domain.Trim().ToLower().StartsWith("https");
+            
+            Domain = Domain.TrimEnd('/');
+            if (!Domain.StartsWith("http"))
+                Domain += "http://";
+
+            List<string> Links = new List<string>();
+            var Document = new HtmlDocument();
+            Document.LoadHtml(HTML);
+
+            var Attributes = new[] { "data-href", "href", "data-url", "url", "data-src", "src" };
+
+            var Nodes = new HtmlNode[0];
+            foreach (var Attribute in Attributes)
+            {
+                var Result = Document.DocumentNode.SelectNodes($"//*[@{Attribute}]");
+                if (Result != null)
+                    Nodes = Nodes.Concat(Result).ToArray();
+            }
+
+            foreach (var Node in Nodes)
+            {
+                string Link = string.Empty;
+
+                foreach (var Attribute in Attributes) {
+                    if (Node.GetAttributeValue(Attribute, null) != null) {
+                        Link = Node.GetAttributeValue(Attribute, null);
+                        if (!string.IsNullOrWhiteSpace(Link))
+                            break;
+                    }
+                }
+
+                if (Link.StartsWith("//"))
+                    Link = $"{(Https ? "https" : "http")}:{Link}";
+                if (Link.StartsWith("/"))
+                    Link = Domain + Link;
+                Links.Add(Link);
+            }
+
+            return Links;
         }
     }
 }
