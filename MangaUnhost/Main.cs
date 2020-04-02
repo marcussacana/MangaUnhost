@@ -616,10 +616,11 @@ namespace MangaUnhost {
                         }
                     }
                     catch { }
+
+                    Status = Language.IDLE;
+                    SubStatus = string.Empty;
                 }
 
-                Status = Language.IDLE;
-                SubStatus = string.Empty;
             }
         }
     }
