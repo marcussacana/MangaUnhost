@@ -81,13 +81,13 @@ namespace MangaUnhost.Hosts {
         }
 
         public ComicInfo LoadUri(Uri Uri) {
+            CurrentHost = Uri.Host;
+
             string CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
              if (CurrentHtml.IsCloudflareTriggered()) {
                 Cloudflare = JSTools.BypassCloudFlare(Uri.AbsoluteUri);
                 CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
             }
-
-            CurrentHost = Uri.Host;
 
             Document = new HtmlDocument();
             Document.LoadHtml(CurrentHtml);
@@ -108,12 +108,19 @@ namespace MangaUnhost.Hosts {
 
         public byte[] TryDownload(Uri URL) {
             byte[] Rst;
+
+            if (URL.Host != CurrentHost)
+            {
+                Rst = new Uri(new Uri("https://" + CurrentHost), URL.PathAndQuery).TryDownload();
+                if (Rst != null)
+                    return Rst;
+            }
+
             if (Cloudflare == null)
                 Rst = URL.TryDownload(AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError } );
             else
                 Rst = URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies);
-            if (Rst == null && URL.Host != CurrentHost)
-                return new Uri(new Uri("https://" + CurrentHost), URL.PathAndQuery).TryDownload();
+            string tmp = Encoding.UTF8.GetString(Rst);
             return Rst;
         }
     }
