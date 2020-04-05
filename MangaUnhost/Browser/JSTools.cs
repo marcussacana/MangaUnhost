@@ -31,10 +31,14 @@ namespace MangaUnhost.Browser {
         }
 
         public static object EvaluateScript(this ChromiumWebBrowser Browser, string Script) => Browser.GetBrowser().EvaluateScript(Script);
-        public static object EvaluateScript(this IBrowser Browser, string Script) {
-            Browser.WaitForLoad();
+        public static object EvaluateScript(this IBrowser Browser, string Script) { 
+            return Browser.MainFrame.EvaluateScript(Script);
+        }
+        public static object EvaluateScript(this IFrame Frame, string Script)
+        {
+            Frame.WaitForLoad();
 
-            return Browser.MainFrame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
+            return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
         }
 
         public static CloudflareData BypassCloudFlare(string Url) {

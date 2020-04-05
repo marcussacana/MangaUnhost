@@ -107,10 +107,12 @@ namespace MangaUnhost {
             }
 
             ReloadSettings();
-
-            Cef.Initialize(new CefSettings() {
-                BrowserSubprocessPath = Program.BrowserSubprocessPath                
-            }, false, browserProcessHandler: null);
+            var CefSettings = new CefSettings() {
+                BrowserSubprocessPath = Program.BrowserSubprocessPath,
+                LogSeverity = LogSeverity.Disable,
+                WindowlessRenderingEnabled = true
+            };
+            Cef.Initialize(CefSettings, false, browserProcessHandler: null);
         }
 
         private void MainShown(object sender, EventArgs e) {
@@ -399,6 +401,7 @@ namespace MangaUnhost {
                 AdvancedIni.FastSave(Settings, SettingsPath);
             } catch { }
 
+            Cef.Shutdown();
             Environment.Exit(0);
         }
 
@@ -620,7 +623,6 @@ namespace MangaUnhost {
                     Status = Language.IDLE;
                     SubStatus = string.Empty;
                 }
-
             }
         }
     }

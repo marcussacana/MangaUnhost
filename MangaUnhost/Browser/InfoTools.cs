@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 
 namespace MangaUnhost.Browser {
     public static class InfoTools {
-        public static bool IsLoading(this IBrowser Browser)
+        public static bool IsLoading(this IBrowser Browser) => Browser.MainFrame.IsLoading();
+        public static bool IsLoading(this IFrame Frame)
         {
-            if (Browser.IsLoading)
+            if (Frame.Browser.IsLoading)
                 return true;
-            var Status = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.GetDocumentStatus).GetAwaiter().GetResult().Result;
+            var Status = (string)Frame.EvaluateScriptAsync(Properties.Resources.GetDocumentStatus).GetAwaiter().GetResult().Result;
             if (Status?.Trim().ToLower() == "complete")
                 return false;
             return true;
@@ -23,9 +24,17 @@ namespace MangaUnhost.Browser {
             while (!Browser.IsBrowserInitialized)
                 ThreadTools.Wait(5, true);
         }
+
         public static void WaitForLoad(this IBrowser Browser) {
             ThreadTools.Wait(100);
             while (Browser.IsLoading())
+                ThreadTools.Wait(5, true);
+        }
+
+        public static void WaitForLoad(this IFrame Frame)
+        {
+            ThreadTools.Wait(100);
+            while (Frame.IsLoading())
                 ThreadTools.Wait(5, true);
         }
 

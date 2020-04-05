@@ -9,7 +9,7 @@ namespace MangaUnhost.Others {
         public static void Wait(int Milliseconds, bool DoEvents = false) {
             try
             {
-                int Delay = DoEvents ? 10 : 1;
+                int Delay = 50;
                 DateTime Begin = DateTime.Now;
                 while ((DateTime.Now - Begin).TotalMilliseconds < Milliseconds)
                 {
