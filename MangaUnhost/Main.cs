@@ -176,11 +176,13 @@ namespace MangaUnhost {
 
             if (Lines.Length > 1)
             {
-                var Rst = MessageBox.Show(this, string.Format(Language.ConfirmBulk, Lines.Length), Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (Rst == DialogResult.No)
-                    return;
-
                 MainTimer.Enabled = false;
+
+                var Rst = MessageBox.Show(this, string.Format(Language.ConfirmBulk, Lines.Length), Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (Rst == DialogResult.No) {
+                    MainTimer.Enabled = true;
+                    return;
+                }
 
                 StatusBar.AmountOfString = VSStatusBar.AmountOfStrings.Three;
                 for (int i = 0; i < Lines.Length; i++) {
