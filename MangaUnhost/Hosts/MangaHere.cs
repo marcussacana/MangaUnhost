@@ -3,7 +3,6 @@ using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -146,5 +145,6 @@ namespace MangaUnhost.Hosts {
 
             return URL.TryDownload(Referer, UserAgent, Cookie: new Cookie("isAdult", "1", "/", "www.mangahere.cc").ToContainer());
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

@@ -114,5 +114,6 @@ namespace MangaUnhost.Hosts {
             else
                 return URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies, Referer: "http://mangahasu.se/");
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

@@ -92,7 +92,7 @@ namespace MangaUnhost.Hosts {
 
         public PluginInfo GetPluginInfo() {
             return new PluginInfo() {
-                Name = "MangaDex",
+                Name = "Webtoons",
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
@@ -105,7 +105,7 @@ namespace MangaUnhost.Hosts {
         }
 
         public ComicInfo LoadUri(Uri Uri) {
-            Document = new HtmlAgilityPack.HtmlDocument();
+            Document = new HtmlDocument();
             Document.LoadUrl(Uri);
 
             ComicInfo Info = new ComicInfo();
@@ -124,5 +124,6 @@ namespace MangaUnhost.Hosts {
 
             return Info;
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

@@ -196,5 +196,6 @@ namespace MangaUnhost.Hosts {
             else
                 return URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies) ?? throw new Exception("Failed to Download");
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

@@ -113,5 +113,6 @@ namespace MangaUnhost.Hosts {
 
             return Info;
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

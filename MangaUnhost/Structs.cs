@@ -31,6 +31,10 @@ namespace MangaUnhost {
         public bool SupportComic;
         public bool SupportNovel;
 
+        public bool GenericPlugin;
+
+        public byte[] Icon;
+
         public CustomAction[] Actions;
     }
 
@@ -61,6 +65,7 @@ namespace MangaUnhost {
         public bool SkipDownloaded;
 
         public int SaveAs;
+        public int ReplaceMode;
     }
 
 

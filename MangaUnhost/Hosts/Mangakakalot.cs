@@ -1,12 +1,9 @@
-﻿using CefSharp.OffScreen;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Web;
 
 namespace MangaUnhost.Hosts {
@@ -131,5 +128,6 @@ namespace MangaUnhost.Hosts {
 
             return Info;
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

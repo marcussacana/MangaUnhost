@@ -91,7 +91,7 @@ namespace MangaUnhost.Others {
                 return Default;
         }
 
-        public static void MatchLibraryPath(ref string Dir, string BaseDir) {
+        public static void MatchLibraryPath(ref string Dir, string BaseDir, Uri Url, ReplaceMode Mode, ILanguage Language) {
             if (Directory.Exists(BaseDir)) {
                 string[] Dirs = Directory.GetDirectories(BaseDir, "*", SearchOption.TopDirectoryOnly);
                 Dirs = (from x in Dirs select Path.GetFileName(x.TrimEnd('/', '\\'))).ToArray();
@@ -100,7 +100,43 @@ namespace MangaUnhost.Others {
                 string MDir = MinifyString(Dir);
                 for (int i = 0; i < MDirs.Length; i++) {
                     if (MDir == MDirs[i]) {
-                        Dir = Dirs[i];
+                        string CDir = Dirs[i];
+
+                        //Search For Next New Folder Name or if this one is already Downloaded in any possible New Folder
+                        string NDir = CDir;
+                        int x = 0;
+                        do {
+                            NDir = CDir + (x++ == 0 ? "" : " (" + x.ToString("D2") + ")");
+                            string OnlineUrl = Path.Combine(BaseDir, NDir, "Online.url");
+                            if (!File.Exists(OnlineUrl))
+                                break;
+                            
+                            var URI = Ini.GetConfig("InternetShortcut", "URL", OnlineUrl).Substring(null, "#", IgnoreMissmatch: true);
+                            if (URI.ToLower() == Url.AbsoluteUri.ToLower()) {
+                                Mode = ReplaceMode.NewFolder;
+                                break;
+                            }
+                        } while (true);
+
+
+                        if (CDir != NDir) {
+                            switch (Mode) {
+                                case ReplaceMode.Ask:
+                                    var Reply = AccountTools.PromptOption(Language.ReplaceMode, new[] { Language.UpdateURL, Language.NewFolder });
+                                    if (Reply == Language.UpdateURL)
+                                        goto case ReplaceMode.UpdateURL;
+                                    else
+                                        goto case ReplaceMode.NewFolder;
+                                case ReplaceMode.UpdateURL:
+                                    break;
+                                case ReplaceMode.NewFolder:
+                                    CDir = NDir;
+                                    break;
+                            }
+                        }
+
+
+                        Dir = CDir;
                         break;
                     }
                 }

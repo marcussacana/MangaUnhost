@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 namespace MangaUnhost
@@ -18,7 +19,18 @@ namespace MangaUnhost
 
         public void AutoDownload(Uri URL)
         {
-            var Host = (from x in Hosts where x.IsValidUri(URL) select x).Single();
+            var HostQuery = (from x in Hosts where x.IsValidUri(URL) select x);
+            if (!HostQuery.Any())
+            {
+                try
+                {
+                    var HTML = Encoding.UTF8.GetString(URL.TryDownload(URL.Host, ProxyTools.UserAgent));
+                    HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, URL) select x);
+
+                }
+                catch { }
+            }
+            var Host = HostQuery.FirstOrDefault();
             try
             {
                 var DownloadAll = LoadUri(URL, Host);
@@ -46,12 +58,13 @@ namespace MangaUnhost
             TitleLabel.Text = CurrentInfo.Title;
             CoverBox.Image = CurrentHost.GetDecoder().Decode(CurrentInfo.Cover);
 
-            CurrentInfo.Url = Uri;
+            if (CurrentInfo.Url == null)
+                CurrentInfo.Url = Uri;
 
             CoverBox.Cursor = Cursors.Default;
 
             string Path = DataTools.GetRawName(CurrentInfo.Title.Trim(), FileNameMode: true);
-            ChapterTools.MatchLibraryPath(ref Path, Settings.LibraryPath);
+            ChapterTools.MatchLibraryPath(ref Path, Settings.LibraryPath, CurrentInfo.Url, ReplaceMode.UpdateURL, CurrentLanguage);
             RefreshCoverLink(Path);
 
             ButtonsContainer.Controls.Clear();
@@ -163,8 +176,7 @@ namespace MangaUnhost
                 NName = DataTools.GetRawName(Chapters.Values.ElementAt(KIndex - 1), FileNameMode: true);
 
             string Title = DataTools.GetRawName(Info.Title.Trim(), FileNameMode: true);
-
-            ChapterTools.MatchLibraryPath(ref Title, Settings.LibraryPath);
+            ChapterTools.MatchLibraryPath(ref Title, Settings.LibraryPath, CurrentInfo.Url, (ReplaceMode)Settings.ReplaceMode, CurrentLanguage);
             RefreshCoverLink(Title);
 
             string TitleDir = Path.Combine(Settings.LibraryPath, Title);

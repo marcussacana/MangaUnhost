@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Others
 {
@@ -115,17 +116,17 @@ namespace MangaUnhost.Others
             if (Options.Length == 1)
                 return Options.Single();
 
-            var Form = new System.Windows.Forms.Form
-            {
+            var Form = new Form {
                 Size = new System.Drawing.Size(270, 120)
             };
 
-            VSContainer ThemeContainer = new VSContainer()
-            {
+            VSContainer ThemeContainer = new VSContainer() {
                 Form = Form,
                 FormOrWhole = VSContainer.__FormOrWhole.Form,
                 AllowMaximize = false,
                 AllowMinimize = false,
+                NoTitleWrap = true,
+                ShowDots = true,
                 Text = Question
             };
             Form.Controls.Add(ThemeContainer);
@@ -144,7 +145,19 @@ namespace MangaUnhost.Others
 
             ThemeContainer.Controls.Add(ComboBox);
 
+            Timer Timer = null;
+            if (ThemeContainer.Text.Length > 20) {
+                ThemeContainer.Text += " ";
+                Timer = new Timer();
+                Timer.Interval = 80;
+                Timer.Tick += (a, b) => {
+                    ThemeContainer.Text = ThemeContainer.Text.Substring(1) + ThemeContainer.Text[0];
+                };
+                Timer.Enabled = true;
+            }
+
             Form.ShowDialog(Main.Instance);
+            Timer?.Dispose();
 
             return ComboBox.SelectedItem.ToString();
         }
@@ -153,8 +166,7 @@ namespace MangaUnhost.Others
 
         public static int PromptValue(string Question, int Min = 0, int Max = int.MaxValue, int Default = 0)
         {
-            var Form = new System.Windows.Forms.Form
-            {
+            var Form = new Form {
                 Size = new System.Drawing.Size(270, 120)
             };
 
@@ -164,6 +176,7 @@ namespace MangaUnhost.Others
                 FormOrWhole = VSContainer.__FormOrWhole.Form,
                 AllowMaximize = false,
                 AllowMinimize = false,
+                ShowIcon = false,
                 Text = Question
             };
             Form.Controls.Add(ThemeContainer);

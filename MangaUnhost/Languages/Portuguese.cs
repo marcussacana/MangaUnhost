@@ -32,6 +32,9 @@
         public string SaveAsLbl => "Salvar Como:";
 
         public string SkipDownloadedLbl => "Pular Baixados:";
+        public string ReplaceModeLbl => "Modo de Substituição:";
+
+
 
         public string ClippingImages => "Recortando Imagens...";
 
@@ -106,5 +109,11 @@
 
 
         public string ConfirmBulk => "Foram detectado {0} Comics na sua lista de links.\nTem certeza que deseja fazer download em massa?";
+
+        public string ReplaceMode => "Você já tem um download com o mesmo nome, o que deseja fazer?";
+
+        public string UpdateURL => "Atualizar URL";
+        public string NewFolder => "Nova Pasta";
+        public string Ask => "Perguntar";
     }
 }

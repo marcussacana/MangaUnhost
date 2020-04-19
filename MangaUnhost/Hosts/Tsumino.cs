@@ -167,6 +167,6 @@ namespace MangaUnhost.Hosts {
         public byte[] TryDownload(Uri Link) {
             return Link.TryDownload(CurrentUrl, UserAgent, Cookie: Cookies);
         }
-     
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

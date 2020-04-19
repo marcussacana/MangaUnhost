@@ -22,7 +22,7 @@ namespace MangaUnhost {
 
         Settings Settings = new Settings();
 
-        IHost[] Hosts = GetHostsInstances();
+        public IHost[] Hosts { get; private set; } = GetHostsInstances();
 
         ILanguage[] Languages = GetLanguagesInstance();
 
@@ -102,7 +102,8 @@ namespace MangaUnhost {
                     ImageClipping = true,
                     ReaderGenerator = true,
                     SkipDownloaded = true,
-                    LibraryPath = DefaultLibPath
+                    LibraryPath = DefaultLibPath,
+                    ReplaceMode = 1
                 };
             }
 
@@ -204,6 +205,7 @@ namespace MangaUnhost {
                 if (!Result)
                     return;
 
+                bool PluginFound = false;
                 foreach (var Host in Hosts)
                 {
                     if (!Host.IsValidUri(URL))
@@ -212,14 +214,38 @@ namespace MangaUnhost {
                     try
                     {
                         LoadUri(URL, Host);
+                        PluginFound = true;
                         break;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         if (Program.Debug)
-                            throw ex;
+                            throw;
                     }
 
+                    StatusBar.SecondLabelText = string.Empty;
+                    Status = CurrentLanguage.IDLE;
+                }
+
+                if (!PluginFound)
+                {
+                    Status = CurrentLanguage.Loading;
+                    var HTML = Encoding.UTF8.GetString(URL.TryDownload(URL.Host, ProxyTools.UserAgent));
+                    foreach (var Host in Hosts)
+                    {
+                        if (!Host.GetPluginInfo().GenericPlugin)
+                            continue;
+
+                        try
+                        {
+                            if (!Host.IsValidPage(HTML, URL))
+                                continue;
+
+                            LoadUri(URL, Host);
+                            break;
+                        }
+                        catch { }
+                    }
                     StatusBar.SecondLabelText = string.Empty;
                     Status = CurrentLanguage.IDLE;
                 }
@@ -361,7 +387,10 @@ namespace MangaUnhost {
             SaveAsRawRadio.Checked  = SaveAs == SaveAs.RAW;
             SaveAsAutoRadio.Checked = SaveAs == SaveAs.AUTO;
 
-
+            ReplaceMode ReplaceWhen = (ReplaceMode)Settings.ReplaceMode;
+            UpdateUrlRadio.Checked  = ReplaceWhen == ReplaceMode.UpdateURL;
+            NewFolderRadio.Checked  = ReplaceWhen == ReplaceMode.NewFolder;
+            AskRadio.Checked        = ReplaceWhen == ReplaceMode.Ask;
 
             //Load Translation
             DownloaderTab.Text = CurrentLanguage.DownloaderTab;
@@ -380,6 +409,7 @@ namespace MangaUnhost {
             lblReadeGenerator.Text = CurrentLanguage.ReaderGeneratorLbl;
             lblSaveAs.Text = CurrentLanguage.SaveAsLbl;
             lblSkipDownloaded.Text = CurrentLanguage.SkipDownloadedLbl;
+            lblReplaceMode.Text = CurrentLanguage.ReplaceModeLbl;
 
             ClipWatcherDisRadio.Text = CurrentLanguage.Disabled;
             ImgClipDisRadio.Text = CurrentLanguage.Disabled;
@@ -389,6 +419,9 @@ namespace MangaUnhost {
             ImgClipEnbRadio.Text = CurrentLanguage.Enabled;
             ReaderGenEnbRadio.Text = CurrentLanguage.Enabled;
             SkipDownEnbRadio.Text = CurrentLanguage.Enabled;
+            UpdateUrlRadio.Text = CurrentLanguage.UpdateURL;
+            NewFolderRadio.Text = CurrentLanguage.NewFolder;
+            AskRadio.Text = CurrentLanguage.Ask;
 
             SupportedHostsBox.Text = CurrentLanguage.SupportedHostsBox;
 
@@ -626,6 +659,21 @@ namespace MangaUnhost {
                     SubStatus = string.Empty;
                 }
             }
+        }
+
+        private void ReplaceAskModeChanged(object sender, EventArgs e) {
+            if (AskRadio.Checked)
+                Settings.ReplaceMode = (int)ReplaceMode.Ask;
+        }
+
+        private void ReplaceNewFolderModeChanged(object sender, EventArgs e) {
+            if (NewFolderRadio.Checked)
+                Settings.ReplaceMode = (int)ReplaceMode.NewFolder;
+        }
+
+        private void ReplaceUpdateUrlModeChanged(object sender, EventArgs e) {
+            if (UpdateUrlRadio.Checked)
+                Settings.ReplaceMode = (int)ReplaceMode.UpdateURL;
         }
     }
 }

@@ -212,6 +212,7 @@ namespace MangaUnhost.Hosts {
                 return TryDownload(Url);
             }
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
 
         struct MangaDexApi {
             public int? id;

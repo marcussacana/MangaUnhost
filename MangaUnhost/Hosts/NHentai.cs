@@ -158,5 +158,6 @@ namespace MangaUnhost.Hosts {
                                    UserAgent: Browser.GetBrowser().GetUserAgent(),
                                    Cookie: Browser.GetBrowser().GetCookies().ToContainer());
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

@@ -13,6 +13,12 @@ namespace MangaUnhost {
         PNG, JPG, BMP, RAW, AUTO
     }
 
+    public enum ReplaceMode : int { 
+        UpdateURL = 1, 
+        NewFolder = 2, 
+        Ask       = 3
+    }
+
     public enum CaptchaSolverType {
         /// <summary>
         /// Don't try automatically solve the Captcha

@@ -72,6 +72,7 @@ public class VSContainer : ContainerControl {
     private bool _AllowMaximize = true;
     private int _FontSize = 12;
     private bool _ShowIcon = true;
+    private bool _NoTitleWrap = false;
     private MouseState State = MouseState.None;
     private int MouseXLoc;
     private int MouseYLoc;
@@ -146,6 +147,33 @@ public class VSContainer : ContainerControl {
         }
         set {
             _FontSize = value;
+            Invalidate();
+        }
+    }
+
+    [Category("Control")]
+    public bool NoTitleWrap
+    {
+        get
+        {
+            return _NoTitleWrap;
+        }
+        set
+        {
+            _NoTitleWrap = value;
+            Invalidate();
+        }
+    }
+    [Category("Control")]
+    public new string Text
+    {
+        get
+        {
+            return base.Text;
+        }
+        set
+        {
+            base.Text = value;
             Invalidate();
         }
     }
@@ -237,6 +265,21 @@ public class VSContainer : ContainerControl {
             Invalidate();
         }
     }
+    private bool _ShowDots = false;
+    public bool ShowDots
+    {
+        get
+        {
+            return _ShowDots;
+        }
+        set
+        {
+            _ShowDots = value;
+            Invalidate();
+        }
+    }
+
+
 
     protected override void OnMouseUp(System.Windows.Forms.MouseEventArgs e) {
         base.OnMouseUp(e);
@@ -413,12 +456,24 @@ public class VSContainer : ContainerControl {
             }
         }
 
+        var TitleFormat = new StringFormat
+        {
+            LineAlignment = StringAlignment.Center,
+            Alignment = StringAlignment.Near
+        };
+
+        if (NoTitleWrap) {
+            TitleFormat.FormatFlags |= StringFormatFlags.NoWrap;
+        }
+
         if (_ShowIcon) {
+            var TitleArea = new RectangleF(37F, 0F, Width - 110, 32F);
+            var eta = new RectangleF(TitleArea.Width + 33F, 0, Width - 100, 30F);
             switch (_IconStyle) {
                 case __IconStyle.FormIcon:
                     //G.DrawIcon(FindForm().Icon, new Rectangle(6, 6, 22, 22));
                     G.DrawImage(MangaUnhost.Properties.Resources.Book, 6, 6, 22, 22);
-                    G.DrawString(Text, _Font, new SolidBrush(_FontColour), new RectangleF(37F, 0F, Width - 110, 32F), new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Near });
+                    G.DrawString(Text, _Font, new SolidBrush(_FontColour), TitleArea, TitleFormat);
                     break;
                 default:
                     G.DrawLines(new Pen(_IconColour, 3F), Points1);
@@ -427,11 +482,26 @@ public class VSContainer : ContainerControl {
                     G.DrawLines(new Pen(_IconColour, 4F), Points4);
                     G.DrawLine(new Pen(_IconColour, 3F), new Point(9, 11), new Point(9, 22));
                     G.DrawLine(new Pen(_IconColour, 4F), 26, 6, 26, 28);
-                    G.DrawString(Text, _Font, new SolidBrush(_FontColour), new RectangleF(37F, 0F, Width - 110, 32F), new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Near });
+                    G.DrawString(Text, _Font, new SolidBrush(_FontColour), TitleArea, TitleFormat);
                     break;
             }
+            if (_ShowDots)
+            {
+                G.DrawString("...", _Font, new SolidBrush(_FontColour), eta, TitleFormat);
+            }
         } else {
-            G.DrawString(Text, _Font, new SolidBrush(_FontColour), new RectangleF(5F, 0F, Width - 110, 30F), new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Near });
+
+            var TitleArea = new RectangleF(5F, 0F, Width - 80, 30F);
+            var eta = new RectangleF(TitleArea.Width -1, 0, Width - 100, 30F);
+
+            // Funcionando no modo BR
+            //G.DrawString(Text.Substring(0, 20) + "...", _Font, new SolidBrush(_FontColour), TitleArea, TitleFormat);
+            G.DrawString(Text, _Font, new SolidBrush(_FontColour), TitleArea, TitleFormat);
+            if(_ShowDots)
+            {
+                G.DrawString("...", _Font, new SolidBrush(_FontColour), eta, TitleFormat);
+            }
+            
         }
         G.InterpolationMode = InterpolationMode.HighQualityBicubic;
     }

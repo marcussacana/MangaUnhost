@@ -23,6 +23,13 @@ namespace MangaUnhost {
         bool IsValidUri(Uri Uri);
 
         /// <summary>
+        /// (Used in Generic Plugins Only) Equivalent to <see cref="IsValidUri(Uri)"/>, but verify the page content
+        /// </summary>
+        /// <param name="HTML">The HTML Content</param>
+        /// <param name="URL">The URL of the downoaded page</param>
+        bool IsValidPage(string HTML, Uri URL);
+
+        /// <summary>
         /// Load a URI 
         /// </summary>
         /// <param name="Uri">The URI to load</param>
@@ -83,6 +90,7 @@ namespace MangaUnhost {
         string FeaturesBox { get; }
         string SupportedHostsBox { get; }
 
+        //Labels
         string LibraryLbl { get; }
         string LanguageLbl { get; }
         string CaptchaSolvingLbl { get; }
@@ -91,6 +99,7 @@ namespace MangaUnhost {
         string ClipboardWatcherLbl { get; }
         string SaveAsLbl { get; }
         string SkipDownloadedLbl { get; }
+        string ReplaceModeLbl { get; }
 
         string Enabled { get; }
         string Disabled { get; }
@@ -144,5 +153,10 @@ namespace MangaUnhost {
 
         //Messages
         string ConfirmBulk { get; }
+
+        string ReplaceMode { get; }
+        string UpdateURL { get; }
+        string NewFolder { get; }
+        string Ask { get; }
     }
 }

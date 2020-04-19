@@ -131,5 +131,7 @@ namespace MangaUnhost.Hosts {
 
             return URL.TryDownload(UserAgent: UserAgent) ?? throw new Exception("Failed to Download");
         }
+
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

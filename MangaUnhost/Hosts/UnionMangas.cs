@@ -120,8 +120,8 @@ namespace MangaUnhost.Hosts {
                 Rst = URL.TryDownload(AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError } );
             else
                 Rst = URL.TryDownload(UserAgent: Cloudflare?.UserAgent, Cookie: Cloudflare?.Cookies);
-            string tmp = Encoding.UTF8.GetString(Rst);
             return Rst;
         }
+        public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

@@ -46,6 +46,11 @@
             this.tbCrawlerUrl = new VSNormalTextBox();
             this.SettingsTab = new System.Windows.Forms.TabPage();
             this.FeaturesGroupBox = new VSGroupBox();
+            this.panel7 = new System.Windows.Forms.Panel();
+            this.NewFolderRadio = new System.Windows.Forms.RadioButton();
+            this.AskRadio = new System.Windows.Forms.RadioButton();
+            this.UpdateUrlRadio = new System.Windows.Forms.RadioButton();
+            this.lblReplaceMode = new System.Windows.Forms.Label();
             this.panel6 = new System.Windows.Forms.Panel();
             this.SkipDownEnbRadio = new System.Windows.Forms.RadioButton();
             this.SkipDownDisRadio = new System.Windows.Forms.RadioButton();
@@ -95,6 +100,7 @@
             this.CrawlerTab.SuspendLayout();
             this.SettingsTab.SuspendLayout();
             this.FeaturesGroupBox.SuspendLayout();
+            this.panel7.SuspendLayout();
             this.panel6.SuspendLayout();
             this.panel5.SuspendLayout();
             this.panel4.SuspendLayout();
@@ -133,6 +139,8 @@
             this.ThemeContainer.IconStyle = VSContainer.@__IconStyle.FormIcon;
             this.ThemeContainer.Location = new System.Drawing.Point(0, 0);
             this.ThemeContainer.Name = "ThemeContainer";
+            this.ThemeContainer.NoTitleWrap = false;
+            this.ThemeContainer.ShowDots = false;
             this.ThemeContainer.ShowIcon = true;
             this.ThemeContainer.Size = new System.Drawing.Size(838, 530);
             this.ThemeContainer.TabIndex = 0;
@@ -444,6 +452,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FeaturesGroupBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(118)))), ((int)(((byte)(196)))));
+            this.FeaturesGroupBox.Controls.Add(this.panel7);
             this.FeaturesGroupBox.Controls.Add(this.panel6);
             this.FeaturesGroupBox.Controls.Add(this.panel5);
             this.FeaturesGroupBox.Controls.Add(this.panel4);
@@ -459,6 +468,71 @@
             this.FeaturesGroupBox.TabIndex = 1;
             this.FeaturesGroupBox.Text = "Features";
             this.FeaturesGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
+            // 
+            // panel7
+            // 
+            this.panel7.BackColor = System.Drawing.Color.Transparent;
+            this.panel7.Controls.Add(this.NewFolderRadio);
+            this.panel7.Controls.Add(this.AskRadio);
+            this.panel7.Controls.Add(this.UpdateUrlRadio);
+            this.panel7.Controls.Add(this.lblReplaceMode);
+            this.panel7.Location = new System.Drawing.Point(7, 234);
+            this.panel7.Name = "panel7";
+            this.panel7.Size = new System.Drawing.Size(285, 60);
+            this.panel7.TabIndex = 12;
+            // 
+            // NewFolderRadio
+            // 
+            this.NewFolderRadio.AutoSize = true;
+            this.NewFolderRadio.BackColor = System.Drawing.Color.Transparent;
+            this.NewFolderRadio.ForeColor = System.Drawing.Color.White;
+            this.NewFolderRadio.Location = new System.Drawing.Point(166, 24);
+            this.NewFolderRadio.Name = "NewFolderRadio";
+            this.NewFolderRadio.Size = new System.Drawing.Size(96, 23);
+            this.NewFolderRadio.TabIndex = 8;
+            this.NewFolderRadio.Text = "New Folder";
+            this.NewFolderRadio.UseVisualStyleBackColor = false;
+            this.NewFolderRadio.CheckedChanged += new System.EventHandler(this.ReplaceNewFolderModeChanged);
+            // 
+            // AskRadio
+            // 
+            this.AskRadio.AutoSize = true;
+            this.AskRadio.BackColor = System.Drawing.Color.Transparent;
+            this.AskRadio.ForeColor = System.Drawing.Color.White;
+            this.AskRadio.Location = new System.Drawing.Point(166, 3);
+            this.AskRadio.Name = "AskRadio";
+            this.AskRadio.Size = new System.Drawing.Size(49, 23);
+            this.AskRadio.TabIndex = 7;
+            this.AskRadio.Text = "Ask";
+            this.AskRadio.UseVisualStyleBackColor = false;
+            this.AskRadio.CheckedChanged += new System.EventHandler(this.ReplaceAskModeChanged);
+            // 
+            // UpdateUrlRadio
+            // 
+            this.UpdateUrlRadio.BackColor = System.Drawing.Color.Transparent;
+            this.UpdateUrlRadio.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.UpdateUrlRadio.Checked = true;
+            this.UpdateUrlRadio.ForeColor = System.Drawing.Color.White;
+            this.UpdateUrlRadio.Location = new System.Drawing.Point(7, 24);
+            this.UpdateUrlRadio.Name = "UpdateUrlRadio";
+            this.UpdateUrlRadio.Size = new System.Drawing.Size(153, 23);
+            this.UpdateUrlRadio.TabIndex = 6;
+            this.UpdateUrlRadio.TabStop = true;
+            this.UpdateUrlRadio.Text = "Update URL";
+            this.UpdateUrlRadio.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.UpdateUrlRadio.UseVisualStyleBackColor = false;
+            this.UpdateUrlRadio.CheckedChanged += new System.EventHandler(this.ReplaceUpdateUrlModeChanged);
+            // 
+            // lblReplaceMode
+            // 
+            this.lblReplaceMode.BackColor = System.Drawing.Color.Transparent;
+            this.lblReplaceMode.ForeColor = System.Drawing.Color.White;
+            this.lblReplaceMode.Location = new System.Drawing.Point(3, 0);
+            this.lblReplaceMode.Name = "lblReplaceMode";
+            this.lblReplaceMode.Size = new System.Drawing.Size(157, 21);
+            this.lblReplaceMode.TabIndex = 5;
+            this.lblReplaceMode.Text = "Replace Mode:";
+            this.lblReplaceMode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // panel6
             // 
@@ -1045,6 +1119,8 @@
             this.CrawlerTab.ResumeLayout(false);
             this.SettingsTab.ResumeLayout(false);
             this.FeaturesGroupBox.ResumeLayout(false);
+            this.panel7.ResumeLayout(false);
+            this.panel7.PerformLayout();
             this.panel6.ResumeLayout(false);
             this.panel6.PerformLayout();
             this.panel5.ResumeLayout(false);
@@ -1131,6 +1207,11 @@
         private VSButton CrawlerStartBtn;
         private System.Windows.Forms.Label lblUrl;
         private VSNormalTextBox tbCrawlerUrl;
+        private System.Windows.Forms.Panel panel7;
+        private System.Windows.Forms.RadioButton NewFolderRadio;
+        private System.Windows.Forms.RadioButton AskRadio;
+        private System.Windows.Forms.RadioButton UpdateUrlRadio;
+        private System.Windows.Forms.Label lblReplaceMode;
     }
 }
 

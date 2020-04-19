@@ -3,13 +3,11 @@ using MangaUnhost.Browser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
 namespace MangaUnhost.Hosts
 {
-    class IsekaiScan : IHost
+    class WordpressManga : IHost
     {
 
         bool ReverseChapters = false;
@@ -79,18 +77,32 @@ namespace MangaUnhost.Hosts
             return new PluginInfo()
             {
                 Author = "Marcussacana",
-                Name = "Isekai Scan",
+                Name = "Wordpress Manga Reader",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                GenericPlugin = true,
+                Version = new Version(1, 2)
             };
         }
 
         public bool IsValidUri(Uri Uri)
         {
-            return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("manga47.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
+           return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
+                  (Uri.Host.ToLower().Contains("manga47.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
+                  (Uri.Host.ToLower().Contains("manga68.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
+                  (Uri.Host.ToLower().Contains("toonily.com")    && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
+        }
+        public bool IsValidPage(string HTML, Uri URL)
+        {
+            if (!HTML.Contains("wp-manga-chapter"))
+                return false;
+
+            if (URL.AbsolutePath.ToLower().Contains("manga/"))
+                return true;
+            if (URL.AbsolutePath.ToLower().Contains("webtoon/"))
+                return true;
+
+            return false;
         }
 
         HtmlDocument Document = new HtmlDocument();
