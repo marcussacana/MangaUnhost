@@ -21,6 +21,7 @@ namespace MangaUnhost {
             lblPluginName.Text = CurrentLanguage.PluginLbl;
             lblSupportComic.Text = CurrentLanguage.SupportComicLbl;
             lblSupportNovel.Text = CurrentLanguage.SupportNovelLbl;
+            lblGenericPlugin.Text = CurrentLanguage.GenericPluginLbl;
             lblVersion.Text = CurrentLanguage.VersionLbl;
 
             lblAuthorVal.Text = Info.Author;

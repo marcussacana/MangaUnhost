@@ -135,6 +135,7 @@ namespace MangaUnhost {
         string PluginLbl { get; }
         string SupportComicLbl { get; }
         string SupportNovelLbl { get; }
+        string GenericPluginLbl { get; }
         string VersionLbl { get; }
 
         //Comic Preview

@@ -32,6 +32,7 @@
         public string SaveAsLbl => "Salvar Como:";
 
         public string SkipDownloadedLbl => "Pular Baixados:";
+
         public string ReplaceModeLbl => "Modo de Substituição:";
 
 
@@ -65,6 +66,7 @@
 
 
         public string Loading => "Carregando...";
+
         public string Downloading => "Baixando {0}/{1}...";
 
         public string LoadingComic => "Carregando Comic...";
@@ -90,6 +92,8 @@
         public string SupportComicLbl => "Suporta Comic:";
 
         public string SupportNovelLbl => "Suporta Novel:";
+
+        public string GenericPluginLbl => "Plugin Genérico:";
 
         public string VersionLbl => "Versão:";
 

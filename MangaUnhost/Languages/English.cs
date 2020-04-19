@@ -89,6 +89,8 @@
 
         public string SupportNovelLbl => "Support Novel:";
 
+        public string GenericPluginLbl => "Generic Plugin:";
+
         public string VersionLbl => "Version:";
 
 
