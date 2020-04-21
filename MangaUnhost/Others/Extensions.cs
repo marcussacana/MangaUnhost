@@ -5,6 +5,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -211,5 +212,14 @@ namespace MangaUnhost {
             return (T)new JavaScriptSerializer().Deserialize(Json, typeof(T));
         }
 
+        public static byte[] GetResponseData(this WebRequest Request) {
+            using (var Response = Request.GetResponse())
+            using (var ResponseData = Response.GetResponseStream())
+            using (var Buffer = new MemoryStream())
+            {
+                ResponseData.CopyTo(Buffer);
+                return Buffer.ToArray();
+            }
+        }
     }
 }

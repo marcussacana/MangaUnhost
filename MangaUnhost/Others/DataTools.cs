@@ -68,6 +68,7 @@ namespace MangaUnhost.Others {
                     break;
                 Data += c;
             }
+            Data = Data.Replace("\\/", "/");
             if (Data.Contains("\\"))
                 throw new Exception("Ops... Unsupported Json Format...");
 

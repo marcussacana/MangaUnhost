@@ -120,6 +120,7 @@
     <Compile Include="BrowserPopup.Designer.cs">
       <DependentUpon>BrowserPopup.cs</DependentUpon>
     </Compile>
+    <Compile Include="Resources\Icons.cs" />
     <Compile Include="SolveCaptcha.cs">
       <SubType>Form</SubType>
     </Compile>
