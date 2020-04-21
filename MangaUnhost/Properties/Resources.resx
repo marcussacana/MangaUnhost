@@ -140,7 +140,7 @@
     <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;&lt;br/&gt;</value>
   </data>
   <data name="ComicReaderPageBase" xml:space="preserve">
-    <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'"/&gt;&lt;br/&gt;
+    <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;&lt;br/&gt;
 </value>
   </data>
   <data name="ComicReaderNextChapterBase" xml:space="preserve">

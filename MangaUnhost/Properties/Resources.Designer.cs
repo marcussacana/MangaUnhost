@@ -147,7 +147,7 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a          &lt;img src=&quot;{0}&quot; style=&quot;max-width:100%;&quot; id=&quot;img{1}&quot; onload=&quot;img{2}.src = &apos;{3}&apos;&quot;/&gt;&lt;br/&gt;
+        ///   Consulta uma cadeia de caracteres localizada semelhante a          &lt;img src=&quot;{0}&quot; style=&quot;max-width:100%;&quot; id=&quot;img{1}&quot; onload=&quot;img{2}.src = &apos;{3}&apos;&quot; onerror=&quot;img{2}.src = &apos;{3}&apos;&quot;/&gt;&lt;br/&gt;
         ///.
         /// </summary>
         internal static string ComicReaderPageBase {
