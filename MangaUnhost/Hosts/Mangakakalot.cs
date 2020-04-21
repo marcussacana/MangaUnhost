@@ -74,6 +74,12 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count <= 0)
                 Nodes = Page.DocumentNode.SelectNodes("//*[@class=\"container-chapter-reader\"]/img");
 
+            if (Nodes == null || Nodes.Count <= 0) {
+                Nodes = Page.DocumentNode.SelectNodes("//*[contains(@class, \"chapter-content-inner\")]/p");
+
+                return Nodes.First().InnerText.Split(',');
+            }
+
             foreach (var Node in Nodes)
                 Pages.Add(Node.GetAttributeValue("src", ""));
             
@@ -96,7 +102,8 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 3)
+                Version = new Version(1, 4),
+                Icon = Resources.Icons.Mangakakalot
             };
         }
 
