@@ -125,8 +125,7 @@ namespace MangaUnhost.Others
                 FormOrWhole = VSContainer.__FormOrWhole.Form,
                 AllowMaximize = false,
                 AllowMinimize = false,
-                NoTitleWrap = true,
-                ShowDots = true,
+                NoTitleWrap = true,                
                 Text = Question
             };
             Form.Controls.Add(ThemeContainer);
@@ -147,6 +146,7 @@ namespace MangaUnhost.Others
 
             Timer Timer = null;
             if (ThemeContainer.Text.Length > 20) {
+				ThemeContainer.ShowDots = true;
                 ThemeContainer.Text += " ";
                 Timer = new Timer();
                 Timer.Interval = 80;
