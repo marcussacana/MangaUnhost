@@ -96,7 +96,7 @@ namespace MangaUnhost {
 
         public static string ToHTML(this HtmlAgilityPack.HtmlDocument Document)
         {
-            using (var Stream = new System.IO.MemoryStream())
+            using (var Stream = new MemoryStream())
             {
                 Document.Save(Stream);
                 return Document.Encoding.GetString(Stream.ToArray());

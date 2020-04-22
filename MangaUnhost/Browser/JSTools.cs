@@ -91,6 +91,8 @@ namespace MangaUnhost.Browser {
         public static string GetHTML(this IBrowser Browser) =>
             AsyncContext.Run(async () => await Browser.MainFrame.GetSourceAsync());
         public static bool IsCloudflareTriggered(this IBrowser Browser) => Browser.GetHTML().IsCloudflareTriggered();
+
+        public static bool IsCloudflareTriggered(this HtmlDocument Document) => Document.ToHTML().IsCloudflareTriggered();
         public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("why_captcha_headline") || HTML.Contains("DDOS-GUARD");
 
 

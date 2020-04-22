@@ -29,13 +29,19 @@ namespace MangaUnhost.Hosts {
             var Nodes = Document.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
 
             if (Nodes == null || Nodes.Count <= 0) {
-                var BrowserDoc = new HtmlDocument();
-                BrowserDoc.LoadHtml(JSTools.BypassCloudFlare(CurrentUrl).HTML);
-                Nodes = BrowserDoc.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
+                var SafeDoc = new HtmlDocument();
+                if (Document.IsCloudflareTriggered())
+                    SafeDoc.LoadHtml(JSTools.BypassCloudFlare(CurrentUrl).HTML);
+                else
+                    SafeDoc = Document;
 
-                if (Nodes == null || Nodes.Count <= 0) {
-                    Nodes = BrowserDoc.SelectNodes("//a[@class=\"chapter-name text-nowrap\"]");
-                }
+                Nodes = SafeDoc.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
+
+                if (Nodes == null || Nodes.Count <= 0)
+                    Nodes = SafeDoc.SelectNodes("//a[@class=\"chapter-name text-nowrap\"]");
+
+                if (Nodes == null || Nodes.Count <= 0)
+                    Nodes = SafeDoc.SelectNodes("//div[@class=\"chapter-list\"]//a");
             }
 
             foreach (var Node in Nodes) {
@@ -82,7 +88,7 @@ namespace MangaUnhost.Hosts {
 
             foreach (var Node in Nodes)
                 Pages.Add(Node.GetAttributeValue("src", ""));
-            
+
             return Pages.ToArray();
         }
 
@@ -98,12 +104,12 @@ namespace MangaUnhost.Hosts {
 
         public PluginInfo GetPluginInfo() {
             return new PluginInfo() {
-                Name = "Mangakakalot",
+                Name = "MangaNelo Based Sites",
                 Author = "Marcussacana",
                 SupportComic = true,
+                GenericPlugin = true,
                 SupportNovel = false,
-                Version = new Version(1, 4),
-                Icon = Resources.Icons.Mangakakalot
+                Version = new Version(1, 5)
             };
         }
 
@@ -122,12 +128,15 @@ namespace MangaUnhost.Hosts {
 
             Info.Title = (Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h1") ??
                           Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h2") ??
-                          Document.SelectSingleNode("//div[@class=\"story-info-right\"]/h1")).InnerText;
+                          Document.SelectSingleNode("//div[@class=\"story-info-right\"]/h1")  ??
+                          Document.SelectSingleNode("//h1[@class=\"title-manga\"]")           ??
+                          Document.SelectSingleNode("//h2[@class=\"title-manga\"]")).InnerText;
 
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            string CoverUrl = (Document.SelectSingleNode("//div[@class=\"manga-info-pic\"]/img") ??
-                               Document.SelectSingleNode("//span[@class=\"info-image\"]/img")).GetAttributeValue("src", string.Empty);
+            string CoverUrl = (Document.SelectSingleNode("//div[@class=\"manga-info-pic\"]/img")          ??
+                               Document.SelectSingleNode("//span[@class=\"info-image\"]/img")             ??
+                               Document.SelectSingleNode("//div[@class=\"media-left cover-detail\"]/img")).GetAttributeValue("src", string.Empty);
 
             Info.Cover = (CoverUrl.StartsWith("/") ? new Uri(new Uri("http://" + Uri.Host), CoverUrl) : new Uri(CoverUrl)).TryDownload();
 
@@ -135,6 +144,8 @@ namespace MangaUnhost.Hosts {
 
             return Info;
         }
-        public bool IsValidPage(string HTML, Uri URL) => false;
+        public bool IsValidPage(string HTML, Uri URL) {
+            return (HTML.Contains("chapter-list") || HTML.Contains("chapter-name text-nowrap"));
+        }
     }
 }
