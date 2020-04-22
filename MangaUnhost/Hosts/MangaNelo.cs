@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web;
 
 namespace MangaUnhost.Hosts {
-    class Mangakakalot : IHost {
+    class MangaNelo : IHost {
         string CurrentUrl;
         HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
