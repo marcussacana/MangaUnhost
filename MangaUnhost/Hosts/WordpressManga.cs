@@ -81,7 +81,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
@@ -122,8 +122,14 @@ namespace MangaUnhost.Hosts
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
             
             var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img");
+
+            var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
             
-            var ImgUrl = ImgNode.GetAttributeValue("data-src", "");
+            if (string.IsNullOrEmpty(ImgUrl))
+                ImgUrl = ImgNode.GetAttributeValue("data-src", "");
+            else
+                ImgUrl = ImgUrl.Trim().Split(',', ' ').First();
+            
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("src", "");
             
