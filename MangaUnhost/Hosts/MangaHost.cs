@@ -46,7 +46,7 @@ namespace MangaUnhost.Hosts {
                     ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty);
                 }
                 ChapterNames[ID] = DataTools.GetRawName(Name.Split('-').First());
-                yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
+                yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++].Trim());
             }
         }
 
@@ -88,7 +88,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
