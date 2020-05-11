@@ -58,7 +58,7 @@ namespace MangaUnhost.Hosts {
             HtmlDocument Document = new HtmlDocument();
             string HTML = Encoding.UTF8.GetString(TryDownload(new Uri(ChapterLinks[ID])));
             while (HTML.IsCloudflareTriggered()) {
-                Cloudflare = JSTools.BypassCloudFlare(ChapterLinks[ID]);
+                Cloudflare = JSTools.BypassCloudflare(ChapterLinks[ID]);
                 HTML = Encoding.UTF8.GetString(TryDownload(new Uri(ChapterLinks[ID])));
             }
             Document.LoadHtml(HTML);
@@ -88,7 +88,7 @@ namespace MangaUnhost.Hosts {
         public ComicInfo LoadUri(Uri Uri) {
             string CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
              if (CurrentHtml.IsCloudflareTriggered()) {
-                Cloudflare = JSTools.BypassCloudFlare(Uri.AbsoluteUri);
+                Cloudflare = JSTools.BypassCloudflare(Uri.AbsoluteUri);
                 CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
             }
 

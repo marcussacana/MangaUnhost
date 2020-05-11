@@ -41,7 +41,7 @@ namespace MangaUnhost.Browser {
             return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
         }
 
-        public static CloudflareData BypassCloudFlare(string Url) {
+        public static CloudflareData BypassCloudflare(string Url) {
             var Status = Main.Status;
             Main.Status = Main.Language.BypassingCloudFlare;
 
@@ -95,6 +95,14 @@ namespace MangaUnhost.Browser {
         public static bool IsCloudflareTriggered(this HtmlDocument Document) => Document.ToHTML().IsCloudflareTriggered();
         public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("why_captcha_headline") || HTML.Contains("DDOS-GUARD");
 
-
+        public static CloudflareData BypassCloudflare(this ChromiumWebBrowser Browser) {
+            var URL = Browser.GetCurrentUrl();
+            var Bypass = BypassCloudflare(URL);
+            foreach (var Cookie in Bypass.Cookies.GetCookies()) {
+                Browser.UpdateCookie(Cookie);
+            }
+            Browser.WaitForLoad(URL);
+            return Bypass;
+        }
     }
 }

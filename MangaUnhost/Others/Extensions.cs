@@ -3,11 +3,14 @@ using CefSharp.OffScreen;
 using MangaUnhost.Browser;
 using Nito.AsyncEx;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Web.Script.Serialization;
 
@@ -40,6 +43,25 @@ namespace MangaUnhost {
                     } catch { }
 
             return Container;
+        }
+        public static System.Net.Cookie[] GetCookies(this CookieContainer Cookies)
+        {
+            List<System.Net.Cookie> CookieList = new List<System.Net.Cookie>();
+            Hashtable CookiesTable = (Hashtable)Cookies.GetType().InvokeMember("m_domainTable", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Instance, null, Cookies, new object[] { } );
+
+            foreach (var Path in CookiesTable.Keys)
+            {
+                var Domain = Path.ToString().TrimStart('.');
+                Uri URL = new Uri(string.Format("http://{0}/", Domain));
+                foreach (var Cookie in Cookies.GetCookies(URL).Cast<System.Net.Cookie>())
+                    CookieList.Add(Cookie);
+
+                URL = new Uri(string.Format("https://{0}/", Domain));
+                foreach (var Cookie in Cookies.GetCookies(URL).Cast<System.Net.Cookie>())
+                    CookieList.Add(Cookie);
+            }
+
+            return CookieList.ToArray();
         }
 
         public static string GetCookie(this ChromiumWebBrowser Browser, string Name) => Browser.GetBrowser().GetCookie(Name);

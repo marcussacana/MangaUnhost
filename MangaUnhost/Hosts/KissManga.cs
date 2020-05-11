@@ -162,7 +162,7 @@ namespace MangaUnhost.Hosts {
         public ComicInfo LoadUri(Uri Uri) {
             string CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
              if (CurrentHtml.IsCloudflareTriggered()) {
-                Cloudflare = JSTools.BypassCloudFlare(Uri.AbsoluteUri);
+                Cloudflare = JSTools.BypassCloudflare(Uri.AbsoluteUri);
                 CurrentHtml = Encoding.UTF8.GetString(TryDownload(Uri));
             }
 

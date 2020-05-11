@@ -148,6 +148,7 @@ namespace MangaUnhost {
                 Program.Updater.Update();
             }
 
+            MainTimer.Enabled = true;
         }
 
         private T CreateInstance<T>(T Interface) {

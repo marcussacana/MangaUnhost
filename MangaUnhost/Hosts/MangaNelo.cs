@@ -31,7 +31,7 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count <= 0) {
                 var SafeDoc = new HtmlDocument();
                 if (Document.IsCloudflareTriggered())
-                    SafeDoc.LoadHtml(JSTools.BypassCloudFlare(CurrentUrl).HTML);
+                    SafeDoc.LoadHtml(JSTools.BypassCloudflare(CurrentUrl).HTML);
                 else
                     SafeDoc = Document;
 

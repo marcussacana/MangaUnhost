@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using CefSharp.OffScreen;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
@@ -9,7 +10,7 @@ using System.Web;
 
 namespace MangaUnhost.Hosts {
     class Batoto : IHost {
-        static string UserAgent = null;
+        static CloudflareData? CFData = null;
         string CurrentDomain;
         HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
@@ -72,7 +73,7 @@ namespace MangaUnhost.Hosts {
 
         private HtmlDocument GetChapterHtml(int ID) {
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(ChapterLinks[ID], UserAgent: UserAgent);
+            Document.LoadUrl(ChapterLinks[ID], CFData.Value);
             return Document;
         }
 
@@ -86,7 +87,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
@@ -97,6 +98,16 @@ namespace MangaUnhost.Hosts {
 
         public ComicInfo LoadUri(Uri Uri) {
             CurrentDomain = "https://" + Uri.Host;
+
+            if (CFData == null) {
+                using (ChromiumWebBrowser Browser = new ChromiumWebBrowser()) {
+                    Browser.WaitForLoad(Uri.AbsoluteUri);
+                    do {
+                        CFData = Browser.BypassCloudflare();
+                    } while (Browser.IsCloudflareTriggered());
+                }
+            }
+
             Document = new HtmlDocument();
             Document.LoadHtml(Encoding.UTF8.GetString(TryDownload(Uri)));
 
@@ -120,16 +131,10 @@ namespace MangaUnhost.Hosts {
         }
 
         public static byte[] TryDownload(Uri URL) {
-            while (UserAgent == null)
-                UserAgent = JSTools.DefaultBrowser.GetUserAgent();
-
-            return URL.TryDownload(UserAgent: UserAgent);
+            return URL.TryDownload(CFData.Value);
         }
         public static byte[] Download(Uri URL) {
-            while (UserAgent == null)
-                UserAgent = JSTools.DefaultBrowser.GetBrowser().GetUserAgent();
-
-            return URL.TryDownload(UserAgent: UserAgent) ?? throw new Exception("Failed to Download");
+            return URL.TryDownload(CFData.Value) ?? throw new Exception("Failed to Download");
         }
 
         public bool IsValidPage(string HTML, Uri URL) => false;

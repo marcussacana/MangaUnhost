@@ -1,11 +1,14 @@
-﻿using MangaUnhost.Browser;
+﻿using CefSharp.OffScreen;
+using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Web;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Hosts {
     class MangaDex : IHost {
@@ -45,14 +48,19 @@ namespace MangaUnhost.Hosts {
                         continue;
                     }
 
-                    Empty = false;
-
                     var ChapterInfo = Node.SelectSingleNode(Node.XPath + "//a[@class=\"text-truncate\"]");
                     var ChapterLang = Node.SelectSingleNode(Node.XPath + "//span[contains(@class, \"flag\")]");
 
                     var Name = HttpUtility.HtmlDecode(ChapterInfo.InnerText).ToLower();
                     var Link = HttpUtility.HtmlDecode(ChapterInfo.GetAttributeValue("href", ""));
                     var Lang = HttpUtility.HtmlDecode(ChapterLang.GetAttributeValue("title", "")).Trim();
+
+                    Link = new Uri(new Uri("https://mangadex.org"), Link).AbsoluteUri;
+
+                    if (ChapterLinks.Values.Contains(Link))
+                        continue;
+
+                    Empty = false;
 
                     if (Name.Contains('-'))
                         Name = Name.Substring(0, Name.IndexOf("-"));
@@ -70,7 +78,7 @@ namespace MangaUnhost.Hosts {
                         Name = Name.Substring("ch. ");
 
                     ChapterNames[ID] = DataTools.GetRawName(Name.Trim());
-                    ChapterLinks[ID] = new Uri(new Uri("https://mangadex.org"), Link).AbsoluteUri;
+                    ChapterLinks[ID] = Link;
                     ChapterLangs[ID] = Lang;
 
                     Ids.Add(ID++);
@@ -144,7 +152,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 4)
+                Version = new Version(1, 5)
             };
 
             if (ChapterLangs.Count > 0) {
@@ -172,6 +180,15 @@ namespace MangaUnhost.Hosts {
             else
                 Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/') + "/chapters/1");
 
+            if (CFData == null) {
+                using (ChromiumWebBrowser Browser = new ChromiumWebBrowser()) {
+                    Browser.WaitForLoad(Uri.AbsoluteUri);
+                    do {
+                        CFData = Browser.BypassCloudflare();
+                    } while (Browser.IsCloudflareTriggered());
+                }
+            }
+
             Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadUrl(Uri, Referer: "https://mangadex.org", UserAgent: CFData?.UserAgent ?? null, Cookies: CFData?.Cookies ?? null);
 
@@ -187,6 +204,11 @@ namespace MangaUnhost.Hosts {
             Info.ContentType = ContentType.Comic;
 
             CurrentUrl = Uri.AbsoluteUri;
+
+            if (Uri.AbsolutePath.Trim('/').Split('/').Length == 4) {
+                CurrentUrl = Document.SelectSingleNode("//link[@rel='canonical']").GetAttributeValue("href", null);
+                CurrentUrl = CurrentUrl.TrimEnd() + "/chapters/1";
+            }
 
             return Info;
         }
@@ -208,7 +230,7 @@ namespace MangaUnhost.Hosts {
                 return Url.TryDownload();
             }
             catch {
-                CFData = JSTools.BypassCloudFlare(Url.AbsoluteUri);
+                CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
                 return TryDownload(Url);
             }
         }
