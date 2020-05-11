@@ -4,11 +4,8 @@ using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
-using System.Threading;
 using System.Web;
-using System.Windows.Forms;
 
 namespace MangaUnhost.Hosts {
     class MangaDex : IHost {
@@ -25,6 +22,9 @@ namespace MangaUnhost.Hosts {
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
                 yield return TryDownload(new Uri(PageUrl));
+                //Looks like they have a limit of the download speed,
+                //if you reach it, they delay all queries of your ip for some seconds
+                ThreadTools.Wait(1000, true);
             }
         }
 
@@ -152,7 +152,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 5)
+                Version = new Version(1, 5, 1)
             };
 
             if (ChapterLangs.Count > 0) {
