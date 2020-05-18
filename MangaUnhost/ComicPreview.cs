@@ -12,8 +12,16 @@ namespace MangaUnhost
     {
         ~ComicPreview() {
             var Img = CoverBox.Image;
-            CoverBox?.Dispose();
-            Img?.Dispose();
+            try
+            {
+                CoverBox?.Dispose();
+            }
+            catch { }
+            try
+            {
+                Img?.Dispose();
+            }
+            catch { }
         }
         ILanguage Language => Main.Language;
         bool CoverFound = false;
@@ -195,6 +203,12 @@ namespace MangaUnhost
         {
             if (IndexFound)
                 System.Diagnostics.Process.Start(IndexPath);
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            base.OnMouseWheel(e);
+            ((IMouseable)Parent).DoMouseWhell(e);
         }
     }
 }

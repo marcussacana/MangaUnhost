@@ -601,6 +601,8 @@ namespace MangaUnhost {
                 Thread.Sleep(10);
             }
 
+            LibraryContainer.Focus();
+
             foreach (var Control in LibraryContainer.Controls)
                 Try(() => ((ComicPreview)Control).GetComicInfo());
         }

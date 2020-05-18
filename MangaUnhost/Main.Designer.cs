@@ -35,7 +35,7 @@
             this.ButtonsContainer = new System.Windows.Forms.FlowLayoutPanel();
             this.CoverBox = new System.Windows.Forms.PictureBox();
             this.LibraryTab = new System.Windows.Forms.TabPage();
-            this.LibraryContainer = new System.Windows.Forms.FlowLayoutPanel();
+            this.LibraryContainer = new MangaUnhost.ScrollFlowLayoutPanel();
             this.CrawlerTab = new System.Windows.Forms.TabPage();
             this.LinksListBox = new VSListBoxWBuiltInScrollBar();
             this.CrawlerCopyBtn = new VSButton();
@@ -1196,7 +1196,7 @@
         private System.Windows.Forms.Label lblTitle;
         private VSVerticalScrollBar ContainerScrollBar;
         private System.Windows.Forms.TabPage LibraryTab;
-        private System.Windows.Forms.FlowLayoutPanel LibraryContainer;
+        private ScrollFlowLayoutPanel LibraryContainer;
         private System.Windows.Forms.RadioButton SaveAsAutoRadio;
         private System.Windows.Forms.TabPage CrawlerTab;
         private VSListBoxWBuiltInScrollBar LinksListBox;

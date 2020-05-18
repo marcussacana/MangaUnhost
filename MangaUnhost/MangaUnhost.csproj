@@ -138,6 +138,9 @@
       <DependentUpon>BrowserPopup.cs</DependentUpon>
     </Compile>
     <Compile Include="Resources\Icons.cs" />
+    <Compile Include="ScrollFlowLayoutPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="SolveCaptcha.cs">
       <SubType>Form</SubType>
     </Compile>
