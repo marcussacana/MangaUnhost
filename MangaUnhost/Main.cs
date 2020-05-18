@@ -588,22 +588,39 @@ namespace MangaUnhost {
             if (!Directory.Exists(Settings.LibraryPath))
                 return;
 
+            var Controls = new List<Control>(LibraryContainer.Controls.Cast<Control>());
             LibraryContainer.Controls.Clear();
+            foreach (var Comic in Controls)
+            {
+                Comic.Dispose();
+            }
+
             foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
             {
-                LibraryContainer.Controls.Add(new ComicPreview(Comic));
-                ThreadTools.Wait(10, true);
+                Try(() => LibraryContainer.Controls.Add(new ComicPreview(Comic)));
+                Thread.Sleep(10);
             }
 
             foreach (var Control in LibraryContainer.Controls)
-                ((ComicPreview)Control).GetComicInfo();            
-            
+                Try(() => ((ComicPreview)Control).GetComicInfo());
         }
 
         Queue<string> LinksFound = new Queue<string>();
         string ParentLink;
         List<string> ProcessedLinks;
         StringBuilder ListString;
+
+        private static bool Try(Action Action) {
+            try
+            {
+                Action.Invoke();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         private void CrawlerStartBtn_Click(object sender, EventArgs e)
         {
@@ -659,6 +676,7 @@ namespace MangaUnhost {
                     Status = Language.IDLE;
                     SubStatus = string.Empty;
                 }
+                Thread.Sleep(10);
             }
         }
 

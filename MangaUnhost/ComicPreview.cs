@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using MangaUnhost.Browser;
 
 namespace MangaUnhost
 {
     public partial class ComicPreview : UserControl
     {
+        ~ComicPreview() {
+            var Img = CoverBox.Image;
+            CoverBox?.Dispose();
+            Img?.Dispose();
+        }
         ILanguage Language => Main.Language;
         bool CoverFound = false;
         bool ChapsFound = false;
