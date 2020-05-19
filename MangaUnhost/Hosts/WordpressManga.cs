@@ -34,7 +34,15 @@ namespace MangaUnhost.Hosts
         {
             int ID = LinkMap.Count;
 
-            var Nodes = Document.SelectNodes("//li[starts-with(@class, \"wp-manga-chapter\")]/a");
+            var XPATH = "//li[starts-with(@class, \"wp-manga-chapter\")]/a";
+            var Nodes = Document.SelectNodes(XPATH);
+            if (Nodes == null || Nodes.Count == 0)
+            {
+                var Browser = JSTools.DefaultBrowser;
+                Browser.WaitForLoad(CurrentUrl.AbsoluteUri);
+                Document = Browser.GetDocument();
+                Nodes = Document.SelectNodes(XPATH);
+            }
 
             foreach (var Node in ReverseChapters ? Nodes.Reverse() : Nodes)
             {
@@ -115,10 +123,12 @@ namespace MangaUnhost.Hosts
             return false;
         }
 
+        Uri CurrentUrl;
         CloudflareData? CFData = null;
         HtmlDocument Document = new HtmlDocument();
         public ComicInfo LoadUri(Uri Uri)
         {
+            CurrentUrl = Uri;
             ReverseChapters = Uri.Host.ToLower().Contains("manga47.com");
 
             Document.LoadUrl(Uri);
