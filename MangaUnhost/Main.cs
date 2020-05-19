@@ -231,7 +231,18 @@ namespace MangaUnhost {
                 if (!PluginFound)
                 {
                     Status = CurrentLanguage.Loading;
-                    var HTML = Encoding.UTF8.GetString(URL.TryDownload(URL.Host, ProxyTools.UserAgent));
+                    string HTML;
+                    var Data = URL.TryDownload(URL.Host, ProxyTools.UserAgent);
+                    if (Data == null) {
+                        var BypassData = JSTools.BypassCloudflare(URL.Host);
+                        HTML = BypassData.HTML;
+                    }
+                    else
+                        HTML = Encoding.UTF8.GetString(Data);
+
+                    if (string.IsNullOrWhiteSpace(HTML))
+                        return;
+
                     foreach (var Host in Hosts)
                     {
                         if (!Host.GetPluginInfo().GenericPlugin)

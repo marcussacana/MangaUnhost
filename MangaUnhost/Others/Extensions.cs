@@ -133,6 +133,7 @@ namespace MangaUnhost {
             }
             catch { }
         }
+
         public static void RemoveNodes(this HtmlAgilityPack.HtmlDocument Document, string XPath)
         {
             while (true)

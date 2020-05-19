@@ -21,7 +21,7 @@ namespace MangaUnhost.Hosts
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
             foreach (var Page in GetPageLinks(ID))
-                yield return Page.TryDownload();
+                yield return Page.TryDownload(CFData);
         }
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
@@ -39,6 +39,9 @@ namespace MangaUnhost.Hosts
                     Name = Name.Substring("chapter").Trim();
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(' ', '\t', '.');
+
+                if (Name.StartsWith("ch."))
+                    Name = Name.Substring("ch.", " ", IgnoreMissmatch: true);
                     
                 if (Name.Contains("-"))
                     Name = Name.Split('-').First().Trim();
@@ -57,7 +60,7 @@ namespace MangaUnhost.Hosts
         private string[] GetPageLinks(int ID)
         {
             var Chapter = new HtmlDocument();
-            Chapter.LoadUrl(LinkMap[ID]);
+            Chapter.LoadUrl(LinkMap[ID], CFData);
 
             string[] Links = (from x in Chapter
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
@@ -81,7 +84,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 3)
+                Version = new Version(1, 4)
             };
         }
 
@@ -90,6 +93,7 @@ namespace MangaUnhost.Hosts
            return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
                   (Uri.Host.ToLower().Contains("manga47.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
                   (Uri.Host.ToLower().Contains("manga68.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
+                  (Uri.Host.ToLower().Contains("mangatx.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
                   (Uri.Host.ToLower().Contains("toonily.com")    && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
         }
         public bool IsValidPage(string HTML, Uri URL)
@@ -105,15 +109,17 @@ namespace MangaUnhost.Hosts
             return false;
         }
 
+        CloudflareData? CFData = null;
         HtmlDocument Document = new HtmlDocument();
         public ComicInfo LoadUri(Uri Uri)
         {
-            if (Uri.Host.ToLower().Contains("manga47.com"))
-                ReverseChapters = true;
-            else 
-                ReverseChapters = false;
+            ReverseChapters = Uri.Host.ToLower().Contains("manga47.com");
 
             Document.LoadUrl(Uri);
+            if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())  {
+                CFData = JSTools.BypassCloudflare(Uri.AbsoluteUri);
+                Document.LoadHtml(CFData?.HTML);
+            }
 
             ComicInfo Info = new ComicInfo();
             Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/*[self::h3 or self::h2 or self::h1]").InnerText.Trim();
@@ -133,7 +139,7 @@ namespace MangaUnhost.Hosts
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("src", "");
             
-            Info.Cover = ImgUrl.TryDownload();
+            Info.Cover = ImgUrl.TryDownload(CFData);
 
             Info.ContentType = ContentType.Comic;
 
