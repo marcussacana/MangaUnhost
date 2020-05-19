@@ -21,7 +21,13 @@ namespace MangaUnhost.Hosts
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
             foreach (var Page in GetPageLinks(ID))
-                yield return Page.TryDownload(CFData);
+            {
+                var Data = Page.TryDownload(CFData);
+                if (Data == null || Data.Length == 0)
+                    continue;
+
+                yield return Data;
+            }
         }
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
