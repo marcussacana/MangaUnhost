@@ -36,6 +36,7 @@ namespace MangaUnhost.Hosts
 
             var XPATH = "//li[starts-with(@class, \"wp-manga-chapter\")]/a";
             var Nodes = Document.SelectNodes(XPATH);
+            
             if (Nodes == null || Nodes.Count == 0)
             {
                 var Browser = JSTools.DefaultBrowser;
@@ -78,6 +79,14 @@ namespace MangaUnhost.Hosts
         {
             var Chapter = new HtmlDocument();
             Chapter.LoadUrl(LinkMap[ID], CFData);
+
+            var ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'chapter_preloaded_images')]");
+            if (ScriptNode != null)
+            {
+                var Script = ScriptNode.InnerText + "\r\nchapter_preloaded_images;";
+                var Rst = (List<object>)JSTools.DefaultBrowser.EvaluateScript(Script);
+                return Rst.Cast<string>().ToArray();
+            }
 
             string[] Links = (from x in Chapter
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
@@ -158,6 +167,9 @@ namespace MangaUnhost.Hosts
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("src", "");
             
+            if (ImgUrl.StartsWith("//"))
+                ImgUrl = "http:" + ImgUrl;
+
             Info.Cover = ImgUrl.TryDownload(CFData);
 
             Info.ContentType = ContentType.Comic;
