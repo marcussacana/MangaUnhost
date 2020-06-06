@@ -23,6 +23,7 @@ namespace MangaUnhost
             }
             catch { }
         }
+
         ILanguage Language => Main.Language;
         bool CoverFound = false;
         bool ChapsFound = false;
@@ -36,6 +37,8 @@ namespace MangaUnhost
         ComicInfo ComicInfo;
         IHost ComicHost = null;
         Uri ComicUrl = null;
+
+        public bool Initialized { get; private set; }
 
 
         static Dictionary<string, ComicInfo> InfoCache = new Dictionary<string, ComicInfo>();
@@ -86,6 +89,7 @@ namespace MangaUnhost
             if (!File.Exists(UrlPath))
             {
                 Invoke(new MethodInvoker(() => Visible = false));
+                Initialized = true;
                 return;
             }
 
@@ -100,10 +104,15 @@ namespace MangaUnhost
                 ComicHost = Host;
                 break;
             }
+
+            Initialized = true;
         }
 
         public void GetComicInfo()
         {
+            while (!Initialized)
+                Nito.AsyncEx.AsyncContext.Run(async () => await Task.Delay(50));
+
             try
             {
                 if (ComicHost == null && !InfoCache.ContainsKey(ComicPath))
@@ -133,7 +142,8 @@ namespace MangaUnhost
                     CoverFound = true;
                 }
             }
-            catch {
+            catch (Exception ex) {
+                //Invoke(new MethodInvoker(() => MessageBox.Show(ex.ToString(), "ERROR")));
                 Error = true;
             }
 
