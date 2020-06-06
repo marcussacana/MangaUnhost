@@ -56,7 +56,10 @@ namespace MangaUnhost.Hosts
 
                 if (Name.StartsWith("ch."))
                     Name = Name.Substring("ch.", " ", IgnoreMissmatch: true);
-                    
+
+                if (Name.StartsWith("capítulo"))
+                    Name = Name.Substring("capítulo").Trim(' ', '\t', '.');
+
                 if (Name.Contains("-"))
                     Name = Name.Split('-').First().Trim();
 
