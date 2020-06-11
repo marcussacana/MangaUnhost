@@ -18,7 +18,7 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                yield return PageUrl.TryDownload();
+                yield return PageUrl.TryDownload(UserAgent: ProxyTools.UserAgent);
             }
         }
 
@@ -88,7 +88,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                Version = new Version(1, 2)
             };
         }
 
@@ -96,9 +96,10 @@ namespace MangaUnhost.Hosts {
             return Uri.Host.ToLower().Contains("mangahost") && Uri.AbsolutePath.ToLower().Contains("/manga/");
         }
 
+
         public ComicInfo LoadUri(Uri Uri) {
             Document = new HtmlDocument();
-            Document.LoadUrl(Uri);
+            Document.LoadUrl(Uri, UserAgent: ProxyTools.UserAgent);
 
             ComicInfo Info = new ComicInfo();
 
