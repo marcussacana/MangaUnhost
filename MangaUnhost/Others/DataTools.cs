@@ -2,9 +2,11 @@
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Others {
 
@@ -128,26 +130,52 @@ namespace MangaUnhost.Others {
         }
 
         public static string GetImageExtension(this System.Drawing.Image img) {
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Jpeg))
+            if (img.RawFormat.Equals(ImageFormat.Jpeg))
                 return "jpg";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Bmp))
+            if (img.RawFormat.Equals(ImageFormat.Bmp))
                 return "bmp";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Png))
-                return "bmp";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Emf))
+            if (img.RawFormat.Equals(ImageFormat.Png))
+                return "png";
+            if (img.RawFormat.Equals(ImageFormat.Emf))
                 return "emf";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Exif))
+            if (img.RawFormat.Equals(ImageFormat.Exif))
                 return "exif";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Gif))
+            if (img.RawFormat.Equals(ImageFormat.Gif))
                 return "gif";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Icon))
+            if (img.RawFormat.Equals(ImageFormat.Icon))
                 return "ico";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.MemoryBmp))
+            if (img.RawFormat.Equals(ImageFormat.MemoryBmp))
                 return "raw";
-            if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Tiff))
+            if (img.RawFormat.Equals(ImageFormat.Tiff))
                 return "tiff";
-            else
+            if (img.RawFormat.Equals(ImageFormat.Wmf))
                 return "wmf";
+            return "png";
+        }
+        public static ImageFormat GetImageFormat(this string Format)
+        {
+            Format = Format.TrimStart('.').ToLower();
+
+            if (Format == "jpg")
+                return ImageFormat.Jpeg;
+            if (Format == "bmp")
+                return ImageFormat.Bmp;
+            if (Format == "png")
+                return ImageFormat.Png;
+            if (Format == "emf")
+                return ImageFormat.Emf;
+            if (Format == "exif")
+                return ImageFormat.Exif;
+            if (Format == "gif")
+                return ImageFormat.Gif;
+            if (Format == "ico")
+                return ImageFormat.Icon;
+            if (Format == "tiff")
+                return ImageFormat.Tiff;
+            if (Format == "wmf")
+                return ImageFormat.Wmf;
+
+            return ImageFormat.Png;
         }
 
         public static List<string> ExtractHtmlLinks(string HTML, string Domain)
@@ -159,7 +187,7 @@ namespace MangaUnhost.Others {
                 Domain += "http://";
 
             List<string> Links = new List<string>();
-            var Document = new HtmlDocument();
+            var Document = new HtmlAgilityPack.HtmlDocument();
             Document.LoadHtml(HTML);
 
             var Attributes = new[] { "data-href", "href", "data-url", "url", "data-src", "src" };

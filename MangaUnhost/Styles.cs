@@ -1243,7 +1243,7 @@ public class VSStatusBar : Control {
         G.SmoothingMode = SmoothingMode.HighQuality;
         G.PixelOffsetMode = PixelOffsetMode.HighQuality;
         G.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-        G.FillRectangle(new SolidBrush(_FirstLabelText.EndsWith("...") ? WaitingBaseColour : BaseColour), Base);
+        G.FillRectangle(new SolidBrush(_FirstLabelText.EndsWith("...") || _FirstLabelText.Contains("... ") ? WaitingBaseColour : BaseColour), Base);
         switch (_LinesToShow) {
             case LinesCount.None:
                 if (_NumberOfStrings == AmountOfStrings.One) {

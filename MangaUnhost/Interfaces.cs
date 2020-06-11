@@ -148,6 +148,14 @@ namespace MangaUnhost {
 
         string UpdateFound { get; }
 
+        string Exporting { get; }
+        string Converting { get; }
+        string Compressing { get; }
+        string OpenDirectory { get; }
+        string ExportAs { get; }
+        string ConvertTo { get; }
+        string SelectASaveDir { get; }
+
 
         //Other
         string SwitchLanguage { get; }

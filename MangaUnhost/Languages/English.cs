@@ -108,6 +108,15 @@
         public string UpdateFound => "Update Avaliable, You Want update it?";
 
 
+        public string Exporting  => "Exporting... {0}/{1}";
+        public string Converting => "Converting... {0}/{1}";
+        public string Compressing => "Compressing...";
+        public string OpenDirectory => "Open Directory";
+        public string ExportAs => "Export As";
+        public string ConvertTo => "Convert To";
+        public string SelectASaveDir => "Select a directory to save";
+
+
         public string SwitchLanguage => "Switch Language";
 
 

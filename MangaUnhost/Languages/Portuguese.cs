@@ -109,6 +109,14 @@
 
         public string UpdateFound => "Atualização Disponível, Deseja Atualizar?";
 
+        public string Exporting => "Exportando... {0}/{1}";
+        public string Converting => "Convertendo... {0}/{1}";
+        public string Compressing => "Comprimindo...";
+        public string OpenDirectory => "Abrir Pasta";
+        public string ExportAs => "Exportar Como";
+        public string ConvertTo => "Converter Para";
+        public string SelectASaveDir => "Selecione uma pasta para salvar";
+
         public string SwitchLanguage => "Alterar Lingua";
 
 
