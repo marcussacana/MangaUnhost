@@ -74,7 +74,7 @@ namespace MangaUnhost.Hosts {
 
         private HtmlDocument GetChapterHtml(int ID) {
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(ChapterLinks[ID]);
+            Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent);
             return Document;
         }
 
@@ -88,7 +88,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 2, 1)
             };
         }
 

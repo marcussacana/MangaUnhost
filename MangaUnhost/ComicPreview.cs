@@ -163,6 +163,7 @@ namespace MangaUnhost
             if (CoverFound && IndexFound && Error)
             {
                 Visible = true;
+                ComicMenuStrip.Enabled = false;
                 lblDownload.Visible = false;
                 lblNewChapters.Visible = false;
             }
