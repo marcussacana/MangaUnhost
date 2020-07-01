@@ -11,6 +11,9 @@ using System.Drawing.Imaging;
 using Ionic.Zip;
 using System.Data;
 using MangaUnhost.Others;
+using System.Text;
+using MangaUnhost.Browser;
+using Encoder = System.Drawing.Imaging.Encoder;
 
 namespace MangaUnhost
 {
@@ -107,13 +110,19 @@ namespace MangaUnhost
             ComicUrl = new Uri(Ini.GetConfig("InternetShortcut", "URL", UrlPath));
 
             var Hosts = Main.GetHostsInstances();
-            foreach (var Host in Hosts)
+            var HostQuery = (from x in Hosts where x.IsValidUri(ComicUrl) select x);
+            if (!HostQuery.Any())
             {
-                if (!Host.IsValidUri(ComicUrl))
-                    continue;
-                ComicHost = Host;
-                break;
+                try
+                {
+                    var HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.Host, ProxyTools.UserAgent));
+                    HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
+
+                }
+                catch { }
             }
+
+            ComicHost = HostQuery.FirstOrDefault();
 
             Initialized = true;
         }
