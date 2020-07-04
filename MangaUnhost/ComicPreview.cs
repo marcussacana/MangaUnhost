@@ -14,6 +14,7 @@ using MangaUnhost.Others;
 using System.Text;
 using MangaUnhost.Browser;
 using Encoder = System.Drawing.Imaging.Encoder;
+using System.Drawing.Drawing2D;
 
 namespace MangaUnhost
 {
@@ -82,7 +83,8 @@ namespace MangaUnhost
                 string PossibleChapterPath = Path.Combine(ComicPath, Language.Chapters);
                 if (File.Exists(PossibleCoverPath))
                 {
-                    CoverBox.Image = Image.FromFile(PossibleCoverPath);
+                    using (var Cover = Image.FromFile(PossibleCoverPath))
+                        CoverBox.Image = ResizeKeepingRatio((Bitmap)Cover, CoverBox.Width, CoverBox.Height);
                     CoverFound = true;
                 }
                 if (File.Exists(PossibleIndexPath))
@@ -156,9 +158,12 @@ namespace MangaUnhost
 
                 if (!CoverFound)
                 {
-                    CoverBox.Image = ComicHost.GetDecoder().Decode(ComicInfo.Cover);
-                    CoverBox.Image.Save(Path.Combine(ComicPath, Language.Cover + ".png"));
-                    CoverFound = true;
+                    using (var Cover = ComicHost.GetDecoder().Decode(ComicInfo.Cover))
+                    {
+                        CoverBox.Image = ResizeKeepingRatio(Cover, CoverBox.Width, CoverBox.Height);
+                        Cover.Save(Path.Combine(ComicPath, Language.Cover + ".png"));
+                        CoverFound = true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -323,7 +328,8 @@ namespace MangaUnhost
                         if (OutFormat.Guid == ImageFormat.Jpeg.Guid)
                         {
                             using (EncoderParameters JpgEncoder = new EncoderParameters(1))
-                            using (EncoderParameter Parameter = new EncoderParameter(Encoder.Quality, 93L)) {
+                            using (EncoderParameter Parameter = new EncoderParameter(Encoder.Quality, 93L))
+                            {
                                 ImageCodecInfo JpgCodec = ImageCodecInfo.GetImageDecoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
                                 JpgEncoder.Param[0] = Parameter;
                                 Original.Save(OutPage, JpgCodec, JpgEncoder);
@@ -437,7 +443,7 @@ namespace MangaUnhost
 
             if (!Directory.Exists(Path.GetDirectoryName(TmpChapter)))
                 Directory.CreateDirectory(Path.GetDirectoryName(TmpChapter));
-            
+
             Directory.Move(Chapter, TmpChapter);
             bool OK = Retry(() => ExportChapter(TmpChapter, ChapPath, Format, Language.Converting));
 
@@ -479,6 +485,73 @@ namespace MangaUnhost
         private void OpenDirectory_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(ComicPath);
+        }
+
+        public Bitmap ResizeKeepingRatio(Bitmap source, int width, int height)
+        {
+            Bitmap result = null;
+
+            try
+            {
+                if (source.Width != width || source.Height != height)
+                {
+                    // Resize image
+                    float sourceRatio = (float)source.Width / source.Height;
+
+                    using (var target = new Bitmap(width, height))
+                    {
+                        using (var g = Graphics.FromImage(target))
+                        {
+                            g.CompositingQuality = CompositingQuality.HighQuality;
+                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                            g.SmoothingMode = SmoothingMode.HighQuality;
+
+                            // Scaling
+                            float scaling;
+                            float scalingY = (float)source.Height / height;
+                            float scalingX = (float)source.Width / width;
+                            if (scalingX < scalingY) scaling = scalingX; else scaling = scalingY;
+
+                            int newWidth = (int)(source.Width / scaling);
+                            int newHeight = (int)(source.Height / scaling);
+
+                            // Correct float to int rounding
+                            if (newWidth < width) newWidth = width;
+                            if (newHeight < height) newHeight = height;
+
+                            // See if image needs to be cropped
+                            int shiftX = 0;
+                            int shiftY = 0;
+
+                            if (newWidth > width)
+                            {
+                                shiftX = (newWidth - width) / 2;
+                            }
+
+                            if (newHeight > height)
+                            {
+                                shiftY = (newHeight - height) / 2;
+                            }
+
+                            // Draw image
+                            g.DrawImage(source, -shiftX, -shiftY, newWidth, newHeight);
+                        }
+
+                        result = (Bitmap)target.Clone();
+                    }
+                }
+                else
+                {
+                    // Image size matched the given size
+                    result = (Bitmap)source.Clone();
+                }
+            }
+            catch (Exception)
+            {
+                result = null;
+            }
+
+            return result;
         }
     }
 }
