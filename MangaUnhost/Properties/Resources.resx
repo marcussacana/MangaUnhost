@@ -226,4 +226,30 @@ Prop3=19,2
 IDList=
 URL={0}</value>
   </data>
+  <data name="hCaptchaGetMainFramePosition" xml:space="preserve">
+    <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("hcaptcha-checkbox") &gt;= 0) return frames[i]; }
+var bounds = hcFrame().getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="hCaptchaIsSolved" xml:space="preserve">
+    <value>typeof(hcaptcha) == "undefined" || hcaptcha.getResponse() != ""</value>
+  </data>
+  <data name="cloudflareCaptchaReady" xml:space="preserve">
+    <value>document.getElementById("cf-please-wait").style.display == "none"</value>
+  </data>
+  <data name="hCaptchaGetChallengeFramePosition" xml:space="preserve">
+    <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("hcaptcha-challenge") &gt;= 0) return frames[i]; }
+var bounds = hcFrame().getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="hCaptchaGetVerifyButtonPosition" xml:space="preserve">
+    <value>var bounds = document.getElementsByClassName("button-submit")[0].getBoundingClientRect()
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="hCaptchaIsFailed" xml:space="preserve">
+    <value>document.getElementsByClassName("display-error")[0].style.opacity != "0"</value>
+  </data>
+  <data name="hCaptchaReset" xml:space="preserve">
+    <value>hcaptcha.reset();</value>
+  </data>
 </root>

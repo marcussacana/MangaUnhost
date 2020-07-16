@@ -6,49 +6,99 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace MangaUnhost {
-    public partial class SolveCaptcha : Form {
+namespace MangaUnhost
+{
+    public partial class SolveCaptcha : Form
+    {
 
         Graphics Graphics;
         ChromiumWebBrowser ChromiumBrowser;
         Action Submit;
         IBrowser Browser => ChromiumBrowser.GetBrowser();
         IBrowserHost BrowserHost => ChromiumBrowser.GetBrowserHost();
-        Rectangle BFrameRect;
+        Rectangle FrameRect;
         Rectangle VerifyRect;
 
+        bool hCaptcha = false;
         bool v3 = false;
 
         int Clicks = 0;
-        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false, Action Submit = null) {
+        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false, bool hCaptcha = false, Action Submit = null)
+        {
             InitializeComponent();
 
             this.ChromiumBrowser = ChromiumBrowser;
             this.Submit = Submit;
 
             this.v3 = v3;
+            this.hCaptcha = hCaptcha;
 
-            Shown += (a, b) => {
-                if (Browser.IsCaptchaSolved(v3)) {
+            Shown += (a, b) =>
+            {
+                if (IsCaptchaSolved())
+                {
                     Close();
                     return;
                 }
                 Initialize();
             };
         }
-        void Initialize() {
+
+        bool IsCaptchaSolved()
+        {
+            if (hCaptcha)
+                return Browser.hCaptchaIsSolved();
+            return Browser.ReCaptchaIsSolved(v3);
+        }
+
+        bool IsCaptchaFailed()
+        {
+            if (hCaptcha)
+                return Browser.hCaptchaIsFailed();
+            return Browser.ReCaptchaIsFailed();
+        }
+        void ResetCaptcha()
+        {
+            if (hCaptcha)
+                Browser.hCaptchaReset();
+            else
+                Browser.ReCaptchaReset();
+        }
+
+        Rectangle GetCaptchaFrameRectangle()
+        {
+            if (hCaptcha)
+                return Browser.GethCaptchaChallengeRectangle();
+            return Browser.ReCaptchaGetBFrameRectangle();
+        }
+
+        Rectangle GetVerifyButtonRectangle()
+        {
+            if (hCaptcha)
+                return Browser.GethCaptchaVerifyButtonRectangle();
+            return Browser.ReCaptchaGetVerifyButtonRectangle();
+        }
+
+        void ClickImNotRobot()
+        {
+            if (hCaptcha)
+                Browser.hCaptchaClickImHuman(out _);
+            else
+                ChromiumBrowser.ReCaptchaClickImNotRobot(out _);
+        }
+        void Initialize()
+        {
             Application.DoEvents();
             LoadingMode(true);
             Refresh.Enabled = true;
 
-            if (!v3)
+            if (!v3 || hCaptcha)
             {
                 var Thread = new System.Threading.Thread(() =>
                 {
-                    Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaReset).GetAwaiter().GetResult();
+                    ResetCaptcha();
                     ThreadTools.Wait(1500);
-                    ChromiumBrowser.ClickImNotRobot(out _);
-                    UpdateRects();
+                    ClickImNotRobot();
                 });
 
                 Thread.Start();
@@ -58,6 +108,7 @@ namespace MangaUnhost {
                     ThreadTools.Wait(5, true);
                 }
 
+                UpdateRects();
             }
             else
             {
@@ -70,55 +121,69 @@ namespace MangaUnhost {
             StatusCheck.Enabled = true;
         }
 
-        void UpdateRects() {
+        void UpdateRects()
+        {
             if (Graphics != null)
                 Graphics.Dispose();
 
-            try {
-                BFrameRect = Browser.GetReCaptchaBFrameRectangle();
-                VerifyRect = Browser.GetReCaptchaVerifyButtonRectangle();
+            try
+            {
+                FrameRect = GetCaptchaFrameRectangle();
+                VerifyRect = GetVerifyButtonRectangle();
 
-                ScreenBox.Image = new Bitmap(BFrameRect.Width, BFrameRect.Height);
+                ScreenBox.Image = new Bitmap(FrameRect.Width, FrameRect.Height);
                 Graphics = Graphics.FromImage(ScreenBox.Image);
-                Width += BFrameRect.Width - ScreenBox.Width;
-                Height += BFrameRect.Height - ScreenBox.Height;
-                ScreenBox.Size = BFrameRect.Size;
+                Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+                Width += FrameRect.Width - ScreenBox.Width;
+                Height += FrameRect.Height - ScreenBox.Height;
+                ScreenBox.Size = FrameRect.Size;
 
                 if (!InvokeRequired)
                     RadialProgBar.Location = new Point((Width / 2) - (RadialProgBar.Width / 2), (Height / 2) - (RadialProgBar.Height / 2) + ScreenBox.Location.Y);
-            } catch { 
+            }
+            catch
+            {
                 if (!StatusCheck.Enabled)
                     Invoke(new MethodInvoker(Close));
             }
         }
 
-        private void RefreshTick(object sender, EventArgs e) {
-            if (ScreenBox.Visible) {
-                using (var Screenshot = ChromiumBrowser.ScreenshotOrNull()) {
+        private void RefreshTick(object sender, EventArgs e)
+        {
+            if (ScreenBox.Visible)
+            {
+                using (var Screenshot = ChromiumBrowser.ScreenshotOrNull())
+                {
                     if (Screenshot == null)
                         return;
-                    try {
-                        Graphics.DrawImage(Screenshot, 0, 0, BFrameRect, GraphicsUnit.Pixel);
+                    try
+                    {
+                        Graphics.DrawImage(Screenshot, 0, 0, FrameRect, GraphicsUnit.Pixel);
                         Graphics.Flush(System.Drawing.Drawing2D.FlushIntention.Sync);
                         ScreenBox.Invalidate();
-                    } catch { }
+                    }
+                    catch { }
                 }
-            } else {
+            }
+            else
+            {
                 RadialProgBar.StartingAngle += 7;
                 if (RadialProgBar.StartingAngle > 359)
                     RadialProgBar.StartingAngle = 0;
             }
         }
 
-        private void StatusCheckTick(object sender, EventArgs e) {
-            if (Browser.IsCaptchaSolved(v3))
+        private void StatusCheckTick(object sender, EventArgs e)
+        {
+            if (IsCaptchaSolved())
             {
                 Close();
                 return;
             }
-            if (Browser.IsReCaptchaFailed())
+            if (IsCaptchaFailed())
             {
-                Browser.ResetRecaptcha();
+                ResetCaptcha();
                 ThreadTools.Wait(500);
                 if (Submit != null)
                 {
@@ -128,9 +193,10 @@ namespace MangaUnhost {
                 Close();
                 return;
             }
-            
 
-            if (Clicks > 0) {
+
+            if (Clicks > 0)
+            {
                 Clicks--;
 
                 UpdateRects();
@@ -138,7 +204,8 @@ namespace MangaUnhost {
             }
         }
 
-        private void ScreenMouseMove(object sender, MouseEventArgs e) {
+        private void ScreenMouseMove(object sender, MouseEventArgs e)
+        {
             CefEventFlags Flags = CefEventFlags.None;
             if ((e.Button & MouseButtons.Left) != 0)
                 Flags |= CefEventFlags.LeftMouseButton;
@@ -147,33 +214,39 @@ namespace MangaUnhost {
             if ((e.Button & MouseButtons.Middle) != 0)
                 Flags |= CefEventFlags.MiddleMouseButton;
 
-            BrowserHost.SendMouseMoveEvent(new MouseEvent(e.X + BFrameRect.X, e.Y + BFrameRect.Y, Flags), false);
+            BrowserHost.SendMouseMoveEvent(new MouseEvent(e.X + FrameRect.X, e.Y + FrameRect.Y, Flags), false);
         }
 
-        private void ScreenClicked(object sender, EventArgs e) {
+        private void ScreenClicked(object sender, EventArgs e)
+        {
             var ClickPos = ScreenBox.PointToClient(Cursor.Position);
             bool Verify = VerifyRect.Contains(ClickPos);
-            ClickPos = new Point(ClickPos.X + BFrameRect.X, ClickPos.Y + BFrameRect.Y);
+            ClickPos = new Point(ClickPos.X + FrameRect.X, ClickPos.Y + FrameRect.Y);
             BrowserHost.ExecuteClick(ClickPos);
 
-            if (Verify) {
+            if (Verify)
+            {
                 LoadingMode(true);
                 ThreadTools.Wait(3000, true);
-                if (Browser.IsCaptchaSolved(v3))
+                if (IsCaptchaSolved())
                     Close();
-                else {
+                else
+                {
                     UpdateRects();
                     LoadingMode(false);
                 }
-            } else {
+            }
+            else
+            {
                 StatusCheck.Enabled = false;
                 StatusCheck.Enabled = true;
                 Clicks++;
             }
         }
 
-        public void LoadingMode(bool Enabled) {
-            ScreenBox.Visible =    !Enabled;
+        public void LoadingMode(bool Enabled)
+        {
+            ScreenBox.Visible = !Enabled;
             RadialProgBar.Visible = Enabled;
             Refresh.Interval = Enabled ? 25 : 35;
         }

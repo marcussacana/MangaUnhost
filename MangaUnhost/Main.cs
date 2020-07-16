@@ -271,7 +271,7 @@ namespace MangaUnhost {
 
             OBrowser.Size = new Size(1280, 720);
             OBrowser.InstallAdBlock();
-            OBrowser.HookReCaptcha();
+            OBrowser.ReCaptchaHook();
 
             while (!OBrowser.IsBrowserInitialized) {
                 ThreadTools.Wait(50, true);
@@ -282,7 +282,51 @@ namespace MangaUnhost {
             Application.DoEvents();
 
 
-            OBrowser.TrySolveCaptcha(CaptchaSolverType.Manual);
+            OBrowser.ReCaptchaTrySolve(CaptchaSolverType.Manual);
+
+            DbgPreview.Image = OBrowser.ScreenshotOrNull();
+            MessageBox.Show("Finished");
+        }
+        private void DbgButtonBClicked(object sender, EventArgs e)
+        {
+            var OBrowser = new ChromiumWebBrowser("https://www.tokyobitcoiner.com/hcaptcha", new BrowserSettings
+            {
+                WebSecurity = CefState.Disabled
+            });
+
+            OBrowser.Size = new Size(1280, 720);
+            OBrowser.WaitInitialize();
+
+            OBrowser.ShowDevTools();
+
+            ThreadTools.Wait(3000, true);
+            DbgPreview.Image = OBrowser.ScreenshotOrNull();
+            Application.DoEvents();
+
+
+            OBrowser.hCaptchaSolve();
+
+            DbgPreview.Image = OBrowser.ScreenshotOrNull();
+            MessageBox.Show("Finished");
+        }
+        private void DbgButtonCClicked(object sender, EventArgs e)
+        {
+            var OBrowser = new ChromiumWebBrowser("https://bato.to/", new BrowserSettings
+            {
+                WebSecurity = CefState.Disabled
+            });
+
+            OBrowser.Size = new Size(1280, 720);
+            OBrowser.WaitInitialize();
+
+            OBrowser.ShowDevTools();
+
+            ThreadTools.Wait(3000, true);
+            DbgPreview.Image = OBrowser.ScreenshotOrNull();
+            Application.DoEvents();
+
+
+            var cfdata = OBrowser.BypassCloudflare();
 
             DbgPreview.Image = OBrowser.ScreenshotOrNull();
             MessageBox.Show("Finished");

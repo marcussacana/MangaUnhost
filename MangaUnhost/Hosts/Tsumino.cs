@@ -35,8 +35,8 @@ namespace MangaUnhost.Hosts {
                 while (PLink == null) {
                     ThreadTools.Wait(100, true);
 
-                    if (!Browser.IsCaptchaSolved()) {
-                        Browser.TrySolveCaptcha(Main.Solver);
+                    if (!Browser.ReCaptchaIsSolved()) {
+                        Browser.ReCaptchaTrySolve(Main.Solver);
                         Browser.EvaluateScript("document.getElementsByClassName(\"auth-page\")[0].getElementsByTagName(\"form\")[0].submit();");
                         Browser.WaitForLoad();
                         Cookies = Browser.GetCookies().ToContainer();
@@ -126,7 +126,7 @@ namespace MangaUnhost.Hosts {
             if (Browser == null) {
                 Browser = new ChromiumWebBrowser(Uri.AbsoluteUri);
                 Browser.InstallAdBlock();
-                Browser.HookReCaptcha();
+                Browser.ReCaptchaHook();
 
                 Browser.WaitForLoad();
 

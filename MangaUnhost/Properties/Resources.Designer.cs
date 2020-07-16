@@ -71,6 +71,15 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a document.getElementById(&quot;cf-please-wait&quot;).style.display == &quot;none&quot;.
+        /// </summary>
+        internal static string cloudflareCaptchaReady {
+            get {
+                return ResourceManager.GetString("cloudflareCaptchaReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a document.getElementById(&apos;recaptcha_submit&apos;).click();.
         /// </summary>
         internal static string CloudFlareSubmitCaptcha {
@@ -171,6 +180,65 @@ namespace MangaUnhost.Properties {
         internal static string GetUserAgent {
             get {
                 return ResourceManager.GetString("GetUserAgent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var hcFrame = function() { var frames = document.getElementsByTagName(&quot;iframe&quot;); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf(&quot;hcaptcha-challenge&quot;) &gt;= 0) return frames[i]; }
+        ///var bounds = hcFrame().getBoundingClientRect();
+        ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
+        /// </summary>
+        internal static string hCaptchaGetChallengeFramePosition {
+            get {
+                return ResourceManager.GetString("hCaptchaGetChallengeFramePosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var hcFrame = function() { var frames = document.getElementsByTagName(&quot;iframe&quot;); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf(&quot;hcaptcha-checkbox&quot;) &gt;= 0) return frames[i]; }
+        ///var bounds = hcFrame().getBoundingClientRect();
+        ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
+        /// </summary>
+        internal static string hCaptchaGetMainFramePosition {
+            get {
+                return ResourceManager.GetString("hCaptchaGetMainFramePosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var bounds = document.getElementsByClassName(&quot;button-submit&quot;)[0].getBoundingClientRect()
+        ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
+        /// </summary>
+        internal static string hCaptchaGetVerifyButtonPosition {
+            get {
+                return ResourceManager.GetString("hCaptchaGetVerifyButtonPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a document.getElementsByClassName(&quot;display-error&quot;)[0].style.opacity != &quot;0&quot;.
+        /// </summary>
+        internal static string hCaptchaIsFailed {
+            get {
+                return ResourceManager.GetString("hCaptchaIsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a typeof(hcaptcha) == &quot;undefined&quot; || hcaptcha.getResponse() != &quot;&quot;.
+        /// </summary>
+        internal static string hCaptchaIsSolved {
+            get {
+                return ResourceManager.GetString("hCaptchaIsSolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a hcaptcha.reset();.
+        /// </summary>
+        internal static string hCaptchaReset {
+            get {
+                return ResourceManager.GetString("hCaptchaReset", resourceCulture);
             }
         }
         

@@ -10,16 +10,16 @@ namespace MangaUnhost.Browser {
     public static class reCaptcha {
 
         public const int BFrameHidden = -9999;
-        public static bool IsCaptchaSolved(this ChromiumWebBrowser Browser, bool v3 = false) => Browser.GetBrowser().IsCaptchaSolved(v3);
-        public static bool IsCaptchaSolved(this IBrowser Browser, bool v3 = false) {
-            if (Browser.GetReCaptchaBFrame() == null)
+        public static bool ReCaptchaIsSolved(this ChromiumWebBrowser Browser, bool v3 = false) => Browser.GetBrowser().ReCaptchaIsSolved(v3);
+        public static bool ReCaptchaIsSolved(this IBrowser Browser, bool v3 = false) {
+            if (Browser.ReCaptchaGetBFrame() == null)
                 return true;
 
             if (v3)
             {
                 try
                 {
-                    var Point = Browser.GetReCaptchaBFrameRectangle();
+                    var Point = Browser.ReCaptchaGetBFrameRectangle();
                     if (Point.Y < -999 && Point.Height <= 200)
                         return true;
                 }
@@ -38,50 +38,50 @@ namespace MangaUnhost.Browser {
         /// Try Solve the Captcha, And request the user help if needed.
         /// </summary>
         /// <param name="OBrowser">The Browser Instance With the Captcha</param>
-        public static void TrySolveCaptcha(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
+        public static void ReCaptchaTrySolve(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
         {
             var Browser = OBrowser.GetBrowser();
             Browser.WaitForLoad();
             ThreadTools.Wait(1500, true);
             if (SolverType != CaptchaSolverType.Manual)
             {
-                if (!Browser.IsCaptchaSolved())
+                if (!Browser.ReCaptchaIsSolved())
                 {
                     Point Cursor = new Point(0, 0);
 
                     do
                     {
-                        OBrowser.ClickImNotRobot(out Cursor);
-                        if (Browser.IsCaptchaSolved())
+                        OBrowser.ReCaptchaClickImNotRobot(out Cursor);
+                        if (Browser.ReCaptchaIsSolved())
                             return;
-                    } while (Browser.GetReCaptchaBFramePosition().Y == BFrameHidden);
+                    } while (Browser.ReCaptchaGetBFramePosition().Y == BFrameHidden);
 
 
-                    for (int i = 0; i < 3 && !Browser.IsCaptchaSolved(); i++)
+                    for (int i = 0; i < 3 && !Browser.ReCaptchaIsSolved(); i++)
                     {
                         try
                         {
-                            if (Browser.IsReCaptchaFailed())
+                            if (Browser.ReCaptchaIsFailed())
                             {
-                                Browser.ResetRecaptcha();
-                                if (Browser.IsCaptchaSolved())
+                                Browser.ReCaptchaReset();
+                                if (Browser.ReCaptchaIsSolved())
                                     break;
                             }
                         }
                         catch { }
                         try
                         {
-                            OBrowser.ClickAudioChallenge(Cursor, out Cursor);
-                            if (Browser.IsReCaptchaFailed())
+                            OBrowser.ReCaptchaClickAudioChallenge(Cursor, out Cursor);
+                            if (Browser.ReCaptchaIsFailed())
                                 continue;
                             var Response = Browser.DecodeAudioChallenge();
                             if (Response == null)
                                 continue;
-                            OBrowser.SolveSoundCaptcha(Response, Cursor, out Cursor);
+                            OBrowser.ReCaptchaSolveSound(Response, Cursor, out Cursor);
                         }
                         catch (Exception ex)
                         {
-                            if (!Browser.IsCaptchaSolved())
+                            if (!Browser.ReCaptchaIsSolved())
                                 throw ex;
                             else break;
                         }
@@ -89,14 +89,14 @@ namespace MangaUnhost.Browser {
                 }
             }
 
-            if (Browser.IsCaptchaSolved())
+            if (Browser.ReCaptchaIsSolved())
                 return;
 
             do
             {
                 using (var Solver = new SolveCaptcha(OBrowser))
                     Solver.ShowDialog();
-            } while (!Browser.IsCaptchaSolved());
+            } while (!Browser.ReCaptchaIsSolved());
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace MangaUnhost.Browser {
         /// <param name="OBrowser">The Browser with the recaptcha</param>
         /// <param name="Submit">A Event that can trigger the recaptcha</param>
         /// <param name="Validate">A Event that can confirm if the captcha is solved</param>
-        public static void TrySolveCaptchav3(this ChromiumWebBrowser OBrowser, Action Submit, Func<bool> Validate = null, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
+        public static void ReCaptchaTrySolveV3(this ChromiumWebBrowser OBrowser, Action Submit, Func<bool> Validate = null, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
         {
             var Browser = OBrowser.GetBrowser();
             Browser.WaitForLoad();
@@ -113,31 +113,31 @@ namespace MangaUnhost.Browser {
             ThreadTools.Wait(100, true);
             if (SolverType != CaptchaSolverType.Manual)
             {
-                if (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true))
+                if (!Validate?.Invoke() ?? !Browser.ReCaptchaIsSolved(true))
                 {
                     Point Cursor = new Point(0, 0);
 
-                    for (int i = 0; i < 3 && !(Validate?.Invoke() ?? Browser.IsCaptchaSolved(true)); i++)
+                    for (int i = 0; i < 3 && !(Validate?.Invoke() ?? Browser.ReCaptchaIsSolved(true)); i++)
                     {
                         try
                         {
-                            OBrowser.ClickAudioChallenge(Cursor, out Cursor);
-                            if (Browser.IsReCaptchaFailed())
+                            OBrowser.ReCaptchaClickAudioChallenge(Cursor, out Cursor);
+                            if (Browser.ReCaptchaIsFailed())
                             {
-                                Browser.ResetRecaptcha();
+                                Browser.ReCaptchaReset();
                                 ThreadTools.Wait(500, true);
                                 Submit();
-                                if (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true))
+                                if (!Validate?.Invoke() ?? !Browser.ReCaptchaIsSolved(true))
                                     break;
                             }
                             var Response = Browser.DecodeAudioChallenge();
                             if (Response == null)
                                 continue;
-                            OBrowser.SolveSoundCaptcha(Response, Cursor, out Cursor);
+                            OBrowser.ReCaptchaSolveSound(Response, Cursor, out Cursor);
                         }
                         catch (Exception ex)
                         {
-                            if (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true))
+                            if (!Validate?.Invoke() ?? !Browser.ReCaptchaIsSolved(true))
                                 throw ex;
                             else break;
                         }
@@ -145,17 +145,17 @@ namespace MangaUnhost.Browser {
                 }
             }
 
-            if (Validate?.Invoke() ?? Browser.IsCaptchaSolved(true))
+            if (Validate?.Invoke() ?? Browser.ReCaptchaIsSolved(true))
                 return;
 
             do
             {
                 using (var Solver = new SolveCaptcha(OBrowser, true, Submit: Submit))
                     Solver.ShowDialog();
-            } while (!Validate?.Invoke() ?? !Browser.IsCaptchaSolved(true));
+            } while (!Validate?.Invoke() ?? !Browser.ReCaptchaIsSolved(true));
         }
 
-        public static bool ClickImNotRobot(this ChromiumWebBrowser ChromiumBrowser, out Point NewCursorPos) {
+        public static bool ReCaptchaClickImNotRobot(this ChromiumWebBrowser ChromiumBrowser, out Point NewCursorPos) {
             var BHost = ChromiumBrowser.GetBrowserHost();
             var Browser = ChromiumBrowser.GetBrowser();
 
@@ -201,17 +201,17 @@ namespace MangaUnhost.Browser {
 
             ThreadTools.Wait(Random.Next(3599, 4599), true);
 
-            return Browser.IsCaptchaSolved();
+            return Browser.ReCaptchaIsSolved();
         }
 
-        public static void ClickAudioChallenge(this ChromiumWebBrowser ChromiumBrowser, Point CursorPos, out Point NewCursorPos) {
+        public static void ReCaptchaClickAudioChallenge(this ChromiumWebBrowser ChromiumBrowser, Point CursorPos, out Point NewCursorPos) {
             var BHost = ChromiumBrowser.GetBrowserHost();
             var Browser = ChromiumBrowser.GetBrowser();
-            var BFrame = Browser.GetReCaptchaBFrame();
+            var BFrame = Browser.ReCaptchaGetBFrame();
 
             NewCursorPos = CursorPos;
 
-            if (Browser.IsReCaptchaFailed())
+            if (Browser.ReCaptchaIsFailed())
                 return;
 
             Random Random = new Random();            
@@ -226,7 +226,7 @@ namespace MangaUnhost.Browser {
             Point AudioBntPos = new Point(X + Random.Next(5, Width - 5), Y + Random.Next(5, Height - 5));
 
             //Parse the relative position of the iframe to Window
-            Point BFramePos = Browser.GetReCaptchaBFramePosition();
+            Point BFramePos = Browser.ReCaptchaGetBFramePosition();
             AudioBntPos = new Point(AudioBntPos.X + BFramePos.X, AudioBntPos.Y + BFramePos.Y);
 
             //Create and Execute the Macro
@@ -242,12 +242,12 @@ namespace MangaUnhost.Browser {
         }
 
         public static string DecodeAudioChallenge(this IBrowser Browser) {
-            var BFrame = Browser.GetReCaptchaBFrame();
+            var BFrame = Browser.ReCaptchaGetBFrame();
 
-            if (Browser.IsReCaptchaFailed())
+            if (Browser.ReCaptchaIsFailed())
                 return null;
 
-            string URL = Browser.GetReCaptchaAudioUrl();
+            string URL = Browser.ReCaptchaGetAudioUrl();
 
             if (URL == null)
                 return null;
@@ -259,10 +259,10 @@ namespace MangaUnhost.Browser {
             return DataTools.GetTextFromSpeech(DataTools.Mp3ToWav(MP3));
         }
 
-        public static void SolveSoundCaptcha(this ChromiumWebBrowser ChromiumBrowser, string Response, Point CursorPos, out Point NewCursorPos) {
+        public static void ReCaptchaSolveSound(this ChromiumWebBrowser ChromiumBrowser, string Response, Point CursorPos, out Point NewCursorPos) {
             var BHost = ChromiumBrowser.GetBrowserHost();
             var Browser = ChromiumBrowser.GetBrowser();
-            var BFrame = Browser.GetReCaptchaBFrame();
+            var BFrame = Browser.ReCaptchaGetBFrame();
 
             NewCursorPos = CursorPos;
 
@@ -276,7 +276,7 @@ namespace MangaUnhost.Browser {
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             //Parse the relative position of the iframe to Window
-            Point BFramePos = Browser.GetReCaptchaBFramePosition();
+            Point BFramePos = Browser.ReCaptchaGetBFramePosition();
             Point RespBoxPos = new Point(X + BFramePos.X + Random.Next(5, 100), Y + BFramePos.Y + Random.Next(5, 15));
 
             //Create Macro
@@ -294,7 +294,7 @@ namespace MangaUnhost.Browser {
             }
 
             //Get Verify Button Position
-            var VerifyBntRect = Browser.GetReCaptchaVerifyButtonRectangle();
+            var VerifyBntRect = Browser.ReCaptchaGetVerifyButtonRectangle();
 
             //Parse the relative position of the iframe to Window
             Point VerifyBntPos = new Point(VerifyBntRect.X + BFramePos.X + Random.Next(5, 40), VerifyBntRect.Y + BFramePos.Y + Random.Next(5, 15));
@@ -310,18 +310,9 @@ namespace MangaUnhost.Browser {
             ThreadTools.Wait(Random.Next(3599, 4599), true);
         }
 
-        public static IFrame GetReCaptchaBFrame(this IBrowser Browser) {
-            foreach (var ID in Browser.GetFrameIdentifiers()) {
-                var Frame = Browser.GetFrame(ID);
-                if (Frame == null)
-                    continue;
-                if (Frame.Url.Contains("/bframe?"))
-                    return Frame;
-            }
-            return null;
-        }
+        public static IFrame ReCaptchaGetBFrame(this IBrowser Browser) => Browser.GetFrameByUrl("/bframe?");
 
-        public static Point GetReCaptchaBFramePosition(this IBrowser Browser) {
+        public static Point ReCaptchaGetBFramePosition(this IBrowser Browser) {
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaIframeSearch + "\r\n" + Properties.Resources.reCaptchaGetBFramePosition).GetAwaiter().GetResult().Result;
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
@@ -329,7 +320,7 @@ namespace MangaUnhost.Browser {
             return new Point(X, Y);
         }
 
-        public static Rectangle GetReCaptchaBFrameRectangle(this IBrowser Browser) {
+        public static Rectangle ReCaptchaGetBFrameRectangle(this IBrowser Browser) {
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaIframeSearch + "\r\n" + Properties.Resources.reCaptchaGetBFramePosition).GetAwaiter().GetResult().Result;
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
@@ -339,8 +330,8 @@ namespace MangaUnhost.Browser {
             return new Rectangle(X, Y, Width, Height);
         }
 
-        public static Rectangle GetReCaptchaVerifyButtonRectangle(this IBrowser Browser) {
-            var Result = (string)Browser.GetReCaptchaBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetVerifyButtonPosition).GetAwaiter().GetResult().Result;
+        public static Rectangle ReCaptchaGetVerifyButtonRectangle(this IBrowser Browser) {
+            var Result = (string)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetVerifyButtonPosition).GetAwaiter().GetResult().Result;
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
@@ -350,24 +341,24 @@ namespace MangaUnhost.Browser {
 
         }
 
-        public static string GetReCaptchaAudioUrl(this IBrowser Browser) {
-            var Result = (string)Browser.GetReCaptchaBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetAudioUrl).GetAwaiter().GetResult().Result;
+        public static string ReCaptchaGetAudioUrl(this IBrowser Browser) {
+            var Result = (string)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetAudioUrl).GetAwaiter().GetResult().Result;
             if (string.IsNullOrWhiteSpace(Result))
                 return null;
             return Result;
         }
 
-        public static bool IsReCaptchaFailed(this IBrowser Browser)
+        public static bool ReCaptchaIsFailed(this IBrowser Browser)
         {
-            return (bool)Browser.GetReCaptchaBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaIsFailed).GetAwaiter().GetResult().Result;
+            return (bool)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaIsFailed).GetAwaiter().GetResult().Result;
         }
 
-        public static bool ResetRecaptcha(this IBrowser Browser)
+        public static void ReCaptchaReset(this IBrowser Browser)
         {
-            return (bool)Browser.EvaluateScript(Properties.Resources.reCaptchaReset);
+            Browser.EvaluateScript(Properties.Resources.reCaptchaReset);
         }
 
-        public static void HookReCaptcha(this ChromiumWebBrowser Browser) {
+        public static void ReCaptchaHook(this ChromiumWebBrowser Browser) {
             if (Browser.RequestHandler == null || !(Browser.RequestHandler is RequestEventHandler)) {
                 Browser.RequestHandler = new RequestEventHandler();
             }
@@ -377,7 +368,9 @@ namespace MangaUnhost.Browser {
                     return;
                 if (!args.Request.Url.Contains("hl="))
                     return;
-                args.Request.Url = args.Request.Url.SetUrlParameter("hl", "en");
+
+                if (!args.Request.IsReadOnly)
+                    args.Request.Url = args.Request.Url.SetUrlParameter("hl", "en");
             };
         }
     }

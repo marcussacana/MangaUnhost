@@ -83,7 +83,7 @@ namespace MangaUnhost.Hosts {
                 Browser = new ChromiumWebBrowser();
                 Browser.Size = new System.Drawing.Size(500, 600);
                 Browser.InstallAdBlock();
-                Browser.HookReCaptcha();
+                Browser.ReCaptchaHook();
 
                 while (!Browser.IsBrowserInitialized)
                     ThreadTools.Wait(100, true);
@@ -137,10 +137,10 @@ namespace MangaUnhost.Hosts {
             if (!Browser.GetBrowser().GetHTML().Contains("<h1>Really, slow down</h1>"))
                 return false;
 
-            if (Browser.GetBrowser().IsCaptchaSolved())
+            if (Browser.GetBrowser().ReCaptchaIsSolved())
                 return false;
 
-            Browser.TrySolveCaptcha(Main.Solver);
+            Browser.ReCaptchaTrySolve(Main.Solver);
 
             Browser.GetBrowser().EvaluateScript("document.forms[0].submit();");
             ThreadTools.Wait(1000, true);

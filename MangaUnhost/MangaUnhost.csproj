@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Browser\AdBlocker.cs" />
+    <Compile Include="Browser\hCaptcha.cs" />
     <Compile Include="Browser\InputTools.cs" />
     <Compile Include="Browser\JSTools.cs" />
     <Compile Include="Browser\reCaptcha.cs" />

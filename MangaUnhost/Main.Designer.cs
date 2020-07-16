@@ -90,6 +90,8 @@
             this.lblCredits = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
             this.DebugTab = new System.Windows.Forms.TabPage();
+            this.dbgButtonC = new VSButton();
+            this.dbgButtonB = new VSButton();
             this.DbgButtonA = new VSButton();
             this.DbgPreview = new System.Windows.Forms.PictureBox();
             this.ThemeContainer.SuspendLayout();
@@ -1053,6 +1055,8 @@
             // DebugTab
             // 
             this.DebugTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.DebugTab.Controls.Add(this.dbgButtonC);
+            this.DebugTab.Controls.Add(this.dbgButtonB);
             this.DebugTab.Controls.Add(this.DbgButtonA);
             this.DebugTab.Controls.Add(this.DbgPreview);
             this.DebugTab.Location = new System.Drawing.Point(4, 20);
@@ -1061,6 +1065,48 @@
             this.DebugTab.Size = new System.Drawing.Size(830, 443);
             this.DebugTab.TabIndex = 3;
             this.DebugTab.Text = "Debug";
+            // 
+            // dbgButtonC
+            // 
+            this.dbgButtonC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.dbgButtonC.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.dbgButtonC.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.dbgButtonC.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.dbgButtonC.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.dbgButtonC.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.dbgButtonC.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.dbgButtonC.ImageChoice = null;
+            this.dbgButtonC.Location = new System.Drawing.Point(599, 6);
+            this.dbgButtonC.Name = "dbgButtonC";
+            this.dbgButtonC.ShowBorder = true;
+            this.dbgButtonC.ShowImage = false;
+            this.dbgButtonC.ShowText = true;
+            this.dbgButtonC.Size = new System.Drawing.Size(103, 23);
+            this.dbgButtonC.TabIndex = 3;
+            this.dbgButtonC.Text = "Dbg Cloudflare";
+            this.dbgButtonC.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.dbgButtonC.Click += new System.EventHandler(this.DbgButtonCClicked);
+            // 
+            // dbgButtonB
+            // 
+            this.dbgButtonB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.dbgButtonB.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.dbgButtonB.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.dbgButtonB.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.dbgButtonB.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.dbgButtonB.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.dbgButtonB.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.dbgButtonB.ImageChoice = null;
+            this.dbgButtonB.Location = new System.Drawing.Point(495, 6);
+            this.dbgButtonB.Name = "dbgButtonB";
+            this.dbgButtonB.ShowBorder = true;
+            this.dbgButtonB.ShowImage = false;
+            this.dbgButtonB.ShowText = true;
+            this.dbgButtonB.Size = new System.Drawing.Size(98, 23);
+            this.dbgButtonB.TabIndex = 2;
+            this.dbgButtonB.Text = "Dbg hCaptcha";
+            this.dbgButtonB.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.dbgButtonB.Click += new System.EventHandler(this.DbgButtonBClicked);
             // 
             // DbgButtonA
             // 
@@ -1211,6 +1257,8 @@
         private System.Windows.Forms.RadioButton AskRadio;
         private System.Windows.Forms.RadioButton UpdateUrlRadio;
         private System.Windows.Forms.Label lblReplaceMode;
+        private VSButton dbgButtonB;
+        private VSButton dbgButtonC;
     }
 }
 
