@@ -2,133 +2,148 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Threading;
+using System.Web.Script.Serialization;
 
-namespace MangaUnhost.Others {
-    public static class ProxyTools {
-        public static EventHandler OnLoadProxies;
-        public static EventHandler OnProxiesLoaded;
+namespace MangaUnhost.Others
+{
+    internal static class ProxyTools
+    {
+
         static List<string> BlackList = new List<string>();
 
-        const int PROXIES = 3;//Big values = more slow but more safe, small values = more fast, but less safe
-        static string[] ProxyList = new string[PROXIES + 1];
+        const int PROXIES = 4;//Big values = more slow but more safe, small values = more fast, but less safe
+        static string[] ProxList = new string[PROXIES + 1];
         static int pid = 0;
-        public static string WorkingProxy = null;
-        public static string Proxy {
-            get {
-                try {
-                    if (ProxyList[1] == null || EverytingBlacklisted)
+        internal static string Proxy
+        {
+            get
+            {
+                try
+                {
+                    if (ProxList[1] == null)
                         RefreshProxy();
 
-                    if (pid >= ProxyList.Length)
+                    if (pid >= ProxList.Length)
                         pid = 0;
 
-                    string CurrentProxy = ProxyList[pid++];
-                    if (BlackList.Contains(CurrentProxy) && CurrentProxy != null)
-                        return Proxy;
-
-                    return CurrentProxy;
-                } catch {
-                    return null;
+                    return ProxList[pid++];
                 }
+                catch { return null; }
             }
         }
 
-        private static bool EverytingBlacklisted => (from x in ProxyList where !BlackList.Contains(x) && x != null select x).Count() == 0;
 
-        public static void BlackListProxy(string Proxy) => BlackList.Add(Proxy);
 
-        public static void RefreshProxy() {
-            OnLoadProxies?.Invoke(null, null);
+        internal static void BlackListProxy(string Proxy) => BlackList.Add(Proxy);
 
-            ProxyList = new string[PROXIES + 1];
+        internal static void RefreshProxy()
+        {
+            ProxList = new string[PROXIES + 1];
             string[] Proxies = FreeProxy();
-            if (Proxies.Length < PROXIES) {
-                Proxies = Proxies.Concat(new string[PROXIES - Proxies.Length]).ToArray();
-            }
-
-            for (int i = 0; i < PROXIES; i++) {
-                Proxies[i] = Proxies[i]?.ToLower().Replace("http://", "").Replace("https://", "");
-                if (BlackList.Contains(Proxies[i]) || !ValidateProxy(Proxies[i])) {
+            for (int i = 0; i < PROXIES; i++)
+            {
+                Proxies[i] = Proxies[i].ToLower().Replace("http://", "").Replace("https://", "");
+                if (BlackList.Contains(Proxies[i]) || !ValidateProxy(Proxies[i]))
+                {
                     Proxies[i--] = GimmeProxy();
                     continue;
                 }
 
-                ProxyList[i + 1] = Proxies[i];
+                ProxList[i + 1] = Proxies[i];
             }
-            ProxyList[0] = null;
-
-            OnProxiesLoaded?.Invoke(null, null);
+            ProxList[0] = null;
         }
 
-        public static string UserAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36 Edg/83.0.478.45";
+        internal const string UserAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36 Edg/84.0.522.40";
 
-        const string ProxyListAPI = "https://www.proxy-list.download/api/v1/get?type=http";
         const string GimmeProxyAPI = "http://gimmeproxy.com/api/getProxy?get=true&post=true&cookies=true&supportsHttps=true&protocol=http&minSpeed=60";
         const string PubProxyAPI = "http://pubproxy.com/api/proxy?google=true&post=true&limit=10&format=txt&speed=20&type=http";
-        public static string[] FreeProxy() {
-            string Response = DownloadString(PubProxyAPI);
-            if (Response == null) {
-                Response = DownloadString(ProxyListAPI);
-            }
-            return Response.Replace("\r\n", "\n").Split('\n');
+        const string ProxyListApi = "https://www.proxy-list.download/api/v0/get?l=en&t=http";
+        internal static string[] FreeProxy()
+        {
+            var Json = new WebClient().DownloadString(ProxyListApi);
+            var Obj = new JavaScriptSerializer().DeserializeObject(Json);
+            Obj = ((object[])Obj).First();
+            var Resp = (Dictionary<string, object>)Obj;
+            var Listas = (from x in (object[])Resp["LISTA"] select (Dictionary<string, object>)x);
+            return (from x in Listas select $"{x["IP"]}:{x["PORT"]}").ToArray();
         }
 
-        public static string GimmeProxy() {
+
+        internal static string GimmeProxy()
+        {
             string Reply = string.Empty;
             string Proxy = null;
-            while (Reply == string.Empty) {
-                try {
-                    string Response = DownloadString(GimmeProxyAPI).Replace(@" ", "");
-                    Proxy = DataTools.ReadJson(Response, "curl");
-                    if (string.IsNullOrWhiteSpace(Proxy))
-                        continue;
+            while (Reply == string.Empty)
+            {
+                string Response = new WebClient().DownloadString(GimmeProxyAPI).Replace(@" ", "");
+                Proxy = ReadJson(Response, "curl");
+                if (string.IsNullOrWhiteSpace(Proxy))
+                    continue;
 
-                    if (ValidateProxy(Proxy))
-                        break;
-                } catch {
+                if (ValidateProxy(Proxy))
                     break;
-                }
             }
             return Proxy;
         }
 
-        public static string DownloadString(string URL) {
-            try {
-                WebClient Client = new WebClient();
-                if (WorkingProxy != null)
-                    Client.Proxy = new WebProxy(WorkingProxy);
-                return Client.DownloadString(URL);
-            } catch {
-                return null;
-            }
-        }
+        internal static bool ValidateProxy(string Proxy)
+        {
+            bool Result = false;
 
-        public static bool ValidateProxy(string Proxy) {
-            bool? Result = null;
-
-            var Thread = new System.Threading.Thread(() => {
-                try {
-                    using (var client = new WebClient()) {
-                        client.Proxy = new WebProxy(Proxy);
-                        using (client.OpenRead("http://clients3.google.com/generate_204"))
-                            Result = true;
-
-                    }
-                } catch {
-                    Result = false;
+            var Thread = new Thread(() =>
+            {
+                try
+                {
+                    HttpWebRequest Request = WebRequest.Create("http://clients3.google.com/generate_204") as HttpWebRequest;
+                    Request.Timeout = 10000;
+                    Request.Proxy = new WebProxy(Proxy);
+                    var Response = (HttpWebResponse)Request.GetResponse();
+                    if (Response.StatusCode == HttpStatusCode.NoContent)
+                        Result = true;
                 }
+                catch { }
             });
 
 
             DateTime Begin = DateTime.Now;
             Thread.Start();
 
-            while ((DateTime.Now - Begin).TotalSeconds <= 10 && !Result.HasValue) {
-                System.Threading.Thread.Sleep(10);
+            while ((DateTime.Now - Begin).TotalSeconds <= 10 && Thread.IsAlive)
+            {
+                Thread.Sleep(10);
             }
             Thread?.Abort();
 
-            return Result ?? false;
+            return Result;
         }
+
+
+        static string ReadJson(string JSON, string Name)
+        {
+            string Finding = string.Format("\"{0}\":", Name);
+            int Pos = JSON.IndexOf(Finding) + Finding.Length;
+            if (Pos - Finding.Length == -1)
+                return null;
+
+            string Cutted = JSON.Substring(Pos, JSON.Length - Pos).TrimStart(' ', '\n', '\r');
+            char Close = Cutted.StartsWith("\"") ? '"' : ',';
+            Cutted = Cutted.TrimStart('"');
+            string Data = string.Empty;
+            foreach (char c in Cutted)
+            {
+                if (c == Close)
+                    break;
+                Data += c;
+            }
+            if (Data.Contains("\\"))
+                throw new Exception("Ops... Unsupported Json Format...");
+
+            return Data;
+        }
+
     }
 }

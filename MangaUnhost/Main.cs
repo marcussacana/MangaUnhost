@@ -328,8 +328,8 @@ namespace MangaUnhost {
 
             var cfdata = OBrowser.BypassCloudflare();
 
-            DbgPreview.Image = OBrowser.ScreenshotOrNull();
             MessageBox.Show("Finished");
+            DbgPreview.Image = OBrowser.ScreenshotOrNull();
         }
 
         private void BntLibSelectClicked(object sender, EventArgs e) {
