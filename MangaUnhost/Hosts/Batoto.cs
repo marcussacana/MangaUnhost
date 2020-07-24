@@ -56,7 +56,7 @@ namespace MangaUnhost.Hosts {
                     continue;
 
                 string JS = Node.InnerHtml + "\r\nJSON.stringify(images)";
-                var Result = (string)JSTools.EvaulateScript(JS);
+                var Result = (string)JSTools.EvaluateScript(JS);
 
                 string Link = null;
                 do {

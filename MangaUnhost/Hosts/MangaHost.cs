@@ -25,27 +25,15 @@ namespace MangaUnhost.Hosts {
         public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
             int ID = ChapterLinks.Count;
 
-            bool ManyMode = false;
-            var Nodes = Document.SelectNodes("//*[@id=\"page\"]/section[3]/table/tbody/tr/td[1]/a");
-            if (Nodes == null) {
-                ManyMode = true;
-                Nodes = Document.SelectNodes("//ul[@class=\"list_chapters\"]/li/a");
-            }
+            var Nodes = Document.SelectNodes("//div[@class=\"chapters\"]//div[@class=\"tags\"]/a");
 
             foreach (var Node in Nodes) {
-                string Name;
-                if (ManyMode) {
-                    Name = Node.GetAttributeValue("id", "");
+                string Name = Node.GetAttributeValue("title", string.Empty);
+                Name = Name.Substring("#", "-").Trim();
 
-                    string HTML = HttpUtility.HtmlDecode(Node.GetAttributeValue("data-content", string.Empty));
+                ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty);
 
-                    ChapterLinks[ID] = HTML.Substring("<a href='", "'");
-                } else {
-                    Name = HttpUtility.HtmlDecode(Node.InnerText);
-                    Name = Name.Substring(0, Name.LastIndexOf('-')).Substring("#").Trim();
-                    ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty);
-                }
-                ChapterNames[ID] = DataTools.GetRawName(Name.Split('-').First());
+                ChapterNames[ID] = DataTools.GetRawName(Name);
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++].Trim());
             }
         }
@@ -63,7 +51,7 @@ namespace MangaUnhost.Hosts {
                     continue;
 
                 string JS = Node.InnerHtml.Substring("var images = ", "\"];") + "\"]";
-                var Result = (from x in (List<object>)JSTools.EvaulateScript(JS) select (string)x).ToArray();
+                var Result = (from x in JSTools.EvaluateScript<List<object>>(JS) select (string)x).ToArray();
                 foreach (string PageHtml in Result) {
                     var PageUrl = PageHtml.Substring("src=", " ").Trim(' ', '\'', '"');
                     Pages.Add(PageUrl.Replace(".webp", "").Replace("/images", "/mangas_files"));
@@ -88,7 +76,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2, 1)
+                Version = new Version(2, 0)
             };
         }
 
@@ -107,7 +95,7 @@ namespace MangaUnhost.Hosts {
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
             Info.Cover = new Uri(Document
-                .SelectSingleNode("//img[@class=\"pull-left thumbnail\"]")
+                .SelectSingleNode("//div[@class=\"widget\"]/img")
                 .GetAttributeValue("src", string.Empty)).TryDownload();
 
             Info.ContentType = ContentType.Comic;

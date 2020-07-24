@@ -103,7 +103,7 @@ namespace MangaUnhost.Hosts {
                 if (Nodes != null)
                     foreach (var Node in Nodes) {
                         string Script = Node.InnerHtml.Trim('\r', '\n', ' ', '\t', ';') + ";\r\nchko;";
-                        chko = (string)JSTools.EvaulateScript(Script.Replace("key = CryptoJS.SHA256(chko);", ""));
+                        chko = (string)JSTools.EvaluateScript(Script.Replace("key = CryptoJS.SHA256(chko);", ""));
                     }
                 _key = chko;
                 return _key;

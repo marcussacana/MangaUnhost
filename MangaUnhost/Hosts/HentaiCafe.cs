@@ -41,7 +41,7 @@ namespace MangaUnhost.Hosts {
             Script = Script.Substring(0, Script.IndexOf("var next_chapter"));
             Script += "\r\nvar rst = []; for (var i = 0; i < pages.length; i++) rst.push(pages[i].url); rst;";
 
-            var Rst = (List<object>)JSTools.EvaulateScript(Script);
+            var Rst = (List<object>)JSTools.EvaluateScript(Script);
 
             return (from x in Rst select (string)x).ToArray();
         }

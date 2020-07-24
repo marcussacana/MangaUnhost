@@ -29,12 +29,19 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static object EvaulateScript(string Script)
+        public static object EvaluateScript(string Script)
         {
             DefaultBrowser.GetBrowser().WaitForLoad();
 
-            return DefaultBrowser.GetBrowser().MainFrame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
+            return DefaultBrowser.EvaluateScript(Script);
         }
+        public static T EvaluateScript<T>(string Script)
+        {
+            DefaultBrowser.GetBrowser().WaitForLoad();
+
+            return DefaultBrowser.EvaluateScript<T>(Script);
+        }
+
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
         public static T EvaluateScript<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScript(Script);
         public static void EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script, out T Result) => Result = (T)Browser.GetBrowser().EvaluateScript(Script);
@@ -74,7 +81,7 @@ namespace MangaUnhost.Browser
                     if (!DefaultBrowser.ReCaptchaIsSolved())
                     {
                         DefaultBrowser.ReCaptchaTrySolve(Main.Solver);
-                        EvaulateScript(Properties.Resources.CloudFlareSubmitCaptcha);
+                        EvaluateScript(Properties.Resources.CloudFlareSubmitCaptcha);
                     }
                     if (!DefaultBrowser.hCaptchaIsSolved())
                     {

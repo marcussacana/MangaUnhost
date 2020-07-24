@@ -50,7 +50,7 @@ namespace MangaUnhost.Hosts {
             string ChpScript = Page.SelectSingleNode("//script[contains(., \"chapterid\")]").InnerHtml;
             string CntScript = $"{ChpScript}imagecount;";
 
-            return (int)JSTools.EvaulateScript(CntScript);
+            return (int)JSTools.EvaluateScript(CntScript);
         }
 
         private string[] GetChapterPages(int ID) {
@@ -64,10 +64,10 @@ namespace MangaUnhost.Hosts {
             string CntScript = $"{ChpScript}imagecount;";
             string CidScript = $"{ChpScript}chapterid;";
 
-            int Count = (int)JSTools.EvaulateScript(CntScript);
-            int ChpId = (int)JSTools.EvaulateScript(CidScript);
+            int Count = (int)JSTools.EvaluateScript(CntScript);
+            int ChpId = (int)JSTools.EvaluateScript(CidScript);
 
-            string Key = (string)JSTools.EvaulateScript(KeyScript);
+            string Key = (string)JSTools.EvaluateScript(KeyScript);
 
 
             string Link = ChapterLinks[ID];
@@ -77,7 +77,7 @@ namespace MangaUnhost.Hosts {
                 string URL = $"{Link}/chapterfun.ashx?cid={ChpId}&page={i}&key={Key}";
                 string JS = Encoding.UTF8.GetString(TryDownload(new Uri(URL), ChapterLinks[ID]));
                 JS += "\r\nd.join('|');";
-                string Result = (string)JSTools.EvaulateScript(JS);
+                string Result = (string)JSTools.EvaluateScript(JS);
                 if (Result == null)
                     break;
 
