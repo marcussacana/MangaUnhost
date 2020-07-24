@@ -47,6 +47,7 @@
             this.lblNewChapters = new System.Windows.Forms.Label();
             this.lblOpenSite = new System.Windows.Forms.LinkLabel();
             this.lblDownload = new System.Windows.Forms.LinkLabel();
+            this.Refresh = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
             this.ComicMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -70,9 +71,10 @@
             this.ComicMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ExportAs,
             this.ConvertTo,
-            this.OpenDirectory});
+            this.OpenDirectory,
+            this.Refresh});
             this.ComicMenuStrip.Name = "ComicMenuStrip";
-            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 92);
+            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 114);
             // 
             // ExportAs
             // 
@@ -215,6 +217,13 @@
             this.lblDownload.Text = "Download";
             this.lblDownload.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DownloadClicked);
             // 
+            // Refresh
+            // 
+            this.Refresh.Name = "Refresh";
+            this.Refresh.Size = new System.Drawing.Size(180, 22);
+            this.Refresh.Text = "Refresh";
+            this.Refresh.Click += new System.EventHandler(this.Refresh_Click);
+            // 
             // ComicPreview
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -252,5 +261,6 @@
         private System.Windows.Forms.ToolStripMenuItem ConvertToPNG;
         private System.Windows.Forms.ToolStripMenuItem ConvertToBMP;
         private System.Windows.Forms.ToolStripMenuItem OpenDirectory;
+        private System.Windows.Forms.ToolStripMenuItem Refresh;
     }
 }

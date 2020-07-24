@@ -155,6 +155,7 @@ namespace MangaUnhost {
         string ExportAs { get; }
         string ConvertTo { get; }
         string SelectASaveDir { get; }
+        string Refresh { get; }
 
 
         //Other

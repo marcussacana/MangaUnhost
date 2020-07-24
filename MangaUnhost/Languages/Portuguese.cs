@@ -116,6 +116,8 @@
         public string ExportAs => "Exportar Como";
         public string ConvertTo => "Converter Para";
         public string SelectASaveDir => "Selecione uma pasta para salvar";
+        public string Refresh => "Atualizar";
+
 
         public string SwitchLanguage => "Alterar Lingua";
 

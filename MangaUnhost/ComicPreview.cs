@@ -66,6 +66,7 @@ namespace MangaUnhost
             ConvertTo.Text = Language.ConvertTo;
             ExportAs.Text = Language.ExportAs;
             OpenDirectory.Text = Language.OpenDirectory;
+            Refresh.Text = Language.Refresh;
 
             Visible = true;
 
@@ -552,6 +553,13 @@ namespace MangaUnhost
             }
 
             return result;
+        }
+
+        private void Refresh_Click(object sender, EventArgs e)
+        {
+            CountCache.Clear();
+            InfoCache.Clear();
+            Main.Instance.RefreshLibrary();
         }
     }
 }

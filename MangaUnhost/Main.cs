@@ -14,8 +14,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Text;
 
-namespace MangaUnhost {
-    public partial class Main : Form {
+namespace MangaUnhost
+{
+    public partial class Main : Form
+    {
 
         Thread CrawlerThread = null;
         Thread ClipThread = null;
@@ -36,10 +38,12 @@ namespace MangaUnhost {
 
         ComicInfo CurrentInfo;
         IHost CurrentHost;
-        
-        public static string Status {
+
+        public static string Status
+        {
             get => Instance.StatusBar.FirstLabelText;
-            set {
+            set
+            {
                 Instance.StatusBar.FirstLabelText = value;
 
                 if (Instance.InvokeRequired)
@@ -62,8 +66,10 @@ namespace MangaUnhost {
             }
         }
 
-        public static ILanguage Language {
-            get {
+        public static ILanguage Language
+        {
+            get
+            {
                 return Instance.CurrentLanguage;
             }
         }
@@ -74,7 +80,8 @@ namespace MangaUnhost {
         private string LastClipboard = null;
         private string LastIndex = null;
 
-        public Main() {
+        public Main()
+        {
             InitializeComponent();
             Instance = this;
 
@@ -93,10 +100,14 @@ namespace MangaUnhost {
             SupportedHostListBox.ContextMenuStrip.ShowCheckMargin = false;
             SupportedHostListBox.ContextMenuStrip.ShowImageMargin = false;
 
-            if (File.Exists(SettingsPath)) {
+            if (File.Exists(SettingsPath))
+            {
                 AdvancedIni.FastOpen(out Settings, SettingsPath);
-            } else {
-                Settings = new Settings() {
+            }
+            else
+            {
+                Settings = new Settings()
+                {
                     Language = "English",
                     AutoCaptcha = false,
                     ImageClipping = true,
@@ -108,7 +119,8 @@ namespace MangaUnhost {
             }
 
             ReloadSettings();
-            var CefSettings = new CefSettings() {
+            var CefSettings = new CefSettings()
+            {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath,
                 LogSeverity = LogSeverity.Disable,
                 WindowlessRenderingEnabled = true
@@ -116,7 +128,8 @@ namespace MangaUnhost {
             Cef.Initialize(CefSettings, false, browserProcessHandler: null);
         }
 
-        private void MainShown(object sender, EventArgs e) {
+        private void MainShown(object sender, EventArgs e)
+        {
             TopMost = true;
             Hide();
             Application.DoEvents();
@@ -143,7 +156,8 @@ namespace MangaUnhost {
             if (!Program.Updater.HaveUpdate())
                 return;
 
-            if (MessageBox.Show(CurrentLanguage.UpdateFound, "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) {
+            if (MessageBox.Show(CurrentLanguage.UpdateFound, "MangaUnhost", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
                 Hide();
                 Program.Updater.Update();
             }
@@ -151,20 +165,25 @@ namespace MangaUnhost {
             MainTimer.Enabled = true;
         }
 
-        private T CreateInstance<T>(T Interface) {
+        private T CreateInstance<T>(T Interface)
+        {
             return (T)Activator.CreateInstance(Interface.GetType());
         }
 
-        private void MainTimerTick(object sender, EventArgs e) {
+        private void MainTimerTick(object sender, EventArgs e)
+        {
             CheckClipboard();
         }
 
-        private void CheckClipboard() {
+        private void CheckClipboard()
+        {
             string Clip = null;
 
-            try {
+            try
+            {
                 Clip = Clipboard.GetText();
-            } catch { }
+            }
+            catch { }
 
             if (LastClipboard == Clip || Clip == null)
                 return;
@@ -181,13 +200,15 @@ namespace MangaUnhost {
                 MainTimer.Enabled = false;
 
                 var Rst = MessageBox.Show(this, string.Format(Language.ConfirmBulk, Lines.Length), Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (Rst == DialogResult.No) {
+                if (Rst == DialogResult.No)
+                {
                     MainTimer.Enabled = true;
                     return;
                 }
 
                 StatusBar.AmountOfString = VSStatusBar.AmountOfStrings.Three;
-                for (int i = 0; i < Lines.Length; i++) {
+                for (int i = 0; i < Lines.Length; i++)
+                {
                     string Link = Lines[i];
                     StatusBar.ThirdLabelText = string.Format(Language.QueueStatus, i + 1, Lines.Length);
 
@@ -233,7 +254,8 @@ namespace MangaUnhost {
                     Status = CurrentLanguage.Loading;
                     string HTML;
                     var Data = URL.TryDownload(URL.Host, ProxyTools.UserAgent);
-                    if (Data == null) {
+                    if (Data == null)
+                    {
                         var BypassData = JSTools.BypassCloudflare(URL.Host);
                         HTML = BypassData.HTML;
                     }
@@ -264,8 +286,10 @@ namespace MangaUnhost {
             }
         }
 
-        private void DbgButtonClicked(object sender, EventArgs e) {
-            var OBrowser = new ChromiumWebBrowser("https://patrickhlauke.github.io/recaptcha/", new BrowserSettings {
+        private void DbgButtonClicked(object sender, EventArgs e)
+        {
+            var OBrowser = new ChromiumWebBrowser("https://patrickhlauke.github.io/recaptcha/", new BrowserSettings
+            {
                 WebSecurity = CefState.Disabled
             });
 
@@ -273,7 +297,8 @@ namespace MangaUnhost {
             OBrowser.InstallAdBlock();
             OBrowser.ReCaptchaHook();
 
-            while (!OBrowser.IsBrowserInitialized) {
+            while (!OBrowser.IsBrowserInitialized)
+            {
                 ThreadTools.Wait(50, true);
             }
 
@@ -332,11 +357,13 @@ namespace MangaUnhost {
             DbgPreview.Image = OBrowser.ScreenshotOrNull();
         }
 
-        private void BntLibSelectClicked(object sender, EventArgs e) {
-            var FileDialog = new CommonOpenFileDialog() {
+        private void BntLibSelectClicked(object sender, EventArgs e)
+        {
+            var FileDialog = new CommonOpenFileDialog()
+            {
                 Multiselect = false,
                 IsFolderPicker = true,
-                EnsurePathExists = true,                
+                EnsurePathExists = true,
                 InitialDirectory = LibraryPathTBox.Text
             };
 
@@ -346,73 +373,89 @@ namespace MangaUnhost {
             LibraryPathTBox.Text = Settings.LibraryPath = FileDialog.FileNames.First();
         }
 
-        private void CaptchaSolveSwitched(object sender, EventArgs e) {
+        private void CaptchaSolveSwitched(object sender, EventArgs e)
+        {
             Settings.AutoCaptcha = SemiAutoCaptchaRadio.Checked;
         }
 
-        private void ClipWatcherSwitched(object sender, EventArgs e) {
+        private void ClipWatcherSwitched(object sender, EventArgs e)
+        {
             MainTimer.Enabled = ClipWatcherEnbRadio.Checked;
         }
 
-        private void ImgClippingSwitched(object sender, EventArgs e) {
+        private void ImgClippingSwitched(object sender, EventArgs e)
+        {
             Settings.ImageClipping = ImgClipEnbRadio.Checked;
         }
 
-        private void ReaderGeneratorSwitched(object sender, EventArgs e) {
+        private void ReaderGeneratorSwitched(object sender, EventArgs e)
+        {
             Settings.ReaderGenerator = ReaderGenEnbRadio.Checked;
         }
 
-        private void SkipDownloadedSwitched(object sender, EventArgs e) {
+        private void SkipDownloadedSwitched(object sender, EventArgs e)
+        {
             Settings.SkipDownloaded = SkipDownEnbRadio.Checked;
         }
 
 
-        private void PNGSaveAs(object sender, EventArgs e) {
+        private void PNGSaveAs(object sender, EventArgs e)
+        {
             if (SaveAsPngRadio.Checked)
                 Settings.SaveAs = (int)SaveAs.PNG;
         }
 
-        private void JPGSaveAs(object sender, EventArgs e) {
+        private void JPGSaveAs(object sender, EventArgs e)
+        {
             if (SaveAsJpgRadio.Checked)
                 Settings.SaveAs = (int)SaveAs.JPG;
         }
 
-        private void BMPSaveAs(object sender, EventArgs e) {
+        private void BMPSaveAs(object sender, EventArgs e)
+        {
             if (SaveAsBmpRadio.Checked)
                 Settings.SaveAs = (int)SaveAs.BMP;
         }
 
-        private void RAWSaveAs(object sender, EventArgs e) {
+        private void RAWSaveAs(object sender, EventArgs e)
+        {
             if (SaveAsRawRadio.Checked)
                 Settings.SaveAs = (int)SaveAs.RAW;
         }
 
-        private void AutoSaveAs(object sender, EventArgs e){
+        private void AutoSaveAs(object sender, EventArgs e)
+        {
             if (SaveAsRawRadio.Checked)
                 Settings.SaveAs = (int)SaveAs.AUTO;
         }
 
-        private void LanguageChanged(object sender, EventArgs e) {
+        private void LanguageChanged(object sender, EventArgs e)
+        {
             Settings.Language = LanguageBox.SelectedItem.ToString();
             ReloadSettings();
         }
 
-        private void ReloadSettings() {
+        private void ReloadSettings()
+        {
             string OriPath = null;
             if (CurrentLanguage != null)
                 OriPath = DefaultLibPath;
 
-            foreach (var Language in Languages) {
+            foreach (var Language in Languages)
+            {
                 CurrentLanguage = Language;
-                if (!Directory.Exists(Settings.LibraryPath) && Directory.Exists(DefaultLibPath)) {
+                if (!Directory.Exists(Settings.LibraryPath) && Directory.Exists(DefaultLibPath))
+                {
                     LibraryPathTBox.Text = Settings.LibraryPath = OriPath = DefaultLibPath;
                 }
             }
 
             CurrentLanguage = (from x in Languages where x.LanguageName == Settings.Language select x).Single();
 
-            for (int i = 0; i < LanguageBox.Items.Count; i++) {
-                if (LanguageBox.Items[i].ToString() == CurrentLanguage.LanguageName) {
+            for (int i = 0; i < LanguageBox.Items.Count; i++)
+            {
+                if (LanguageBox.Items[i].ToString() == CurrentLanguage.LanguageName)
+                {
                     LanguageBox.SelectedIndex = i;
                     break;
                 }
@@ -420,7 +463,7 @@ namespace MangaUnhost {
 
             if (!Directory.Exists(Settings.LibraryPath) && Directory.Exists(DefaultLibPath))
                 LibraryPathTBox.Text = Settings.LibraryPath = DefaultLibPath;
-            
+
             LibraryPathTBox.Text = Settings.LibraryPath;
 
             //Update UI Settings Status
@@ -437,16 +480,16 @@ namespace MangaUnhost {
             SkipDownEnbRadio.Checked = Settings.SkipDownloaded;
 
             SaveAs SaveAs = (SaveAs)Settings.SaveAs;
-            SaveAsPngRadio.Checked  = SaveAs == SaveAs.PNG;
-            SaveAsJpgRadio.Checked  = SaveAs == SaveAs.JPG;
-            SaveAsBmpRadio.Checked  = SaveAs == SaveAs.BMP;
-            SaveAsRawRadio.Checked  = SaveAs == SaveAs.RAW;
+            SaveAsPngRadio.Checked = SaveAs == SaveAs.PNG;
+            SaveAsJpgRadio.Checked = SaveAs == SaveAs.JPG;
+            SaveAsBmpRadio.Checked = SaveAs == SaveAs.BMP;
+            SaveAsRawRadio.Checked = SaveAs == SaveAs.RAW;
             SaveAsAutoRadio.Checked = SaveAs == SaveAs.AUTO;
 
             ReplaceMode ReplaceWhen = (ReplaceMode)Settings.ReplaceMode;
-            UpdateUrlRadio.Checked  = ReplaceWhen == ReplaceMode.UpdateURL;
-            NewFolderRadio.Checked  = ReplaceWhen == ReplaceMode.NewFolder;
-            AskRadio.Checked        = ReplaceWhen == ReplaceMode.Ask;
+            UpdateUrlRadio.Checked = ReplaceWhen == ReplaceMode.UpdateURL;
+            NewFolderRadio.Checked = ReplaceWhen == ReplaceMode.NewFolder;
+            AskRadio.Checked = ReplaceWhen == ReplaceMode.Ask;
 
             //Load Translation
             DownloaderTab.Text = CurrentLanguage.DownloaderTab;
@@ -487,16 +530,20 @@ namespace MangaUnhost {
             lblTitle.Text = $"MangaUnhost v{GitHub.CurrentVersion}";
         }
 
-        private void MainClosing(object sender, FormClosingEventArgs e) {
-            try {
+        private void MainClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
                 AdvancedIni.FastSave(Settings, SettingsPath);
-            } catch { }
+            }
+            catch { }
 
             Cef.Shutdown();
             Environment.Exit(0);
         }
 
-        private void SupportedHostClicked(object sender, EventArgs e) {
+        private void SupportedHostClicked(object sender, EventArgs e)
+        {
             if (SupportedHostListBox.SelectedItems.Length != 1)
                 return;
 
@@ -529,7 +576,8 @@ namespace MangaUnhost {
             var Host = (from x in Hosts where x.GetPluginInfo().Name == PluginName select x).Single();
 
             var AllActions = Host.GetPluginInfo().Actions;
-            if (AllActions == null) {
+            if (AllActions == null)
+            {
                 e.Cancel = true;
                 return;
             }
@@ -566,21 +614,28 @@ namespace MangaUnhost {
             SupportedHostListBox.ContextMenuStrip.Show(SupportedHostListBox, Click);
         }
 
-        private void ClipWorker() {
-            while (true) {
+        private void ClipWorker()
+        {
+            while (true)
+            {
 
-                while (ClipQueue.Count > 0) {
+                while (ClipQueue.Count > 0)
+                {
                     if (Status == CurrentLanguage.IDLE)
                         Status = CurrentLanguage.ClippingImages;
 
                     string Image = ClipQueue.Dequeue();
 
                     int Tries = 1;
-                    while (Tries < 5) {
-                        try {
+                    while (Tries < 5)
+                    {
+                        try
+                        {
                             BitmapTrim.DoTrim(Image, Tries);
                             break;
-                        } catch {
+                        }
+                        catch
+                        {
                             Tries++;
                         }
                     }
@@ -621,7 +676,7 @@ namespace MangaUnhost {
         }
 
         public void FocusDownloader() => MainTabMenu.SelectTab(DownloaderTab);
-        
+
         public static IHost[] GetHostsInstances() =>
             (from Asm in AppDomain.CurrentDomain.GetAssemblies()
              from Typ in Asm.GetTypes()
@@ -643,11 +698,10 @@ namespace MangaUnhost {
             if (!Directory.Exists(Settings.LibraryPath))
                 return;
 
-            var Controls = new List<Control>(LibraryContainer.Controls.Cast<Control>());
-            LibraryContainer.Controls.Clear();
-            foreach (var Comic in Controls)
+            if (LibraryContainer.Controls.Count != 0)
             {
-                Comic.Dispose();
+                LibraryContainer.Focus();
+                return;
             }
 
             foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
@@ -662,12 +716,25 @@ namespace MangaUnhost {
                 Try(() => ((ComicPreview)Control).GetComicInfo());
         }
 
+        public void RefreshLibrary()
+        {
+            var Controls = new List<Control>(LibraryContainer.Controls.Cast<Control>());
+            LibraryContainer.Controls.Clear();
+            foreach (var Comic in Controls)
+            {
+                Comic.Dispose();
+            }
+
+            OnTabChanged(null, null);
+        }
+
         Queue<string> LinksFound = new Queue<string>();
         string ParentLink;
         List<string> ProcessedLinks;
         StringBuilder ListString;
 
-        private static bool Try(Action Action) {
+        private static bool Try(Action Action)
+        {
             try
             {
                 Action.Invoke();
@@ -692,8 +759,10 @@ namespace MangaUnhost {
             Clipboard.SetText(ListString.ToString());
         }
 
-        public void CrawlerWorker() {
-            while (true) {
+        public void CrawlerWorker()
+        {
+            while (true)
+            {
                 while (LinksFound.Count > 0)
                 {
                     Status = Language.Crawling;
@@ -712,7 +781,8 @@ namespace MangaUnhost {
 
                         Links = (from x in Links where !ProcessedLinks.Contains(x) select x).Distinct().ToList();
 
-                        Invoke(new MethodInvoker(() => {
+                        Invoke(new MethodInvoker(() =>
+                        {
                             var List = Links.ToList();
                             string Exp = tbCrawlerRegex.Text;
                             if (!string.IsNullOrEmpty(Exp))
@@ -720,10 +790,11 @@ namespace MangaUnhost {
 
                             LinksListBox.AddItems(List.ToArray());
                             foreach (var Item in List)
-                                ListString.AppendLine(Item);                            
+                                ListString.AppendLine(Item);
                         }));
 
-                        foreach (string LinkFound in (from x in Links where !ProcessedLinks.Contains(x) && !LinksFound.Contains(x) select x)) {
+                        foreach (string LinkFound in (from x in Links where !ProcessedLinks.Contains(x) && !LinksFound.Contains(x) select x))
+                        {
                             if (LinkFound.Trim().ToLower().StartsWith(ParentLink))
                                 LinksFound.Enqueue(LinkFound);
                         }
@@ -737,17 +808,20 @@ namespace MangaUnhost {
             }
         }
 
-        private void ReplaceAskModeChanged(object sender, EventArgs e) {
+        private void ReplaceAskModeChanged(object sender, EventArgs e)
+        {
             if (AskRadio.Checked)
                 Settings.ReplaceMode = (int)ReplaceMode.Ask;
         }
 
-        private void ReplaceNewFolderModeChanged(object sender, EventArgs e) {
+        private void ReplaceNewFolderModeChanged(object sender, EventArgs e)
+        {
             if (NewFolderRadio.Checked)
                 Settings.ReplaceMode = (int)ReplaceMode.NewFolder;
         }
 
-        private void ReplaceUpdateUrlModeChanged(object sender, EventArgs e) {
+        private void ReplaceUpdateUrlModeChanged(object sender, EventArgs e)
+        {
             if (UpdateUrlRadio.Checked)
                 Settings.ReplaceMode = (int)ReplaceMode.UpdateURL;
         }
