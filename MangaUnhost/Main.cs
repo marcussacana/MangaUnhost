@@ -708,6 +708,7 @@ namespace MangaUnhost
             {
                 Try(() => LibraryContainer.Controls.Add(new ComicPreview(Comic)));
                 Thread.Sleep(10);
+                Application.DoEvents();
             }
 
             LibraryContainer.Focus();

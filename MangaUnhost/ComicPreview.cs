@@ -104,7 +104,8 @@ namespace MangaUnhost
             string UrlPath = Path.Combine(ComicPath, "Online.url");
             if (!File.Exists(UrlPath))
             {
-                Invoke(new MethodInvoker(() => Visible = false));
+                if (!IndexFound)
+                    Invoke(new MethodInvoker(() => Visible = false));
                 Initialized = true;
                 return;
             }
@@ -152,7 +153,8 @@ namespace MangaUnhost
                         }
                         catch
                         {
-                            Invoke(new MethodInvoker(() => Visible = false));
+                            if (!IndexFound)
+                                Invoke(new MethodInvoker(() => Visible = false));
                         }
                     });
                 }
@@ -175,7 +177,7 @@ namespace MangaUnhost
 
             CheckUpdates();
 
-            if (CoverFound && IndexFound && Error)
+            if (IndexFound && Error)
             {
                 Visible = true;
                 ComicMenuStrip.Enabled = false;
