@@ -57,7 +57,7 @@ namespace MangaUnhost.Hosts {
                     
 
                     Last = HREF;
-                    PLink = new Uri(new Uri(Domain), HREF);
+                    PLink = HREF.EnsureAbsoluteUri(Domain);
                 }
 
                 Link = GetNextPage(Link);
@@ -88,7 +88,7 @@ namespace MangaUnhost.Hosts {
             }
 
             foreach (var Node in Nodes.Reverse()) {
-                var Link = new Uri(new Uri(Domain), Node.GetAttributeValue("href", "")).AbsoluteUri;
+                var Link = Node.GetAttributeValue("href", "").EnsureAbsoluteUrl(Domain);
                 var Name = Node.SelectSingleNode(Node.XPath + "/span[@width=\"100%\"]").InnerText;
                 Name = HttpUtility.HtmlDecode(Name);
 
@@ -141,9 +141,9 @@ namespace MangaUnhost.Hosts {
             ComicInfo Info = new ComicInfo();
             Info.Title = HttpUtility.HtmlDecode(Document.SelectSingleNode("//div[@class=\"book-title\"]").InnerText);
 
-            Info.Cover = TryDownload(new Uri(new Uri(Domain), HttpUtility.HtmlDecode(Document
+            Info.Cover = TryDownload(HttpUtility.HtmlDecode(Document
                 .SelectSingleNode("//img[@class=\"book-page-image img-responsive\"]")
-                .GetAttributeValue("src", ""))));
+                .GetAttributeValue("src", "")).EnsureAbsoluteUri(Domain));
 
             Info.ContentType = ContentType.Comic;
 

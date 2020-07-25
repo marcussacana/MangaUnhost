@@ -58,6 +58,8 @@ namespace MangaUnhost.Hosts {
                 if (Name.Contains(":"))
                     Name = Name.Substring(0, Name.IndexOf(":"));
 
+                Link = Link.EnsureAbsoluteUrl(CurrentUrl);
+
                 ChapterNames[ID] = DataTools.GetRawName(Name);
                 ChapterLinks[ID] = Link;
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
@@ -86,7 +88,9 @@ namespace MangaUnhost.Hosts {
                 return Nodes.First().InnerText.Split(',');
             }
 
-            foreach (var Node in Nodes)
+            var PageList = Nodes.Where(x => x.GetAttributeValue("height", "") != "1");
+
+            foreach (var Node in PageList)
                 Pages.Add(Node.GetAttributeValue("src", ""));
 
             return Pages.ToArray();
@@ -138,7 +142,7 @@ namespace MangaUnhost.Hosts {
                                Document.SelectSingleNode("//span[@class=\"info-image\"]/img")             ??
                                Document.SelectSingleNode("//div[@class=\"media-left cover-detail\"]/img")).GetAttributeValue("src", string.Empty);
 
-            Info.Cover = (CoverUrl.StartsWith("/") ? new Uri(new Uri("http://" + Uri.Host), CoverUrl) : new Uri(CoverUrl)).TryDownload();
+            Info.Cover = CoverUrl.EnsureAbsoluteUrl(Uri).TryDownload();
 
             Info.ContentType = ContentType.Comic;
 

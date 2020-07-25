@@ -8,22 +8,49 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace MangaUnhost.Browser {
-    public static class UrlTools {
-        public static string SetUrlParameter(this string url, string paramName, string value) {
+namespace MangaUnhost.Browser
+{
+    public static class UrlTools
+    {
+        public static string SetUrlParameter(this string url, string paramName, string value)
+        {
             return new Uri(url).SetParameter(paramName, value).ToString();
         }
 
-        public static string GetUrlParamter(this string url, string paramName) {
+        public static string GetUrlParamter(this string url, string paramName)
+        {
             return new Uri(url).GetParameter(paramName);
         }
+        public static Uri EnsureAbsoluteUri(this Uri url, Uri domain) => new Uri(url.AbsoluteUri.EnsureAbsoluteUrl(domain.AbsoluteUri));
+        public static Uri EnsureAbsoluteUri(this Uri url, string domain) => new Uri(url.AbsoluteUri.EnsureAbsoluteUrl(domain));
 
-        public static Uri SetParameter(this Uri url, string paramName, string value) {
+        public static Uri EnsureAbsoluteUri(this string url, Uri domain) => new Uri(url.EnsureAbsoluteUrl(domain.AbsoluteUri));
+        public static Uri EnsureAbsoluteUri(this string url, string domain) => new Uri(url.EnsureAbsoluteUrl(domain));
+        
+        public static string EnsureAbsoluteUrl(this Uri url, Uri domain) => url.AbsoluteUri.EnsureAbsoluteUrl(domain.AbsoluteUri);
+        public static string EnsureAbsoluteUrl(this string url, Uri domain) => url.EnsureAbsoluteUrl(domain.AbsoluteUri);
+        public static string EnsureAbsoluteUrl(this Uri url, string domain) => url.AbsoluteUri.EnsureAbsoluteUrl(domain);
+        public static string EnsureAbsoluteUrl(this string url, string domain)
+        {
+            if (!domain.ToLowerInvariant().StartsWith("http"))
+                domain += "http://";
+
+            var BaseUri = new Uri(domain);
+            var Https = BaseUri.AbsoluteUri.ToLowerInvariant().StartsWith("https");
+            domain = (Https ? "https://" : "http://") + BaseUri.Host;
+            BaseUri = new Uri(domain);
+
+            return new Uri(BaseUri, url).AbsoluteUri;
+        }
+
+        public static Uri SetParameter(this Uri url, string paramName, string value)
+        {
             var queryParts = HttpUtility.ParseQueryString(url.Query);
             queryParts[paramName] = value;
             return new Uri(url.AbsoluteUriExcludingQuery() + '?' + queryParts.ToString());
         }
-        public static string GetParameter(this Uri url, string paramName) {
+        public static string GetParameter(this Uri url, string paramName)
+        {
             var queryParts = HttpUtility.ParseQueryString(url.Query);
             if (!queryParts.AllKeys.Contains(paramName))
                 return null;
@@ -31,15 +58,18 @@ namespace MangaUnhost.Browser {
         }
 
         public static string SkipProtectors(this string URL) => SkipProtectors(new Uri(URL)).AbsoluteUri;
-        public static Uri SkipProtectors(this Uri URL) {
-            if (URL.AbsoluteUri.ToLower().Contains("googleusercontent.com/gadgets/proxy")) {
+        public static Uri SkipProtectors(this Uri URL)
+        {
+            if (URL.AbsoluteUri.ToLower().Contains("googleusercontent.com/gadgets/proxy"))
+            {
                 return new Uri(HttpUtility.UrlDecode(URL.Query.Substring("&url=")));
             }
 
             return URL;
         }
 
-        public static string AbsoluteUriExcludingQuery(this Uri url) {
+        public static string AbsoluteUriExcludingQuery(this Uri url)
+        {
             return url.AbsoluteUri.Split('?').FirstOrDefault() ?? string.Empty;
         }
 
@@ -50,7 +80,8 @@ namespace MangaUnhost.Browser {
         public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
             Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Cookies, AcceptableErrors);
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) {
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
+        {
             if (Encoding == null)
                 Encoding = System.Text.Encoding.UTF8;
 
@@ -66,7 +97,8 @@ namespace MangaUnhost.Browser {
         public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries);
 
-        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) {
+        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
+        {
             byte[] Result = null;
 
             var Thread = new System.Threading.Thread(() =>
@@ -88,16 +120,23 @@ namespace MangaUnhost.Browser {
         public static async Task<byte[]> TryDownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             await new Uri(Url).TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries);
 
-        public static async Task<byte[]> TryDownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) {
-            try {
+        public static async Task<byte[]> TryDownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
+        {
+            try
+            {
                 return await Url.DownloadAsync(Referer, UserAgent, Proxy, Cookie);
-            } catch (Exception ex) {
-                if (ex is WebException) {
+            }
+            catch (Exception ex)
+            {
+                if (ex is WebException)
+                {
                     var Exception = (WebException)ex;
-                    if (AcceptableErrors != null && AcceptableErrors.Contains(Exception.Status)) {
+                    if (AcceptableErrors != null && AcceptableErrors.Contains(Exception.Status))
+                    {
                         using (WebResponse Response = Exception.Response)
                         using (Stream ResponseData = Response.GetResponseStream())
-                        using (MemoryStream Stream = new MemoryStream()) {
+                        using (MemoryStream Stream = new MemoryStream())
+                        {
                             ResponseData.CopyTo(Stream);
                             return Stream.ToArray();
                         }
@@ -111,10 +150,11 @@ namespace MangaUnhost.Browser {
 
         public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null) =>
             new Uri(Url).Download(Referer, UserAgent, Proxy, Cookie);
-        public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null) {
+        public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null)
+        {
             byte[] Result = null;
 
-            var Thread = new System.Threading.Thread(() => 
+            var Thread = new System.Threading.Thread(() =>
             Result = AsyncContext.Run(async () =>
             await Url.DownloadAsync(Referer, UserAgent, Proxy, Cookie)));
 
@@ -127,7 +167,8 @@ namespace MangaUnhost.Browser {
         }
         public static async Task<byte[]> DownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null) =>
             await new Uri(Url).DownloadAsync(Referer, UserAgent, Proxy, Cookie);
-        public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null) {
+        public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null)
+        {
             HttpWebRequest Request = WebRequest.CreateHttp(Url);
 
             Request.UseDefaultCredentials = true;
@@ -148,7 +189,8 @@ namespace MangaUnhost.Browser {
 
             using (var Response = await Request.GetResponseAsync())
             using (var RespData = Response.GetResponseStream())
-            using (var Output = new MemoryStream()) {
+            using (var Output = new MemoryStream())
+            {
                 await RespData.CopyToAsync(Output);
                 return Output.ToArray();
             }

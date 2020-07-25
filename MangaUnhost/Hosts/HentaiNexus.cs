@@ -18,7 +18,7 @@ namespace MangaUnhost.Hosts
         {
             foreach (var Node in Document.SelectNodes("(//div[@class=\"card-image\"])/../.."))
             {
-                Uri Link = new Uri(new Uri("https://hentainexus.com"), Node.GetAttributeValue("href", ""));
+                var Link = Node.GetAttributeValue("href", "").EnsureAbsoluteUrl("https://hentainexus.com");
                 HtmlDocument Document = new HtmlDocument();
                 Document.LoadUrl(Link);
                 Uri Img = new Uri(HttpUtility.HtmlDecode(Document.SelectSingleNode("//figure[@class=\"image\"]/img").GetAttributeValue("src", "")));

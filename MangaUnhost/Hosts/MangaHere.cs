@@ -38,7 +38,7 @@ namespace MangaUnhost.Hosts {
                     Name = Name.Split('-')[0];
 
                 ChapterNames[ID] = DataTools.GetRawName(Name.Trim());
-                ChapterLinks[ID] = new Uri(new Uri("https://www.mangahere.cc/"), Node.GetAttributeValue("href", string.Empty)).AbsoluteUri;
+                ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty).EnsureAbsoluteUrl("https://www.mangahere.cc/");
 
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
             }

@@ -55,7 +55,7 @@ namespace MangaUnhost.Hosts {
                     var Link = HttpUtility.HtmlDecode(ChapterInfo.GetAttributeValue("href", ""));
                     var Lang = HttpUtility.HtmlDecode(ChapterLang.GetAttributeValue("title", "")).Trim();
 
-                    Link = new Uri(new Uri("https://mangadex.org"), Link).AbsoluteUri;
+                    Link = Link.EnsureAbsoluteUrl("https://mangadex.org");
 
                     if (ChapterLinks.Values.Contains(Link))
                         continue;
@@ -197,9 +197,9 @@ namespace MangaUnhost.Hosts {
             Info.Title = Document.SelectSingleNode("//*[@id=\"content\"]//h6/span[@class=\"mx-1\"]").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            Info.Cover = TryDownload(new Uri(new Uri("https://mangadex.org"), Document
+            Info.Cover = TryDownload(Document
                 .SelectSingleNode("//*[@id=\"content\"]//img[@class=\"rounded\"]")
-                .GetAttributeValue("src", string.Empty)));
+                .GetAttributeValue("src", string.Empty).EnsureAbsoluteUri("https://mangadex.org"));
 
             Info.ContentType = ContentType.Comic;
 

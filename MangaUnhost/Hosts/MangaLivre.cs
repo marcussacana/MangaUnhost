@@ -76,7 +76,7 @@ namespace MangaUnhost.Hosts
                     Link = DataTools.ReadJson(JSON, "link");
                 }
                 Chapters[ID] = Name;
-                LinkDB[ID] = new Uri(new Uri("https://mangalivre.net/"), Link);
+                LinkDB[ID] = Link.EnsureAbsoluteUri("https://mangalivre.net/");
                 if (!JSON.Contains("\"link\":"))
                     break;
                 JSON = JSON.Substring("\"link\":", IgnoreMissmatch: true);

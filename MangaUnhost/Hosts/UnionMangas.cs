@@ -111,7 +111,7 @@ namespace MangaUnhost.Hosts {
 
             if (URL.Host != CurrentHost)
             {
-                Rst = new Uri(new Uri("https://" + CurrentHost), URL.PathAndQuery).TryDownload();
+                Rst = URL.PathAndQuery.EnsureAbsoluteUrl("https://" + CurrentHost).TryDownload();
                 if (Rst != null)
                     return Rst;
             }

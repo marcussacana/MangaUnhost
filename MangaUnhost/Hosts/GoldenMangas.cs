@@ -28,7 +28,7 @@ namespace MangaUnhost.Hosts {
         public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
             int ID = ChapterNames.Count;
             foreach (var Node in Document.SelectNodes("//ul[@class=\"capitulos\"]//a[starts-with(@href, \"/manga\")]")) {
-                string URL = new Uri(new Uri(CurrentDomain), HttpUtility.HtmlDecode(Node.GetAttributeValue("href", ""))).AbsoluteUri;
+                string URL = HttpUtility.HtmlDecode(Node.GetAttributeValue("href", "")).EnsureAbsoluteUrl(CurrentDomain);
                 string Name = URL.Substring(URL.LastIndexOf("/") + 1);
                 Name = DataTools.GetRawName(Name);
 
@@ -49,7 +49,7 @@ namespace MangaUnhost.Hosts {
 
             List<string> Pages = new List<string>();
             foreach (var Node in Document.SelectNodes("//div[@id=\"capitulos_images\"]/center/img")) {
-                Pages.Add(new Uri(new Uri(CurrentDomain), HttpUtility.HtmlDecode(Node.GetAttributeValue("src", ""))).AbsoluteUri);
+                Pages.Add(HttpUtility.HtmlDecode(Node.GetAttributeValue("src", "")).EnsureAbsoluteUrl(CurrentDomain));
             }
 
             return Pages.ToArray();
@@ -84,9 +84,9 @@ namespace MangaUnhost.Hosts {
             Info.Title = Document.SelectSingleNode("//h2[@class=\"cg_color\"]").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            Info.Cover = new Uri(new Uri(CurrentDomain), HttpUtility.HtmlDecode(Document
+            Info.Cover = HttpUtility.HtmlDecode(Document
                 .SelectSingleNode("//div[@class=\"col-sm-4 text-right\"]/img")
-                .GetAttributeValue("src", ""))).TryDownload();
+                .GetAttributeValue("src", "")).EnsureAbsoluteUrl(CurrentDomain).TryDownload();
 
             Info.ContentType = ContentType.Comic;
 

@@ -37,7 +37,7 @@ namespace MangaUnhost.Hosts {
 
             foreach (var Node in Document.SelectNodes("//table[@class=\"listing\"]//a")) {
 
-                ChapterLinks[ID] = new Uri(new Uri("https://kissmanga.com"), Node.GetAttributeValue("href", string.Empty)).AbsoluteUri;
+                ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty).EnsureAbsoluteUrl("https://kissmanga.com");
                 ChapterNames[ID] = DataTools.GetRawName(GetChapterName(ChapterLinks[ID]));
 
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);

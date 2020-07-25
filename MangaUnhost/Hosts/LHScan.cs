@@ -31,7 +31,7 @@ namespace MangaUnhost.Hosts {
                 Name = Name.Substring("chapter").Trim();
 
                 ChapterNames[ID] = DataTools.GetRawName(Name);
-                ChapterLinks[ID] = new Uri(new Uri(CurrentDomain), Node.GetAttributeValue("href", string.Empty)).AbsoluteUri;
+                ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty).EnsureAbsoluteUrl(CurrentDomain);
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
             }
         }
