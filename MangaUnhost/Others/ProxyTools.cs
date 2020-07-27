@@ -39,16 +39,24 @@ namespace MangaUnhost.Others
 
         internal static void BlackListProxy(string Proxy) => BlackList.Add(Proxy);
 
+
         internal static void RefreshProxy()
         {
             ProxList = new string[PROXIES + 1];
             string[] Proxies = FreeProxy();
-            for (int i = 0; i < PROXIES; i++)
+            for (int i = 0, x = 0; i < PROXIES; i++)
             {
                 Proxies[i] = Proxies[i].ToLower().Replace("http://", "").Replace("https://", "");
                 if (BlackList.Contains(Proxies[i]) || !ValidateProxy(Proxies[i]))
                 {
-                    Proxies[i--] = GimmeProxy();
+                    try
+                    {
+                        Proxies[i--] = GimmeProxy();
+                    }
+                    catch
+                    {
+                        Proxies[i] = Proxies[PROXIES + x++];
+                    }
                     continue;
                 }
 
