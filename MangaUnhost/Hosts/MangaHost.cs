@@ -45,19 +45,30 @@ namespace MangaUnhost.Hosts {
         private string[] GetChapterPages(int ID) {
             var Page = GetChapterHtml(ID);
             List<string> Pages = new List<string>();
-            
-            foreach (var Node in Page.DocumentNode.SelectNodes("//body//script[@type=\"text/javascript\"]")) {
+
+            var Scripts = Page.SelectNodes("//body//script[@type=\"text/javascript\"]");
+
+            bool Found = false;
+
+            foreach (var Node in Scripts) {
                 if (!Node.InnerHtml.Contains("var images"))
                     continue;
+
+                Found = true;
 
                 string JS = Node.InnerHtml.Substring("var images = ", "\"];") + "\"]";
                 var Result = (from x in JSTools.EvaluateScript<List<object>>(JS) select (string)x).ToArray();
                 foreach (string PageHtml in Result) {
                     var PageUrl = PageHtml.Substring("src=", " ").Trim(' ', '\'', '"');
-                    Pages.Add(PageUrl.Replace(".webp", "").Replace("/images", "/mangas_files"));
+                    Pages.Add(PageUrl);
                 }
             }
-            return Pages.ToArray();
+
+            if (!Found)
+                foreach (var Img in Page.SelectNodes("//section[@id='imageWrapper']//img"))
+                    Pages.Add(Img.GetAttributeValue("src", string.Empty));
+
+            return (from x in Pages select x.Replace(".webp", "").Replace("/images", "/mangas_files")).ToArray();
         }
 
         private HtmlDocument GetChapterHtml(int ID) {
@@ -76,7 +87,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 
