@@ -130,25 +130,25 @@ namespace MangaUnhost.Others {
         }
 
         public static string GetImageExtension(this System.Drawing.Image img) {
-            if (img.RawFormat.Equals(ImageFormat.Jpeg))
+            if (img.RawFormat.Guid == ImageFormat.Jpeg.Guid)
                 return "jpg";
-            if (img.RawFormat.Equals(ImageFormat.Bmp))
+            if (img.RawFormat.Guid == ImageFormat.Bmp.Guid)
                 return "bmp";
-            if (img.RawFormat.Equals(ImageFormat.Png))
+            if (img.RawFormat.Guid == ImageFormat.Png.Guid)
                 return "png";
-            if (img.RawFormat.Equals(ImageFormat.Emf))
+            if (img.RawFormat.Guid == ImageFormat.Emf.Guid)
                 return "emf";
-            if (img.RawFormat.Equals(ImageFormat.Exif))
+            if (img.RawFormat.Guid == ImageFormat.Exif.Guid)
                 return "exif";
-            if (img.RawFormat.Equals(ImageFormat.Gif))
+            if (img.RawFormat.Guid == ImageFormat.Gif.Guid)
                 return "gif";
-            if (img.RawFormat.Equals(ImageFormat.Icon))
+            if (img.RawFormat.Guid == ImageFormat.Icon.Guid)
                 return "ico";
-            if (img.RawFormat.Equals(ImageFormat.MemoryBmp))
+            if (img.RawFormat.Guid == ImageFormat.MemoryBmp.Guid)
                 return "raw";
-            if (img.RawFormat.Equals(ImageFormat.Tiff))
+            if (img.RawFormat.Guid == ImageFormat.Tiff.Guid)
                 return "tiff";
-            if (img.RawFormat.Equals(ImageFormat.Wmf))
+            if (img.RawFormat.Guid == ImageFormat.Wmf.Guid)
                 return "wmf";
             return "png";
         }

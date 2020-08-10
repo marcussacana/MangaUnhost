@@ -44,23 +44,24 @@
             this.ConvertToPNG = new System.Windows.Forms.ToolStripMenuItem();
             this.ConvertToBMP = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenDirectory = new System.Windows.Forms.ToolStripMenuItem();
+            this.Refresh = new System.Windows.Forms.ToolStripMenuItem();
             this.lblNewChapters = new System.Windows.Forms.Label();
             this.lblOpenSite = new System.Windows.Forms.LinkLabel();
             this.lblDownload = new System.Windows.Forms.LinkLabel();
-            this.Refresh = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
             this.ComicMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // CoverBox
             // 
-            this.CoverBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.CoverBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.CoverBox.ContextMenuStrip = this.ComicMenuStrip;
             this.CoverBox.Cursor = System.Windows.Forms.Cursors.Hand;
             this.CoverBox.Location = new System.Drawing.Point(0, 0);
             this.CoverBox.Name = "CoverBox";
-            this.CoverBox.Size = new System.Drawing.Size(180, 230);
+            this.CoverBox.Size = new System.Drawing.Size(180, 260);
             this.CoverBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.CoverBox.TabIndex = 0;
             this.CoverBox.TabStop = false;
@@ -74,7 +75,7 @@
             this.OpenDirectory,
             this.Refresh});
             this.ComicMenuStrip.Name = "ComicMenuStrip";
-            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 114);
+            this.ComicMenuStrip.Size = new System.Drawing.Size(155, 92);
             // 
             // ExportAs
             // 
@@ -84,7 +85,7 @@
             this.ExportToPNG,
             this.ExportToBMP});
             this.ExportAs.Name = "ExportAs";
-            this.ExportAs.Size = new System.Drawing.Size(180, 22);
+            this.ExportAs.Size = new System.Drawing.Size(154, 22);
             this.ExportAs.Text = "Export As";
             // 
             // ExportToCBZ
@@ -147,7 +148,7 @@
             this.ConvertToPNG,
             this.ConvertToBMP});
             this.ConvertTo.Name = "ConvertTo";
-            this.ConvertTo.Size = new System.Drawing.Size(180, 22);
+            this.ConvertTo.Size = new System.Drawing.Size(154, 22);
             this.ConvertTo.Text = "Convert To";
             // 
             // ConvertToJPG
@@ -174,16 +175,23 @@
             // OpenDirectory
             // 
             this.OpenDirectory.Name = "OpenDirectory";
-            this.OpenDirectory.Size = new System.Drawing.Size(180, 22);
+            this.OpenDirectory.Size = new System.Drawing.Size(154, 22);
             this.OpenDirectory.Text = "Open Directory";
             this.OpenDirectory.Click += new System.EventHandler(this.OpenDirectory_Click);
+            // 
+            // Refresh
+            // 
+            this.Refresh.Name = "Refresh";
+            this.Refresh.Size = new System.Drawing.Size(154, 22);
+            this.Refresh.Text = "Refresh";
+            this.Refresh.Click += new System.EventHandler(this.Refresh_Click);
             // 
             // lblNewChapters
             // 
             this.lblNewChapters.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblNewChapters.ForeColor = System.Drawing.Color.White;
-            this.lblNewChapters.Location = new System.Drawing.Point(3, 235);
+            this.lblNewChapters.Location = new System.Drawing.Point(3, 265);
             this.lblNewChapters.Name = "lblNewChapters";
             this.lblNewChapters.Size = new System.Drawing.Size(174, 13);
             this.lblNewChapters.TabIndex = 1;
@@ -195,7 +203,7 @@
             this.lblOpenSite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblOpenSite.AutoSize = true;
             this.lblOpenSite.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblOpenSite.Location = new System.Drawing.Point(3, 248);
+            this.lblOpenSite.Location = new System.Drawing.Point(3, 278);
             this.lblOpenSite.Name = "lblOpenSite";
             this.lblOpenSite.Size = new System.Drawing.Size(54, 13);
             this.lblOpenSite.TabIndex = 3;
@@ -209,20 +217,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblDownload.AutoSize = true;
             this.lblDownload.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblDownload.Location = new System.Drawing.Point(122, 248);
+            this.lblDownload.Location = new System.Drawing.Point(122, 278);
             this.lblDownload.Name = "lblDownload";
             this.lblDownload.Size = new System.Drawing.Size(55, 13);
             this.lblDownload.TabIndex = 4;
             this.lblDownload.TabStop = true;
             this.lblDownload.Text = "Download";
             this.lblDownload.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DownloadClicked);
-            // 
-            // Refresh
-            // 
-            this.Refresh.Name = "Refresh";
-            this.Refresh.Size = new System.Drawing.Size(180, 22);
-            this.Refresh.Text = "Refresh";
-            this.Refresh.Click += new System.EventHandler(this.Refresh_Click);
             // 
             // ComicPreview
             // 
@@ -233,7 +234,7 @@
             this.Controls.Add(this.lblNewChapters);
             this.Controls.Add(this.CoverBox);
             this.Name = "ComicPreview";
-            this.Size = new System.Drawing.Size(180, 271);
+            this.Size = new System.Drawing.Size(180, 301);
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).EndInit();
             this.ComicMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
