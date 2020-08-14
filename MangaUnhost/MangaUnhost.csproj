@@ -213,10 +213,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CefSharp.OffScreen">
-      <Version>79.1.360</Version>
+      <Version>83.4.20</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.WinForms">
-      <Version>79.1.360</Version>
+      <Version>83.4.20</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">
       <Version>4.1.0</Version>

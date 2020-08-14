@@ -119,6 +119,8 @@ namespace CefSharp.EventHandler {
         public event EventHandler<OnResourceRedirectEventArgs> OnResourceRedirectEvent;
         public event EventHandler<OnResourceResponseEventArgs> OnResourceResponseEvent;
 
+        public void Dispose() {}
+
         ICookieAccessFilter IResourceRequestHandler.GetCookieAccessFilter(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request)
         {
             var args = new OnGetCookieAccessFilterEventArgs(browserControl, browser, frame, request);

@@ -78,7 +78,7 @@ namespace MangaUnhost
             if (!Outdated)
             {
                 var VerStr = FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion;
-                if (new Version(VerStr) < new Version(79, 1, 360, 0))
+                if (new Version(VerStr) < new Version(83, 4, 20, 0))
                 {
                     Outdated = true;
                 }
