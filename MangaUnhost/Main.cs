@@ -74,6 +74,14 @@ namespace MangaUnhost
             }
         }
 
+        public static ReaderMode Reader
+        {
+            get
+            {
+                return (ReaderMode)Instance.Settings.ReaderMode;
+            }
+        }
+
         public static CaptchaSolverType Solver => Instance.Settings.AutoCaptcha ? CaptchaSolverType.SemiAuto : CaptchaSolverType.Manual;
 
         public static Main Instance = null;
@@ -114,7 +122,8 @@ namespace MangaUnhost
                     ReaderGenerator = true,
                     SkipDownloaded = true,
                     LibraryPath = DefaultLibPath,
-                    ReplaceMode = 1
+                    ReplaceMode = 1,
+                    ReaderMode = 0
                 };
             }
 
@@ -125,6 +134,13 @@ namespace MangaUnhost
                 LogSeverity = LogSeverity.Disable,
                 WindowlessRenderingEnabled = true
             };
+
+            CefSettings.RegisterScheme(new CefCustomScheme()
+            {
+                SchemeName = LocalSchemeFactory.SchemeName,
+                SchemeHandlerFactory = new LocalSchemeFactory()
+            });
+
             Cef.Initialize(CefSettings, false, browserProcessHandler: null);
         }
 
@@ -398,7 +414,6 @@ namespace MangaUnhost
             Settings.SkipDownloaded = SkipDownEnbRadio.Checked;
         }
 
-
         private void PNGSaveAs(object sender, EventArgs e)
         {
             if (SaveAsPngRadio.Checked)
@@ -491,6 +506,12 @@ namespace MangaUnhost
             NewFolderRadio.Checked = ReplaceWhen == ReplaceMode.NewFolder;
             AskRadio.Checked = ReplaceWhen == ReplaceMode.Ask;
 
+            ReaderMode Reader = (ReaderMode)Settings.ReaderMode;
+            LegacyReaderRadio.Checked = Reader == ReaderMode.Legacy;
+            MangaReaderRadio.Checked = Reader == ReaderMode.Manga;
+            ComicReaderRadio.Checked = Reader == ReaderMode.Comic;
+            OtherReaderRadio.Checked = Reader == ReaderMode.Other;
+
             //Load Translation
             DownloaderTab.Text = CurrentLanguage.DownloaderTab;
             SettingsTab.Text = CurrentLanguage.SettingsTab;
@@ -509,6 +530,7 @@ namespace MangaUnhost
             lblSaveAs.Text = CurrentLanguage.SaveAsLbl;
             lblSkipDownloaded.Text = CurrentLanguage.SkipDownloadedLbl;
             lblReplaceMode.Text = CurrentLanguage.ReplaceModeLbl;
+            lblReader.Text = CurrentLanguage.ReaderModeLbl;
 
             ClipWatcherDisRadio.Text = CurrentLanguage.Disabled;
             ImgClipDisRadio.Text = CurrentLanguage.Disabled;
@@ -520,6 +542,8 @@ namespace MangaUnhost
             SkipDownEnbRadio.Text = CurrentLanguage.Enabled;
             UpdateUrlRadio.Text = CurrentLanguage.UpdateURL;
             NewFolderRadio.Text = CurrentLanguage.NewFolder;
+            LegacyReaderRadio.Text = CurrentLanguage.Legacy;
+            OtherReaderRadio.Text = CurrentLanguage.Other;
             AskRadio.Text = CurrentLanguage.Ask;
 
             SupportedHostsBox.Text = CurrentLanguage.SupportedHostsBox;
@@ -825,6 +849,30 @@ namespace MangaUnhost
         {
             if (UpdateUrlRadio.Checked)
                 Settings.ReplaceMode = (int)ReplaceMode.UpdateURL;
+        }
+
+        private void LegacyReaderChanged(object sender, EventArgs e)
+        {
+            if (LegacyReaderRadio.Checked)
+                Settings.ReaderMode = (int)ReaderMode.Legacy;
+        }
+
+        private void MangaReaderChanged(object sender, EventArgs e)
+        {
+            if (MangaReaderRadio.Checked)
+                Settings.ReaderMode = (int)ReaderMode.Manga;
+        }
+
+        private void ComicReaderChanged(object sender, EventArgs e)
+        {
+            if (ComicReaderRadio.Checked)
+                Settings.ReaderMode = (int)ReaderMode.Comic;
+        }
+
+        private void OtherReaderChanged(object sender, EventArgs e)
+        {
+            if (OtherReaderRadio.Checked)
+                Settings.ReaderMode = (int)ReaderMode.Other;
         }
     }
 }

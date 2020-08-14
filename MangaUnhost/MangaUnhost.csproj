@@ -73,11 +73,18 @@
     <Compile Include="Browser\hCaptcha.cs" />
     <Compile Include="Browser\InputTools.cs" />
     <Compile Include="Browser\JSTools.cs" />
+    <Compile Include="Browser\LocalScheme.cs" />
     <Compile Include="Browser\reCaptcha.cs" />
     <Compile Include="Browser\EventHandler.cs" />
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\InfoTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
+    <Compile Include="CEFWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CEFWindow.Designer.cs">
+      <DependentUpon>CEFWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="ComicPreview.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -158,6 +165,9 @@
     </Compile>
     <Compile Include="Structs.cs" />
     <Compile Include="Styles.cs" />
+    <EmbeddedResource Include="CEFWindow.resx">
+      <DependentUpon>CEFWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ComicPreview.resx">
       <DependentUpon>ComicPreview.cs</DependentUpon>
     </EmbeddedResource>
@@ -203,6 +213,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CefSharp.OffScreen">
+      <Version>79.1.360</Version>
+    </PackageReference>
+    <PackageReference Include="CefSharp.WinForms">
       <Version>79.1.360</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">

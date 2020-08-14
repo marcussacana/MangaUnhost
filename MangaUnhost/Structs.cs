@@ -66,6 +66,7 @@ namespace MangaUnhost {
 
         public int SaveAs;
         public int ReplaceMode;
+        public int ReaderMode;
     }
 
 

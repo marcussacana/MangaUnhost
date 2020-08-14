@@ -94,6 +94,12 @@
             this.dbgButtonB = new VSButton();
             this.DbgButtonA = new VSButton();
             this.DbgPreview = new System.Windows.Forms.PictureBox();
+            this.panel8 = new System.Windows.Forms.Panel();
+            this.lblReader = new System.Windows.Forms.Label();
+            this.LegacyReaderRadio = new System.Windows.Forms.RadioButton();
+            this.MangaReaderRadio = new System.Windows.Forms.RadioButton();
+            this.ComicReaderRadio = new System.Windows.Forms.RadioButton();
+            this.OtherReaderRadio = new System.Windows.Forms.RadioButton();
             this.ThemeContainer.SuspendLayout();
             this.MainTabMenu.SuspendLayout();
             this.DownloaderTab.SuspendLayout();
@@ -114,6 +120,7 @@
             this.SupportedHostsBox.SuspendLayout();
             this.DebugTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DbgPreview)).BeginInit();
+            this.panel8.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainTimer
@@ -453,6 +460,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FeaturesGroupBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(118)))), ((int)(((byte)(196)))));
+            this.FeaturesGroupBox.Controls.Add(this.panel8);
             this.FeaturesGroupBox.Controls.Add(this.panel7);
             this.FeaturesGroupBox.Controls.Add(this.panel6);
             this.FeaturesGroupBox.Controls.Add(this.panel5);
@@ -1141,6 +1149,83 @@
             this.DbgPreview.TabIndex = 0;
             this.DbgPreview.TabStop = false;
             // 
+            // panel8
+            // 
+            this.panel8.BackColor = System.Drawing.Color.Transparent;
+            this.panel8.Controls.Add(this.OtherReaderRadio);
+            this.panel8.Controls.Add(this.ComicReaderRadio);
+            this.panel8.Controls.Add(this.MangaReaderRadio);
+            this.panel8.Controls.Add(this.LegacyReaderRadio);
+            this.panel8.Controls.Add(this.lblReader);
+            this.panel8.Location = new System.Drawing.Point(298, 234);
+            this.panel8.Name = "panel8";
+            this.panel8.Size = new System.Drawing.Size(282, 60);
+            this.panel8.TabIndex = 13;
+            // 
+            // lblReader
+            // 
+            this.lblReader.BackColor = System.Drawing.Color.Transparent;
+            this.lblReader.ForeColor = System.Drawing.Color.White;
+            this.lblReader.Location = new System.Drawing.Point(3, 0);
+            this.lblReader.Name = "lblReader";
+            this.lblReader.Size = new System.Drawing.Size(159, 21);
+            this.lblReader.TabIndex = 8;
+            this.lblReader.Text = "Reader:";
+            this.lblReader.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // LegacyReaderRadio
+            // 
+            this.LegacyReaderRadio.AutoSize = true;
+            this.LegacyReaderRadio.BackColor = System.Drawing.Color.Transparent;
+            this.LegacyReaderRadio.Checked = true;
+            this.LegacyReaderRadio.ForeColor = System.Drawing.Color.White;
+            this.LegacyReaderRadio.Location = new System.Drawing.Point(165, 3);
+            this.LegacyReaderRadio.Name = "LegacyReaderRadio";
+            this.LegacyReaderRadio.Size = new System.Drawing.Size(69, 23);
+            this.LegacyReaderRadio.TabIndex = 9;
+            this.LegacyReaderRadio.Text = "Legacy";
+            this.LegacyReaderRadio.UseVisualStyleBackColor = false;
+            this.LegacyReaderRadio.CheckedChanged += new System.EventHandler(this.LegacyReaderChanged);
+            // 
+            // MangaReaderRadio
+            // 
+            this.MangaReaderRadio.AutoSize = true;
+            this.MangaReaderRadio.BackColor = System.Drawing.Color.Transparent;
+            this.MangaReaderRadio.ForeColor = System.Drawing.Color.White;
+            this.MangaReaderRadio.Location = new System.Drawing.Point(18, 24);
+            this.MangaReaderRadio.Name = "MangaReaderRadio";
+            this.MangaReaderRadio.Size = new System.Drawing.Size(70, 23);
+            this.MangaReaderRadio.TabIndex = 10;
+            this.MangaReaderRadio.Text = "Manga";
+            this.MangaReaderRadio.UseVisualStyleBackColor = false;
+            this.MangaReaderRadio.CheckedChanged += new System.EventHandler(this.MangaReaderChanged);
+            // 
+            // ComicReaderRadio
+            // 
+            this.ComicReaderRadio.AutoSize = true;
+            this.ComicReaderRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ComicReaderRadio.ForeColor = System.Drawing.Color.White;
+            this.ComicReaderRadio.Location = new System.Drawing.Point(94, 24);
+            this.ComicReaderRadio.Name = "ComicReaderRadio";
+            this.ComicReaderRadio.Size = new System.Drawing.Size(65, 23);
+            this.ComicReaderRadio.TabIndex = 11;
+            this.ComicReaderRadio.Text = "Comic";
+            this.ComicReaderRadio.UseVisualStyleBackColor = false;
+            this.ComicReaderRadio.CheckedChanged += new System.EventHandler(this.ComicReaderChanged);
+            // 
+            // OtherReaderRadio
+            // 
+            this.OtherReaderRadio.AutoSize = true;
+            this.OtherReaderRadio.BackColor = System.Drawing.Color.Transparent;
+            this.OtherReaderRadio.ForeColor = System.Drawing.Color.White;
+            this.OtherReaderRadio.Location = new System.Drawing.Point(165, 24);
+            this.OtherReaderRadio.Name = "OtherReaderRadio";
+            this.OtherReaderRadio.Size = new System.Drawing.Size(63, 23);
+            this.OtherReaderRadio.TabIndex = 12;
+            this.OtherReaderRadio.Text = "Other";
+            this.OtherReaderRadio.UseVisualStyleBackColor = false;
+            this.OtherReaderRadio.CheckedChanged += new System.EventHandler(this.OtherReaderChanged);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1184,6 +1269,8 @@
             this.SupportedHostsBox.ResumeLayout(false);
             this.DebugTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.DbgPreview)).EndInit();
+            this.panel8.ResumeLayout(false);
+            this.panel8.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -1259,6 +1346,12 @@
         private System.Windows.Forms.Label lblReplaceMode;
         private VSButton dbgButtonB;
         private VSButton dbgButtonC;
+        private System.Windows.Forms.Panel panel8;
+        private System.Windows.Forms.RadioButton OtherReaderRadio;
+        private System.Windows.Forms.RadioButton ComicReaderRadio;
+        private System.Windows.Forms.RadioButton MangaReaderRadio;
+        private System.Windows.Forms.RadioButton LegacyReaderRadio;
+        private System.Windows.Forms.Label lblReader;
     }
 }
 

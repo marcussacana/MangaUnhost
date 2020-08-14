@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace MangaUnhost {
-    public partial class DownloadingWindow : Form {
+namespace MangaUnhost
+{
+    public partial class DownloadingWindow : Form
+    {
         long ContentLenght = 0;
         long Downloaded = 0;
 
@@ -20,31 +22,45 @@ namespace MangaUnhost {
 
         string URL;
         string SaveAs;
-        public DownloadingWindow(string URL, string SaveAs) {
+        public DownloadingWindow(string URL, string SaveAs)
+        {
             InitializeComponent();
 
             this.URL = URL;
             this.SaveAs = SaveAs;
 
-            Shown += (sender, args) => {
+            Shown += (sender, args) =>
+            {
                 new Thread(Download).Start();
             };
         }
 
-        private void ProgressUpdateTick(object sender, EventArgs e) {
+        private void ProgressUpdateTick(object sender, EventArgs e)
+        {
             ProgressBar.StartingAngle += 7;
             if (ProgressBar.StartingAngle > 359)
                 ProgressBar.StartingAngle = 0;
 
-            try {
-                ProgressBar.Value = (int)((Downloaded / (decimal)ContentLenght) * 100);
-            } catch { }
-
+            if (ContentLenght > 0)
+            {
+                try
+                {
+                    ProgressBar.ShowText = true;
+                    ProgressBar.Value = (int)((Downloaded / (decimal)ContentLenght) * 100);
+                }
+                catch { }
+            }
+            else
+            {
+                ProgressBar.ShowText = false;
+                ProgressBar.Value = 50;
+            }
             if (Finished)
                 Close();
         }
 
-        public void Download() {
+        public void Download()
+        {
             HttpWebRequest Request = WebRequest.CreateHttp(URL);
 
             Request.UseDefaultCredentials = true;
@@ -53,12 +69,14 @@ namespace MangaUnhost {
 
             using (var Response = Request.GetResponse())
             using (var RespData = Response.GetResponseStream())
-            using (var Output = File.Create(SaveAs)) {
+            using (var Output = File.Create(SaveAs))
+            {
                 ContentLenght = Response.ContentLength;
                 Downloaded = 0;
 
                 int Readed = 0;
-                do {
+                do
+                {
                     byte[] Buffer = new byte[1024 * 4];
                     Readed = RespData.Read(Buffer, 0, Buffer.Length);
                     Output.Write(Buffer, 0, Readed);

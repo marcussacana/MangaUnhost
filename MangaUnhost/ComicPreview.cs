@@ -15,6 +15,10 @@ using System.Text;
 using MangaUnhost.Browser;
 using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
+using CefSharp.WinForms;
+using System.Web;
+using CefSharp;
+using System.Diagnostics;
 
 namespace MangaUnhost
 {
@@ -66,6 +70,7 @@ namespace MangaUnhost
             ConvertTo.Text = Language.ConvertTo;
             ExportAs.Text = Language.ExportAs;
             OpenDirectory.Text = Language.OpenDirectory;
+            OpenChapter.Text = Language.OpenChapter;
             Refresh.Text = Language.Refresh;
 
             Visible = true;
@@ -110,6 +115,8 @@ namespace MangaUnhost
                 return;
             }
 
+            ComicMenuStrip.Opening += (sender, args) => JITContextMenu();
+
 
             ComicUrl = new Uri(Ini.GetConfig("InternetShortcut", "URL", UrlPath));
 
@@ -129,6 +136,63 @@ namespace MangaUnhost
             ComicHost = HostQuery.FirstOrDefault();
 
             Initialized = true;
+        }
+
+        public void JITContextMenu()
+        {
+            OpenChapter.Visible = false;
+            OpenChapter.DropDownItems.Clear();
+            if (ChapsFound)
+            {
+                var Chapters = Directory.GetDirectories(ChapPath);
+                foreach (var Chapter in Chapters)
+                {
+                    var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
+                    OpenChapter.DropDownItems.Add(ChapName, null, (sender, args) =>
+                    {
+                        var Pages = string.Join("|", (from x in Directory.GetFiles(Chapter)
+                                                      where
+                                                        x.ToLower().EndsWith(".jpg") ||
+                                                        x.ToLower().EndsWith(".jpeg") ||
+                                                        x.ToLower().EndsWith(".png") ||
+                                                        x.ToLower().EndsWith(".bmp") ||
+                                                        x.ToLower().EndsWith(".gif")
+                                                      select Path.GetFileName(x)));
+
+                        if (string.IsNullOrWhiteSpace(Pages))
+                            return;
+
+                        if (Main.Reader != ReaderMode.Legacy)
+                            Program.EnsureWCR();
+
+                        ChromiumWebBrowser Browser = null;
+                        switch (Main.Reader)
+                        {
+                            case ReaderMode.Legacy:
+                                var HtmlReader = Chapter + ".html";
+                                if (File.Exists(HtmlReader))
+                                    Process.Start(HtmlReader);
+                                break;
+                            case ReaderMode.Manga:
+                                Browser = new ChromiumWebBrowser("https://res/WebComicReader/Embedded/#Input=NativeImages&Mode=Manga&Base=" + HttpUtility.UrlEncode(Chapter) + "&Pages=" + HttpUtility.UrlEncode(Pages));
+                                break;
+                            case ReaderMode.Comic:
+                                Browser = new ChromiumWebBrowser("https://res/WebComicReader/Embedded/#Input=NativeImages&Mode=Comic&Base=" + HttpUtility.UrlEncode(Chapter) + "&Pages=" + HttpUtility.UrlEncode(Pages));
+                                break;
+                            default:
+                                Browser = new ChromiumWebBrowser("https://res/WebComicReader/Embedded/#Input=NativeImages&Mode=Other&Base=" + HttpUtility.UrlEncode(Chapter) + "&Pages=" + HttpUtility.UrlEncode(Pages));
+                                break;
+                        }
+
+                        if (Browser != null)
+                        {
+                            Browser.BrowserSettings = new BrowserSettings() { WebSecurity = CefState.Disabled };
+                            new CEFWindow(Browser).Show();
+                        }
+                    });
+                }
+                OpenChapter.Visible = true;
+            }
         }
 
         public void GetComicInfo()

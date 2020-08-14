@@ -35,6 +35,8 @@
 
         public string ReplaceModeLbl => "Modo de Substituição:";
 
+        public string ReaderModeLbl => "Leitor:";
+
 
 
         public string ClippingImages => "Recortando Imagens...";
@@ -48,6 +50,10 @@
         public string Manual => "Manual";
 
         public string SemiAuto => "Semi Auto";
+
+        public string Legacy => "Legado";
+
+        public string Other => "Outro";
 
 
 
@@ -113,6 +119,7 @@
         public string Converting => "Convertendo... {0}/{1}";
         public string Compressing => "Comprimindo...";
         public string OpenDirectory => "Abrir Pasta";
+        public string OpenChapter => "Abrir Capítulo";
         public string ExportAs => "Exportar Como";
         public string ConvertTo => "Converter Para";
         public string SelectASaveDir => "Selecione uma pasta para salvar";

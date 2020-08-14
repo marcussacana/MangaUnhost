@@ -35,6 +35,8 @@
         public string SkipDownloadedLbl => "Skip Downloaded:";
         public string ReplaceModeLbl => "Replace Mode:";
 
+        public string ReaderModeLbl => "Reader Mode:";
+
 
 
         public string Enabled => "Enabled";
@@ -44,6 +46,10 @@
         public string Manual => "Manual";
 
         public string SemiAuto => "Semi Auto";
+
+        public string Legacy => "Legacy";
+
+        public string Other => "Other";
 
 
 
@@ -112,6 +118,7 @@
         public string Converting => "Converting... {0}/{1}";
         public string Compressing => "Compressing...";
         public string OpenDirectory => "Open Directory";
+        public string OpenChapter => "Open Chapter";
         public string ExportAs => "Export As";
         public string ConvertTo => "Convert To";
         public string SelectASaveDir => "Select a directory to save";

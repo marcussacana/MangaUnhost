@@ -48,6 +48,7 @@
             this.lblNewChapters = new System.Windows.Forms.Label();
             this.lblOpenSite = new System.Windows.Forms.LinkLabel();
             this.lblDownload = new System.Windows.Forms.LinkLabel();
+            this.OpenChapter = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
             this.ComicMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -72,10 +73,11 @@
             this.ComicMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ExportAs,
             this.ConvertTo,
+            this.OpenChapter,
             this.OpenDirectory,
             this.Refresh});
             this.ComicMenuStrip.Name = "ComicMenuStrip";
-            this.ComicMenuStrip.Size = new System.Drawing.Size(155, 92);
+            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 136);
             // 
             // ExportAs
             // 
@@ -85,7 +87,7 @@
             this.ExportToPNG,
             this.ExportToBMP});
             this.ExportAs.Name = "ExportAs";
-            this.ExportAs.Size = new System.Drawing.Size(154, 22);
+            this.ExportAs.Size = new System.Drawing.Size(180, 22);
             this.ExportAs.Text = "Export As";
             // 
             // ExportToCBZ
@@ -148,41 +150,41 @@
             this.ConvertToPNG,
             this.ConvertToBMP});
             this.ConvertTo.Name = "ConvertTo";
-            this.ConvertTo.Size = new System.Drawing.Size(154, 22);
+            this.ConvertTo.Size = new System.Drawing.Size(180, 22);
             this.ConvertTo.Text = "Convert To";
             // 
             // ConvertToJPG
             // 
             this.ConvertToJPG.Name = "ConvertToJPG";
-            this.ConvertToJPG.Size = new System.Drawing.Size(99, 22);
+            this.ConvertToJPG.Size = new System.Drawing.Size(180, 22);
             this.ConvertToJPG.Text = "JPG";
             this.ConvertToJPG.Click += new System.EventHandler(this.ConvertToJPG_Click);
             // 
             // ConvertToPNG
             // 
             this.ConvertToPNG.Name = "ConvertToPNG";
-            this.ConvertToPNG.Size = new System.Drawing.Size(99, 22);
+            this.ConvertToPNG.Size = new System.Drawing.Size(180, 22);
             this.ConvertToPNG.Text = "PNG";
             this.ConvertToPNG.Click += new System.EventHandler(this.ConvertToPNG_Click);
             // 
             // ConvertToBMP
             // 
             this.ConvertToBMP.Name = "ConvertToBMP";
-            this.ConvertToBMP.Size = new System.Drawing.Size(99, 22);
+            this.ConvertToBMP.Size = new System.Drawing.Size(180, 22);
             this.ConvertToBMP.Text = "BMP";
             this.ConvertToBMP.Click += new System.EventHandler(this.ConvertToBMP_Click);
             // 
             // OpenDirectory
             // 
             this.OpenDirectory.Name = "OpenDirectory";
-            this.OpenDirectory.Size = new System.Drawing.Size(154, 22);
+            this.OpenDirectory.Size = new System.Drawing.Size(180, 22);
             this.OpenDirectory.Text = "Open Directory";
             this.OpenDirectory.Click += new System.EventHandler(this.OpenDirectory_Click);
             // 
             // Refresh
             // 
             this.Refresh.Name = "Refresh";
-            this.Refresh.Size = new System.Drawing.Size(154, 22);
+            this.Refresh.Size = new System.Drawing.Size(180, 22);
             this.Refresh.Text = "Refresh";
             this.Refresh.Click += new System.EventHandler(this.Refresh_Click);
             // 
@@ -225,6 +227,13 @@
             this.lblDownload.Text = "Download";
             this.lblDownload.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DownloadClicked);
             // 
+            // OpenChapter
+            // 
+            this.OpenChapter.Name = "OpenChapter";
+            this.OpenChapter.Size = new System.Drawing.Size(180, 22);
+            this.OpenChapter.Text = "Open Chapter";
+            this.OpenChapter.Visible = false;
+            // 
             // ComicPreview
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -263,5 +272,6 @@
         private System.Windows.Forms.ToolStripMenuItem ConvertToBMP;
         private System.Windows.Forms.ToolStripMenuItem OpenDirectory;
         private System.Windows.Forms.ToolStripMenuItem Refresh;
+        private System.Windows.Forms.ToolStripMenuItem OpenChapter;
     }
 }

@@ -100,11 +100,14 @@ namespace MangaUnhost {
         string SaveAsLbl { get; }
         string SkipDownloadedLbl { get; }
         string ReplaceModeLbl { get; }
+        string ReaderModeLbl { get; }
 
         string Enabled { get; }
         string Disabled { get; }
         string Manual { get; }
         string SemiAuto { get; }
+        string Legacy { get; }
+        string Other { get; }
 
         string NextChapter { get; }
         string Chapters { get; }
@@ -152,6 +155,7 @@ namespace MangaUnhost {
         string Converting { get; }
         string Compressing { get; }
         string OpenDirectory { get; }
+        string OpenChapter { get; }
         string ExportAs { get; }
         string ConvertTo { get; }
         string SelectASaveDir { get; }
