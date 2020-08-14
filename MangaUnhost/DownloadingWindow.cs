@@ -53,7 +53,7 @@ namespace MangaUnhost
             else
             {
                 ProgressBar.ShowText = false;
-                ProgressBar.Value = 50;
+                ProgressBar.Value = 100;
             }
             if (Finished)
                 Close();
