@@ -152,12 +152,12 @@ namespace MangaUnhost
                     {
                         var Pages = string.Join("|", (from x in Directory.GetFiles(Chapter)
                                                       where
-                                                        x.ToLower().EndsWith(".jpg") ||
+                                                        x.ToLower().EndsWith(".jpg")  ||
                                                         x.ToLower().EndsWith(".jpeg") ||
-                                                        x.ToLower().EndsWith(".png") ||
-                                                        x.ToLower().EndsWith(".bmp") ||
+                                                        x.ToLower().EndsWith(".png")  ||
+                                                        x.ToLower().EndsWith(".bmp")  ||
                                                         x.ToLower().EndsWith(".gif")
-                                                      select Path.GetFileName(x)));
+                                                      orderby Path.GetFileName(x) select Path.GetFileName(x)));
 
                         if (string.IsNullOrWhiteSpace(Pages))
                             return;
