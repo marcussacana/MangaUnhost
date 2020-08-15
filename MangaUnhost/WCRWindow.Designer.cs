@@ -1,6 +1,6 @@
 ﻿namespace MangaUnhost
 {
-    partial class CEFWindow
+    partial class WCRWindow
     {
         /// <summary>
         /// Required designer variable.

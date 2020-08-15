@@ -79,11 +79,11 @@
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\InfoTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
-    <Compile Include="CEFWindow.cs">
+    <Compile Include="WCRWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="CEFWindow.Designer.cs">
-      <DependentUpon>CEFWindow.cs</DependentUpon>
+    <Compile Include="WCRWindow.Designer.cs">
+      <DependentUpon>WCRWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="ComicPreview.cs">
       <SubType>UserControl</SubType>
@@ -165,8 +165,8 @@
     </Compile>
     <Compile Include="Structs.cs" />
     <Compile Include="Styles.cs" />
-    <EmbeddedResource Include="CEFWindow.resx">
-      <DependentUpon>CEFWindow.cs</DependentUpon>
+    <EmbeddedResource Include="WCRWindow.resx">
+      <DependentUpon>WCRWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ComicPreview.resx">
       <DependentUpon>ComicPreview.cs</DependentUpon>

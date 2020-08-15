@@ -24,6 +24,7 @@ namespace MangaUnhost
 {
     public partial class ComicPreview : UserControl
     {
+        static WCRWindow Reader;
         ~ComicPreview()
         {
             var Img = CoverBox.Image;
@@ -144,28 +145,23 @@ namespace MangaUnhost
             OpenChapter.DropDownItems.Clear();
             if (ChapsFound)
             {
-                var Chapters = Directory.GetDirectories(ChapPath);
-                foreach (var Chapter in Chapters)
+                var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
+                for (int i = 0; i < Chapters.Length; i++)
                 {
+                    var ID = i;
+                    var Chapter = Chapters[i];
+
+                    string NextChapter = null;
+                    if (i + 1 < Chapters.Length)
+                        NextChapter = Chapters[i + 1];
+
                     var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
                     OpenChapter.DropDownItems.Add(ChapName, null, (sender, args) =>
-                    {
-                        var Pages = string.Join("|", (from x in Directory.GetFiles(Chapter)
-                                                      where
-                                                        x.ToLower().EndsWith(".jpg")  ||
-                                                        x.ToLower().EndsWith(".jpeg") ||
-                                                        x.ToLower().EndsWith(".png")  ||
-                                                        x.ToLower().EndsWith(".bmp")  ||
-                                                        x.ToLower().EndsWith(".gif")
-                                                      orderby Path.GetFileName(x) select Path.GetFileName(x)));
-
-                        if (string.IsNullOrWhiteSpace(Pages))
-                            return;
+                    {                       
 
                         if (Main.Reader != ReaderMode.Legacy)
                             Program.EnsureWCR();
 
-                        ChromiumWebBrowser Browser = null;
                         switch (Main.Reader)
                         {
                             case ReaderMode.Legacy:
@@ -173,26 +169,31 @@ namespace MangaUnhost
                                 if (File.Exists(HtmlReader))
                                     Process.Start(HtmlReader);
                                 break;
-                            case ReaderMode.Manga:
-                                Browser = new ChromiumWebBrowser("https://res/WebComicReader/Embedded/#Input=NativeImages&Mode=Manga&Base=" + HttpUtility.UrlEncode(Chapter) + "&Pages=" + HttpUtility.UrlEncode(Pages));
-                                break;
-                            case ReaderMode.Comic:
-                                Browser = new ChromiumWebBrowser("https://res/WebComicReader/Embedded/#Input=NativeImages&Mode=Comic&Base=" + HttpUtility.UrlEncode(Chapter) + "&Pages=" + HttpUtility.UrlEncode(Pages));
-                                break;
                             default:
-                                Browser = new ChromiumWebBrowser("https://res/WebComicReader/Embedded/#Input=NativeImages&Mode=Other&Base=" + HttpUtility.UrlEncode(Chapter) + "&Pages=" + HttpUtility.UrlEncode(Pages));
+                                Reader = new WCRWindow(ID, Chapters);
+                                Reader.Show();
                                 break;
-                        }
-
-                        if (Browser != null)
-                        {
-                            Browser.BrowserSettings = new BrowserSettings() { WebSecurity = CefState.Disabled };
-                            new CEFWindow(Browser).Show();
                         }
                     });
                 }
                 OpenChapter.Visible = true;
             }
+        }
+
+        private double ForceNumber(string Str)
+        {
+            string Numbers = string.Empty;
+            foreach (var Char in Str)
+            {
+                if (Char == '.' || Char == ',')
+                    Numbers += '.';
+
+                if (!char.IsNumber(Char))
+                    continue;
+
+                Numbers += Char;
+            }
+            return double.Parse(Numbers, System.Globalization.NumberFormatInfo.InvariantInfo);
         }
 
         public void GetComicInfo()
@@ -305,7 +306,7 @@ namespace MangaUnhost
         private void CoverClicked(object sender, EventArgs e)
         {
             if (IndexFound)
-                System.Diagnostics.Process.Start(IndexPath);
+                Process.Start(IndexPath);
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
