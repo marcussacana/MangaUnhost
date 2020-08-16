@@ -15,9 +15,6 @@ using System.Text;
 using MangaUnhost.Browser;
 using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
-using CefSharp.WinForms;
-using System.Web;
-using CefSharp;
 using System.Diagnostics;
 
 namespace MangaUnhost
@@ -566,7 +563,7 @@ namespace MangaUnhost
                     // Resize image
                     float sourceRatio = (float)source.Width / source.Height;
 
-                    using (var target = new Bitmap(width, height))
+                    using (var target = new Bitmap(width, height, PixelFormat.Format24bppRgb))
                     {
                         using (var g = Graphics.FromImage(target))
                         {
