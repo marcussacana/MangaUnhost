@@ -120,7 +120,7 @@ namespace MangaUnhost.Hosts {
 
         private string[] GetChapterPages(int ID) {
             string CID = ChapterLinks[ID].Substring("/chapter/");
-            string API = $"https://mangadex.org/api/?id={CID}&type=chapter&baseURL=%2Fapi";
+            string API = $"https://mangadex.org/api/?id={CID}&server=null&saver=0&type=chapter";
 
             string JSON = TryDownload(API);
 
@@ -237,9 +237,12 @@ namespace MangaUnhost.Hosts {
         public bool IsValidPage(string HTML, Uri URL) => false;
 
         struct MangaDexApi {
+            /*
             public int? id;
             public long? timestamp;
+            */
             public string hash;
+            /*
             public string volume;
             public string chapter;
             public string title;
@@ -247,13 +250,16 @@ namespace MangaUnhost.Hosts {
             public string lang_code;
             public int? manga_id;
             public int? group_id;
-            public int? group_id_1;
+            public string group_name;
             public int? group_id_2;
+            public string group_name_2;
             public int? group_id_3;
+            public string group_name_3;
             public int? comments;
+            */
             public string server;
             public string[] page_array;
-            public int? long_strip;
+            //public int? long_strip;
             public string status;
         }
     }
