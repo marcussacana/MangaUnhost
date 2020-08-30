@@ -154,7 +154,7 @@ namespace MangaUnhost
 
                     var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
                     OpenChapter.DropDownItems.Add(ChapName, null, (sender, args) =>
-                    {                       
+                    {
 
                         if (Main.Reader != ReaderMode.Legacy)
                             Program.EnsureWCR();
@@ -179,10 +179,11 @@ namespace MangaUnhost
 
         private double ForceNumber(string Str)
         {
+            Str = Path.GetFileName(Str);
             string Numbers = string.Empty;
             foreach (var Char in Str)
             {
-                if (Char == '.' || Char == ',')
+                if (Char == '.' || Char == ',' || Char == 'v' || Char == 'V')
                     Numbers += '.';
 
                 if (!char.IsNumber(Char))
@@ -190,7 +191,24 @@ namespace MangaUnhost
 
                 Numbers += Char;
             }
-            return double.Parse(Numbers, System.Globalization.NumberFormatInfo.InvariantInfo);
+            try
+            {
+                return double.Parse(Numbers, System.Globalization.NumberFormatInfo.InvariantInfo);
+            }
+            catch
+            {
+                Str = Str.Replace(Language.ChapterName.Replace("{0}", "").Trim(), "").Trim();
+                
+                //basically alphabetical order in an unusual way
+                var Factor = 0.0;
+
+                foreach (var c in Str.Reverse()) { 
+                    Factor += c;
+                    Factor /= 100;
+                }
+
+                return Factor;
+            }
         }
 
         public void GetComicInfo()
