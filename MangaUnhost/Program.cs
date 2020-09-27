@@ -187,6 +187,7 @@ namespace MangaUnhost
         {
             if (IsRealWindows)
                 return;
+
             if (IntPtr.Size == 4)
                 return;
 

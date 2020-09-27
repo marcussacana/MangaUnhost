@@ -16,6 +16,8 @@ using MangaUnhost.Browser;
 using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
+using System.Threading;
+using System.Web.WebSockets;
 
 namespace MangaUnhost
 {
@@ -44,6 +46,8 @@ namespace MangaUnhost
         string ComicPath;
         string ChapPath;
         string IndexPath;
+
+        string HTML = null;
 
         bool Error = false;
 
@@ -124,7 +128,7 @@ namespace MangaUnhost
             {
                 try
                 {
-                    var HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.Host, ProxyTools.UserAgent));
+                    HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.Host, ProxyTools.UserAgent));
                     HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
 
                 }
@@ -198,11 +202,12 @@ namespace MangaUnhost
             catch
             {
                 Str = Str.Replace(Language.ChapterName.Replace("{0}", "").Trim(), "").Trim();
-                
+
                 //basically alphabetical order in an unusual way
                 var Factor = 0.0;
 
-                foreach (var c in Str.Reverse()) { 
+                foreach (var c in Str.Reverse())
+                {
                     Factor += c;
                     Factor /= 100;
                 }
@@ -225,6 +230,7 @@ namespace MangaUnhost
                     ComicInfo = InfoCache[ComicPath];
                 else
                 {
+
                     Nito.AsyncEx.AsyncContext.Run(() =>
                     {
                         try
@@ -276,6 +282,9 @@ namespace MangaUnhost
             if (Error)
                 return;
 
+            //Prevent for update check freezes
+            ThreadTools.ForceTimeoutAt = DateTime.Now.AddMinutes(2);
+
             Nito.AsyncEx.AsyncContext.Run(() =>
             {
                 try
@@ -305,6 +314,8 @@ namespace MangaUnhost
                     Error = true;
                 }
             });
+
+            ThreadTools.ForceTimeoutAt = null;
         }
 
         private void OpenSiteClicked(object sender, LinkLabelLinkClickedEventArgs e)

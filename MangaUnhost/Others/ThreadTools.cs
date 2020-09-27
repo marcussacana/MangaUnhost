@@ -6,6 +6,8 @@ using System.Windows.Forms;
 namespace MangaUnhost.Others {
     public static class ThreadTools {
 
+        public static DateTime? ForceTimeoutAt = null;
+
         public static void Wait(int Milliseconds, bool DoEvents = false) {
             try
             {
@@ -20,7 +22,6 @@ namespace MangaUnhost.Others {
                 }
             }
             catch {
-
                 //WTF Wine
                 try
                 {
@@ -28,7 +29,11 @@ namespace MangaUnhost.Others {
                         System.Threading.Thread.Sleep(Milliseconds);
                 }
                 catch { }
+            }
 
+            if (ForceTimeoutAt != null && DateTime.Now > ForceTimeoutAt) {
+                ForceTimeoutAt = null;
+                throw new TimeoutException();
             }
         }
     }
