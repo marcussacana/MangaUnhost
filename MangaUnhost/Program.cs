@@ -42,9 +42,13 @@ namespace MangaUnhost
                     Assembly.LoadFrom(PluginPath);
                 }
             }
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            
+            
+            if (IsRealWindows)
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+            }
 
             FinishUpdate();
             WineHelper();
@@ -55,7 +59,9 @@ namespace MangaUnhost
 
         private static void FinishUpdate()
         {
-            Updater.BypassSLL();
+            if (IsRealWindows)
+                Updater.BypassSLL();
+
             if (Debug)
                 return;
 
@@ -78,7 +84,7 @@ namespace MangaUnhost
             if (!Outdated)
             {
                 var VerStr = FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion;
-                if (new Version(VerStr) < new Version(83, 4, 20, 0))
+                if (new Version(VerStr) != new Version(75, 1, 143, 0))
                 {
                     Outdated = true;
                 }

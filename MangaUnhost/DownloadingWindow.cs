@@ -61,7 +61,7 @@ namespace MangaUnhost
 
         public void Download()
         {
-            HttpWebRequest Request = WebRequest.CreateHttp(URL);
+            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
 
             Request.UseDefaultCredentials = true;
             Request.Method = "GET";

@@ -1,11 +1,8 @@
 ﻿using CefSharp;
-using CefSharp.Internals;
 using CefSharp.WinForms;
 using MangaUnhost.Browser;
-using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
@@ -99,14 +96,12 @@ namespace MangaUnhost
         {
             WindowState = FormWindowState.Normal;
             FormBorderStyle = FormBorderStyle.None;
-            WindowState = FormWindowState.Maximized;
+            WindowState = FormWindowState.Normal;
+            Size = CurrentScreen.Bounds.Size;
+            Focus();
         }
 
-        public void LeaveFullScreenMode()
-        {
-            FormBorderStyle = FormBorderStyle.Sizable;
-            WindowState = FormWindowState.Normal;
-        }
+        private Screen CurrentScreen => Screen.FromHandle(Handle);
 
         private void OnClosing(object sender, FormClosingEventArgs e)
         {

@@ -310,7 +310,6 @@ namespace MangaUnhost
             });
 
             OBrowser.Size = new Size(1280, 720);
-            OBrowser.InstallAdBlock();
             OBrowser.ReCaptchaHook();
 
             while (!OBrowser.IsBrowserInitialized)

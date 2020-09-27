@@ -169,7 +169,7 @@ namespace MangaUnhost.Browser
             await new Uri(Url).DownloadAsync(Referer, UserAgent, Proxy, Cookie);
         public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null)
         {
-            HttpWebRequest Request = WebRequest.CreateHttp(Url);
+            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(Url);
 
             Request.UseDefaultCredentials = true;
             Request.Method = "GET";
