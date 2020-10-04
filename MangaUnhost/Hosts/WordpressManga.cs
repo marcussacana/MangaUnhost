@@ -91,7 +91,8 @@ namespace MangaUnhost.Hosts
             string[] Links = (from x in Chapter
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
                               select (x.GetAttributeValue("data-src", null) ??
-                                      x.GetAttributeValue("src", "")).Trim()).ToArray();
+                                      x.GetAttributeValue("src", null)      ??
+                                      x.GetAttributeValue("data-cfsrc", "")).Trim()).ToArray();
 
             return Links;
         }
@@ -110,7 +111,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 4)
+                Version = new Version(1, 5)
             };
         }
 
@@ -159,13 +160,16 @@ namespace MangaUnhost.Hosts
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
             
-            if (string.IsNullOrEmpty(ImgUrl))
+            if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("data-src", "");
             else
                 ImgUrl = ImgUrl.Trim().Split(',', ' ').First();
             
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("src", "");
+
+            if (string.IsNullOrWhiteSpace(ImgUrl))
+                ImgUrl = ImgNode.GetAttributeValue("data-cfsrc", "");
             
             if (ImgUrl.StartsWith("//"))
                 ImgUrl = "http:" + ImgUrl;

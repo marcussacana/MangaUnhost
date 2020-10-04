@@ -110,7 +110,10 @@ namespace MangaUnhost.Others {
                             string OnlineUrl = Path.Combine(BaseDir, NDir, "Online.url");
                             if (!File.Exists(OnlineUrl))
                                 break;
-                            
+
+                            if (Ini.GetConfigStatus("InternetShorctut", "URL", OnlineUrl) != Ini.ConfigStatus.Ok)
+                                try { File.Delete(OnlineUrl); } catch { }
+
                             var URI = Ini.GetConfig("InternetShortcut", "URL", OnlineUrl).Substring(null, "#", IgnoreMissmatch: true);
                             if (URI.ToLower() == Url.AbsoluteUri.ToLower()) {
                                 Mode = ReplaceMode.NewFolder;

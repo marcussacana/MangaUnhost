@@ -13,13 +13,22 @@ namespace MangaUnhost.Hosts {
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
 
+        CloudflareData? CFData = null;
+
         public NovelChapter DownloadChapter(int ID) {
             throw new NotImplementedException();
         }
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                yield return PageUrl.TryDownload();
+                var Page = PageUrl.TryDownload(Referer: CurrentUrl);
+                if (Page == null && CFData != null)
+                    Page = PageUrl.TryDownload(CFData, Referer: CurrentUrl);
+                if (Page == null) {
+                    CFData = JSTools.BypassCloudflare(PageUrl);
+                    Page = PageUrl.TryDownload(CFData, Referer: CurrentUrl);
+                }
+                yield return Page;
             }
         }
 
@@ -30,9 +39,10 @@ namespace MangaUnhost.Hosts {
 
             if (Nodes == null || Nodes.Count <= 0) {
                 var SafeDoc = new HtmlDocument();
-                if (Document.IsCloudflareTriggered())
-                    SafeDoc.LoadHtml(JSTools.BypassCloudflare(CurrentUrl).HTML);
-                else
+                if (Document.IsCloudflareTriggered()) {
+                    CFData = JSTools.BypassCloudflare(CurrentUrl);
+                    SafeDoc.LoadHtml(CFData?.HTML);
+                } else
                     SafeDoc = Document;
 
                 Nodes = SafeDoc.SelectNodes("//div[@class=\"chapter-list\"]/div/span/a");
@@ -113,7 +123,7 @@ namespace MangaUnhost.Hosts {
                 SupportComic = true,
                 GenericPlugin = true,
                 SupportNovel = false,
-                Version = new Version(1, 5)
+                Version = new Version(1, 6)
             };
         }
 
