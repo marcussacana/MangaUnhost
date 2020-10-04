@@ -24,7 +24,7 @@ namespace MangaUnhost.Hosts {
 
             foreach (var Node in Document.SelectNodes("//div[@class='chapter']/a")){
                 LinkMap[ID] = Document.GetAttributeValue("href", "").EnsureAbsoluteUrl("https://hiper.cool");
-                NameMap[ID++] = Link.Split('/').Last();
+                NameMap[ID++] = LinkMap[ID].Split('/').Last();
                 yield return new KeyValuePair<int, string>(ID, NameMap[ID++]);
             }
         }
