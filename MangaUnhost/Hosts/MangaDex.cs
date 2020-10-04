@@ -152,7 +152,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 5, 1)
+                Version = new Version(1, 6)
             };
 
             if (ChapterLangs.Count > 0) {
@@ -227,7 +227,7 @@ namespace MangaUnhost.Hosts {
             }
             try
             {
-                return Url.TryDownload();
+                return Url.TryDownload("https://mangadex.org");
             }
             catch {
                 CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
