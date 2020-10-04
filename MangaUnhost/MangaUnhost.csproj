@@ -98,6 +98,7 @@
     <Compile Include="Hosts\HeavenManga.cs" />
     <Compile Include="Hosts\HentaiCafe.cs" />
     <Compile Include="Hosts\HentaiNexus.cs" />
+    <Compile Include="Hosts\HipercooL.cs" />
     <Compile Include="Hosts\KissManga.cs" />
     <Compile Include="Hosts\LHScan.cs" />
     <Compile Include="Hosts\MangaDex.cs" />
