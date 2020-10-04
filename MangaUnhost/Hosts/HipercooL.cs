@@ -24,7 +24,7 @@ namespace MangaUnhost.Hosts {
 
             foreach (var Node in Document.SelectNodes("//div[@class='chapter']/a")){
                 LinkMap[ID] = Node.GetAttributeValue("href", "").EnsureAbsoluteUrl("https://hiper.cool");
-                NameMap[ID++] = LinkMap[ID].Split('/').Last();
+                NameMap[ID] = LinkMap[ID].Trim('/').Split('/').Last();
                 yield return new KeyValuePair<int, string>(ID, NameMap[ID++]);
             }
         }
@@ -52,7 +52,7 @@ namespace MangaUnhost.Hosts {
                 Name = "HipercooL",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 0, 1)
             };
         }
 
