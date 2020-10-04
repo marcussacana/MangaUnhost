@@ -22,7 +22,7 @@ namespace MangaUnhost.Hosts {
         public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
             int ID = NameMap.Count;
 
-            foreach (var Node in Document.SelectNodes("//div[@class='chapter']/a")){
+            foreach (var Node in Document.SelectNodes("//div[@class='chapter']/a").Reverse()){
                 LinkMap[ID] = Node.GetAttributeValue("href", "").EnsureAbsoluteUrl("https://hiper.cool");
                 NameMap[ID] = LinkMap[ID].Trim('/').Split('/').Last();
                 yield return new KeyValuePair<int, string>(ID, NameMap[ID++]);
@@ -52,7 +52,7 @@ namespace MangaUnhost.Hosts {
                 Name = "HipercooL",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0, 1)
+                Version = new Version(1, 1)
             };
         }
 
