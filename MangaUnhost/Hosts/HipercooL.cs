@@ -39,7 +39,7 @@ namespace MangaUnhost.Hosts {
 
             var Nodes = Doc.SelectNodes("//div[@class='pages']/img");
 
-            return (from x in Nodes select (string)x.GetAttributeValue("src")).ToArray();
+            return (from x in Nodes select (string)x.GetAttributeValue("src", "")).ToArray();
         }
 
         public IDecoder GetDecoder() {
