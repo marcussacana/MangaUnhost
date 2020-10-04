@@ -74,6 +74,10 @@ namespace MangaUnhost
             OpenDirectory.Text = Language.OpenDirectory;
             OpenChapter.Text = Language.OpenChapter;
             Refresh.Text = Language.Refresh;
+            UpdateCheck.Text = Language.CheckUpdates;
+
+            Refresh.Visible = Main.Config.AutoLibUpCheck;
+            UpdateCheck.Visible = !Main.Config.AutoLibUpCheck;
 
             Visible = true;
 
@@ -137,6 +141,10 @@ namespace MangaUnhost
 
             ComicHost = HostQuery.FirstOrDefault();
 
+            Invoke(new MethodInvoker(() => {
+                if (!Main.Config.AutoLibUpCheck)
+                    lblNewChapters.Text = string.Empty;
+            }));
             Initialized = true;
         }
 
@@ -216,17 +224,17 @@ namespace MangaUnhost
             }
         }
 
-        public void GetComicInfo()
+        public void GetComicInfo(bool UseCache)
         {
             while (!Initialized)
                 Nito.AsyncEx.AsyncContext.Run(async () => await Task.Delay(50));
 
             try
             {
-                if (ComicHost == null && !InfoCache.ContainsKey(ComicPath))
+                if (ComicHost == null && UseCache && !InfoCache.ContainsKey(ComicPath))
                     throw new NullReferenceException();
 
-                if (InfoCache.ContainsKey(ComicPath))
+                if (UseCache && InfoCache.ContainsKey(ComicPath))
                     ComicInfo = InfoCache[ComicPath];
                 else
                 {
@@ -261,7 +269,7 @@ namespace MangaUnhost
                 Error = true;
             }
 
-            CheckUpdates();
+            CheckUpdates(UseCache);
 
             if (IndexFound && Error)
             {
@@ -277,7 +285,7 @@ namespace MangaUnhost
                 CoverBox.Cursor = Cursors.Default;
         }
 
-        private void CheckUpdates()
+        private void CheckUpdates(bool UseCache)
         {
             if (Error)
                 return;
@@ -294,7 +302,7 @@ namespace MangaUnhost
                         DownloadedChapters = Directory.GetDirectories(ChapPath).Length;
 
                     int ChapCount = 0;
-                    if (CountCache.ContainsKey(ComicPath))
+                    if (UseCache && CountCache.ContainsKey(ComicPath))
                         ChapCount = CountCache[ComicPath];
                     else
                         CountCache[ComicPath] = ChapCount = ComicHost.EnumChapters().Count();
@@ -320,7 +328,7 @@ namespace MangaUnhost
 
         private void OpenSiteClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start(ComicUrl.AbsoluteUri);
+            Process.Start(ComicUrl.AbsoluteUri);
         }
 
         private void DownloadClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -653,6 +661,12 @@ namespace MangaUnhost
             CountCache.Clear();
             InfoCache.Clear();
             Main.Instance.RefreshLibrary();
+        }
+
+        private void UpdateCheck_Click(object sender, EventArgs e)
+        {
+            lblNewChapters.Text = Language.Loading;
+            GetComicInfo(false);
         }
     }
 }

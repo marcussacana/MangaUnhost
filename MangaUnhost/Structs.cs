@@ -63,6 +63,7 @@ namespace MangaUnhost {
         public bool ImageClipping;
         public bool ReaderGenerator;
         public bool SkipDownloaded;
+        public bool AutoLibUpCheck;
 
         public int SaveAs;
         public int ReplaceMode;

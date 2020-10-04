@@ -37,6 +37,7 @@
 
         public string ReaderModeLbl => "Reader Mode:";
 
+        public string LibraryUpdates => "Library Updates:";
 
 
         public string Enabled => "Enabled";
@@ -123,6 +124,7 @@
         public string ConvertTo => "Convert To";
         public string SelectASaveDir => "Select a directory to save";
         public string Refresh => "Refresh";
+        public string CheckUpdates => "Check Updates";
 
 
         public string SwitchLanguage => "Switch Language";

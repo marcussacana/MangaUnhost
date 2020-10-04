@@ -101,6 +101,7 @@ namespace MangaUnhost {
         string SkipDownloadedLbl { get; }
         string ReplaceModeLbl { get; }
         string ReaderModeLbl { get; }
+        string LibraryUpdates { get; }
 
         string Enabled { get; }
         string Disabled { get; }
@@ -160,7 +161,7 @@ namespace MangaUnhost {
         string ConvertTo { get; }
         string SelectASaveDir { get; }
         string Refresh { get; }
-
+        string CheckUpdates { get; }
 
         //Other
         string SwitchLanguage { get; }

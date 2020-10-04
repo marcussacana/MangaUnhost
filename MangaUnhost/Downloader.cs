@@ -181,7 +181,10 @@ namespace MangaUnhost
 
             string TitleDir = Path.Combine(Settings.LibraryPath, Title);
             if (!Directory.Exists(TitleDir))
+            {
                 Directory.CreateDirectory(TitleDir);
+                RefreshLibrary();
+            }
 
             ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, Name, out string ChapterPath, false);
 

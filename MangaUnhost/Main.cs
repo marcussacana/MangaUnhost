@@ -82,6 +82,13 @@ namespace MangaUnhost
             }
         }
 
+        internal static Settings Config
+        {
+            get {
+                return Instance.Settings;
+            }
+        }
+
         public static CaptchaSolverType Solver => Instance.Settings.AutoCaptcha ? CaptchaSolverType.SemiAuto : CaptchaSolverType.Manual;
 
         public static Main Instance = null;
@@ -121,6 +128,7 @@ namespace MangaUnhost
                     ImageClipping = true,
                     ReaderGenerator = true,
                     SkipDownloaded = true,
+                    AutoLibUpCheck = Program.IsRealWindows,
                     LibraryPath = DefaultLibPath,
                     ReplaceMode = 1,
                     ReaderMode = 0
@@ -147,9 +155,6 @@ namespace MangaUnhost
         private void MainShown(object sender, EventArgs e)
         {
             TopMost = true;
-            Hide();
-            Application.DoEvents();
-            Show();
             Application.DoEvents();
             BringToFront();
             Application.DoEvents();
@@ -492,6 +497,8 @@ namespace MangaUnhost
             ReaderGenEnbRadio.Checked = Settings.ReaderGenerator;
             SkipDownDisRadio.Checked = !Settings.SkipDownloaded;
             SkipDownEnbRadio.Checked = Settings.SkipDownloaded;
+            AutoUpCheckRadio.Checked = Settings.AutoLibUpCheck;
+            ManualUpCheckRadio.Checked = !Settings.AutoLibUpCheck;
 
             SaveAs SaveAs = (SaveAs)Settings.SaveAs;
             SaveAsPngRadio.Checked = SaveAs == SaveAs.PNG;
@@ -530,6 +537,7 @@ namespace MangaUnhost
             lblSkipDownloaded.Text = CurrentLanguage.SkipDownloadedLbl;
             lblReplaceMode.Text = CurrentLanguage.ReplaceModeLbl;
             lblReader.Text = CurrentLanguage.ReaderModeLbl;
+            lblLibUpdates.Text = CurrentLanguage.LibraryUpdates;
 
             ClipWatcherDisRadio.Text = CurrentLanguage.Disabled;
             ImgClipDisRadio.Text = CurrentLanguage.Disabled;
@@ -736,8 +744,11 @@ namespace MangaUnhost
 
             LibraryContainer.Focus();
 
-            foreach (var Control in LibraryContainer.Controls)
-                Try(() => ((ComicPreview)Control).GetComicInfo());
+            if (Settings.AutoLibUpCheck)
+            {
+                foreach (var Control in LibraryContainer.Controls)
+                    Try(() => ((ComicPreview)Control).GetComicInfo(true));
+            }
         }
 
         public void RefreshLibrary()
@@ -872,6 +883,11 @@ namespace MangaUnhost
         {
             if (OtherReaderRadio.Checked)
                 Settings.ReaderMode = (int)ReaderMode.Other;
+        }
+
+        private void LibUpCheckChanged(object sender, EventArgs e)
+        {
+            Settings.AutoLibUpCheck = AutoUpCheckRadio.Checked;
         }
     }
 }

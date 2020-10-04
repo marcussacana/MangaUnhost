@@ -37,6 +37,7 @@
 
         public string ReaderModeLbl => "Leitor:";
 
+        public string LibraryUpdates => "Atu. da Bilioteca:";
 
 
         public string ClippingImages => "Recortando Imagens...";
@@ -124,6 +125,7 @@
         public string ConvertTo => "Converter Para";
         public string SelectASaveDir => "Selecione uma pasta para salvar";
         public string Refresh => "Atualizar";
+        public string CheckUpdates => "Procurar Atualizações";
 
 
         public string SwitchLanguage => "Alterar Lingua";

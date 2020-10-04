@@ -43,12 +43,13 @@
             this.ConvertToJPG = new System.Windows.Forms.ToolStripMenuItem();
             this.ConvertToPNG = new System.Windows.Forms.ToolStripMenuItem();
             this.ConvertToBMP = new System.Windows.Forms.ToolStripMenuItem();
+            this.OpenChapter = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenDirectory = new System.Windows.Forms.ToolStripMenuItem();
             this.Refresh = new System.Windows.Forms.ToolStripMenuItem();
             this.lblNewChapters = new System.Windows.Forms.Label();
             this.lblOpenSite = new System.Windows.Forms.LinkLabel();
             this.lblDownload = new System.Windows.Forms.LinkLabel();
-            this.OpenChapter = new System.Windows.Forms.ToolStripMenuItem();
+            this.UpdateCheck = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.CoverBox)).BeginInit();
             this.ComicMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -75,9 +76,10 @@
             this.ConvertTo,
             this.OpenChapter,
             this.OpenDirectory,
-            this.Refresh});
+            this.Refresh,
+            this.UpdateCheck});
             this.ComicMenuStrip.Name = "ComicMenuStrip";
-            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 136);
+            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 158);
             // 
             // ExportAs
             // 
@@ -156,23 +158,30 @@
             // ConvertToJPG
             // 
             this.ConvertToJPG.Name = "ConvertToJPG";
-            this.ConvertToJPG.Size = new System.Drawing.Size(180, 22);
+            this.ConvertToJPG.Size = new System.Drawing.Size(99, 22);
             this.ConvertToJPG.Text = "JPG";
             this.ConvertToJPG.Click += new System.EventHandler(this.ConvertToJPG_Click);
             // 
             // ConvertToPNG
             // 
             this.ConvertToPNG.Name = "ConvertToPNG";
-            this.ConvertToPNG.Size = new System.Drawing.Size(180, 22);
+            this.ConvertToPNG.Size = new System.Drawing.Size(99, 22);
             this.ConvertToPNG.Text = "PNG";
             this.ConvertToPNG.Click += new System.EventHandler(this.ConvertToPNG_Click);
             // 
             // ConvertToBMP
             // 
             this.ConvertToBMP.Name = "ConvertToBMP";
-            this.ConvertToBMP.Size = new System.Drawing.Size(180, 22);
+            this.ConvertToBMP.Size = new System.Drawing.Size(99, 22);
             this.ConvertToBMP.Text = "BMP";
             this.ConvertToBMP.Click += new System.EventHandler(this.ConvertToBMP_Click);
+            // 
+            // OpenChapter
+            // 
+            this.OpenChapter.Name = "OpenChapter";
+            this.OpenChapter.Size = new System.Drawing.Size(180, 22);
+            this.OpenChapter.Text = "Open Chapter";
+            this.OpenChapter.Visible = false;
             // 
             // OpenDirectory
             // 
@@ -227,12 +236,12 @@
             this.lblDownload.Text = "Download";
             this.lblDownload.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DownloadClicked);
             // 
-            // OpenChapter
+            // UpdateCheck
             // 
-            this.OpenChapter.Name = "OpenChapter";
-            this.OpenChapter.Size = new System.Drawing.Size(180, 22);
-            this.OpenChapter.Text = "Open Chapter";
-            this.OpenChapter.Visible = false;
+            this.UpdateCheck.Name = "UpdateCheck";
+            this.UpdateCheck.Size = new System.Drawing.Size(180, 22);
+            this.UpdateCheck.Text = "Check Updates";
+            this.UpdateCheck.Click += new System.EventHandler(this.UpdateCheck_Click);
             // 
             // ComicPreview
             // 
@@ -273,5 +282,6 @@
         private System.Windows.Forms.ToolStripMenuItem OpenDirectory;
         private System.Windows.Forms.ToolStripMenuItem Refresh;
         private System.Windows.Forms.ToolStripMenuItem OpenChapter;
+        private System.Windows.Forms.ToolStripMenuItem UpdateCheck;
     }
 }
