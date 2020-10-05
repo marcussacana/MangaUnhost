@@ -41,6 +41,7 @@
 
 
         public string ClippingImages => "Recortando Imagens...";
+        public string SavingPages => "Salvando Páginas...";
 
 
 

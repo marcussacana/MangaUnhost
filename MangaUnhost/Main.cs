@@ -13,6 +13,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 namespace MangaUnhost
 {
@@ -20,7 +21,7 @@ namespace MangaUnhost
     {
 
         Thread CrawlerThread = null;
-        Thread ClipThread = null;
+        Thread PostProcessThread = null;
 
         Settings Settings = new Settings();
 
@@ -28,7 +29,7 @@ namespace MangaUnhost
 
         ILanguage[] Languages = GetLanguagesInstance();
 
-        Queue<string> ClipQueue = new Queue<string>();
+        Queue<Page> PostProcessQueue = new Queue<Page>();
 
         public static string SettingsPath => Program.SettingsPath;
 
@@ -155,21 +156,14 @@ namespace MangaUnhost
         private void MainShown(object sender, EventArgs e)
         {
             TopMost = true;
-            Application.DoEvents();
             BringToFront();
-            Application.DoEvents();
             Focus();
-            Application.DoEvents();
             TopMost = false;
 
             Invalidate();
 
-            WindowState = FormWindowState.Minimized;
-            Application.DoEvents();
-            WindowState = FormWindowState.Normal;
-
-            ClipThread = new Thread(ClipWorker);
-            ClipThread.Start();
+            PostProcessThread = new Thread(PostProcessWorker);
+            PostProcessThread.Start();
 
             CrawlerThread = new Thread(CrawlerWorker);
             CrawlerThread.Start();
@@ -645,36 +639,49 @@ namespace MangaUnhost
             SupportedHostListBox.ContextMenuStrip.Show(SupportedHostListBox, Click);
         }
 
-        private void ClipWorker()
+        private void PostProcessWorker()
         {
             while (true)
             {
-
-                while (ClipQueue.Count > 0)
+                var OriStatus = Status;
+                while (PostProcessQueue.Count > 0)
                 {
+
+                    if (Status != CurrentLanguage.SavingPages)
+                        OriStatus = Status;
+
                     if (Status == CurrentLanguage.IDLE)
                         Status = CurrentLanguage.ClippingImages;
 
-                    string Image = ClipQueue.Dequeue();
+                    var Image = PostProcessQueue.Dequeue();
 
-                    int Tries = 1;
-                    while (Tries < 5)
+                    if (Config.ImageClipping)
                     {
-                        try
+                        int Tries = 1;
+                        while (Tries < 5)
                         {
-                            BitmapTrim.DoTrim(Image, Tries);
-                            break;
-                        }
-                        catch
-                        {
-                            Tries++;
+                            try
+                            {
+                                Image.Data = BitmapTrim.DoTrim(Image.Data, Tries);
+                                break;
+                            }
+                            catch
+                            {
+                                Tries++;
+                            }
                         }
                     }
+
+                    if (Status != CurrentLanguage.ClippingImages)
+                        OriStatus = Status;
+
+                    Status = CurrentLanguage.SavingPages;
+                    File.WriteAllBytes(Image.Path, Image.Data);
                 }
 
                 Thread.Sleep(100);
-                if (Status == CurrentLanguage.ClippingImages)
-                    Status = CurrentLanguage.IDLE;
+                if (Status == CurrentLanguage.ClippingImages || Status == CurrentLanguage.SavingPages)
+                    Status = OriStatus;
             }
         }
 

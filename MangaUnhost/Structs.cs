@@ -5,6 +5,7 @@ using System.Net;
 namespace MangaUnhost {
     public struct Page {
         public byte[] Data;
+        public string Path;
         public IDecoder Decoder;
     }
 

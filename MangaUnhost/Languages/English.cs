@@ -74,6 +74,7 @@
         public string BypassingCloudFlare => "Bypassing CloudFlare...";
 
         public string ClippingImages => "Clipping Images...";
+        public string SavingPages => "Saving Pages...";
 
         public string QueueStatus => "{0}/{1} in queue";
         public string Crawling => "Crawling...";

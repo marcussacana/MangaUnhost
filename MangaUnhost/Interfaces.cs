@@ -125,6 +125,7 @@ namespace MangaUnhost {
         string IDLE { get; }
         string BypassingCloudFlare { get; }
         string ClippingImages { get; }
+        string SavingPages { get; }
         string QueueStatus { get; }
         string Crawling { get; }
         string Reaming { get; }

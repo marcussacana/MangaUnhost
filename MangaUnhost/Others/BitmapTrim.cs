@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace MangaUnhost {
     internal class BitmapTrim : IDisposable {
@@ -7,10 +9,16 @@ namespace MangaUnhost {
         public BitmapTrim(Bitmap Image) => Texture = Image;
 
         public static void DoTrim(string ImagePath, int BufferFactor = 1) {
+            var IMG = File.ReadAllBytes(ImagePath);
+            IMG = DoTrim(IMG, BufferFactor);
+            File.WriteAllBytes(ImagePath, IMG);
+        }
+        public static byte[] DoTrim(byte[] ImageData, int BufferFactor = 1) {
             BitmapTrim Cropper;
             Bitmap Result;
             int Height;
-            using (Bitmap Source = Image.FromFile(ImagePath) as Bitmap) {
+            using (MemoryStream Buffer = new MemoryStream(ImageData))
+            using (Bitmap Source = Image.FromStream(Buffer) as Bitmap) {
                 Height = Source.Height;
                 using (Cropper = new BitmapTrim(Source)) {
                     Cropper.BufferLenght /= BufferFactor;
@@ -20,17 +28,19 @@ namespace MangaUnhost {
                 }
             }
 
+            using (MemoryStream Buffer = new MemoryStream())
             using (Cropper = new BitmapTrim(Result)) {
                 Cropper.BufferLenght /= BufferFactor;
                 Result = Cropper.Trim(false);
 
                 if (Height == Result.Height) {
                     Result.Dispose();
-                    return;
+                    return ImageData;
                 }
 
-                Result.Save(ImagePath);
+                Result.Save(Buffer, Result.RawFormat);
                 Result.Dispose();
+                return Buffer.ToArray();
             }
         }
 

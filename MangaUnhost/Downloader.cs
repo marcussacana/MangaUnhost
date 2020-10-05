@@ -2,6 +2,7 @@
 using EPubFactory;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using Microsoft.VisualBasic.Devices;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -9,13 +10,16 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace MangaUnhost
 {
     public partial class Main : Form
     {
+        public static ulong AvailablePhysicalMemory => new ComputerInfo().AvailablePhysicalMemory;
 
         public void AutoDownload(Uri URL)
         {
@@ -84,7 +88,8 @@ namespace MangaUnhost
                     Indentifier = CurrentHost
                 };
 
-                Button.Click += (sender, args) => {
+                Button.Click += (sender, args) =>
+                {
                     try
                     {
                         IHost HostIsnt = (IHost)((VSButton)sender).Indentifier;
@@ -114,7 +119,8 @@ namespace MangaUnhost
                     Indentifier = CurrentHost
                 };
 
-                Button.Click += (sender, args) => {
+                Button.Click += (sender, args) =>
+                {
                     foreach (var Chapter in Chapters.Reverse())
                     {
                         try
@@ -241,6 +247,7 @@ namespace MangaUnhost
 
                         try
                         {
+#if NOASYNCSAVE
                             string PageName = $"{Pages.Count:D3}.png";
                             string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
 
@@ -259,8 +266,36 @@ namespace MangaUnhost
                             }
 
                             if (Settings.ImageClipping)
-                                ClipQueue.Enqueue(PagePath);
+                                PostProcessQueue.Enqueue(PagePath);
+#else
+                            string PageName = $"{Pages.Count:D3}.png";
+                            string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
+                            
+                            Page OutPage = new Page();
+                            OutPage.Decoder = Host.GetDecoder();
+                            OutPage.Data = Data;
 
+                            using (MemoryStream Buffer = new MemoryStream())
+                            using (Bitmap Result = Decoder.Decode(Data))
+                            {
+                                PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
+                                PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
+                                Result.Save(Buffer, Format);
+                                OutPage.Data = Buffer.ToArray();
+                            }
+
+                            OutPage.Path = PagePath;
+
+                            if (PostProcessQueue.Count > 5)
+                            {
+                                const ulong MinMemory = 100000000;
+                                while (AvailablePhysicalMemory < MinMemory && PostProcessQueue.Count > 0) {
+                                    ThreadTools.Wait(1000, true);
+                                }
+                            }
+
+                            PostProcessQueue.Enqueue(OutPage);
+#endif
                             Pages.Add(PageName);
                         }
                         catch (Exception ex)
@@ -279,7 +314,8 @@ namespace MangaUnhost
                     break;
                 case ContentType.Novel:
                     var Chapter = Host.DownloadChapter(ID);
-                    AsyncContext.Run(async () => {
+                    AsyncContext.Run(async () =>
+                    {
                         using (var Epub = await EPubWriter.CreateWriterAsync(File.Create(ChapterPath), Info.Title ?? "Untitled", Chapter.Author ?? "Anon", Chapter.URL ?? "None"))
                         {
                             Chapter.HTML.RemoveNodes("//script");
