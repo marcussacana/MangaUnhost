@@ -283,15 +283,15 @@ namespace MangaUnhost
                             Page OutPage = new Page();
                             OutPage.Data = Data;
 
-                            using (MemoryStream Buffer = new MemoryStream())
-                            using (Bitmap Result = Decoder.Decode(Data))
-                            {
-                                if ((SaveAs)Settings.SaveAs != SaveAs.RAW)
+                            if ((SaveAs)Settings.SaveAs != SaveAs.RAW){
+                                using (MemoryStream Buffer = new MemoryStream())
+                                using (Bitmap Result = Decoder.Decode(Data))
+                                {
                                     PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
-
-                                PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
-                                Result.Save(Buffer, Format);
-                                OutPage.Data = Buffer.ToArray();
+                                    PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
+                                    Result.Save(Buffer, Format);
+                                    OutPage.Data = Buffer.ToArray();
+                                }
                             }
 
                             OutPage.Path = PagePath;
