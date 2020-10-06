@@ -286,7 +286,9 @@ namespace MangaUnhost
                             using (MemoryStream Buffer = new MemoryStream())
                             using (Bitmap Result = Decoder.Decode(Data))
                             {
-                                PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
+                                if ((SaveAs)Settings.SaveAs != SaveAs.RAW)
+                                    PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
+
                                 PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
                                 Result.Save(Buffer, Format);
                                 OutPage.Data = Buffer.ToArray();
