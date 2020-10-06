@@ -250,6 +250,9 @@ namespace MangaUnhost
 #if NOASYNCSAVE
                             string PageName = $"{Pages.Count:D3}.png";
                             string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
+                            
+                            Page OutPage = new Page();
+                            OutPage.Data = Data;
 
                             if ((SaveAs)Settings.SaveAs == SaveAs.RAW)
                             {
@@ -263,16 +266,21 @@ namespace MangaUnhost
                                     PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
                                     Result.Save(PagePath, Format);
                                 }
-                            }
+                            }                            
 
                             if (Settings.ImageClipping)
-                                PostProcessQueue.Enqueue(PagePath);
+                                PostProcessQueue.Enqueue(OutPage);
+                            else
+                                File.WritaAllData(OutPage.Path, OutPage.Data);
+
+                            while (PostProcessQueue.Count > 0) {
+                                ThreadTools.Wait(1000, true);
+                            }
 #else
                             string PageName = $"{Pages.Count:D3}.png";
                             string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
                             
                             Page OutPage = new Page();
-                            OutPage.Decoder = Host.GetDecoder();
                             OutPage.Data = Data;
 
                             using (MemoryStream Buffer = new MemoryStream())
@@ -302,6 +310,7 @@ namespace MangaUnhost
                         {
                             if (Program.Debug)
                                 throw;
+                            Console.Error.WriteLine(ex.ToString());
                         }
                     }
 
