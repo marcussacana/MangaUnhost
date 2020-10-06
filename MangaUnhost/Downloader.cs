@@ -410,7 +410,7 @@ namespace MangaUnhost
                     Format = Bitmap.RawFormat;
                     return Bitmap.GetImageExtension();
                 default:
-                    throw new Exception("Invalid Save As Image Format");
+                    throw new Exception("Invalid Save As Image Format: " + Settings.SaveAs);
             }
         }
     }
