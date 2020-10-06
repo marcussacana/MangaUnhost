@@ -283,7 +283,7 @@ namespace MangaUnhost
                             Page OutPage = new Page();
                             OutPage.Data = Data;
 
-                            if ((SaveAs)Settings.SaveAs != SaveAs.RAW){
+                            if ((SaveAs)Settings.SaveAs != SaveAs.RAW) {
                                 using (MemoryStream Buffer = new MemoryStream())
                                 using (Bitmap Result = Decoder.Decode(Data))
                                 {
