@@ -655,7 +655,7 @@ namespace MangaUnhost
 
                     var Image = PostProcessQueue.Dequeue();
 
-                    if (Config.ImageClipping)
+                    if (ImgClipEnbRadio.Checked)
                     {
                         int Tries = 1;
                         while (Tries < 5)
@@ -672,7 +672,7 @@ namespace MangaUnhost
                         }
                     }
 
-                    if (Status != CurrentLanguage.ClippingImages)
+                    if (Status != CurrentLanguage.ClippingImages &&  Status != CurrentLanguage.SavingPages)
                         OriStatus = Status;
 
                     Status = CurrentLanguage.SavingPages;
