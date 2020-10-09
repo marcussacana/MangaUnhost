@@ -655,7 +655,7 @@ namespace MangaUnhost
 
                     var Image = PostProcessQueue.Dequeue();
 
-                    if (ImgClipEnbRadio.Checked)
+                    if (Settings.ImageClipping)
                     {
                         int Tries = 1;
                         while (Tries < 5)
