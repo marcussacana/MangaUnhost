@@ -66,9 +66,9 @@ namespace MangaUnhost.Hosts {
                 var JS = CryptJS+"\n\n";
                 JS += Node.InnerHtml+"\n\n";
                 JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8); var imgs = []; for (var i = 0; i < images.length; i++) imgs.push(JSON.parse(URL) + images[i]); JSON.stringify(imgs)";
-                Console.WriteLine(JS);
+                //Console.WriteLine(JS);
                 var Images = (string)JSTools.EvaluateScript(JS);
-                Console.WriteLine(Images);
+                //Console.WriteLine(Images);
                 string Link = null;
                 do {
                     Link = DataTools.ReadJson(Images, (Pages.Count+1).ToString());
