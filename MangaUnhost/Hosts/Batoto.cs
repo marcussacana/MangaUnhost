@@ -35,7 +35,7 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count() <= 0)
                 Nodes = Document.SelectNodes("//div[contains(@class, 'episode-list')]//a[contains(@class, 'chapt')]");
 
-            foreach (var Node in ) {
+            foreach (var Node in Nodes) {
                 string Name = HttpUtility.HtmlDecode(Node.SelectSingleNode(Node.XPath + "/b").InnerText);
 
                 Name = Name.ToLower().Replace("ch.", "").Replace("vol.", "").Trim().Replace("  ", ".").Replace(" ", ".");
