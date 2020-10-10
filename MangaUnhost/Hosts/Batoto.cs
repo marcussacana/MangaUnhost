@@ -38,7 +38,7 @@ namespace MangaUnhost.Hosts {
             foreach (var Node in Nodes) {
                 string Name = HttpUtility.HtmlDecode(Node.SelectSingleNode(Node.XPath + "/b").InnerText);
 
-                Name = Name.ToLower().Replace("ch.", "").Replace("vol.", "").Trim().Replace("  ", ".").Replace(" ", ".");
+                Name = Name.ToLower().Replace("chapter", "").Replace("ch.", "").Replace("vol.", "").Trim().Replace("  ", ".").Replace(" ", ".");
 
                 if (Name.Contains("[deleted]") || Name.Contains("[delete]") || Name == "d")
                     continue;
@@ -103,7 +103,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 
