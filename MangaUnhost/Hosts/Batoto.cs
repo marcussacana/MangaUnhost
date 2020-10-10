@@ -59,30 +59,26 @@ namespace MangaUnhost.Hosts {
             List<string> Pages = new List<string>();
 
             foreach (var Node in Page.DocumentNode.SelectNodes("//script[contains(., 'images')]")) {
-                if (!Node.InnerHtml.Contains("var images"))
+                if (!Node.InnerHtml.Contains("var images") && !Node.InnerHtml.Contains("const images"))
                     continue;
 
                 //Did you think use encryption will give us work/lazy? ha! >_<
                 var JS = CryptJS+"\n\n";
                 JS += Node.InnerHtml+"\n\n";
-                JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8); var imgs = []; for (var i = 0; i < images.length; i++) imgs.push(JSON.parse(URL) + images[i]); JSON.stringify(imgs)";
-                //Console.WriteLine(JS);
-                var Images = (string)JSTools.EvaluateScript(JS);
-                //Console.WriteLine(Images);
-                string Link = null;
-                do {
-                    Link = DataTools.ReadJson(Images, (Pages.Count+1).ToString());
-                    
-                    if (Link == null)
-                        continue;
+                JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8); var imgs = []; for (var i = 0; i < images.length; i++) imgs.push(JSON.parse(URL) + images[i]); imgs";
+                var Rst = JSTools.EvaluateScript<List<object>>(JS, true);
 
-                    if (Link.StartsWith("//"))
-                        Link = "https:" + Link;
+                if (Rst == null)
+                    continue;
 
-                    Pages.Add(Link);
-                    
-                } while (Link != null);
-
+                var Images = (from x in Rst select (string)x).ToArray();
+                foreach (var Image in Images)
+                {
+                    if (Image.StartsWith("//"))
+                        Pages.Add("https:" + Image);
+                    else
+                        Pages.Add(Image);
+                }
             }
 
             return Pages.ToArray();

@@ -66,6 +66,32 @@ namespace MangaUnhost
                     Application.DoEvents();
             }
         }
+        public static string ExtraStatus
+        {
+            get => Instance.StatusBar.ThirdLabelText;
+            set
+            {
+                Instance.StatusBar.ThirdLabelText = value;
+
+                if (Instance.InvokeRequired)
+                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
+                else
+                    Application.DoEvents();
+            }
+        }
+        public static bool ThreeStatus
+        {
+            get => Instance.StatusBar.AmountOfString == VSStatusBar.AmountOfStrings.Three;
+            set
+            {
+                Instance.StatusBar.AmountOfString = value ? VSStatusBar.AmountOfStrings.Three : VSStatusBar.AmountOfStrings.Two;
+
+                if (Instance.InvokeRequired)
+                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
+                else
+                    Application.DoEvents();
+            }
+        }
 
         public static ILanguage Language
         {
@@ -646,12 +672,17 @@ namespace MangaUnhost
                 var OriStatus = Status;
                 while (PostProcessQueue.Count > 0)
                 {
-
-                    if (Status != CurrentLanguage.SavingPages)
+                    if (Status != CurrentLanguage.SavingPages)                    
                         OriStatus = Status;
+                    
 
                     if (Status == CurrentLanguage.IDLE)
+                    {
                         Status = CurrentLanguage.ClippingImages;
+                    }
+
+                    ThreeStatus = PostProcessQueue.Count > 1;
+                    ExtraStatus = string.Format(CurrentLanguage.Reaming, PostProcessQueue.Count);
 
                     var Image = PostProcessQueue.Dequeue();
 
@@ -672,9 +703,9 @@ namespace MangaUnhost
                         }
                     }
 
-                    if (Status != CurrentLanguage.ClippingImages &&  Status != CurrentLanguage.SavingPages)
+                    if (Status != CurrentLanguage.ClippingImages && Status != CurrentLanguage.SavingPages)
                         OriStatus = Status;
-
+                
                     Status = CurrentLanguage.SavingPages;
                     File.WriteAllBytes(Image.Path, Image.Data);
                 }
@@ -682,6 +713,8 @@ namespace MangaUnhost
                 Thread.Sleep(100);
                 if (Status == CurrentLanguage.ClippingImages || Status == CurrentLanguage.SavingPages)
                     Status = OriStatus;
+
+                ThreeStatus = false;
             }
         }
 

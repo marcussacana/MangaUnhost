@@ -42,6 +42,22 @@ namespace MangaUnhost.Browser
             return DefaultBrowser.EvaluateScript<T>(Script);
         }
 
+        public static object EvaluateScript(string Script, bool Reload)
+        {
+            var Rst = EvaluateScript(Script);
+            if (Reload)
+                EvaluateScript("location.reload()");
+            return Rst;
+        }
+
+        public static T EvaluateScript<T>(string Script, bool Reload)
+        {
+            var Rst = EvaluateScript<T>(Script);
+            if (Reload)
+                EvaluateScript("location.reload()");
+            return Rst;
+        }
+
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
         public static T EvaluateScript<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScript(Script);
         public static void EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script, out T Result) => Result = (T)Browser.GetBrowser().EvaluateScript(Script);

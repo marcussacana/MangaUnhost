@@ -98,7 +98,7 @@ namespace MangaUnhost
                     catch (Exception ex)
                     {
                         if (Program.Debug)
-                            throw ex;
+                            throw;
                     }
                     StatusBar.SecondLabelText = string.Empty;
                     Status = CurrentLanguage.IDLE;

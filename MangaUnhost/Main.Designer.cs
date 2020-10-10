@@ -46,6 +46,10 @@
             this.tbCrawlerUrl = new VSNormalTextBox();
             this.SettingsTab = new System.Windows.Forms.TabPage();
             this.FeaturesGroupBox = new VSGroupBox();
+            this.panel9 = new System.Windows.Forms.Panel();
+            this.lblLibUpdates = new System.Windows.Forms.Label();
+            this.ManualUpCheckRadio = new System.Windows.Forms.RadioButton();
+            this.AutoUpCheckRadio = new System.Windows.Forms.RadioButton();
             this.panel8 = new System.Windows.Forms.Panel();
             this.OtherReaderRadio = new System.Windows.Forms.RadioButton();
             this.ComicReaderRadio = new System.Windows.Forms.RadioButton();
@@ -100,10 +104,6 @@
             this.dbgButtonB = new VSButton();
             this.DbgButtonA = new VSButton();
             this.DbgPreview = new System.Windows.Forms.PictureBox();
-            this.panel9 = new System.Windows.Forms.Panel();
-            this.lblLibUpdates = new System.Windows.Forms.Label();
-            this.ManualUpCheckRadio = new System.Windows.Forms.RadioButton();
-            this.AutoUpCheckRadio = new System.Windows.Forms.RadioButton();
             this.ThemeContainer.SuspendLayout();
             this.MainTabMenu.SuspendLayout();
             this.DownloaderTab.SuspendLayout();
@@ -112,6 +112,7 @@
             this.CrawlerTab.SuspendLayout();
             this.SettingsTab.SuspendLayout();
             this.FeaturesGroupBox.SuspendLayout();
+            this.panel9.SuspendLayout();
             this.panel8.SuspendLayout();
             this.panel7.SuspendLayout();
             this.panel6.SuspendLayout();
@@ -125,7 +126,6 @@
             this.SupportedHostsBox.SuspendLayout();
             this.DebugTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DbgPreview)).BeginInit();
-            this.panel9.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainTimer
@@ -483,6 +483,55 @@
             this.FeaturesGroupBox.TabIndex = 1;
             this.FeaturesGroupBox.Text = "Features";
             this.FeaturesGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
+            // 
+            // panel9
+            // 
+            this.panel9.BackColor = System.Drawing.Color.Transparent;
+            this.panel9.Controls.Add(this.lblLibUpdates);
+            this.panel9.Controls.Add(this.ManualUpCheckRadio);
+            this.panel9.Controls.Add(this.AutoUpCheckRadio);
+            this.panel9.Location = new System.Drawing.Point(586, 35);
+            this.panel9.Name = "panel9";
+            this.panel9.Size = new System.Drawing.Size(232, 60);
+            this.panel9.TabIndex = 10;
+            // 
+            // lblLibUpdates
+            // 
+            this.lblLibUpdates.BackColor = System.Drawing.Color.Transparent;
+            this.lblLibUpdates.ForeColor = System.Drawing.Color.White;
+            this.lblLibUpdates.Location = new System.Drawing.Point(3, 0);
+            this.lblLibUpdates.Name = "lblLibUpdates";
+            this.lblLibUpdates.Size = new System.Drawing.Size(139, 21);
+            this.lblLibUpdates.TabIndex = 5;
+            this.lblLibUpdates.Text = "Library Updates:";
+            this.lblLibUpdates.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // ManualUpCheckRadio
+            // 
+            this.ManualUpCheckRadio.AutoSize = true;
+            this.ManualUpCheckRadio.BackColor = System.Drawing.Color.Transparent;
+            this.ManualUpCheckRadio.ForeColor = System.Drawing.Color.White;
+            this.ManualUpCheckRadio.Location = new System.Drawing.Point(148, 28);
+            this.ManualUpCheckRadio.Name = "ManualUpCheckRadio";
+            this.ManualUpCheckRadio.Size = new System.Drawing.Size(73, 23);
+            this.ManualUpCheckRadio.TabIndex = 1;
+            this.ManualUpCheckRadio.Text = "Manual";
+            this.ManualUpCheckRadio.UseVisualStyleBackColor = false;
+            // 
+            // AutoUpCheckRadio
+            // 
+            this.AutoUpCheckRadio.AutoSize = true;
+            this.AutoUpCheckRadio.BackColor = System.Drawing.Color.Transparent;
+            this.AutoUpCheckRadio.Checked = true;
+            this.AutoUpCheckRadio.ForeColor = System.Drawing.Color.White;
+            this.AutoUpCheckRadio.Location = new System.Drawing.Point(148, -1);
+            this.AutoUpCheckRadio.Name = "AutoUpCheckRadio";
+            this.AutoUpCheckRadio.Size = new System.Drawing.Size(57, 23);
+            this.AutoUpCheckRadio.TabIndex = 0;
+            this.AutoUpCheckRadio.TabStop = true;
+            this.AutoUpCheckRadio.Text = "Auto";
+            this.AutoUpCheckRadio.UseVisualStyleBackColor = false;
+            this.AutoUpCheckRadio.CheckedChanged += new System.EventHandler(this.LibUpCheckChanged);
             // 
             // panel8
             // 
@@ -1233,55 +1282,6 @@
             this.DbgPreview.TabIndex = 0;
             this.DbgPreview.TabStop = false;
             // 
-            // panel9
-            // 
-            this.panel9.BackColor = System.Drawing.Color.Transparent;
-            this.panel9.Controls.Add(this.lblLibUpdates);
-            this.panel9.Controls.Add(this.ManualUpCheckRadio);
-            this.panel9.Controls.Add(this.AutoUpCheckRadio);
-            this.panel9.Location = new System.Drawing.Point(586, 35);
-            this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(232, 60);
-            this.panel9.TabIndex = 10;
-            // 
-            // lblLibUpdates
-            // 
-            this.lblLibUpdates.BackColor = System.Drawing.Color.Transparent;
-            this.lblLibUpdates.ForeColor = System.Drawing.Color.White;
-            this.lblLibUpdates.Location = new System.Drawing.Point(3, 0);
-            this.lblLibUpdates.Name = "lblLibUpdates";
-            this.lblLibUpdates.Size = new System.Drawing.Size(139, 21);
-            this.lblLibUpdates.TabIndex = 5;
-            this.lblLibUpdates.Text = "Library Updates:";
-            this.lblLibUpdates.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // ManualUpCheckRadio
-            // 
-            this.ManualUpCheckRadio.AutoSize = true;
-            this.ManualUpCheckRadio.BackColor = System.Drawing.Color.Transparent;
-            this.ManualUpCheckRadio.ForeColor = System.Drawing.Color.White;
-            this.ManualUpCheckRadio.Location = new System.Drawing.Point(148, 28);
-            this.ManualUpCheckRadio.Name = "ManualUpCheckRadio";
-            this.ManualUpCheckRadio.Size = new System.Drawing.Size(73, 23);
-            this.ManualUpCheckRadio.TabIndex = 1;
-            this.ManualUpCheckRadio.Text = "Manual";
-            this.ManualUpCheckRadio.UseVisualStyleBackColor = false;
-            // 
-            // AutoUpCheckRadio
-            // 
-            this.AutoUpCheckRadio.AutoSize = true;
-            this.AutoUpCheckRadio.BackColor = System.Drawing.Color.Transparent;
-            this.AutoUpCheckRadio.Checked = true;
-            this.AutoUpCheckRadio.ForeColor = System.Drawing.Color.White;
-            this.AutoUpCheckRadio.Location = new System.Drawing.Point(148, -1);
-            this.AutoUpCheckRadio.Name = "AutoUpCheckRadio";
-            this.AutoUpCheckRadio.Size = new System.Drawing.Size(57, 23);
-            this.AutoUpCheckRadio.TabIndex = 0;
-            this.AutoUpCheckRadio.TabStop = true;
-            this.AutoUpCheckRadio.Text = "Auto";
-            this.AutoUpCheckRadio.UseVisualStyleBackColor = false;
-            this.AutoUpCheckRadio.CheckedChanged += new System.EventHandler(this.LibUpCheckChanged);
-            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1305,6 +1305,8 @@
             this.CrawlerTab.ResumeLayout(false);
             this.SettingsTab.ResumeLayout(false);
             this.FeaturesGroupBox.ResumeLayout(false);
+            this.panel9.ResumeLayout(false);
+            this.panel9.PerformLayout();
             this.panel8.ResumeLayout(false);
             this.panel8.PerformLayout();
             this.panel7.ResumeLayout(false);
@@ -1327,8 +1329,6 @@
             this.SupportedHostsBox.ResumeLayout(false);
             this.DebugTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.DbgPreview)).EndInit();
-            this.panel9.ResumeLayout(false);
-            this.panel9.PerformLayout();
             this.ResumeLayout(false);
 
         }

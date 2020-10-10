@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -16,9 +17,11 @@ namespace MangaUnhost {
         public static byte[] DoTrim(byte[] ImageData, int BufferFactor = 1) {
             BitmapTrim Cropper;
             Bitmap Result;
+            ImageFormat InputFormat;
             int Height;
             using (MemoryStream Buffer = new MemoryStream(ImageData))
             using (Bitmap Source = Image.FromStream(Buffer) as Bitmap) {
+                InputFormat = Source.RawFormat;
                 Height = Source.Height;
                 using (Cropper = new BitmapTrim(Source)) {
                     Cropper.BufferLenght /= BufferFactor;
@@ -38,7 +41,7 @@ namespace MangaUnhost {
                     return ImageData;
                 }
 
-                Result.Save(Buffer, Result.RawFormat);
+                Result.Save(Buffer, InputFormat);
                 Result.Dispose();
                 return Buffer.ToArray();
             }
