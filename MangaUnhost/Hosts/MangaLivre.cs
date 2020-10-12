@@ -71,7 +71,7 @@ namespace MangaUnhost.Hosts
                 var ID = int.Parse(IDStr);
                 var Name = DataTools.ReadJson(JSON, "number");
                 var Link = DataTools.ReadJson(JSON, "link");
-                if (Link.Contains("/scanlator/")) {
+                while (Link.Contains("/scanlator/")) {
                     JSON = JSON.Substring("\"link\":", IgnoreMissmatch: true);
                     Link = DataTools.ReadJson(JSON, "link");
                 }
@@ -121,7 +121,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 1),
+                Version = new Version(2, 2),
                 Icon = Resources.Icons.MangaLivre
             };
         }
