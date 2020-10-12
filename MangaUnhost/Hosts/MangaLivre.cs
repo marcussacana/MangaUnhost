@@ -121,7 +121,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0),
+                Version = new Version(2, 1),
                 Icon = Resources.Icons.MangaLivre
             };
         }
@@ -151,7 +151,7 @@ namespace MangaUnhost.Hosts
             MangaUrl = Uri.AbsoluteUri;
 
             return new ComicInfo() {
-                Title = Document.SelectSingleNode("//span[@class=\"series-title\"]/h1").InnerText,
+                Title = Document.SelectSingleNode("//div[@id='series-data']/div/span[@class='series-title']/h1").InnerText,
                 Cover = TryDownload(new Uri(Document.SelectSingleNode("//div[@class=\"cover\"]/img").GetAttributeValue("src", null))),
                 ContentType = ContentType.Comic,
                 Url = Uri
