@@ -148,7 +148,7 @@ namespace MangaUnhost
         }
         public async Task close()
         {
-            Window.Close();
+            Window.Invoke(new MethodInvoker(() => Window.Close()));
         }
         public async Task next()
         {
