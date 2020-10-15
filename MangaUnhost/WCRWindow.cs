@@ -172,7 +172,7 @@ namespace MangaUnhost
         {
             if (commandId == CefMenuCommand.UserFirst)
             {
-                Parent.Invoke(new MethodInvoker(() => Parent.Close()));
+                Parent.BeginInvoke(new MethodInvoker(() => Parent.Close()));
                 return true;
             }
             return false;
