@@ -21,10 +21,10 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                yield return TryDownload(new Uri(PageUrl));
-                //Looks like they have a limit of the download speed,
-                //if you reach it, they delay all queries of your ip for some seconds
-                ThreadTools.Wait(1000, true);
+                var Data = TryDownload(new Uri(PageUrl), ChapterLinks[ID]);
+                if (Data == null)
+                    continue;
+                yield return Data;
             }
         }
 
@@ -221,17 +221,17 @@ namespace MangaUnhost.Hosts {
 
             return Encoding.UTF8.GetString(Data);
         }
-        private byte[] TryDownload(Uri Url) {
+        private byte[] TryDownload(Uri Url, string Referer = "https://mangadex.org") {
             if (CFData != null) {
-                return Url.TryDownload("https://mangadex.org", CFData?.UserAgent, Cookie: CFData?.Cookies);
+                return Url.TryDownload(Referer, CFData?.UserAgent, Cookie: CFData?.Cookies);
             }
             try
             {
-                return Url.TryDownload("https://mangadex.org");
+                return Url.TryDownload(Referer);
             }
             catch {
                 CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
-                return TryDownload(Url);
+                return TryDownload(Url, Referer);
             }
         }
         public bool IsValidPage(string HTML, Uri URL) => false;
