@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using MangaUnhost.Browser;
+using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,13 @@ namespace MangaUnhost.Hosts
         {
             foreach (var Page in GetPageLinks(ID))
             {
-                var Data = Page.TryDownload(CFData);
+                byte[] Data;
+
+                if (CFData == null)
+                    Data = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: LinkMap[ID]);
+                else
+                    Data = Page.TryDownload(CFData, Referer: LinkMap[ID]);
+
                 if (Data == null || Data.Length == 0)
                     continue;
 
@@ -36,7 +43,7 @@ namespace MangaUnhost.Hosts
 
             var XPATH = "//li[starts-with(@class, \"wp-manga-chapter\")]/a";
             var Nodes = Document.SelectNodes(XPATH);
-            
+
             if (Nodes == null || Nodes.Count == 0)
             {
                 var Browser = JSTools.DefaultBrowser;
@@ -91,7 +98,7 @@ namespace MangaUnhost.Hosts
             string[] Links = (from x in Chapter
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
                               select (x.GetAttributeValue("data-src", null) ??
-                                      x.GetAttributeValue("src", null)      ??
+                                      x.GetAttributeValue("src", null) ??
                                       x.GetAttributeValue("data-cfsrc", "")).Trim()).ToArray();
 
             return Links;
@@ -111,17 +118,17 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 5)
+                Version = new Version(1, 6)
             };
         }
 
         public bool IsValidUri(Uri Uri)
         {
-           return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
-                  (Uri.Host.ToLower().Contains("manga47.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
-                  (Uri.Host.ToLower().Contains("manga68.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
-                  (Uri.Host.ToLower().Contains("mangatx.com")    && Uri.AbsolutePath.ToLower().Contains("manga/"))   ||
-                  (Uri.Host.ToLower().Contains("toonily.com")    && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
+            return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("manga47.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("manga68.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("mangatx.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
+                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
         }
         public bool IsValidPage(string HTML, Uri URL)
         {
@@ -145,7 +152,8 @@ namespace MangaUnhost.Hosts
             ReverseChapters = Uri.Host.ToLower().Contains("manga47.com");
 
             Document.LoadUrl(Uri);
-            if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())  {
+            if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())
+            {
                 CFData = JSTools.BypassCloudflare(Uri.AbsoluteUri);
                 Document.LoadHtml(CFData?.HTML);
             }
@@ -155,22 +163,22 @@ namespace MangaUnhost.Hosts
             if (Info.Title.ToUpper().StartsWith("HOT"))
                 Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
-            
+
             var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img");
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
-            
+
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("data-src", "");
             else
                 ImgUrl = ImgUrl.Trim().Split(',', ' ').First();
-            
+
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("src", "");
 
             if (string.IsNullOrWhiteSpace(ImgUrl))
                 ImgUrl = ImgNode.GetAttributeValue("data-cfsrc", "");
-            
+
             if (ImgUrl.StartsWith("//"))
                 ImgUrl = "http:" + ImgUrl;
 
