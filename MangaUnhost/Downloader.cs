@@ -194,9 +194,9 @@ namespace MangaUnhost
 
             ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, Name, out string ChapterPath, false);
 
-            string AbsolueChapterPath = Path.Combine(TitleDir, ChapterPath);
+            string AbsoluteChapterPath = Path.Combine(TitleDir, ChapterPath);
 
-            if (Settings.SkipDownloaded && File.Exists(AbsolueChapterPath.TrimEnd('\\', '/') + ".html"))
+            if (Settings.SkipDownloaded && File.Exists(AbsoluteChapterPath.TrimEnd('\\', '/') + ".html"))
                 return;
 
             int PageCount = 1;
@@ -205,28 +205,30 @@ namespace MangaUnhost
             {
                 PageCount = Host.GetChapterPageCount(ID);
 
-                if (Directory.Exists(AbsolueChapterPath) && Directory.GetFiles(AbsolueChapterPath, "*").Length < PageCount)
-                    Directory.Delete(AbsolueChapterPath, true);
+                if (Directory.Exists(AbsoluteChapterPath) && Directory.GetFiles(AbsoluteChapterPath, "*").Length < PageCount)
+                    Directory.Delete(AbsoluteChapterPath, true);
 
-                if (Settings.SkipDownloaded && Directory.Exists(AbsolueChapterPath))
+                if (Settings.SkipDownloaded && Directory.Exists(AbsoluteChapterPath))
                 {
-                    var Pages = (from x in Directory.GetFiles(AbsolueChapterPath) select Path.GetFileName(x)).ToArray();
+                    var Pages = (from x in Directory.GetFiles(AbsoluteChapterPath) select Path.GetFileName(x)).ToArray();
                     ChapterTools.GenerateComicReader(CurrentLanguage, Pages, NextChapterPath, TitleDir, ChapterPath, Name);
+                    string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
+                    File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
                     return;
                 }
             }
 
             if (Info.ContentType == ContentType.Novel)
             {
-                ChapterPath = Path.Combine(AbsolueChapterPath, string.Format(CurrentLanguage.ChapterName, Name) + ".epub");
+                ChapterPath = Path.Combine(AbsoluteChapterPath, string.Format(CurrentLanguage.ChapterName, Name) + ".epub");
                 if (Settings.SkipDownloaded && File.Exists(ChapterPath))
                     return;
 
             }
 
 
-            if (!Directory.Exists(AbsolueChapterPath))
-                Directory.CreateDirectory(AbsolueChapterPath);
+            if (!Directory.Exists(AbsoluteChapterPath))
+                Directory.CreateDirectory(AbsoluteChapterPath);
 
             if (NName != null)
                 ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, NName, out NextChapterPath, false);
