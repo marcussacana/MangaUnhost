@@ -67,9 +67,15 @@ namespace MangaUnhost
 
             CoverBox.Cursor = Cursors.Default;
 
-            string Path = DataTools.GetRawName(CurrentInfo.Title.Trim(), FileNameMode: true);
-            ChapterTools.MatchLibraryPath(ref Path, Settings.LibraryPath, CurrentInfo.Url, ReplaceMode.UpdateURL, CurrentLanguage);
-            RefreshCoverLink(Path);
+            string Dir = DataTools.GetRawName(CurrentInfo.Title.Trim(), FileNameMode: true);
+            ChapterTools.MatchLibraryPath(ref Dir, Settings.LibraryPath, CurrentInfo.Url, ReplaceMode.UpdateURL, CurrentLanguage);
+            RefreshCoverLink(Dir);
+
+            var OnlinePath = Path.Combine(Dir, "Online.url");
+            if (Directory.Exists(Dir) && !File.Exists(OnlinePath)) {
+                var OnlineData = string.Format(Properties.Resources.UrlFile, CurrentInfo.Url.AbsoluteUri);
+                File.WriteAllText(OnlinePath, OnlineData);
+            }
 
             ButtonsContainer.Controls.Clear();
 
@@ -178,6 +184,7 @@ namespace MangaUnhost
             int KIndex = Chapters.IndexOfKey(ID);
             string NName = null;
             string NextChapterPath = null;
+
             if (KIndex > 0)
                 NName = DataTools.GetRawName(Chapters.Values.ElementAt(KIndex - 1), FileNameMode: true);
 
