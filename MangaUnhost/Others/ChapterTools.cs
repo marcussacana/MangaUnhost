@@ -118,7 +118,7 @@ namespace MangaUnhost.Others {
                                 }
                             } catch {
                                 var OnlineData = string.Format(Properties.Resources.UrlFile, Url.AbsoluteUri);
-                                File.WriteAllText(OnlinePath, OnlineData);
+                                File.WriteAllText(OnlineUrl, OnlineData);
                             }
                         } while (true);
 
