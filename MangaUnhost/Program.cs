@@ -51,7 +51,7 @@ namespace MangaUnhost
             }
 
             FinishUpdate();
-            WineHelper();
+            //WineHelper();
             CefUpdater();
 
             Application.Run(new Main());
