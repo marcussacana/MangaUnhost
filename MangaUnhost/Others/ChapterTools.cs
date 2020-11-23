@@ -8,7 +8,7 @@ using System.Web;
 
 namespace MangaUnhost.Others {
     public static class ChapterTools {
-        public static void GenerateComicReader(ILanguage CurrentLanguage, string[] Pages, string NextChapterPath, string ComicDir, string ChapterPath, string ChapterName) {
+        public static void GenerateComicReader(ILanguage CurrentLanguage, string[] Pages, string NextChapterPath, string ComicDir, string ChapterPath, string ChapterName, string ComicURL) {
             string HtmlPath = Path.Combine(ComicDir, ChapterPath.TrimEnd('\\', '/') + ".html");
 
             ChapterPath = Path.GetFileName(ChapterPath);
@@ -110,14 +110,15 @@ namespace MangaUnhost.Others {
                             string OnlineUrl = Path.Combine(BaseDir, NDir, "Online.url");
                             if (!File.Exists(OnlineUrl))
                                 break;
-
-                            if (Ini.GetConfigStatus("InternetShorctut", "URL", OnlineUrl) != Ini.ConfigStatus.Ok)
-                                try { File.Delete(OnlineUrl); } catch { }
-
-                            var URI = Ini.GetConfig("InternetShortcut", "URL", OnlineUrl).Substring(null, "#", IgnoreMissmatch: true);
-                            if (URI.ToLower() == Url.AbsoluteUri.ToLower()) {
-                                Mode = ReplaceMode.NewFolder;
-                                break;
+                            try {
+                                var URI = Ini.GetConfig("InternetShortcut", "URL", OnlineUrl).Substring(null, "#", IgnoreMissmatch: true);
+                                if (URI.ToLower() == Url.AbsoluteUri.ToLower()) {
+                                    Mode = ReplaceMode.NewFolder;
+                                    break;
+                                }
+                            } catch {
+                                var OnlineData = string.Format(Properties.Resources.UrlFile, Url.AbsoluteUri);
+                                File.WriteAllText(OnlinePath, OnlineData);
                             }
                         } while (true);
 

@@ -71,7 +71,7 @@ namespace MangaUnhost
             ChapterTools.MatchLibraryPath(ref Dir, Settings.LibraryPath, CurrentInfo.Url, ReplaceMode.UpdateURL, CurrentLanguage);
             RefreshCoverLink(Dir);
 
-            var OnlinePath = Path.Combine(Dir, "Online.url");
+            var OnlinePath = Path.Combine(Settings.LibraryPath, Dir, "Online.url");
             if (Directory.Exists(Dir) && !File.Exists(OnlinePath)) {
                 var OnlineData = string.Format(Properties.Resources.UrlFile, CurrentInfo.Url.AbsoluteUri);
                 File.WriteAllText(OnlinePath, OnlineData);
