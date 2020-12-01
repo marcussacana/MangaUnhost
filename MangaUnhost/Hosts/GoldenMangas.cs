@@ -27,7 +27,7 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
             int ID = ChapterNames.Count;
-            foreach (var Node in Document.SelectNodes("//ul[@class=\"capitulos\"]//a[starts-with(@href, \"/manga\")]")) {
+            foreach (var Node in Document.SelectNodes("//ul[@class='capitulos']//a[starts-with(@href, '/manga')]")) {
                 string URL = HttpUtility.HtmlDecode(Node.GetAttributeValue("href", "")).EnsureAbsoluteUrl(CurrentDomain);
                 string Name = URL.Substring(URL.LastIndexOf("/") + 1);
                 Name = DataTools.GetRawName(Name);
@@ -65,7 +65,7 @@ namespace MangaUnhost.Hosts {
                 Name = "GoldenMangas",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
@@ -81,12 +81,12 @@ namespace MangaUnhost.Hosts {
 
             ComicInfo Info = new ComicInfo();
 
-            Info.Title = Document.SelectSingleNode("//h2[@class=\"cg_color\"]").InnerText;
+            Info.Title = Document.SelectSingleNode("//h2[@class='cg_color']").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
             Info.Cover = HttpUtility.HtmlDecode(Document
-                .SelectSingleNode("//div[@class=\"col-sm-4 text-right\"]/img")
-                .GetAttributeValue("src", "")).EnsureAbsoluteUrl(CurrentDomain).TryDownload();
+                .SelectSingleNode("//div[@class='col-sm-4 text-right']/img")
+                .GetAttributeValue("src", "").Substring("/timthumb.php?src=", "&amp;")).EnsureAbsoluteUrl(CurrentDomain).TryDownload();
 
             Info.ContentType = ContentType.Comic;
 
