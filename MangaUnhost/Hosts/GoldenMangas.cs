@@ -48,7 +48,7 @@ namespace MangaUnhost.Hosts {
             Document.LoadUrl(ChapterLinks[ID]);
 
             List<string> Pages = new List<string>();
-            foreach (var Node in Document.SelectNodes("//div[@id=\"capitulos_images\"]/center/img")) {
+            foreach (var Node in Document.SelectNodes("//div[@id='capitulos_images']/center/img")) {
                 Pages.Add(HttpUtility.HtmlDecode(Node.GetAttributeValue("src", "")).EnsureAbsoluteUrl(CurrentDomain));
             }
 
@@ -65,7 +65,7 @@ namespace MangaUnhost.Hosts {
                 Name = "GoldenMangas",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                Version = new Version(1, 1, 1)
             };
         }
 
@@ -86,7 +86,7 @@ namespace MangaUnhost.Hosts {
 
             Info.Cover = HttpUtility.HtmlDecode(Document
                 .SelectSingleNode("//div[@class='col-sm-4 text-right']/img")
-                .GetAttributeValue("src", "").Substring("/timthumb.php?src=", "&amp;")).EnsureAbsoluteUrl(CurrentDomain).TryDownload();
+                .GetAttributeValue("src", "").Substring("/timthumb.php?src=", "&amp;", IgnoreMissmatch: true)).EnsureAbsoluteUrl(CurrentDomain).TryDownload();
 
             Info.ContentType = ContentType.Comic;
 
