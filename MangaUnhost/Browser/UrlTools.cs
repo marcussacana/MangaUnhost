@@ -149,7 +149,7 @@ namespace MangaUnhost.Browser
                     if (Retries > 0)
                         return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries - 1);
                 }
-                Program.Writer?.WriteLine("TryDownload Error: {0}", Ex.ToString());
+                Program.Writer?.WriteLine("TryDownload Error: {0}", ex.ToString());
                 return null;
             }
         }
