@@ -119,7 +119,7 @@ namespace MangaUnhost.Browser
 
             Main.Status = Status;
 
-            Program.Writer?.WriteLine("CF Bypass Result: {0}\r\HTML: {1}", Browser.MainFrame.Url, HTML);
+            Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
 
             return new CloudflareData()
             {

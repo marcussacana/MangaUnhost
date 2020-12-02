@@ -21,7 +21,7 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var Page in GetChapterPages(ID)) {
-                yield return Page.TryDownload();
+                yield return Page.TryDownload(CFData);
             }
         }
 
@@ -45,7 +45,7 @@ namespace MangaUnhost.Hosts {
         
         public string[] GetChapterPages(int ID) {
             var Document = new HtmlDocument();
-            Document.LoadUrl(ChapterLinks[ID]);
+            Document.LoadUrl(ChapterLinks[ID], CFData);
 
             List<string> Pages = new List<string>();
             foreach (var Node in Document.SelectNodes("//div[@id='capitulos_images']/center/img")) {
@@ -65,7 +65,7 @@ namespace MangaUnhost.Hosts {
                 Name = "GoldenMangas",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1, 1)
+                Version = new Version(1, 2)
             };
         }
 
@@ -77,7 +77,7 @@ namespace MangaUnhost.Hosts {
             CurrentDomain = $"https://{Uri.Host}";
 
             Document = new HtmlDocument();
-            Document.LoadUrl(Uri);
+            Document.LoadHtml(TryDownload(Uri.AbsoluteUri));
 
             ComicInfo Info = new ComicInfo();
 
@@ -92,6 +92,29 @@ namespace MangaUnhost.Hosts {
 
             return Info;
         }
+         CloudflareData? CFData = null;
+
+        private string TryDownload(string Url) {
+            var Uri = new Uri(Url);
+            var Data = TryDownload(Uri);
+
+            return Encoding.UTF8.GetString(Data);
+        }
+        
+        private byte[] TryDownload(Uri Url, string Referer = "https://goldenmangas.top") {
+            if (CFData != null) {
+                return Url.TryDownload(Referer, CFData?.UserAgent, Cookie: CFData?.Cookies);
+            }
+            try
+            {
+                return Url.TryDownload(Referer);
+            }
+            catch {
+                CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
+                return TryDownload(Url, Referer);
+            }
+        }
+
         public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }

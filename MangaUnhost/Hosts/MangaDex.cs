@@ -221,6 +221,7 @@ namespace MangaUnhost.Hosts {
 
             return Encoding.UTF8.GetString(Data);
         }
+        
         private byte[] TryDownload(Uri Url, string Referer = "https://mangadex.org") {
             if (CFData != null) {
                 return Url.TryDownload(Referer, CFData?.UserAgent, Cookie: CFData?.Cookies);
