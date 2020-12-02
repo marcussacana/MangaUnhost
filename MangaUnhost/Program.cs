@@ -16,6 +16,7 @@ namespace MangaUnhost
 {
     static class Program
     {
+        public static TextWriter Writer = null;
         public static bool Debug => Debugger.IsAttached || File.Exists("DEBUG");
         public static string CurrentAssembly => Assembly.GetExecutingAssembly().Location;
         public static string CefDir => Path.Combine(Path.GetDirectoryName(CurrentAssembly), (Environment.Is64BitProcess ? "x64" : "x86"));
@@ -32,6 +33,9 @@ namespace MangaUnhost
         [STAThread]
         static void Main()
         {
+            if (Debug)
+                Writer = System.IO.File.CreateText(Path.Combine(Path.GetDirectoryName(CurrentAssembly), "Debug.log"));                
+            
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadFromPlatformFolder);
 
             string PluginDir = Path.Combine(Path.GetDirectoryName(CurrentAssembly), "Plugins");
@@ -84,7 +88,8 @@ namespace MangaUnhost
             if (!Outdated)
             {
                 var VerStr = FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion;
-                if (new Version(VerStr) != new Version(75, 1, 143, 0))
+                //if (new Version(VerStr) != new Version(75, 1, 143, 0))
+                if (new Version(VerStr) != new Version(79, 1, 360, 0))
                 {
                     Outdated = true;
                 }

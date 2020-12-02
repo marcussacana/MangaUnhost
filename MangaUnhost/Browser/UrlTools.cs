@@ -1,4 +1,5 @@
-﻿using MangaUnhost.Others;
+﻿using MangaUnhost;
+using MangaUnhost.Others;
 using Nito.AsyncEx;
 using System;
 using System.IO;
@@ -39,6 +40,8 @@ namespace MangaUnhost.Browser
             var Https = BaseUri.AbsoluteUri.ToLowerInvariant().StartsWith("https");
             domain = (Https ? "https://" : "http://") + BaseUri.Host;
             BaseUri = new Uri(domain);
+
+            Program.Writer?.WriteLine("Abs Uri Result: {0}", new Uri(BaseUri, url).AbsoluteUri);
 
             return new Uri(BaseUri, url).AbsoluteUri;
         }
@@ -88,6 +91,8 @@ namespace MangaUnhost.Browser
             string HTML = Encoding.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Cookies, AcceptableErrors) ?? new byte[0]);
 
             Document.LoadHtml(HTML);
+
+            Program.Writer?.WriteLine("Load URL: {0}\r\nHMTL: {1}", Url.AbsoluteUri, HTML);
         }
 
         public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
@@ -144,6 +149,7 @@ namespace MangaUnhost.Browser
                     if (Retries > 0)
                         return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries - 1);
                 }
+                Program.Writer?.WriteLine("TryDownload Error: {0}", Ex.ToString());
                 return null;
             }
         }
