@@ -1,4 +1,5 @@
-﻿using Ionic.Zip;
+﻿using System.Net;
+using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
@@ -17,7 +18,7 @@ namespace MangaUnhost
     static class Program
     {
         public static TextWriter Writer = null;
-        public static bool Debug => Debugger.IsAttached || File.Exists("DEBUG");
+        public static bool Debug = Debugger.IsAttached || File.Exists("DEBUG");
         public static string CurrentAssembly => Assembly.GetExecutingAssembly().Location;
         public static string CefDir => Path.Combine(Path.GetDirectoryName(CurrentAssembly), (Environment.Is64BitProcess ? "x64" : "x86"));
         public static string SettingsPath = AppDomain.CurrentDomain.BaseDirectory + "MangaUnhost.ini";
@@ -59,6 +60,9 @@ namespace MangaUnhost
             CefUpdater();
 
             Application.Run(new Main());
+
+            if (Debug)
+                Writer.Flush();
         }
 
         private static void FinishUpdate()

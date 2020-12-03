@@ -71,7 +71,9 @@ namespace MangaUnhost.Browser
         public static T EvaluateScript<T>(this IFrame Frame, string Script) => (T)Frame.EvaluateScript(Script);
         public static object EvaluateScript(this IFrame Frame, string Script)
         {
-            Program.Writer?.WriteLine("EVAL At: {0}\r\nScript: {1}", Frame.Url, Script);
+            if (Program.Debug)
+                Program.Writer?.WriteLine("EVAL At: {0}\r\nScript: {1}", Frame.Url, Script);
+            
             Frame.WaitForLoad();
 
             return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
@@ -119,7 +121,8 @@ namespace MangaUnhost.Browser
 
             Main.Status = Status;
 
-            Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
+            if (Program.Debug)
+                Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
 
             return new CloudflareData()
             {
