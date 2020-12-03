@@ -3,9 +3,7 @@ using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
 namespace MangaUnhost.Hosts {
@@ -65,7 +63,7 @@ namespace MangaUnhost.Hosts {
                 Name = "GoldenMangas",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
@@ -84,14 +82,17 @@ namespace MangaUnhost.Hosts {
             Info.Title = Document.SelectSingleNode("//h2[@class='cg_color']").InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            Info.Cover = HttpUtility.HtmlDecode(Document
+            Info.Cover = TryDownload(new Uri(Document
                 .SelectSingleNode("//div[@class='col-sm-4 text-right']/img")
-                .GetAttributeValue("src", "").Substring("/timthumb.php?src=", "&amp;", IgnoreMissmatch: true)).EnsureAbsoluteUrl(CurrentDomain).TryDownload();
+                .GetAttributeValue("src", "")
+                .Substring("/timthumb.php?src=", "&", IgnoreMissmatch: true)
+                .EnsureAbsoluteUrl(CurrentDomain)));
 
             Info.ContentType = ContentType.Comic;
 
             return Info;
         }
+
          CloudflareData? CFData = null;
 
         private string TryDownload(string Url) {
@@ -107,7 +108,7 @@ namespace MangaUnhost.Hosts {
             }
             try
             {
-                return Url.TryDownload(Referer);
+                return Url.TryDownload(Referer) ?? throw new Exception();
             }
             catch {
                 CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
