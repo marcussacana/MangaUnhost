@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using System.ComponentModel;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
@@ -44,8 +45,12 @@ namespace MangaUnhost.Hosts
             var XPATH = "//li[starts-with(@class, 'wp-manga-chapter')]/a";
             var Nodes = Document.SelectNodes(XPATH);
 
-            if (Nodes == null || Nodes.Count == 0)
+            var Begin = DateTime.Now;
+            while (Nodes == null || Nodes.Count == 0)
             {
+                if ((DateTime.Now - Begin).TotalSeconds > 15)
+                    break;
+
                 var Browser = JSTools.DefaultBrowser;
                 Browser.WaitForLoad(CurrentUrl.AbsoluteUri);
                 Document = Browser.GetDocument();
@@ -118,7 +123,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 7)
+                Version = new Version(1, 8)
             };
         }
 
