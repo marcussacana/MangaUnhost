@@ -66,7 +66,7 @@ namespace MangaUnhost.Hosts
             Document = new HtmlDocument();
             Document.LoadUrl(Uri);
 
-            var Signature = Document.SelecSingleNode("//h1[@class='title']/span");
+            var Signature = Document.SelectSingleNode("//h1[@class='title']/span");
             Signature.Remove();
 
             ComicInfo Info = new ComicInfo();
