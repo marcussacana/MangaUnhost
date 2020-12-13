@@ -69,7 +69,7 @@ namespace MangaUnhost.Hosts
             Document.LoadHtml(HTML);
 
             if (Program.Debug){
-                Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Url.AbsoluteUri, HTML);
+                Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Uri.AbsoluteUri, HTML);
                 Program.Writer?.Flush();
             }
             
