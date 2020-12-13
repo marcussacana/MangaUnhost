@@ -4,6 +4,7 @@ using MangaUnhost.Decoders;
 using System;
 using System.Collections.Generic;
 using System.Web;
+using System.Text;
 
 namespace MangaUnhost.Hosts
 {
