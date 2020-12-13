@@ -19,7 +19,7 @@ namespace MangaUnhost.Hosts
             foreach (var Node in Document.SelectNodes("//div[@class='fotos']/div[@class='foto']/img"))
             {
                 var Link = Node.GetAttributeValue("src", "").EnsureAbsoluteUrl("https://www.hqhentai.com.br");
-                yield return Link.TryDownload();
+                yield return TryDownload(new Uri(Link));
             }
         }
 
@@ -64,7 +64,13 @@ namespace MangaUnhost.Hosts
             CurrentUrl = Uri;
             
             Document = new HtmlDocument();
-            Document.LoadUrl(Uri);
+            var HTML = Encoding.UTF8.GetString(TryDownload(Uri));
+            Document.LoadHtml(HTML);
+
+            if (Program.Debug){
+                Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Url.AbsoluteUri, HTML);
+                Program.Writer?.Flush();
+            }
             
             foreach (var Node in Document.SelectNodes("//span[@class='none']"))
                 Node.Remove();
@@ -78,6 +84,23 @@ namespace MangaUnhost.Hosts
             return Info;
 
         }
+
+        CloudflareData? CFData = null;
+
+        private byte[] TryDownload(Uri Url, string Referer = "https://www.hqhentai.com.br/") {
+            if (CFData != null) {
+                return Url.TryDownload(Referer, CFData?.UserAgent, Cookie: CFData?.Cookies);
+            }
+            try
+            {
+                return Url.TryDownload(Referer);
+            }
+            catch {
+                CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
+                return TryDownload(Url, Referer);
+            }
+        }
+
         public bool IsValidPage(string HTML, Uri URL) => false;
     }
 }
