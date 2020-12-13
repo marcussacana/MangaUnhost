@@ -72,11 +72,13 @@ namespace MangaUnhost.Hosts
                 Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Uri.AbsoluteUri, HTML);
                 Program.Writer?.Flush();
             }
+            
+            foreach (var Node in Document.SelectNodes("//span[@class='none']"))
+                Node.Remove();
 
             ComicInfo Info = new ComicInfo();
             Info.ContentType = ContentType.Comic;
-            Info.Title = HttpUtility.HtmlDecode(Document.SelectSingleNode("//h1[@class='title']").InnerText);
-            Info.Title = Info.Title.Substring(null, "- Quadrinhos Porno");
+            Info.Title = HttpUtility.HtmlDecode(Document.SelectSingleNode("//h1[@class='Title']").InnerText);
             Info.Cover = HttpUtility.HtmlDecode(Document.SelectSingleNode("//figure/img").GetAttributeValue("src", "")).TryDownload();
             Info.Url = Uri;
 
