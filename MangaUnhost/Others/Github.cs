@@ -17,7 +17,7 @@ class GitHub {
     public static string CurrentVersion {
         get {
             var Version = FileVersionInfo.GetVersionInfo(MainExecutable);
-            return Version.FileMajorPart + "." + Version.FileMinorPart;
+            return Version.FileMajorPart + "." + Version.FileMinorPart + "." + Version.FileBuildPart;
         }
     }
     public GitHub(string Username, string Project) {
