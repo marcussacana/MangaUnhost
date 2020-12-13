@@ -76,7 +76,7 @@ namespace MangaUnhost.Hosts
             ComicInfo Info = new ComicInfo();
             Info.ContentType = ContentType.Comic;
             Info.Title = HttpUtility.HtmlDecode(Document.SelectSingleNode("//h1[@class='title']").InnerText);
-            Info.Tile = Info.Title.Substring(null, "- Quadrinhos Porno");
+            Info.Title = Info.Title.Substring(null, "- Quadrinhos Porno");
             Info.Cover = HttpUtility.HtmlDecode(Document.SelectSingleNode("//figure/img").GetAttributeValue("src", "")).TryDownload();
             Info.Url = Uri;
 
