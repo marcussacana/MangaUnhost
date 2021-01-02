@@ -249,7 +249,7 @@ namespace MangaUnhost
                 case ContentType.Comic:
                     var Decoder = Host.GetDecoder();
                     List<string> Pages = new List<string>();
-                    foreach (var Data in Host.DownloadPages(ID))
+                    foreach (var Data in Host.DownloadPages(ID).CatchExceptions())
                     {
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
                         Application.DoEvents();

@@ -20,7 +20,7 @@ namespace MangaUnhost.Hosts {
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
         Dictionary<int, string> ChapterPages = new Dictionary<int, string>();
 
-        CloudflareData? Cloudflare;
+        static CloudflareData? Cloudflare;
 
         public NovelChapter DownloadChapter(int ID) {
             throw new NotImplementedException();

@@ -93,7 +93,7 @@ namespace MangaUnhost.Hosts {
             return Info;
         }
 
-         CloudflareData? CFData = null;
+        static CloudflareData? CFData = null;
 
         private string TryDownload(string Url) {
             var Uri = new Uri(Url);
