@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using System.ComponentModel;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
@@ -41,15 +42,22 @@ namespace MangaUnhost.Hosts
         {
             int ID = LinkMap.Count;
 
-            var XPATH = "//li[starts-with(@class, \"wp-manga-chapter\")]/a";
+            var XPATH = "//li[starts-with(@class, 'wp-manga-chapter')]/a";
             var Nodes = Document.SelectNodes(XPATH);
 
-            if (Nodes == null || Nodes.Count == 0)
-            {
+
+            if (Nodes == null || Nodes.Count == 0) {
                 var Browser = JSTools.DefaultBrowser;
                 Browser.WaitForLoad(CurrentUrl.AbsoluteUri);
-                Document = Browser.GetDocument();
-                Nodes = Document.SelectNodes(XPATH);
+
+                var Begin = DateTime.Now;
+                while (Nodes == null || Nodes.Count == 0)
+                {
+                    if ((DateTime.Now - Begin).TotalSeconds > 20)
+                        break;
+                    Document = Browser.GetDocument();
+                    Nodes = Document.SelectNodes(XPATH);
+                }
             }
 
             foreach (var Node in ReverseChapters ? Nodes.Reverse() : Nodes)
@@ -118,7 +126,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 6)
+                Version = new Version(1, 8, 1)
             };
         }
 
@@ -132,7 +140,7 @@ namespace MangaUnhost.Hosts
         }
         public bool IsValidPage(string HTML, Uri URL)
         {
-            if (!HTML.Contains("wp-manga-chapter"))
+            if (!HTML.Contains("wp-manga-chapter") && !HTML.Contains("wpManga"))
                 return false;
 
             if (URL.AbsolutePath.ToLower().Contains("manga/"))
@@ -159,12 +167,12 @@ namespace MangaUnhost.Hosts
             }
 
             ComicInfo Info = new ComicInfo();
-            Info.Title = Document.SelectSingleNode("//div[@class=\"post-title\"]/*[self::h3 or self::h2 or self::h1]").InnerText.Trim();
+            Info.Title = Document.SelectSingleNode("//div[@class='post-title']/*[self::h3 or self::h2 or self::h1]").InnerText.Trim();
             if (Info.Title.ToUpper().StartsWith("HOT"))
                 Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
 
-            var ImgNode = Document.SelectSingleNode("//div[@class=\"summary_image\"]/a/img");
+            var ImgNode = Document.SelectSingleNode("//div[@class='summary_image']/a/img");
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
 

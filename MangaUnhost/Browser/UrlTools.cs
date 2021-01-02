@@ -93,8 +93,10 @@ namespace MangaUnhost.Browser
 
             Document.LoadHtml(HTML);
             
-            if (Program.Debug)
-                Program.Writer?.WriteLine("Load URL: {0}\r\nHMTL: {1}", Url.AbsoluteUri, HTML);
+            if (Program.Debug){
+                Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Url.AbsoluteUri, HTML);
+                Program.Writer?.Flush();
+            }
         }
 
         public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
@@ -151,8 +153,10 @@ namespace MangaUnhost.Browser
                     if (Retries > 0)
                         return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries - 1);
                 }
-                if (Program.Debug)
+                if (Program.Debug) {
                     Program.Writer?.WriteLine("TryDownload Error: {0}", ex.ToString());
+                    Program.Writer?.Flush();
+                }
                 return null;
             }
         }

@@ -94,25 +94,7 @@
     <Compile Include="Downloader.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Hosts\Batoto.cs" />
-    <Compile Include="Hosts\GoldenMangas.cs" />
-    <Compile Include="Hosts\HeavenManga.cs" />
-    <Compile Include="Hosts\HentaiCafe.cs" />
-    <Compile Include="Hosts\HentaiNexus.cs" />
-    <Compile Include="Hosts\HipercooL.cs" />
-    <Compile Include="Hosts\KissManga.cs" />
-    <Compile Include="Hosts\LHScan.cs" />
-    <Compile Include="Hosts\MangaDex.cs" />
-    <Compile Include="Hosts\MangaHasu.cs" />
-    <Compile Include="Hosts\MangaHere.cs" />
-    <Compile Include="Hosts\MangaHost.cs" />
-    <Compile Include="Hosts\MangaNelo.cs" />
-    <Compile Include="Hosts\MangaLivre.cs" />
-    <Compile Include="Hosts\NHentai.cs" />
-    <Compile Include="Hosts\Tsumino.cs" />
-    <Compile Include="Hosts\UnionMangas.cs" />
-    <Compile Include="Hosts\Webtoons.cs" />
-    <Compile Include="Hosts\WordpressManga.cs" />
+    <Compile Include="Hosts\*.cs" />
     <Compile Include="Decoders\CommonImage.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Interfaces.cs" />
