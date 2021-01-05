@@ -8,6 +8,7 @@ namespace MangaUnhost.Browser
 {
     public class JsDialogHandler : IJsDialogHandler
     {
+        
         public bool OnJSDialog(IWebBrowser browserControl, IBrowser browser, string originUrl, CefJsDialogType dialogType, string messageText, string defaultPromptText, IJsDialogCallback callback, ref bool suppressMessage)
         {
             suppressMessage = true;
@@ -22,6 +23,11 @@ namespace MangaUnhost.Browser
         public void OnResetDialogState(IWebBrowser browserControl, IBrowser browser)
         {
 
+        }
+
+        public bool OnBeforeUnloadDialogIWebBrowser( browserControl, IBrowser browser, string message, bool isReload, IJsDialogCallback callback)
+        {
+            return false;
         }
 
         public void OnDialogClosed(IWebBrowser browserControl, IBrowser browser)
