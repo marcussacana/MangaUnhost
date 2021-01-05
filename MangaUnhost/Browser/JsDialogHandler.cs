@@ -25,7 +25,7 @@ namespace MangaUnhost.Browser
 
         }
 
-        public bool OnBeforeUnloadDialogIWebBrowser( browserControl, IBrowser browser, string message, bool isReload, IJsDialogCallback callback)
+        public bool OnBeforeUnloadDialog(IWebBrowser browserControl, IBrowser browser, string message, bool isReload, IJsDialogCallback callback)
         {
             return false;
         }
