@@ -85,6 +85,7 @@ namespace MangaUnhost.Browser
             Main.Status = Main.Language.BypassingCloudFlare;
 
             var Browser = DefaultBrowser.GetBrowser();
+            DefaultBrowser.JsDialogHandler = new JsDialogHandler();
             DefaultBrowser.Load(Url);
             Browser.WaitForLoad();
 
