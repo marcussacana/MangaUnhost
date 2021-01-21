@@ -158,7 +158,8 @@ namespace MangaUnhost
                     AutoLibUpCheck = Program.IsRealWindows,
                     LibraryPath = DefaultLibPath,
                     ReplaceMode = 1,
-                    ReaderMode = 0
+                    ReaderMode = 0,
+                    MaxPagesBuffer = 0
                 };
             }
 

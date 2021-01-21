@@ -1,4 +1,5 @@
-﻿using CefSharp;
+﻿using System.Reflection.Metadata;
+using CefSharp;
 using EPubFactory;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
@@ -307,8 +308,8 @@ namespace MangaUnhost
 
                             if (PostProcessQueue.Count > 5)
                             {
-                                const ulong MinMemory = 100000000;
-                                while (AvailablePhysicalMemory < MinMemory && PostProcessQueue.Count > 0) {
+                                const ulong MinMemory = 400000000;
+                                while (AvailablePhysicalMemory < MinMemory && PostProcessQueue.Count > 0 || (Main.Config.MaxPagesBuffer != 0 && PostProcessQueue.Count && Main.Config.MaxPagesBuffer >= MaxPagesBuffer)) {
                                     ThreadTools.Wait(1000, true);
                                 }
                             }
