@@ -308,7 +308,7 @@ namespace MangaUnhost
                             if (PostProcessQueue.Count > 5)
                             {
                                 const ulong MinMemory = 400000000;
-                                while (AvailablePhysicalMemory < MinMemory && PostProcessQueue.Count > 0 || (Settings.MaxPagesBuffer != 0 && Settings.MaxPagesBuffer >= PostProcessQueue.Count)) {
+                                while (AvailablePhysicalMemory < MinMemory && PostProcessQueue.Count > 0 || (Settings.MaxPagesBuffer != 0 && PostProcessQueue.Count >= Settings.MaxPagesBuffer)) {
                                     ThreadTools.Wait(1000, true);
                                 }
                             }
