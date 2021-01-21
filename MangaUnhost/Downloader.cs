@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-using CefSharp;
+﻿using CefSharp;
 using EPubFactory;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
