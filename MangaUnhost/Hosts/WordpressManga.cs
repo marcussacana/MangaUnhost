@@ -67,8 +67,12 @@ namespace MangaUnhost.Hosts
 
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim();
+                    
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(' ', '\t', '.');
+                    
+                if (Name.StartsWith("cap"))
+                    Name = Name.Substring("cap").Trim(' ', '\t', '.');
 
                 if (Name.StartsWith("ch."))
                     Name = Name.Substring("ch.", " ", IgnoreMissmatch: true);
