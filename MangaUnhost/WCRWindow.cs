@@ -37,6 +37,7 @@ namespace MangaUnhost
                 Text = value;
             }
         }
+
         ChromiumWebBrowser Browser;
         public WCRWindow(int ID, string[] Chapters)
         {
@@ -98,6 +99,7 @@ namespace MangaUnhost
             FormBorderStyle = FormBorderStyle.None;
             WindowState = FormWindowState.Normal;
             Size = CurrentScreen.Bounds.Size;
+            Location = CurrentScreen.Bounds.Location;
             Focus();
         }
 
