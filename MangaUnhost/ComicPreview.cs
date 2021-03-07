@@ -40,12 +40,14 @@ namespace MangaUnhost
         }
 
         ILanguage Language => Main.Language;
+
         bool CoverFound = false;
         bool ChapsFound = false;
         bool IndexFound = false;
-        string ComicPath;
-        string ChapPath;
+
         string IndexPath;
+        public string ComicPath { get; private set; }
+        public string ChapPath { get; private set; }
 
         string HTML = null;
 
@@ -57,11 +59,12 @@ namespace MangaUnhost
 
         public bool Initialized { get; private set; }
 
+        Action<string> OnExportAllAs;
 
         static Dictionary<string, ComicInfo> InfoCache = new Dictionary<string, ComicInfo>();
         static Dictionary<string, int> CountCache = new Dictionary<string, int>();
 
-        public ComicPreview(string ComicDir)
+        public ComicPreview(string ComicDir, Action<string> OnExportAllAs)
         {
             InitializeComponent();
             ComicPath += ComicDir;
@@ -71,6 +74,7 @@ namespace MangaUnhost
             lblNewChapters.Text = Language.Loading;
             ConvertTo.Text = Language.ConvertTo;
             ExportAs.Text = Language.ExportAs;
+            ExportAllAs.Text = Language.ExportAllAs; 
             OpenDirectory.Text = Language.OpenDirectory;
             OpenChapter.Text = Language.OpenChapter;
             Refresh.Text = Language.Refresh;
@@ -78,6 +82,8 @@ namespace MangaUnhost
 
             Refresh.Visible = Main.Config.AutoLibUpCheck;
             UpdateCheck.Visible = !Main.Config.AutoLibUpCheck;
+
+            this.OnExportAllAs = OnExportAllAs;
 
             Visible = true;
 
@@ -384,6 +390,12 @@ namespace MangaUnhost
             BeginInvoke(new MethodInvoker(() => CBZExportChapters(null)));
         }
 
+
+        private void ExportEverythingAs_Clicked(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => OnExportAllAs(null)));
+        }
+
         ShellContainer ChaptersDir => (ShellContainer)ShellObject.FromParsingName(ChapPath);
         private void ExportChapters(string Format, string OutputDir = null)
         {
@@ -448,9 +460,9 @@ namespace MangaUnhost
             return ChapOutDir;
         }
 
-        private void CBZExportChapters(string Format)
+        public void CBZExportChapters(string Format, string OutDirectory = null, string NamePrefix = "")
         {
-            var OutDir = SelectDirectory();
+            var OutDir = OutDirectory ?? SelectDirectory();
             if (OutDir == null)
                 return;
 
@@ -467,7 +479,7 @@ namespace MangaUnhost
 
                 Main.Status = Language.Compressing;
                 Main.SubStatus = ChapName;
-                CreateCBZ(ChapDir, Path.Combine(OutDir, ChapName + ".cbz"));
+                CreateCBZ(ChapDir, Path.Combine(OutDir, NamePrefix + ChapName + ".cbz"));
 
                 if (Format != null)
                     Directory.Delete(ChapDir, true);
@@ -476,6 +488,7 @@ namespace MangaUnhost
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
         }
+
         private void CreateCBZ(string InputDir, string Output)
         {
             using (ZipFile Zip = new ZipFile())

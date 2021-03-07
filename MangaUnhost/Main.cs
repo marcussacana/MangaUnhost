@@ -778,7 +778,7 @@ namespace MangaUnhost
 
             foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
             {
-                Try(() => LibraryContainer.Controls.Add(new ComicPreview(Comic)));
+                Try(() => LibraryContainer.Controls.Add(new ComicPreview(Comic, ExportLibrary)));
                 Thread.Sleep(10);
                 Application.DoEvents();
             }
@@ -790,6 +790,18 @@ namespace MangaUnhost
                 foreach (var Control in LibraryContainer.Controls)
                     Try(() => ((ComicPreview)Control).GetComicInfo(true));
             }
+        }
+
+        private void ExportLibrary(string Format) {
+            foreach (var Comic in LibraryContainer.Controls.Cast<ComicPreview>()) {
+                try
+                {
+                    var Name = Path.GetFileName(Comic.ComicPath.TrimEnd('/', '\\', ' ')).Trim() + " - ";
+                    Comic.CBZExportChapters(Format, Settings.LibraryPath, Name);
+                }
+                catch { }
+            }
+            Status = CurrentLanguage.IDLE;
         }
 
         public void RefreshLibrary()

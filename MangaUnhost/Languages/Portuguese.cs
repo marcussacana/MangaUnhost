@@ -123,6 +123,7 @@
         public string OpenDirectory => "Abrir Pasta";
         public string OpenChapter => "Abrir Capítulo";
         public string ExportAs => "Exportar Como";
+        public string ExportAllAs => "Exportar Biblioteca para CBZ";
         public string ConvertTo => "Converter Para";
         public string SelectASaveDir => "Selecione uma pasta para salvar";
         public string Refresh => "Atualizar";
