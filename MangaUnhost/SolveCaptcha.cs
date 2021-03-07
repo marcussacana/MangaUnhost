@@ -149,6 +149,8 @@ namespace MangaUnhost
             }
         }
 
+        bool Frameskip = false;
+
         private void RefreshTick(object sender, EventArgs e)
         {
             if (ScreenBox.Visible)
@@ -161,7 +163,11 @@ namespace MangaUnhost
                     {
                         Graphics.DrawImage(Screenshot, 0, 0, FrameRect, GraphicsUnit.Pixel);
                         Graphics.Flush(System.Drawing.Drawing2D.FlushIntention.Sync);
-                        ScreenBox.Invalidate();
+                        
+                        Frameskip = !Frameskip;
+                        
+                        if (Frameskip)
+                            ScreenBox.Invalidate();
                     }
                     catch { }
                 }

@@ -35,7 +35,7 @@
             // 
             // Refresh
             // 
-            this.Refresh.Interval = 35;
+            this.Refresh.Interval = 40;
             this.Refresh.Tick += new System.EventHandler(this.RefreshTick);
             // 
             // StatusCheck
@@ -62,6 +62,8 @@
             this.ThemeContainer.IconStyle = VSContainer.@__IconStyle.FormIcon;
             this.ThemeContainer.Location = new System.Drawing.Point(0, 0);
             this.ThemeContainer.Name = "ThemeContainer";
+            this.ThemeContainer.NoTitleWrap = false;
+            this.ThemeContainer.ShowDots = false;
             this.ThemeContainer.ShowIcon = true;
             this.ThemeContainer.Size = new System.Drawing.Size(400, 620);
             this.ThemeContainer.TabIndex = 0;

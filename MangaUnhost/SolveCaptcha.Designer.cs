@@ -35,7 +35,7 @@
             // 
             // Refresh
             // 
-            this.Refresh.Interval = 35;
+            this.Refresh.Interval = 40;
             this.Refresh.Tick += new System.EventHandler(this.RefreshTick);
             // 
             // StatusCheck
@@ -62,6 +62,8 @@
             this.ThemeContainer.IconStyle = VSContainer.@__IconStyle.FormIcon;
             this.ThemeContainer.Location = new System.Drawing.Point(0, 0);
             this.ThemeContainer.Name = "ThemeContainer";
+            this.ThemeContainer.NoTitleWrap = false;
+            this.ThemeContainer.ShowDots = false;
             this.ThemeContainer.ShowIcon = true;
             this.ThemeContainer.Size = new System.Drawing.Size(400, 620);
             this.ThemeContainer.TabIndex = 0;
@@ -78,6 +80,7 @@
             this.RadialProgBar.Name = "RadialProgBar";
             this.RadialProgBar.ProgressColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(66)))));
             this.RadialProgBar.RotationAngle = 255;
+            this.RadialProgBar.ShowText = false;
             this.RadialProgBar.Size = new System.Drawing.Size(78, 78);
             this.RadialProgBar.StartingAngle = 360;
             this.RadialProgBar.TabIndex = 1;

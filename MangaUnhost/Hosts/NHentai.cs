@@ -15,6 +15,7 @@ namespace MangaUnhost.Hosts {
         static ChromiumWebBrowser Browser = null;
 
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
+        Dictionary<string, string[]> PageLinks = new Dictionary<string, string[]>();
 
         public NovelChapter DownloadChapter(int ID) {
             throw new NotImplementedException();
@@ -37,15 +38,22 @@ namespace MangaUnhost.Hosts {
         }
 
         private string[] GetChapterPages(int ID) {
-            var Document = DownloadDocument(new Uri(ChapterLinks[ID]));
-            var Nodes = Document.DocumentNode.SelectNodes("//div[@id=\"thumbnail-container\"]/div/a/img");
+            var URI = ChapterLinks[ID];
+
+            if (PageLinks.ContainsKey(URI + ID))
+                return PageLinks[URI + ID];
+
+            const string ContainerQuery = "//div[@class=\"thumb-container\"]/a/img";
+
+            var Document = DownloadDocument(new Uri(URI));
+            var Nodes = Document.DocumentNode.SelectNodes(ContainerQuery);
 
             while (Nodes == null) {
                 SolveCaptcha();
                 SkipSlowDown();
 
                 Document = DownloadDocument(new Uri(ChapterLinks[ID]));
-                Nodes = Document.DocumentNode.SelectNodes("//div[@id=\"thumbnail-container\"]/div/a/img");
+                Nodes = Document.DocumentNode.SelectNodes(ContainerQuery);
             }
 
             List<string> Pages = new List<string>();
@@ -56,8 +64,9 @@ namespace MangaUnhost.Hosts {
                 PageUrl = PageUrl.Replace("t.jpg", ".jpg").Replace("t.png", ".png").Replace("t.bmp", ".bmp");
                 Pages.Add(PageUrl);
             }
+            
 
-            return Pages.ToArray();
+            return PageLinks[URI + ID] = Pages.ToArray();
         }
 
         public IDecoder GetDecoder() {
@@ -70,7 +79,7 @@ namespace MangaUnhost.Hosts {
                 Name = "NHentai",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 

@@ -78,6 +78,7 @@ namespace MangaUnhost {
             }
         }
 
+        bool Frameskip = false;
         private void RefreshTick(object sender, EventArgs e) {
             if (ScreenBox.Visible) {
                 using (var Screenshot = ChromiumBrowser.ScreenshotOrNull()) {
@@ -86,7 +87,9 @@ namespace MangaUnhost {
                     try {
                         Graphics.DrawImage(Screenshot, 0, 0, ViewRectangle, GraphicsUnit.Pixel);
                         Graphics.Flush(System.Drawing.Drawing2D.FlushIntention.Sync);
-                        ScreenBox.Invalidate();
+                        Frameskip = !Frameskip;
+                        if (Frameskip) 
+                            ScreenBox.Invalidate();
                     } catch { }
                 }
             } else {
