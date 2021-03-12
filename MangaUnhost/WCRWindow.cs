@@ -19,7 +19,10 @@ namespace MangaUnhost
             set
             {
                 if (InvokeRequired)
-                    Invoke(new MethodInvoker(() => ID = value));
+                {
+                    BeginInvoke(new MethodInvoker(() => ID = value));
+                    return;
+                }
 
                 bool Refresh = CurrentID != value;
                 CurrentID = value;
@@ -150,7 +153,7 @@ namespace MangaUnhost
         }
         public async Task close()
         {
-            Window.Invoke(new MethodInvoker(() => Window.Close()));
+            Window.BeginInvoke(new MethodInvoker(() => Window.Close()));
         }
         public async Task next()
         {
