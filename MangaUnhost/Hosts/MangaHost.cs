@@ -87,7 +87,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 1)
+                Version = new Version(2, 2)
             };
         }
 
@@ -106,7 +106,7 @@ namespace MangaUnhost.Hosts {
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
             Info.Cover = new Uri(Document
-                .SelectSingleNode("//div[@class=\"widget\"]/img")
+                .SelectSingleNode("//div[@class=\"widget\"]//img")
                 .GetAttributeValue("src", string.Empty)).TryDownload();
 
             Info.ContentType = ContentType.Comic;
