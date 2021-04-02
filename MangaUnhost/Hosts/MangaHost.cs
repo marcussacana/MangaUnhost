@@ -86,7 +86,7 @@ namespace MangaUnhost.Hosts
         private HtmlDocument GetChapterHtml(int ID)
         {
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent);
+            Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
             return Document;
         }
 
@@ -103,7 +103,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 0)
+                Version = new Version(3, 0, 1)
             };
         }
 
@@ -113,7 +113,7 @@ namespace MangaUnhost.Hosts
         }
 
 
-        WebExceptionStatus[] Errors => new WebExceptionStatus[] { WebExceptionStatus.ConnectionClosed };
+        WebExceptionStatus[] Errors => new WebExceptionStatus[] { WebExceptionStatus.ConnectionClosed, WebExceptionStatus.ProtocolError };
         public ComicInfo LoadUri(Uri Uri)
         {
             Document = new HtmlDocument();

@@ -258,12 +258,19 @@ namespace MangaUnhost.Browser
 
                 long Length = -1;
 
-                do {
-                    CurLine = Reader.ReadLine();
-                    if (CurLine.StartsWith("Content-Length:"))
-                        Length = long.Parse(CurLine.Substring(":").Trim());
-                    
-                } while (CurLine != "");
+                try
+                {
+                    do
+                    {
+                        CurLine = Reader.ReadLine();
+                        if (CurLine.StartsWith("Content-Length:"))
+                            Length = long.Parse(CurLine.Substring(":").Trim());
+
+                    } while (CurLine != "");
+                }
+                catch {
+                    return null;
+                }
 
                 if (Length == -1)
                 {
@@ -274,13 +281,18 @@ namespace MangaUnhost.Browser
                     catch { }
                 }
                 else {
-                    long Reaming = Length;
-                    byte[] Tmp = new byte[1024];
-                    while (Reaming > 0) {
-                        int Readed = SslStream.Read(Tmp, 0, Reaming < Tmp.Length ? (int)Reaming : Tmp.Length);
-                        Buffer.Write(Tmp, 0, Readed);
-                        Reaming -= Readed;
+                    try
+                    {
+                        long Reaming = Length;
+                        byte[] Tmp = new byte[1024];
+                        while (Reaming > 0)
+                        {
+                            int Readed = SslStream.Read(Tmp, 0, Reaming < Tmp.Length ? (int)Reaming : Tmp.Length);
+                            Buffer.Write(Tmp, 0, Readed);
+                            Reaming -= Readed;
+                        }
                     }
+                    catch { }
                 }
 
                 return Buffer.ToArray();
