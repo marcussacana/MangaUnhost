@@ -224,7 +224,7 @@ namespace MangaUnhost.Browser
         public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null)
         {
             TcpClient Tcp = new TcpClient(Url.Host, 443);
-            Tcp.ReceiveTimeout = 1000 * 5;
+            Tcp.ReceiveTimeout = 1000 * 30;
             var TcpStream = Tcp.GetStream();
             var SslStream = new SslStream(TcpStream);
             SslStream.AuthenticateAsClient(Url.Host);
@@ -272,28 +272,12 @@ namespace MangaUnhost.Browser
                     return null;
                 }
 
-                if (Length == -1)
+                try
                 {
-                    try
-                    {
-                        SslStream.CopyTo(Buffer, 1);
-                    }
-                    catch { }
+                    SslStream.CopyTo(Buffer, 1);
                 }
-                else {
-                    try
-                    {
-                        long Reaming = Length;
-                        byte[] Tmp = new byte[1024];
-                        while (Reaming > 0)
-                        {
-                            int Readed = SslStream.Read(Tmp, 0, Reaming < Tmp.Length ? (int)Reaming : Tmp.Length);
-                            Buffer.Write(Tmp, 0, Readed);
-                            Reaming -= Readed;
-                        }
-                    }
-                    catch { }
-                }
+                catch { }
+                
 
                 return Buffer.ToArray();
             }
