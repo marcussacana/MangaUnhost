@@ -5,7 +5,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -27,7 +30,7 @@ namespace MangaUnhost.Browser
 
         public static Uri EnsureAbsoluteUri(this string url, Uri domain) => new Uri(url.EnsureAbsoluteUrl(domain.AbsoluteUri));
         public static Uri EnsureAbsoluteUri(this string url, string domain) => new Uri(url.EnsureAbsoluteUrl(domain));
-        
+
         public static string EnsureAbsoluteUrl(this Uri url, Uri domain) => url.AbsoluteUri.EnsureAbsoluteUrl(domain.AbsoluteUri);
         public static string EnsureAbsoluteUrl(this string url, Uri domain) => url.EnsureAbsoluteUrl(domain.AbsoluteUri);
         public static string EnsureAbsoluteUrl(this Uri url, string domain) => url.AbsoluteUri.EnsureAbsoluteUrl(domain);
@@ -40,7 +43,7 @@ namespace MangaUnhost.Browser
             var Https = BaseUri.AbsoluteUri.ToLowerInvariant().StartsWith("https");
             domain = (Https ? "https://" : "http://") + BaseUri.Host;
             BaseUri = new Uri(domain);
-            
+
             if (Program.Debug)
                 Program.Writer?.WriteLine("Abs Uri Result: {0}", new Uri(BaseUri, url).AbsoluteUri);
 
@@ -84,16 +87,17 @@ namespace MangaUnhost.Browser
         public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
             Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Cookies, AcceptableErrors);
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
         {
             if (Encoding == null)
-                Encoding = System.Text.Encoding.UTF8;
+                Encoding = Encoding.UTF8;
 
             string HTML = Encoding.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Cookies, AcceptableErrors) ?? new byte[0]);
 
             Document.LoadHtml(HTML);
-            
-            if (Program.Debug){
+
+            if (Program.Debug)
+            {
                 Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Url.AbsoluteUri, HTML);
                 Program.Writer?.Flush();
             }
@@ -142,18 +146,26 @@ namespace MangaUnhost.Browser
                     var Exception = (WebException)ex;
                     if (AcceptableErrors != null && AcceptableErrors.Contains(Exception.Status))
                     {
-                        using (WebResponse Response = Exception.Response)
-                        using (Stream ResponseData = Response.GetResponseStream())
-                        using (MemoryStream Stream = new MemoryStream())
+                        if (Exception.Status == WebExceptionStatus.ConnectionClosed)
                         {
-                            ResponseData.CopyTo(Stream);
-                            return Stream.ToArray();
+                            return GetErrorContentOverHttps(Url, Referer, UserAgent, Cookie);
+                        }
+                        else
+                        {
+                            using (WebResponse Response = Exception.Response)
+                            using (Stream ResponseData = Response.GetResponseStream())
+                            using (MemoryStream Stream = new MemoryStream())
+                            {
+                                ResponseData.CopyTo(Stream);
+                                return Stream.ToArray();
+                            }
                         }
                     }
                     if (Retries > 0)
                         return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries - 1);
                 }
-                if (Program.Debug) {
+                if (Program.Debug)
+                {
                     Program.Writer?.WriteLine("TryDownload Error: {0}", ex.ToString());
                     Program.Writer?.Flush();
                 }
@@ -206,6 +218,72 @@ namespace MangaUnhost.Browser
             {
                 await RespData.CopyToAsync(Output);
                 return Output.ToArray();
+            }
+        }
+
+        public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null)
+        {
+            TcpClient Tcp = new TcpClient(Url.Host, 443);
+            Tcp.ReceiveTimeout = 1000 * 5;
+            var TcpStream = Tcp.GetStream();
+            var SslStream = new SslStream(TcpStream);
+            SslStream.AuthenticateAsClient(Url.Host);
+
+            StringBuilder Header = new StringBuilder();
+            Header.AppendLine($"GET {Url.PathAndQuery} HTTP/1.1");
+            Header.AppendLine("Host: " + Url.Host);
+
+            if (Referer != null)
+                Header.AppendLine("Referer: " + Referer.Replace("\n", "%0A").Replace("\r", "%0D"));
+
+            if (UserAgent != null)
+                Header.AppendLine("User-Agent: " + UserAgent.Replace("\n", "%0A").Replace("\r", "%0D"));
+
+            if (Cookie != null)
+                Header.AppendLine("Cookie: " + Cookie.GetCookieHeader(Url));
+
+            Header.AppendLine("Cache-Control: no-cache");
+            Header.AppendLine("");
+
+            byte[] headerAsBytes = Encoding.UTF8.GetBytes(Header.ToString());
+            SslStream.Write(headerAsBytes);
+
+
+            using (var Buffer = new MemoryStream())
+            using (StreamReader Reader = new StreamReader(SslStream, Encoding.ASCII, false, 1, false))
+            {
+                var Status = Reader.ReadLine();
+
+                var CurLine = string.Empty;
+
+                long Length = -1;
+
+                do {
+                    CurLine = Reader.ReadLine();
+                    if (CurLine.StartsWith("Content-Length:"))
+                        Length = long.Parse(CurLine.Substring(":").Trim());
+                    
+                } while (CurLine != "");
+
+                if (Length == -1)
+                {
+                    try
+                    {
+                        SslStream.CopyTo(Buffer, 1);
+                    }
+                    catch { }
+                }
+                else {
+                    long Reaming = Length;
+                    byte[] Tmp = new byte[1024];
+                    while (Reaming > 0) {
+                        int Readed = SslStream.Read(Tmp, 0, Reaming < Tmp.Length ? (int)Reaming : Tmp.Length);
+                        Buffer.Write(Tmp, 0, Readed);
+                        Reaming -= Readed;
+                    }
+                }
+
+                return Buffer.ToArray();
             }
         }
     }

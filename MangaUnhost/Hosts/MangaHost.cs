@@ -4,30 +4,38 @@ using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Web;
 
-namespace MangaUnhost.Hosts {
-    class MangaHost : IHost {
+namespace MangaUnhost.Hosts
+{
+    class MangaHost : IHost
+    {
         HtmlDocument Document;
         Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
 
-        public NovelChapter DownloadChapter(int ID) {
+        public NovelChapter DownloadChapter(int ID)
+        {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<byte[]> DownloadPages(int ID) {
-            foreach (var PageUrl in GetChapterPages(ID)) {
+        public IEnumerable<byte[]> DownloadPages(int ID)
+        {
+            foreach (var PageUrl in GetChapterPages(ID))
+            {
                 yield return PageUrl.TryDownload(UserAgent: ProxyTools.UserAgent);
             }
         }
 
-        public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
+        public IEnumerable<KeyValuePair<int, string>> EnumChapters()
+        {
             int ID = ChapterLinks.Count;
 
             var Nodes = Document.SelectNodes("//div[@class=\"chapters\"]//div[@class=\"tags\"]/a");
 
-            foreach (var Node in Nodes) {
+            foreach (var Node in Nodes)
+            {
                 string Name = Node.GetAttributeValue("title", string.Empty);
                 Name = Name.Substring("#", "-").Trim();
 
@@ -38,11 +46,13 @@ namespace MangaUnhost.Hosts {
             }
         }
 
-        public int GetChapterPageCount(int ID) {
+        public int GetChapterPageCount(int ID)
+        {
             return GetChapterPages(ID).Length;
         }
 
-        private string[] GetChapterPages(int ID) {
+        private string[] GetChapterPages(int ID)
+        {
             var Page = GetChapterHtml(ID);
             List<string> Pages = new List<string>();
 
@@ -50,7 +60,8 @@ namespace MangaUnhost.Hosts {
 
             bool Found = false;
 
-            foreach (var Node in Scripts) {
+            foreach (var Node in Scripts)
+            {
                 if (!Node.InnerHtml.Contains("var images"))
                     continue;
 
@@ -58,7 +69,8 @@ namespace MangaUnhost.Hosts {
 
                 string JS = Node.InnerHtml.Substring("var images = ", "\"];") + "\"]";
                 var Result = (from x in JSTools.EvaluateScript<List<object>>(JS) select (string)x).ToArray();
-                foreach (string PageHtml in Result) {
+                foreach (string PageHtml in Result)
+                {
                     var PageUrl = PageHtml.Substring("src=", " ").Trim(' ', '\'', '"');
                     Pages.Add(PageUrl);
                 }
@@ -71,34 +83,41 @@ namespace MangaUnhost.Hosts {
             return (from x in Pages select x.Replace(".webp", "").Replace("/images", "/mangas_files")).ToArray();
         }
 
-        private HtmlDocument GetChapterHtml(int ID) {
+        private HtmlDocument GetChapterHtml(int ID)
+        {
             HtmlDocument Document = new HtmlDocument();
             Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent);
             return Document;
         }
 
-        public IDecoder GetDecoder() {
+        public IDecoder GetDecoder()
+        {
             return new Decoders.CommonImage();
         }
 
-        public PluginInfo GetPluginInfo() {
-            return new PluginInfo() {
+        public PluginInfo GetPluginInfo()
+        {
+            return new PluginInfo()
+            {
                 Name = "MangaHost",
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 3)
+                Version = new Version(3, 0)
             };
         }
 
-        public bool IsValidUri(Uri Uri) {
+        public bool IsValidUri(Uri Uri)
+        {
             return Uri.Host.ToLower().Contains("mangahost") && Uri.AbsolutePath.ToLower().Contains("/manga/");
         }
 
 
-        public ComicInfo LoadUri(Uri Uri) {
+        WebExceptionStatus[] Errors => new WebExceptionStatus[] { WebExceptionStatus.ConnectionClosed };
+        public ComicInfo LoadUri(Uri Uri)
+        {
             Document = new HtmlDocument();
-            Document.LoadUrl(Uri, UserAgent: ProxyTools.UserAgent);
+            Document.LoadUrl(Uri, UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
 
             ComicInfo Info = new ComicInfo();
 
