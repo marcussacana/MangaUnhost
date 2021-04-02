@@ -224,7 +224,7 @@ namespace MangaUnhost.Browser
         public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null)
         {
             TcpClient Tcp = new TcpClient(Url.Host, 443);
-            Tcp.ReceiveTimeout = 1000 * 30;
+            Tcp.ReceiveTimeout = 1000 * 15;
             var TcpStream = Tcp.GetStream();
             var SslStream = new SslStream(TcpStream);
             SslStream.AuthenticateAsClient(Url.Host);
