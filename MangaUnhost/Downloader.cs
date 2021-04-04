@@ -1,5 +1,6 @@
 ﻿using CefSharp;
 using EPubFactory;
+using LibAPNG;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using Microsoft.VisualBasic.Devices;
@@ -7,12 +8,11 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace MangaUnhost
@@ -263,24 +263,33 @@ namespace MangaUnhost
                             Page OutPage = new Page();
                             OutPage.Data = Data;
 
-                            if ((SaveAs)Settings.SaveAs == SaveAs.RAW)
-                            {
-                                File.WriteAllBytes(PagePath, Data);
-                            }
-                            else
+                            if ((SaveAs)Settings.SaveAs != SaveAs.RAW)
                             {
                                 using (Bitmap Result = Decoder.Decode(Data))
                                 {
                                     PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
-                                    PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
-                                    Result.Save(PagePath, Format);
+                                    PagePath = OutPage.Path = Path.Combine(TitleDir, ChapterPath, PageName);
+
+                                    if (Result.GetImageExtension() == "png" && Settings.APNGBypass)
+                                    {
+                                        var OutData = BypassAPNG(Data);
+                                        OutPage.Data = OutData;
+                                    }
+                                    else
+                                    {
+                                        using (MemoryStream tmp = new MemoryStream())
+                                        {
+                                            Result.Save(tmp, Format);
+                                            OutPage.Data = tmp.ToArray();
+                                        }
+                                    }
                                 }
-                            }                            
+                            }
 
                             if (Settings.ImageClipping)
                                 PostProcessQueue.Enqueue(OutPage);
                             else
-                                File.WritaAllData(OutPage.Path, OutPage.Data);
+                                File.WriteAllBytes(OutPage.Path, OutPage.Data);
 
                             while (PostProcessQueue.Count > 0) {
                                 ThreadTools.Wait(1000, true);
@@ -298,8 +307,19 @@ namespace MangaUnhost
                                 {
                                     PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
                                     PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
-                                    Result.Save(Buffer, Format);
-                                    OutPage.Data = Buffer.ToArray();
+                                    if (Result.GetImageExtension() == "png" && Settings.APNGBypass)
+                                    {
+                                        using (MemoryStream OutBuffer = new MemoryStream(BypassAPNG(Data)))
+                                        using (Bitmap Img = new Bitmap(OutBuffer)) {
+                                            Img.Save(Buffer, Format);
+                                            OutPage.Data = Buffer.ToArray();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Result.Save(Buffer, Format);
+                                        OutPage.Data = Buffer.ToArray();
+                                    }
                                 }
                             }
 
@@ -403,6 +423,95 @@ namespace MangaUnhost
                     throw new Exception("Invalid Content Type");
             }
         }
+
+        private byte[] BypassAPNG(byte[] Data) {
+            var Image = new APNG(Data);
+            if (Image.IsSimplePNG)
+                return Data;
+
+            var Width = (int)Image.DefaultImage.fcTLChunk.Width;
+            var Height = (int)Image.DefaultImage.fcTLChunk.Height;
+
+            var TmpData = Image.DefaultImage.GetStream().ToArray();
+
+            using (var OriStrm = new MemoryStream(TmpData))
+            using (Bitmap BaseImage = (Bitmap)Bitmap.FromStream(OriStrm))
+            using (Bitmap Bitmap = new Bitmap(Width, Height))
+            using (Graphics g = Graphics.FromImage(Bitmap))
+            {
+                g.CompositingQuality = CompositingQuality.HighQuality;
+                g.SmoothingMode = SmoothingMode.HighQuality;
+
+                g.DrawImageUnscaled(BaseImage, Point.Empty);
+
+                BaseImage?.Dispose();
+                OriStrm?.Dispose();
+
+
+                var LastFrame = Image.Frames.Last();
+                var XOffset = (int)LastFrame.fcTLChunk.XOffset;
+                var YOffset = (int)LastFrame.fcTLChunk.YOffset;
+
+                TmpData = LastFrame.GetStream().ToArray();
+
+                using (var LastStrm = new MemoryStream(TmpData))
+                using (Bitmap LastImg = new Bitmap(LastStrm))
+                    g.DrawImageUnscaled(LastImg, new Point(XOffset, YOffset));
+
+                g.Flush();
+
+                using (var Output = new MemoryStream()) {
+                    Bitmap.Save(Output, ImageFormat.Png);
+                    return Output.ToArray();
+                }
+            }
+
+        }
+
+        /* Apose.Imaging (Paid shit)
+        private byte[] BypassAPNG(byte[] Data) {
+            using (var Strm = new MemoryStream(Data))
+            using (Image Image = Image.Load(Strm))
+            {
+                if (Image.FileFormat != FileFormat.Apng)
+                    return Data;
+
+                using (ApngImage Img = (ApngImage)Image)
+                {
+                    if (Img.PageCount <= 1)
+                        return Data;
+
+                    var OriStatus = Status;
+                    Status = "Extracting APNG Frames...";
+
+                    var LastPage = Img.Pages.Last();
+
+                    using (var Output = new MemoryStream())
+                    {
+                        RasterImage Page = (RasterImage)LastPage;
+                        Page.pixe
+                        using (Bitmap NewImg = new Bitmap(Page.Width, Page.Height))
+                        {
+                            for (var x = 0; x < Page.Width; x++)
+                            {
+                                for (var y = 0; y < Page.Height; y++)
+                                {
+                                    var Pixel = Page.GetPixel(x, y).ToArgb();
+                                    NewImg.SetPixel(x, y, Color.FromArgb(Pixel));
+                                }
+                                if (x % 5 == 0)
+                                    Application.DoEvents();
+                            }
+
+                            Status = OriStatus;
+                            NewImg.Save(Output, ImageFormat.Png);
+                            return Output.ToArray();
+                        }
+                    }
+                }
+            }
+        }
+        */
 
         private string GetExtension(Bitmap Bitmap, out ImageFormat Format)
         {

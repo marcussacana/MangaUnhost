@@ -46,6 +46,10 @@
             this.tbCrawlerUrl = new VSNormalTextBox();
             this.SettingsTab = new System.Windows.Forms.TabPage();
             this.FeaturesGroupBox = new VSGroupBox();
+            this.panel10 = new System.Windows.Forms.Panel();
+            this.APNGBypassDisRadio = new System.Windows.Forms.RadioButton();
+            this.APNGBypassEnaRadio = new System.Windows.Forms.RadioButton();
+            this.label1 = new System.Windows.Forms.Label();
             this.panel9 = new System.Windows.Forms.Panel();
             this.lblLibUpdates = new System.Windows.Forms.Label();
             this.ManualUpCheckRadio = new System.Windows.Forms.RadioButton();
@@ -112,6 +116,7 @@
             this.CrawlerTab.SuspendLayout();
             this.SettingsTab.SuspendLayout();
             this.FeaturesGroupBox.SuspendLayout();
+            this.panel10.SuspendLayout();
             this.panel9.SuspendLayout();
             this.panel8.SuspendLayout();
             this.panel7.SuspendLayout();
@@ -465,6 +470,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FeaturesGroupBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(2)))), ((int)(((byte)(118)))), ((int)(((byte)(196)))));
+            this.FeaturesGroupBox.Controls.Add(this.panel10);
             this.FeaturesGroupBox.Controls.Add(this.panel9);
             this.FeaturesGroupBox.Controls.Add(this.panel8);
             this.FeaturesGroupBox.Controls.Add(this.panel7);
@@ -483,6 +489,55 @@
             this.FeaturesGroupBox.TabIndex = 1;
             this.FeaturesGroupBox.Text = "Features";
             this.FeaturesGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
+            // 
+            // panel10
+            // 
+            this.panel10.BackColor = System.Drawing.Color.Transparent;
+            this.panel10.Controls.Add(this.APNGBypassDisRadio);
+            this.panel10.Controls.Add(this.APNGBypassEnaRadio);
+            this.panel10.Controls.Add(this.label1);
+            this.panel10.Location = new System.Drawing.Point(587, 101);
+            this.panel10.Name = "panel10";
+            this.panel10.Size = new System.Drawing.Size(226, 60);
+            this.panel10.TabIndex = 14;
+            // 
+            // APNGBypassDisRadio
+            // 
+            this.APNGBypassDisRadio.AutoSize = true;
+            this.APNGBypassDisRadio.BackColor = System.Drawing.Color.Transparent;
+            this.APNGBypassDisRadio.Checked = true;
+            this.APNGBypassDisRadio.ForeColor = System.Drawing.Color.White;
+            this.APNGBypassDisRadio.Location = new System.Drawing.Point(116, 3);
+            this.APNGBypassDisRadio.Name = "APNGBypassDisRadio";
+            this.APNGBypassDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.APNGBypassDisRadio.TabIndex = 8;
+            this.APNGBypassDisRadio.TabStop = true;
+            this.APNGBypassDisRadio.Text = "Disabled";
+            this.APNGBypassDisRadio.UseVisualStyleBackColor = false;
+            // 
+            // APNGBypassEnaRadio
+            // 
+            this.APNGBypassEnaRadio.AutoSize = true;
+            this.APNGBypassEnaRadio.BackColor = System.Drawing.Color.Transparent;
+            this.APNGBypassEnaRadio.ForeColor = System.Drawing.Color.White;
+            this.APNGBypassEnaRadio.Location = new System.Drawing.Point(116, 28);
+            this.APNGBypassEnaRadio.Name = "APNGBypassEnaRadio";
+            this.APNGBypassEnaRadio.Size = new System.Drawing.Size(75, 23);
+            this.APNGBypassEnaRadio.TabIndex = 7;
+            this.APNGBypassEnaRadio.Text = "Enabled";
+            this.APNGBypassEnaRadio.UseVisualStyleBackColor = false;
+            this.APNGBypassEnaRadio.CheckedChanged += new System.EventHandler(this.APNGBypassCheckChanged);
+            // 
+            // label1
+            // 
+            this.label1.BackColor = System.Drawing.Color.Transparent;
+            this.label1.ForeColor = System.Drawing.Color.White;
+            this.label1.Location = new System.Drawing.Point(3, 1);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(107, 21);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "APNG Bypass:";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // panel9
             // 
@@ -736,7 +791,7 @@
             this.panel5.Controls.Add(this.SaveAsPngRadio);
             this.panel5.Location = new System.Drawing.Point(295, 102);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(294, 60);
+            this.panel5.Size = new System.Drawing.Size(285, 60);
             this.panel5.TabIndex = 10;
             // 
             // SaveAsAutoRadio
@@ -744,7 +799,7 @@
             this.SaveAsAutoRadio.AutoSize = true;
             this.SaveAsAutoRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsAutoRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsAutoRadio.Location = new System.Drawing.Point(106, 27);
+            this.SaveAsAutoRadio.Location = new System.Drawing.Point(104, 27);
             this.SaveAsAutoRadio.Name = "SaveAsAutoRadio";
             this.SaveAsAutoRadio.Size = new System.Drawing.Size(57, 23);
             this.SaveAsAutoRadio.TabIndex = 8;
@@ -757,7 +812,7 @@
             this.SaveAsRawRadio.AutoSize = true;
             this.SaveAsRawRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsRawRadio.Location = new System.Drawing.Point(229, 27);
+            this.SaveAsRawRadio.Location = new System.Drawing.Point(227, 27);
             this.SaveAsRawRadio.Name = "SaveAsRawRadio";
             this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
             this.SaveAsRawRadio.TabIndex = 7;
@@ -770,7 +825,7 @@
             this.SaveAsBmpRadio.AutoSize = true;
             this.SaveAsBmpRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsBmpRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsBmpRadio.Location = new System.Drawing.Point(168, 27);
+            this.SaveAsBmpRadio.Location = new System.Drawing.Point(166, 27);
             this.SaveAsBmpRadio.Name = "SaveAsBmpRadio";
             this.SaveAsBmpRadio.Size = new System.Drawing.Size(56, 23);
             this.SaveAsBmpRadio.TabIndex = 6;
@@ -782,9 +837,9 @@
             // 
             this.lblSaveAs.BackColor = System.Drawing.Color.Transparent;
             this.lblSaveAs.ForeColor = System.Drawing.Color.White;
-            this.lblSaveAs.Location = new System.Drawing.Point(3, 0);
+            this.lblSaveAs.Location = new System.Drawing.Point(7, 0);
             this.lblSaveAs.Name = "lblSaveAs";
-            this.lblSaveAs.Size = new System.Drawing.Size(159, 21);
+            this.lblSaveAs.Size = new System.Drawing.Size(153, 21);
             this.lblSaveAs.TabIndex = 5;
             this.lblSaveAs.Text = "Save As:";
             this.lblSaveAs.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -794,7 +849,7 @@
             this.SaveAsJpgRadio.AutoSize = true;
             this.SaveAsJpgRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsJpgRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsJpgRadio.Location = new System.Drawing.Point(229, -2);
+            this.SaveAsJpgRadio.Location = new System.Drawing.Point(227, -2);
             this.SaveAsJpgRadio.Name = "SaveAsJpgRadio";
             this.SaveAsJpgRadio.Size = new System.Drawing.Size(50, 23);
             this.SaveAsJpgRadio.TabIndex = 1;
@@ -808,7 +863,7 @@
             this.SaveAsPngRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsPngRadio.Checked = true;
             this.SaveAsPngRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsPngRadio.Location = new System.Drawing.Point(168, -2);
+            this.SaveAsPngRadio.Location = new System.Drawing.Point(166, -2);
             this.SaveAsPngRadio.Name = "SaveAsPngRadio";
             this.SaveAsPngRadio.Size = new System.Drawing.Size(55, 23);
             this.SaveAsPngRadio.TabIndex = 0;
@@ -1290,7 +1345,7 @@
             this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximumSize = new System.Drawing.Size(1440, 714);
+            this.MaximumSize = new System.Drawing.Size(1440, 860);
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "MangaUnhost";
@@ -1305,6 +1360,8 @@
             this.CrawlerTab.ResumeLayout(false);
             this.SettingsTab.ResumeLayout(false);
             this.FeaturesGroupBox.ResumeLayout(false);
+            this.panel10.ResumeLayout(false);
+            this.panel10.PerformLayout();
             this.panel9.ResumeLayout(false);
             this.panel9.PerformLayout();
             this.panel8.ResumeLayout(false);
@@ -1414,6 +1471,10 @@
         private System.Windows.Forms.Label lblLibUpdates;
         private System.Windows.Forms.RadioButton ManualUpCheckRadio;
         private System.Windows.Forms.RadioButton AutoUpCheckRadio;
+        private System.Windows.Forms.Panel panel10;
+        private System.Windows.Forms.RadioButton APNGBypassDisRadio;
+        private System.Windows.Forms.RadioButton APNGBypassEnaRadio;
+        private System.Windows.Forms.Label label1;
     }
 }
 

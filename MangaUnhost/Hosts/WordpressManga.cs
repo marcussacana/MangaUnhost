@@ -6,6 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Net;
+using CefSharp.EventHandler;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace MangaUnhost.Hosts
 {
@@ -26,10 +29,8 @@ namespace MangaUnhost.Hosts
             {
                 byte[] Data;
 
-                if (CFData == null)
-                    Data = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: LinkMap[ID]);
-                else
-                    Data = Page.TryDownload(CFData, Referer: LinkMap[ID]);
+                var UserAgent = CFData?.UserAgent ?? ProxyTools.UserAgent;
+                Data = Page.TryDownload(UserAgent: UserAgent, Referer: LinkMap[ID], Cookie: Cookies);
 
                 if (Data == null || Data.Length == 0)
                     continue;
@@ -46,7 +47,8 @@ namespace MangaUnhost.Hosts
             var Nodes = Document.SelectNodes(XPATH);
 
 
-            if (Nodes == null || Nodes.Count == 0) {
+            if (Nodes == null || Nodes.Count == 0)
+            {
                 var Browser = JSTools.DefaultBrowser;
                 Browser.WaitForLoad(CurrentUrl.AbsoluteUri);
 
@@ -67,10 +69,10 @@ namespace MangaUnhost.Hosts
 
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim();
-                    
+
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(' ', '\t', '.');
-                    
+
                 if (Name.StartsWith("cap"))
                     Name = Name.Substring("cap").Trim(' ', '\t', '.');
 
@@ -97,7 +99,8 @@ namespace MangaUnhost.Hosts
         private string[] GetPageLinks(int ID)
         {
             var Chapter = new HtmlDocument();
-            Chapter.LoadUrl(LinkMap[ID], CFData);
+            
+            Chapter.LoadUrl(LinkMap[ID], UserAgent: CFData?.UserAgent, Cookies: Cookies);
 
             var ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'chapter_preloaded_images')]");
             if (ScriptNode != null)
@@ -130,7 +133,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(1, 8, 1)
+                Version = new Version(2, 0)
             };
         }
 
@@ -156,14 +159,30 @@ namespace MangaUnhost.Hosts
         }
 
         Uri CurrentUrl;
+
+        CookieContainer _Cookies;
         CloudflareData? CFData = null;
+
+        CookieContainer Cookies { 
+            get { 
+                if (CFData.HasValue)
+                    return CFData?.Cookies; 
+                return _Cookies;
+            }
+            set {
+                _Cookies = value;
+            }
+        }
+
+
         HtmlDocument Document = new HtmlDocument();
         public ComicInfo LoadUri(Uri Uri)
         {
+            Cookies = new CookieContainer();
             CurrentUrl = Uri;
             ReverseChapters = Uri.Host.ToLower().Contains("manga47.com");
 
-            Document.LoadUrl(Uri);
+            Document.LoadUrl(Uri, Cookies: Cookies);
             if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())
             {
                 CFData = JSTools.BypassCloudflare(Uri.AbsoluteUri);

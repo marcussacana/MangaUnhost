@@ -11,9 +11,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Text;
-using Microsoft.Win32.SafeHandles;
 
 namespace MangaUnhost
 {
@@ -155,6 +153,7 @@ namespace MangaUnhost
                     ImageClipping = true,
                     ReaderGenerator = true,
                     SkipDownloaded = true,
+                    APNGBypass = true,
                     AutoLibUpCheck = Program.IsRealWindows,
                     LibraryPath = DefaultLibPath,
                     ReplaceMode = 1,
@@ -460,7 +459,12 @@ namespace MangaUnhost
         private void RAWSaveAs(object sender, EventArgs e)
         {
             if (SaveAsRawRadio.Checked)
+            {
                 Settings.SaveAs = (int)SaveAs.RAW;
+                Settings.APNGBypass = false;
+                APNGBypassEnaRadio.Checked = false;
+                APNGBypassDisRadio.Checked = true;
+            }
         }
 
         private void AutoSaveAs(object sender, EventArgs e)
@@ -520,6 +524,8 @@ namespace MangaUnhost
             SkipDownEnbRadio.Checked = Settings.SkipDownloaded;
             AutoUpCheckRadio.Checked = Settings.AutoLibUpCheck;
             ManualUpCheckRadio.Checked = !Settings.AutoLibUpCheck;
+            APNGBypassDisRadio.Checked = !Settings.APNGBypass;
+            APNGBypassEnaRadio.Checked = Settings.APNGBypass;
 
             SaveAs SaveAs = (SaveAs)Settings.SaveAs;
             SaveAsPngRadio.Checked = SaveAs == SaveAs.PNG;
@@ -564,10 +570,12 @@ namespace MangaUnhost
             ImgClipDisRadio.Text = CurrentLanguage.Disabled;
             ReaderGenDisRadio.Text = CurrentLanguage.Disabled;
             SkipDownDisRadio.Text = CurrentLanguage.Disabled;
+            APNGBypassDisRadio.Text = CurrentLanguage.Disabled;
             ClipWatcherEnbRadio.Text = CurrentLanguage.Enabled;
             ImgClipEnbRadio.Text = CurrentLanguage.Enabled;
             ReaderGenEnbRadio.Text = CurrentLanguage.Enabled;
             SkipDownEnbRadio.Text = CurrentLanguage.Enabled;
+            APNGBypassEnaRadio.Text = CurrentLanguage.Enabled;
             UpdateUrlRadio.Text = CurrentLanguage.UpdateURL;
             NewFolderRadio.Text = CurrentLanguage.NewFolder;
             LegacyReaderRadio.Text = CurrentLanguage.Legacy;
@@ -590,8 +598,7 @@ namespace MangaUnhost
             }
             catch { }
 
-            Cef.Shutdown();
-            Environment.Exit(0);
+            System.Diagnostics.Process.GetCurrentProcess().Kill();
         }
 
         private void SupportedHostClicked(object sender, EventArgs e)
@@ -941,6 +948,19 @@ namespace MangaUnhost
         private void LibUpCheckChanged(object sender, EventArgs e)
         {
             Settings.AutoLibUpCheck = AutoUpCheckRadio.Checked;
+        }
+
+        private void APNGBypassCheckChanged(object sender, EventArgs e)
+        {
+            Settings.APNGBypass = APNGBypassEnaRadio.Checked;
+
+            if (Settings.APNGBypass && Settings.SaveAs == (int)SaveAs.RAW)
+            {
+                Settings.SaveAs = (int)SaveAs.AUTO;
+                SaveAsRawRadio.Checked = false;
+                SaveAsAutoRadio.Checked = true;
+
+            }
         }
     }
 }
