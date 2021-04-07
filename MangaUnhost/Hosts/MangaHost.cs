@@ -34,14 +34,21 @@ namespace MangaUnhost.Hosts
 
             var Nodes = Document.SelectNodes("//div[@class=\"chapters\"]//div[@class=\"tags\"]/a");
 
-            foreach (var Node in Nodes)
+
+            var Link = Nodes.First().GetAttributeValue("href", string.Empty);
+            var Doc = new HtmlDocument();
+            Doc.LoadUrl(Link, UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
+
+            Link = Link.Substring(0, Link.LastIndexOf('/') + 1);
+            var Options = Doc.SelectNodes("//header[@class=\"navigation\"]//select[@name=\"Chapters\"]/option");
+
+            foreach (var Option in Options)
             {
-                string Name = Node.GetAttributeValue("title", string.Empty);
-                Name = Name.Substring("#", "-").Trim();
+                var Value = Option.GetAttributeValue("value", string.Empty);
 
-                ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty);
+                ChapterLinks[ID] = Link + Value;
+                ChapterNames[ID] = DataTools.GetRawName(Value);
 
-                ChapterNames[ID] = DataTools.GetRawName(Name);
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++].Trim());
             }
         }
@@ -103,7 +110,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 0, 1)
+                Version = new Version(3, 1)
             };
         }
 
