@@ -85,6 +85,8 @@ namespace MangaUnhost.Hosts
                 if (Name.Contains("-"))
                     Name = Name.Split('-').First().Trim();
 
+                Name = DataTools.GetRawName(Name);
+
                 LinkMap[ID] = URL;
 
                 yield return new KeyValuePair<int, string>(ID++, Name);
@@ -114,7 +116,7 @@ namespace MangaUnhost.Hosts
                               .SelectNodes("//img[starts-with(@id, \"image-\")]")
                               select (x.GetAttributeValue("data-src", null) ??
                                       x.GetAttributeValue("src", null) ??
-                                      x.GetAttributeValue("data-cfsrc", "")).Trim()).ToArray();
+                                      x.GetAttributeValue("data-cfsrc", "")).Trim()).Distinct().ToArray();
 
             return Links;
         }
@@ -133,7 +135,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 
