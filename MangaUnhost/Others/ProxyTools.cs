@@ -90,7 +90,7 @@ namespace MangaUnhost.Others
                 string Response = new WebClient().DownloadString(GimmeProxyAPI).Replace(@" ", "");
                 Proxy = ReadJson(Response, "curl");
                 if (string.IsNullOrWhiteSpace(Proxy))
-                    continue;
+                    return FreeProxy().First();
 
                 if (ValidateProxy(Proxy))
                     break;

@@ -94,7 +94,8 @@ namespace MangaUnhost.Hosts
         private HtmlDocument GetChapterHtml(int ID)
         {
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
+            Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors); 
+            Thread.Sleep(200);
             if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code")) {
                 Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, Proxy: ProxyTools.Proxy, AcceptableErrors: Errors);
                 if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code")) {
