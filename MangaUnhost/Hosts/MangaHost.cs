@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Web;
 
 namespace MangaUnhost.Hosts
@@ -94,6 +95,13 @@ namespace MangaUnhost.Hosts
         {
             HtmlDocument Document = new HtmlDocument();
             Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
+            if (Document.SelectSingleNode("\\\\title").InnerText == "403 Forbidden") {
+                Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, Proxy: ProxyTools.Proxy, AcceptableErrors: Errors);
+                if (Document.SelectSingleNode("\\\\title").InnerText == "403 Forbidden") {
+                    Thread.Sleep(1000);
+                    return GetChapterHtml(ID);
+                }
+            }
             return Document;
         }
 
