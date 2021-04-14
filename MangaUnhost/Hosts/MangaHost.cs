@@ -95,9 +95,9 @@ namespace MangaUnhost.Hosts
         {
             HtmlDocument Document = new HtmlDocument();
             Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
-            if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden") {
+            if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code")) {
                 Document.LoadUrl(ChapterLinks[ID], UserAgent: ProxyTools.UserAgent, Proxy: ProxyTools.Proxy, AcceptableErrors: Errors);
-                if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden") {
+                if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code")) {
                     Thread.Sleep(1000);
                     return GetChapterHtml(ID);
                 }
@@ -118,7 +118,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 1)
+                Version = new Version(3, 2)
             };
         }
 
