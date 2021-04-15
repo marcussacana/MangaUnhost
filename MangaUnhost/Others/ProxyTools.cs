@@ -49,14 +49,7 @@ namespace MangaUnhost.Others
                 Proxies[i] = Proxies[i].ToLower().Replace("http://", "").Replace("https://", "");
                 if (BlackList.Contains(Proxies[i]) || !ValidateProxy(Proxies[i]))
                 {
-                    try
-                    {
-                        Proxies[i--] = GimmeProxy();
-                    }
-                    catch
-                    {
-                        Proxies[i] = Proxies[PROXIES + x++];
-                    }
+                    Proxies[i] = Proxies[PROXIES + x++];
                     continue;
                 }
 
