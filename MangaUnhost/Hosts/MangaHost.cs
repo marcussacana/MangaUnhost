@@ -1,6 +1,8 @@
-﻿using HtmlAgilityPack;
+﻿using CefSharp.OffScreen;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -26,7 +28,7 @@ namespace MangaUnhost.Hosts
         {
             foreach (var PageUrl in GetChapterPages(ID))
             {
-                yield return PageUrl.TryDownload(UserAgent: ProxyTools.UserAgent);
+                yield return PageUrl.TryDownload(CFData);
             }
         }
 
@@ -125,14 +127,50 @@ namespace MangaUnhost.Hosts
             return LoadDocument(ChapterLinks[ID]);
         }
 
+        Dictionary<string, CloudflareData> ProxyCFData = new Dictionary<string, CloudflareData>();
+
         private HtmlDocument LoadDocument(string URL) {
 
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(URL, UserAgent: ProxyTools.UserAgent, AcceptableErrors: Errors);
+            Document.LoadUrl(URL, CFData, AcceptableErrors: Errors);
+            if (Document.IsCloudflareTriggered())
+            {
+                if (CFData == null)
+                {
+                    using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
+                    {
+                        Browser.WaitForLoad(URL);
+                        do
+                        {
+                            CFData = Browser.BypassCloudflare();
+                        } while (Browser.IsCloudflareTriggered());
+                    }
+                }
+            }
+
             Thread.Sleep(200);
+
             if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code"))
             {
-                Document.LoadUrl(URL, UserAgent: ProxyTools.UserAgent, Proxy: ProxyTools.Proxy, AcceptableErrors: Errors);
+                var Proxy = ProxyTools.Proxy;
+                Document.LoadUrl(URL, UserAgent: ProxyTools.UserAgent, Proxy: Proxy, AcceptableErrors: Errors);
+
+                if (Document.IsCloudflareTriggered())
+                {
+                    if (!ProxyCFData.ContainsKey(Proxy))
+                        using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
+                        {
+                            Browser.UseProxy(new WebProxy(Proxy));
+                            Browser.WaitForLoad(URL);
+                            do
+                            {
+                                ProxyCFData[Proxy] = Browser.BypassCloudflare();
+                            } while (Browser.IsCloudflareTriggered());
+                        }
+
+                    Document.LoadUrl(URL, ProxyCFData[Proxy], Proxy: Proxy, AcceptableErrors: Errors);
+                }
+
                 if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code"))
                 {
                     Thread.Sleep(500);
@@ -155,7 +193,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 3)
+                Version = new Version(3, 4)
             };
         }
 
@@ -164,7 +202,7 @@ namespace MangaUnhost.Hosts
             return Uri.Host.ToLower().Contains("mangahost") && Uri.AbsolutePath.ToLower().Contains("/manga/");
         }
 
-
+        CloudflareData? CFData = null;
         WebExceptionStatus[] Errors => new WebExceptionStatus[] { WebExceptionStatus.ConnectionClosed, WebExceptionStatus.ProtocolError };
         public ComicInfo LoadUri(Uri Uri)
         {
@@ -177,7 +215,7 @@ namespace MangaUnhost.Hosts
 
             Info.Cover = new Uri(Document
                 .SelectSingleNode("//div[@class=\"widget\"]//img")
-                .GetAttributeValue("src", string.Empty)).TryDownload(UserAgent: ProxyTools.UserAgent);
+                .GetAttributeValue("src", string.Empty)).TryDownload(CFData);
 
             Info.ContentType = ContentType.Comic;
 

@@ -128,6 +128,7 @@
         public string SelectASaveDir => "Selecione uma pasta para salvar";
         public string Refresh => "Atualizar";
         public string CheckUpdates => "Procurar Atualizações";
+        public string Translate => "Traduzir";
 
 
         public string SwitchLanguage => "Alterar Lingua";

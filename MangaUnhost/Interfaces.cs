@@ -164,6 +164,7 @@ namespace MangaUnhost {
         string SelectASaveDir { get; }
         string Refresh { get; }
         string CheckUpdates { get; }
+        string Translate { get; }
 
         //Other
         string SwitchLanguage { get; }

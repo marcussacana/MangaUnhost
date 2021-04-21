@@ -48,6 +48,7 @@
             this.OpenDirectory = new System.Windows.Forms.ToolStripMenuItem();
             this.Refresh = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateCheck = new System.Windows.Forms.ToolStripMenuItem();
+            this.Translate = new System.Windows.Forms.ToolStripMenuItem();
             this.lblNewChapters = new System.Windows.Forms.Label();
             this.lblOpenSite = new System.Windows.Forms.LinkLabel();
             this.lblDownload = new System.Windows.Forms.LinkLabel();
@@ -79,9 +80,10 @@
             this.OpenChapter,
             this.OpenDirectory,
             this.Refresh,
-            this.UpdateCheck});
+            this.UpdateCheck,
+            this.Translate});
             this.ComicMenuStrip.Name = "ComicMenuStrip";
-            this.ComicMenuStrip.Size = new System.Drawing.Size(155, 158);
+            this.ComicMenuStrip.Size = new System.Drawing.Size(181, 202);
             // 
             // ExportAs
             // 
@@ -91,7 +93,7 @@
             this.ExportToPNG,
             this.ExportToBMP});
             this.ExportAs.Name = "ExportAs";
-            this.ExportAs.Size = new System.Drawing.Size(154, 22);
+            this.ExportAs.Size = new System.Drawing.Size(180, 22);
             this.ExportAs.Text = "Export As";
             // 
             // ExportToCBZ
@@ -101,56 +103,56 @@
             this.CBZExportToPNG,
             this.CBZExportToBMP});
             this.ExportToCBZ.Name = "ExportToCBZ";
-            this.ExportToCBZ.Size = new System.Drawing.Size(180, 22);
+            this.ExportToCBZ.Size = new System.Drawing.Size(99, 22);
             this.ExportToCBZ.Text = "CBZ";
             this.ExportToCBZ.Click += new System.EventHandler(this.ExportToCBZ_Click);
             // 
             // CBZExportToJPG
             // 
             this.CBZExportToJPG.Name = "CBZExportToJPG";
-            this.CBZExportToJPG.Size = new System.Drawing.Size(180, 22);
+            this.CBZExportToJPG.Size = new System.Drawing.Size(99, 22);
             this.CBZExportToJPG.Text = "JPG";
             this.CBZExportToJPG.Click += new System.EventHandler(this.CBZExportToJPG_Click);
             // 
             // CBZExportToPNG
             // 
             this.CBZExportToPNG.Name = "CBZExportToPNG";
-            this.CBZExportToPNG.Size = new System.Drawing.Size(180, 22);
+            this.CBZExportToPNG.Size = new System.Drawing.Size(99, 22);
             this.CBZExportToPNG.Text = "PNG";
             this.CBZExportToPNG.Click += new System.EventHandler(this.CBZExportToPNG_Click);
             // 
             // CBZExportToBMP
             // 
             this.CBZExportToBMP.Name = "CBZExportToBMP";
-            this.CBZExportToBMP.Size = new System.Drawing.Size(180, 22);
+            this.CBZExportToBMP.Size = new System.Drawing.Size(99, 22);
             this.CBZExportToBMP.Text = "BMP";
             this.CBZExportToBMP.Click += new System.EventHandler(this.CBZExportToBMP_Click);
             // 
             // ExportToJPG
             // 
             this.ExportToJPG.Name = "ExportToJPG";
-            this.ExportToJPG.Size = new System.Drawing.Size(180, 22);
+            this.ExportToJPG.Size = new System.Drawing.Size(99, 22);
             this.ExportToJPG.Text = "JPG";
             this.ExportToJPG.Click += new System.EventHandler(this.ExportToJPG_Click);
             // 
             // ExportToPNG
             // 
             this.ExportToPNG.Name = "ExportToPNG";
-            this.ExportToPNG.Size = new System.Drawing.Size(180, 22);
+            this.ExportToPNG.Size = new System.Drawing.Size(99, 22);
             this.ExportToPNG.Text = "PNG";
             this.ExportToPNG.Click += new System.EventHandler(this.ExportToPNG_Click);
             // 
             // ExportToBMP
             // 
             this.ExportToBMP.Name = "ExportToBMP";
-            this.ExportToBMP.Size = new System.Drawing.Size(180, 22);
+            this.ExportToBMP.Size = new System.Drawing.Size(99, 22);
             this.ExportToBMP.Text = "BMP";
             this.ExportToBMP.Click += new System.EventHandler(this.ExportToBMP_Click);
             // 
             // ExportAllAs
             // 
             this.ExportAllAs.Name = "ExportAllAs";
-            this.ExportAllAs.Size = new System.Drawing.Size(154, 22);
+            this.ExportAllAs.Size = new System.Drawing.Size(180, 22);
             this.ExportAllAs.Text = "Export All As";
             this.ExportAllAs.Click += new System.EventHandler(this.ExportEverythingAs_Clicked);
             // 
@@ -161,7 +163,7 @@
             this.ConvertToPNG,
             this.ConvertToBMP});
             this.ConvertTo.Name = "ConvertTo";
-            this.ConvertTo.Size = new System.Drawing.Size(154, 22);
+            this.ConvertTo.Size = new System.Drawing.Size(180, 22);
             this.ConvertTo.Text = "Convert To";
             // 
             // ConvertToJPG
@@ -188,30 +190,36 @@
             // OpenChapter
             // 
             this.OpenChapter.Name = "OpenChapter";
-            this.OpenChapter.Size = new System.Drawing.Size(154, 22);
+            this.OpenChapter.Size = new System.Drawing.Size(180, 22);
             this.OpenChapter.Text = "Open Chapter";
             this.OpenChapter.Visible = false;
             // 
             // OpenDirectory
             // 
             this.OpenDirectory.Name = "OpenDirectory";
-            this.OpenDirectory.Size = new System.Drawing.Size(154, 22);
+            this.OpenDirectory.Size = new System.Drawing.Size(180, 22);
             this.OpenDirectory.Text = "Open Directory";
             this.OpenDirectory.Click += new System.EventHandler(this.OpenDirectory_Click);
             // 
             // Refresh
             // 
             this.Refresh.Name = "Refresh";
-            this.Refresh.Size = new System.Drawing.Size(154, 22);
+            this.Refresh.Size = new System.Drawing.Size(180, 22);
             this.Refresh.Text = "Refresh";
             this.Refresh.Click += new System.EventHandler(this.Refresh_Click);
             // 
             // UpdateCheck
             // 
             this.UpdateCheck.Name = "UpdateCheck";
-            this.UpdateCheck.Size = new System.Drawing.Size(154, 22);
+            this.UpdateCheck.Size = new System.Drawing.Size(180, 22);
             this.UpdateCheck.Text = "Check Updates";
             this.UpdateCheck.Click += new System.EventHandler(this.UpdateCheck_Click);
+            // 
+            // Translate
+            // 
+            this.Translate.Name = "Translate";
+            this.Translate.Size = new System.Drawing.Size(180, 22);
+            this.Translate.Text = "Translate";
             // 
             // lblNewChapters
             // 
@@ -293,5 +301,6 @@
         private System.Windows.Forms.ToolStripMenuItem OpenChapter;
         private System.Windows.Forms.ToolStripMenuItem UpdateCheck;
         private System.Windows.Forms.ToolStripMenuItem ExportAllAs;
+        private System.Windows.Forms.ToolStripMenuItem Translate;
     }
 }

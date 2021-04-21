@@ -67,6 +67,11 @@ namespace MangaUnhost
         public ComicPreview(string ComicDir, Action<string> OnExportAllAs)
         {
             InitializeComponent();
+
+            Translate.Visible = Program.MTLAvailable;
+            if (Program.MTLAvailable)
+                SetupLanguagePairs();
+
             ComicPath += ComicDir;
 
             lblOpenSite.Text = Language.OpenSite;
@@ -79,6 +84,7 @@ namespace MangaUnhost
             OpenChapter.Text = Language.OpenChapter;
             Refresh.Text = Language.Refresh;
             UpdateCheck.Text = Language.CheckUpdates;
+            Translate.Text = Language.Translate;
 
             Refresh.Visible = Main.Config.AutoLibUpCheck;
             UpdateCheck.Visible = !Main.Config.AutoLibUpCheck;
@@ -90,6 +96,28 @@ namespace MangaUnhost
             var Initializer = new Task(InitializePreview);
 
             Initializer.Start();
+        }
+
+        void SetupLanguagePairs() {
+            string[] Langs = new string[] { "EN", "JA", "ZH", "RU", "FR", "IT", "ES", "PT" };
+
+            foreach (var SL in new string[] { "AUTO" }.Concat(Langs)) {
+                var SourceLang = new ToolStripMenuItem(SL);
+                foreach (var TL in Langs) {
+                    if (SL == TL)
+                        continue;
+
+                    var TargetLang = new ToolStripMenuItem(TL);
+                    TargetLang.Name = SL;
+                    TargetLang.Click += (sender, e) =>
+                    {
+                        var TLItem = (ToolStripMenuItem)sender;
+                        TranslateChapters(TLItem.Name, TLItem.Text);
+                    };
+                    SourceLang.DropDownItems.Add(TargetLang);
+                }
+                Translate.DropDownItems.Add(SourceLang);
+            }
         }
 
         private void InitializePreview()
@@ -580,6 +608,57 @@ namespace MangaUnhost
             ChapterTools.GenerateComicReader(Language, Pages, NextChapter, ChapPath, Chapter, ChapName);
         }
 
+        void TranslateChapters(string SourceLang, string TargetLang)
+        {
+            var Chapters = Directory.GetDirectories(ChapPath);
+            foreach (var Chapter in Chapters) {
+                TranslateChapter(Chapter, SourceLang, TargetLang);
+            }
+        }
+
+        private void TranslateChapter(string Chapter, string SourceLang, string TargetLang)
+        {
+            var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp").OrderBy(x=> int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0);
+            
+            string PageList = Path.GetFileName(Pages.First());
+            foreach (var Page in Pages.Skip(1)) {
+                PageList += $";{Path.GetFileName(Page)}";
+
+                File.Copy(Page, Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page)), true);
+            }
+
+            var StartInfo = new ProcessStartInfo(Program.PythonPath);
+            StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --images \"{PageList}\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting";
+            StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
+
+            var Proc = Process.Start(StartInfo);
+
+            while (!Proc.WaitForExit(500)) {
+                Application.DoEvents();
+                Thread.Sleep(100);
+            }
+
+            foreach (var Page in Pages.Skip(1))
+            {
+               var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page)) + ".out.png";
+                if (!File.Exists(NewPage))
+                    continue;
+
+                File.Move(Page, Page + ".bak");
+                File.Move(NewPage, Page);
+            }
+
+            Application.DoEvents();
+        }
+
+
+        private string[] ListFiles(string Dir, params string[] Filters) {
+            List<string> Files = new List<string>();
+            foreach (var Filter in Filters)
+                Files.AddRange(Directory.GetFiles(Dir, Filter));
+            return Files.ToArray();
+        }
+
         private bool Retry(Action Operation, int Times = 3)
         {
             try
@@ -599,7 +678,7 @@ namespace MangaUnhost
 
         private void OpenDirectory_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start(ComicPath);
+            Process.Start(ComicPath);
         }
 
         public Bitmap ResizeKeepingRatio(Bitmap source, int width, int height)

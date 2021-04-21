@@ -127,6 +127,7 @@
         public string SelectASaveDir => "Select a directory to save";
         public string Refresh => "Refresh";
         public string CheckUpdates => "Check Updates";
+        public string Translate => "Translate";
 
 
         public string SwitchLanguage => "Switch Language";
