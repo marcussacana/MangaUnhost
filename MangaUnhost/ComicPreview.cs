@@ -98,9 +98,9 @@ namespace MangaUnhost
             Initializer.Start();
         }
 
-        void SetupLanguagePairs() {
-            string[] Langs = new string[] { "EN", "JA", "ZH", "RU", "FR", "IT", "ES", "PT" };
+        readonly string[] Langs = new string[] { "EN", "JA", "ZH", "RU", "FR", "IT", "ES", "PT" };
 
+        void SetupLanguagePairs() {
             foreach (var SL in new string[] { "AUTO" }.Concat(Langs)) {
                 var SourceLang = new ToolStripMenuItem(SL);
                 foreach (var TL in Langs) {
@@ -199,7 +199,10 @@ namespace MangaUnhost
                         NextChapter = Chapters[i + 1];
 
                     var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
-                    OpenChapter.DropDownItems.Add(ChapName, null, (sender, args) =>
+                    
+                    var ChapItem = new ToolStripMenuItem(ChapName);
+
+                    ChapItem.Click += (sender, args) =>
                     {
 
                         if (Main.Reader != ReaderMode.Legacy)
@@ -217,7 +220,34 @@ namespace MangaUnhost
                                 Reader.Show();
                                 break;
                         }
-                    });
+                    };
+
+                    if (Program.MTLAvailable)
+                    {
+                        var Translate = new ToolStripMenuItem(Language.Translate);
+                        foreach (var SL in new string[] { "AUTO" }.Concat(Langs))
+                        {
+                            var SourceLang = new ToolStripMenuItem(SL);
+                            foreach (var TL in Langs)
+                            {
+                                if (SL == TL)
+                                    continue;
+
+                                var TargetLang = new ToolStripMenuItem(TL);
+                                TargetLang.Name = SL;
+                                TargetLang.Click += (sender, e) =>
+                                {
+                                    var TLItem = (ToolStripMenuItem)sender;
+                                    TranslateChapter(Chapter, TLItem.Name, TLItem.Text);
+                                };
+                                SourceLang.DropDownItems.Add(TargetLang);
+                            }
+                            Translate.DropDownItems.Add(SourceLang);
+                        }
+                        ChapItem.DropDownItems.Add(Translate);
+                    }
+
+                    OpenChapter.DropDownItems.Add(ChapItem);
                 }
                 OpenChapter.Visible = true;
             }
@@ -620,35 +650,30 @@ namespace MangaUnhost
         {
             var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp").OrderBy(x=> int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0);
             
-            string PageList = Path.GetFileName(Pages.First());
             foreach (var Page in Pages.Skip(1)) {
-                PageList += $";{Path.GetFileName(Page)}";
+                var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page));
+                File.Copy(Page, NewPage, true);
 
-                File.Copy(Page, Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page)), true);
+                for (int i = 3; i >= 0 && !File.Exists(NewPage + ".out.png"); i--)
+                {
+                    var StartInfo = new ProcessStartInfo(Program.PythonPath);
+                    StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --image \"{Path.GetFileName(Page)}\" --output \"{Path.GetFileName(Page)}.out.png\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting";
+                    StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
+
+                    var Proc = Process.Start(StartInfo);
+
+                    while (!Proc.WaitForExit(100))
+                        Application.DoEvents();
+                }
+
+                if (!File.Exists(Page + ".bak"))
+                    File.Move(Page, Page + ".bak");
+                else
+                    File.Delete(Page);
+
+                File.Move(NewPage + ".out.png", Page);
+                File.Delete(NewPage);
             }
-
-            var StartInfo = new ProcessStartInfo(Program.PythonPath);
-            StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --images \"{PageList}\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting";
-            StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
-
-            var Proc = Process.Start(StartInfo);
-
-            while (!Proc.WaitForExit(500)) {
-                Application.DoEvents();
-                Thread.Sleep(100);
-            }
-
-            foreach (var Page in Pages.Skip(1))
-            {
-               var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page)) + ".out.png";
-                if (!File.Exists(NewPage))
-                    continue;
-
-                File.Move(Page, Page + ".bak");
-                File.Move(NewPage, Page);
-            }
-
-            Application.DoEvents();
         }
 
 
