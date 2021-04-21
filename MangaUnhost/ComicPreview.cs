@@ -666,6 +666,9 @@ namespace MangaUnhost
                         Application.DoEvents();
                 }
 
+                if (!File.Exists(NewPage + ".out.png"))
+                    continue;
+
                 if (!File.Exists(Page + ".bak"))
                     File.Move(Page, Page + ".bak");
                 else

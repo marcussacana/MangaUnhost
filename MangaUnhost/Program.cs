@@ -15,7 +15,7 @@ namespace MangaUnhost
     static class Program
     {
         public static string PythonPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs\\Python\\Python39\\Python.exe");
-        public static string MTLPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MTL", "translate_bulk.py");
+        public static string MTLPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MTL", "translate_single.py");
         
         static bool? _MTLAvailable = null;
         public static bool MTLAvailable => _MTLAvailable ??= File.Exists(MTLPath) && File.Exists(PythonPath);
