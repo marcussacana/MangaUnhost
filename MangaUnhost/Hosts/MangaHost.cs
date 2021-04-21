@@ -135,16 +135,14 @@ namespace MangaUnhost.Hosts
             Document.LoadUrl(URL, CFData, AcceptableErrors: Errors);
             if (Document.IsCloudflareTriggered())
             {
-                if (CFData == null)
+                using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
                 {
-                    using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
+                    Browser.WaitForLoad(URL);
+                    do
                     {
-                        Browser.WaitForLoad(URL);
-                        do
-                        {
-                            CFData = Browser.BypassCloudflare();
-                        } while (Browser.IsCloudflareTriggered());
-                    }
+                        CFData = Browser.BypassCloudflare();
+                    } while (Browser.IsCloudflareTriggered());
+                    Document.LoadHtml(CFData?.HTML);
                 }
             }
 
@@ -157,18 +155,16 @@ namespace MangaUnhost.Hosts
 
                 if (Document.IsCloudflareTriggered())
                 {
-                    if (!ProxyCFData.ContainsKey(Proxy))
-                        using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
+                    using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
+                    {
+                        Browser.UseProxy(new WebProxy(Proxy));
+                        Browser.WaitForLoad(URL);
+                        do
                         {
-                            Browser.UseProxy(new WebProxy(Proxy));
-                            Browser.WaitForLoad(URL);
-                            do
-                            {
-                                ProxyCFData[Proxy] = Browser.BypassCloudflare();
-                            } while (Browser.IsCloudflareTriggered());
-                        }
-
-                    Document.LoadUrl(URL, ProxyCFData[Proxy], Proxy: Proxy, AcceptableErrors: Errors);
+                            ProxyCFData[Proxy] = Browser.BypassCloudflare();
+                        } while (Browser.IsCloudflareTriggered());
+                        Document.LoadHtml(ProxyCFData[Proxy].HTML);
+                    }
                 }
 
                 if (Document.SelectSingleNode("//title")?.InnerText == "403 Forbidden" || Document.ParsedText.StartsWith("error code"))
@@ -193,7 +189,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 4)
+                Version = new Version(3, 4, 1)
             };
         }
 

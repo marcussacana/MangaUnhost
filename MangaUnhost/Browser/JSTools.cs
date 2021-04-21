@@ -151,7 +151,7 @@ namespace MangaUnhost.Browser
 
         public static bool IsCloudflareTriggered(this HtmlDocument Document) => Document.ToHTML().IsCloudflareTriggered();
         public static bool IsCloudflareAskingCaptcha(this HtmlDocument Document) => Document.ToHTML().IsCloudflareAskingCaptcha();
-        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD");
+        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Please Wait... | Cloudflare") || HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD");
         public static bool IsCloudflareAskingCaptcha(this string HTML) => HTML.Contains("why_captcha_headline");
         public static IFrame GetFrameByUrl(this ChromiumWebBrowser Browser, string UrlFragment) => Browser.GetBrowser().GetFrameByUrl(UrlFragment);
         public static IFrame GetFrameByUrl(this IBrowser Browser, string UrlFragment)
