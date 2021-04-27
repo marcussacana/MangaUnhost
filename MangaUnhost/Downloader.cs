@@ -1,5 +1,8 @@
 ﻿using CefSharp;
 using EPubFactory;
+using ImageProcessor;
+using ImageProcessor.Imaging.Formats;
+using ImageProcessor.Plugins.WebP.Imaging.Formats;
 using LibAPNG;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
@@ -254,6 +257,8 @@ namespace MangaUnhost
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
                         Application.DoEvents();
 
+                        bool IsWebP = Data.Length > 12 && BitConverter.ToUInt32(Data, 8) == 0x50424557;
+
                         try
                         {
 #if NOASYNCSAVE
@@ -295,21 +300,26 @@ namespace MangaUnhost
                                 ThreadTools.Wait(1000, true);
                             }
 #else
-                            string PageName = $"{Pages.Count:D3}.png";
+                            string PageName = $"{Pages.Count:D3}.{(IsWebP ? "webp" : "png")}";
                             string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
                             
                             Page OutPage = new Page();
                             OutPage.Data = Data;
 
                             if ((SaveAs)Settings.SaveAs != SaveAs.RAW) {
+                                byte[] ModData = null;
+                                
+                                if (IsWebP)
+                                    ModData = DecodeWebP(Data);
+
                                 using (MemoryStream Buffer = new MemoryStream())
-                                using (Bitmap Result = Decoder.Decode(Data))
+                                using (Bitmap Result = Decoder.Decode(ModData ?? Data))
                                 {
                                     PageName = $"{Pages.Count:D3}.{GetExtension(Result, out ImageFormat Format)}";
                                     PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
                                     if (Result.GetImageExtension() == "png" && Settings.APNGBypass)
                                     {
-                                        using (MemoryStream OutBuffer = new MemoryStream(BypassAPNG(Data)))
+                                        using (MemoryStream OutBuffer = new MemoryStream(BypassAPNG(ModData ?? Data)))
                                         using (Bitmap Img = new Bitmap(OutBuffer)) {
                                             Img.Save(Buffer, Format);
                                             OutPage.Data = Buffer.ToArray();
@@ -466,6 +476,18 @@ namespace MangaUnhost
                 }
             }
 
+        }
+
+        private byte[] DecodeWebP(byte[] Data) {
+            var Webp = new WebPFormat();
+            using (MemoryStream Output = new MemoryStream())
+            using (ImageFactory Factory = new ImageFactory())
+            {
+                Factory.Load(Data);
+                Factory.Format(new PngFormat());
+                Factory.Save(Output);
+                return Output.ToArray();
+            }
         }
 
         /* Apose.Imaging (Paid shit)

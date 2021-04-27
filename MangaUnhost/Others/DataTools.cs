@@ -178,7 +178,7 @@ namespace MangaUnhost.Others {
             return ImageFormat.Png;
         }
 
-        public static List<string> ExtractHtmlLinks(string HTML, string Domain)
+        public static List<string> ExtractHtmlLinks(string HTML, string Domain, bool BruteMode = false)
         {
             bool Https = Domain.Trim().ToLower().StartsWith("https");
             
@@ -187,37 +187,74 @@ namespace MangaUnhost.Others {
                 Domain += "http://";
 
             List<string> Links = new List<string>();
-            var Document = new HtmlAgilityPack.HtmlDocument();
-            Document.LoadHtml(HTML);
-
-            var Attributes = new[] { "data-href", "href", "data-url", "url", "data-src", "src" };
-
-            var Nodes = new HtmlNode[0];
-            foreach (var Attribute in Attributes)
+            if (!BruteMode)
             {
-                var Result = Document.DocumentNode.SelectNodes($"//*[@{Attribute}]");
-                if (Result != null)
-                    Nodes = Nodes.Concat(Result).ToArray();
-            }
+                var Document = new HtmlAgilityPack.HtmlDocument();
+                Document.LoadHtml(HTML);
 
-            foreach (var Node in Nodes)
-            {
-                string Link = string.Empty;
+                var Attributes = new[] { "data-href", "href", "data-url", "url", "data-src", "src" };
 
-                foreach (var Attribute in Attributes) {
-                    if (Node.GetAttributeValue(Attribute, null) != null) {
-                        Link = Node.GetAttributeValue(Attribute, null);
-                        if (!string.IsNullOrWhiteSpace(Link))
-                            break;
-                    }
+                var Nodes = new HtmlNode[0];
+                foreach (var Attribute in Attributes)
+                {
+                    var Result = Document.DocumentNode.SelectNodes($"//*[@{Attribute}]");
+                    if (Result != null)
+                        Nodes = Nodes.Concat(Result).ToArray();
                 }
 
-                if (Link.StartsWith("//"))
-                    Link = $"{(Https ? "https" : "http")}:{Link}";
-                if (Link.StartsWith("/"))
-                    Link = Domain + Link;
-                Links.Add(Link);
+                foreach (var Node in Nodes)
+                {
+                    string Link = string.Empty;
+
+                    foreach (var Attribute in Attributes)
+                    {
+                        if (Node.GetAttributeValue(Attribute, null) != null)
+                        {
+                            Link = Node.GetAttributeValue(Attribute, null);
+                            if (!string.IsNullOrWhiteSpace(Link))
+                                break;
+                        }
+                    }
+
+                    if (Link.StartsWith("//"))
+                        Link = $"{(Https ? "https" : "http")}:{Link}";
+                    if (Link.StartsWith("/"))
+                        Link = Domain + Link;
+                    Links.Add(Link);
+                }
             }
+            else
+            {
+                int Ind;
+                do {
+                    Ind = HTML.IndexOf("http");
+                    if (Ind == -1)
+                        break;
+
+                    char? Prefix = null;
+                    if (Ind > 0)
+                        Prefix = HTML[Ind - 1];
+
+                    HTML = HTML.Substring(Ind);
+
+                    if (HTML.StartsWith("https:\\/\\/") || HTML.StartsWith("http:\\/\\/"))
+                        HTML = HTML.Replace("\\/", "/").Replace("\\\"", "\"");
+
+                    if (!HTML.StartsWith("https://") && !HTML.StartsWith("http://"))
+                        continue;
+
+                    var End = HTML.IndexOf(Prefix ?? ' ');
+
+                    if (End == -1)
+                        End = HTML.Length;
+
+                    Links.Add(HTML.Substring(0, End));
+
+                    HTML = HTML.Substring(End);
+
+                } while (Ind >= 0);
+            }
+
 
             return Links;
         }

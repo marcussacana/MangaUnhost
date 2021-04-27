@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
@@ -7,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Net;
-using CefSharp.EventHandler;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace MangaUnhost.Hosts
 {
