@@ -1,8 +1,5 @@
 ﻿using CefSharp;
 using EPubFactory;
-using ImageProcessor;
-using ImageProcessor.Imaging.Formats;
-using ImageProcessor.Plugins.WebP.Imaging.Formats;
 using LibAPNG;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
@@ -478,14 +475,12 @@ namespace MangaUnhost
 
         }
 
-        private byte[] DecodeWebP(byte[] Data) {
-            var Webp = new WebPFormat();
+        private byte[] DecodeWebP(byte[] Data) { 
+            var Decoder = new Imazen.WebP.SimpleDecoder();
             using (MemoryStream Output = new MemoryStream())
-            using (ImageFactory Factory = new ImageFactory())
+            using (var Img = Decoder.DecodeFromBytes(Data, Data.LongLength))
             {
-                Factory.Load(Data);
-                Factory.Format(new PngFormat());
-                Factory.Save(Output);
+                Img.Save(Output, ImageFormat.Png);
                 return Output.ToArray();
             }
         }

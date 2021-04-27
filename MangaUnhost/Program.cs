@@ -64,6 +64,9 @@ namespace MangaUnhost
             //WineHelper();
             CefUpdater();
 
+            var PATH = Environment.GetEnvironmentVariable("PATH");
+            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + Path.GetDirectoryName(LibWebP));
+
             Application.Run(new Main());
 
             if (Debug)
@@ -106,8 +109,6 @@ namespace MangaUnhost
 
             if (!File.Exists(LibWebP))
                 Outdated = true;
-            else
-                LoadLibraryW(LibWebP);
 
             if (!Outdated)
                 return;
