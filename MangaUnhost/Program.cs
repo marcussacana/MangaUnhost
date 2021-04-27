@@ -105,7 +105,7 @@ namespace MangaUnhost
             }
 
             if (!File.Exists(LibWebP))
-                Outdated = false;
+                Outdated = true;
             else
                 LoadLibraryW(LibWebP);
 
