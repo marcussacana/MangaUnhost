@@ -31,6 +31,8 @@ namespace MangaUnhost
 
         public static GitHub Updater = new GitHub("Marcussacana", "MangaUnhost");
 
+        static string LibWebP => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86", "libwebp.dll");
+
         /// <summary>
         /// Ponto de entrada principal para o aplicativo.
         /// </summary>
@@ -102,13 +104,17 @@ namespace MangaUnhost
                 }
             }
 
+            if (!File.Exists(LibWebP))
+                Outdated = false;
+            else
+                LoadLibraryW(LibWebP);
+
             if (!Outdated)
                 return;
 
-
             string CEFName = $"CEF{(Environment.Is64BitProcess ? "x64" : "x86")}.zip";
             string Url = $"{CefRepo}{CEFName}";
-            string SaveAs = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), CEFName);
+            string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
 
             string DbgPath = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -251,6 +257,9 @@ namespace MangaUnhost
 
         [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [DllImport(@"kernel32.dll", CharSet = CharSet.Unicode)]
+        public static extern IntPtr LoadLibraryW(string lpLibrary);
 
         static bool? isRWin;
 
