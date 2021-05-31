@@ -650,14 +650,17 @@ namespace MangaUnhost
         {
             var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp").OrderBy(x=> int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0);
             
-            foreach (var Page in Pages.Skip(1)) {
+            foreach (var Page in Pages) {
                 var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page));
                 File.Copy(Page, NewPage, true);
+
+                if (File.Exists(Page + ".bak"))
+                    continue;
 
                 for (int i = 3; i >= 0 && !File.Exists(NewPage + ".out.png"); i--)
                 {
                     var StartInfo = new ProcessStartInfo(Program.PythonPath);
-                    StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --image \"{Path.GetFileName(Page)}\" --output \"{Path.GetFileName(Page)}.out.png\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting";
+                    StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --image \"{Path.GetFileName(Page)}\" --output \"{Path.GetFileName(Page)}.out.png\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting"; // --use-cuda";
                     StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
 
                     var Proc = Process.Start(StartInfo);

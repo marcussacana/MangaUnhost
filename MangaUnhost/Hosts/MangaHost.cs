@@ -37,7 +37,14 @@ namespace MangaUnhost.Hosts
             int ID = ChapterLinks.Count;
 
             var Nodes = Document.SelectNodes("//div[@class=\"chapters\"]//div[@class=\"tags\"]/a");
-            var Link = Nodes.First().GetAttributeValue("href", string.Empty);
+            
+            string Link = null;
+            if (Nodes?.Count > 0)
+                Link = Nodes.First().GetAttributeValue("href", string.Empty);
+
+            if (string.IsNullOrEmpty(Link)) {
+                Link = OriUrl + "1";
+            }
 
             bool Found = true;
 
@@ -198,11 +205,17 @@ namespace MangaUnhost.Hosts
             return Uri.Host.ToLower().Contains("mangahost") && Uri.AbsolutePath.ToLower().Contains("/manga/");
         }
 
+        string OriUrl = null;
         CloudflareData? CFData = null;
         WebExceptionStatus[] Errors => new WebExceptionStatus[] { WebExceptionStatus.ConnectionClosed, WebExceptionStatus.ProtocolError };
         public ComicInfo LoadUri(Uri Uri)
         {
             Document = LoadDocument(Uri.AbsoluteUri);
+
+            OriUrl = Uri.AbsoluteUri;
+
+            if (!OriUrl.EndsWith("/"))
+                OriUrl += "/";
 
             ComicInfo Info = new ComicInfo();
 
