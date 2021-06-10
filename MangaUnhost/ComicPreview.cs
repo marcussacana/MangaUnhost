@@ -537,7 +537,12 @@ namespace MangaUnhost
 
                 Main.Status = Language.Compressing;
                 Main.SubStatus = ChapName;
-                CreateCBZ(ChapDir, Path.Combine(OutDir, NamePrefix + ChapName + ".cbz"));
+                
+                var Output = Path.Combine(OutDir, NamePrefix + ChapName + ".cbz");
+                if (File.Exists(Output))
+                    return;
+
+                CreateCBZ(ChapDir, Output);
 
                 if (Format != null)
                     Directory.Delete(ChapDir, true);
