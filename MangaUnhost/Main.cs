@@ -12,6 +12,8 @@ using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Text;
+using Microsoft.WindowsAPICodePack.Shell;
+using System.Threading.Tasks;
 
 namespace MangaUnhost
 {
@@ -769,8 +771,14 @@ namespace MangaUnhost
              where typeof(ILanguage).IsAssignableFrom(Typ) && !Typ.IsInterface
              select (ILanguage)Activator.CreateInstance(Typ)).OrderBy(x => x.LanguageName).ToArray();
 
+        int Page = 0;
+        bool Enumerating = false;
+        List<ComicPreview> Previews = new List<ComicPreview>();
+        
         private void OnTabChanged(object sender, EventArgs e)
         {
+            const int PageCount = 50;
+
             if (MainTabMenu.SelectedTab != LibraryTab)
                 return;
 
@@ -783,12 +791,69 @@ namespace MangaUnhost
                 return;
             }
 
-            foreach (var Comic in Directory.GetDirectories(Settings.LibraryPath))
+
+            var Comics = Directory.GetDirectories(Settings.LibraryPath);
+            bool Pagination = Comics.Count() > PageCount;
+
+            if (Page >= Comics.Length / PageCount)
+                Page = (Comics.Length / PageCount) - 1;
+
+            if (Page < 0)
+                Page = 0;
+
+            Enumerating = true;
+
+            if (Pagination)
             {
-                Try(() => LibraryContainer.Controls.Add(new ComicPreview(Comic, ExportLibrary)));
-                Thread.Sleep(10);
-                Application.DoEvents();
+                if (Page > 0)
+                    LibraryContainer.Controls.Add(new ComicPage(() => { Page--; RefreshLibrary(true); }));
+
+                int Reaming = Comics.Length - (PageCount * Page);
+                if (Previews.Count < (Page + 1) * PageCount)
+                {
+                    foreach (var Comic in Comics.Skip(Page * PageCount).Take(Reaming < PageCount ? Reaming : PageCount))
+                    {
+                        try
+                        {
+                            var Preview = new ComicPreview(Comic, (a) => ExportLibrary(a, Settings.LibraryPath));
+                            Previews.Add(Preview);
+                            LibraryContainer.Controls.Add(Preview);
+                        }
+                        catch { }
+                        Thread.Sleep(5);
+                        Application.DoEvents();
+                    }
+                }
+                else
+                {
+                    foreach (var Comic in Previews.Skip(PageCount * Page).Take(Reaming < PageCount ? Reaming : PageCount)) { 
+                        Try(() => LibraryContainer.Controls.Add(Comic));
+                        Application.DoEvents();
+                    }
+                }
+
+                if (Reaming > PageCount)
+                    LibraryContainer.Controls.Add(new ComicPage(() => { Page++; RefreshLibrary(true); }));
             }
+            else
+            {
+                foreach (var Comic in Comics)
+                {
+                    try
+                    {
+                        var Preview = new ComicPreview(Comic, (a) => ExportLibrary(a, Settings.LibraryPath));
+                        Previews.Add(Preview);
+                    }
+                    catch { }
+                }
+
+                foreach (var Comic in Previews)
+                {
+                    LibraryContainer.Controls.Add(Comic);
+                }
+            }
+
+            Enumerating = false;
 
             LibraryContainer.Focus();
 
@@ -799,25 +864,42 @@ namespace MangaUnhost
             }
         }
 
-        private void ExportLibrary(string Format) {
-            foreach (var Comic in LibraryContainer.Controls.Cast<ComicPreview>()) {
+        private async void ExportLibrary(string Format, string LibraryPath) {
+            var Dirs = Directory.GetDirectories(LibraryPath);
+            int Current = 0;
+            var OutDir = ComicPreview.SelectDirectory((ShellContainer)ShellObject.FromParsingName(LibraryPath), Language);
+
+            foreach (var Comic in Dirs)
+            {
+                ThreeStatus = true;
+                ExtraStatus = string.Format(Language.Exporting, Current++, Dirs.Length);
                 try
                 {
-                    var Name = Path.GetFileName(Comic.ComicPath.TrimEnd('/', '\\', ' ')).Trim() + " - ";
-                    Comic.CBZExportChapters(Format, Settings.LibraryPath, Name);
+                    var Exportion = new Task(() => ComicPreview.CBZExport(Comic, Format, OutDir));
+                    Exportion.Start();
+                    await Exportion;
                 }
                 catch { }
+                Application.DoEvents();
             }
+            ThreeStatus = false;
             Status = CurrentLanguage.IDLE;
         }
 
-        public void RefreshLibrary()
+        public void RefreshLibrary(bool Partial = false)
         {
-            var Controls = new List<Control>(LibraryContainer.Controls.Cast<Control>());
+            if (Enumerating)
+                return;
+
             LibraryContainer.Controls.Clear();
-            foreach (var Comic in Controls)
+
+            if (!Partial)
             {
-                Comic.Dispose();
+
+                foreach (var Item in Previews)
+                    Item?.Dispose();
+
+                Previews.Clear();
             }
 
             OnTabChanged(null, null);

@@ -84,12 +84,23 @@
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\InfoTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
+    <Compile Include="ComicPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ComicPage.Designer.cs">
+      <DependentUpon>ComicPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Hosts\Mangadex.cs" />
     <Compile Include="Hosts\WPMangaReader.cs" />
-    <Compile Include="WCRWindow.cs" />
+    <Compile Include="WCRWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="WCRWindow.Designer.cs">
       <DependentUpon>WCRWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="ComicPreview.cs" />
+    <Compile Include="ComicPreview.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="ComicPreview.Designer.cs">
       <DependentUpon>ComicPreview.cs</DependentUpon>
     </Compile>
@@ -104,7 +115,6 @@
     <Compile Include="Hosts\HQHentai.cs" />
     <Compile Include="Hosts\KissManga.cs" />
     <Compile Include="Hosts\LHScan.cs" />
-    <Compile Include="Hosts\MangaDex.cs" />
     <Compile Include="Hosts\MangaHasu.cs" />
     <Compile Include="Hosts\MangaHere.cs" />
     <Compile Include="Hosts\MangaHost.cs" />
@@ -120,11 +130,15 @@
     <Compile Include="Interfaces.cs" />
     <Compile Include="Languages\Portuguese.cs" />
     <Compile Include="Languages\English.cs" />
-    <Compile Include="DownloadingWindow.cs" />
+    <Compile Include="DownloadingWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="DownloadingWindow.Designer.cs">
       <DependentUpon>DownloadingWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Main.cs" />
+    <Compile Include="Main.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
@@ -138,24 +152,35 @@
     <Compile Include="Others\DataTools.cs" />
     <Compile Include="Others\AccountsTools.cs" />
     <Compile Include="Others\ThreadTools.cs" />
-    <Compile Include="PluginInfoPreview.cs" />
+    <Compile Include="PluginInfoPreview.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="PluginInfoPreview.Designer.cs">
       <DependentUpon>PluginInfoPreview.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BrowserPopup.cs" />
+    <Compile Include="BrowserPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="BrowserPopup.Designer.cs">
       <DependentUpon>BrowserPopup.cs</DependentUpon>
     </Compile>
     <Compile Include="Resources\Icons.cs" />
-    <Compile Include="ScrollFlowLayoutPanel.cs" />
-    <Compile Include="SolveCaptcha.cs" />
+    <Compile Include="ScrollFlowLayoutPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="SolveCaptcha.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SolveCaptcha.Designer.cs">
       <DependentUpon>SolveCaptcha.cs</DependentUpon>
     </Compile>
     <Compile Include="Structs.cs" />
     <Compile Include="Styles.cs" />
+    <EmbeddedResource Include="ComicPage.resx">
+      <DependentUpon>ComicPage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="WCRWindow.resx">
       <DependentUpon>WCRWindow.cs</DependentUpon>
     </EmbeddedResource>

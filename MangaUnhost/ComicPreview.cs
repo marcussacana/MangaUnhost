@@ -467,11 +467,11 @@ namespace MangaUnhost
             var Chapters = Directory.GetDirectories(ChapPath);
             foreach (var Chapter in Chapters)
             {
-                ExportChapter(Chapter, OutputDir, Format);
+                ExportChapter(Chapter, OutputDir, Format, Language);
             }
         }
 
-        private string ExportChapter(string Chapter, string OutputDir, string Format, string ProgressMessage = null)
+        private static string ExportChapter(string Chapter, string OutputDir, string Format, ILanguage Language, bool SubDir = true, string ProgressMessage = null)
         {
             var Pages = Directory.GetFiles(Chapter);
 
@@ -481,7 +481,7 @@ namespace MangaUnhost
             Format = Format.TrimStart('.').ToLower();
 
             var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
-            var ChapOutDir = Path.Combine(OutputDir, ChapName);
+            var ChapOutDir = SubDir ? Path.Combine(OutputDir, ChapName) : OutputDir;
             if (!Directory.Exists(ChapOutDir))
                 Directory.CreateDirectory(ChapOutDir);
 
@@ -518,6 +518,71 @@ namespace MangaUnhost
             return ChapOutDir;
         }
 
+        public static bool CBZExport(string ComicPath, string Format, string OutDirectory = null, string NamePrefix = "") {
+            var OutDir = OutDirectory ?? SelectDirectory((ShellContainer)ShellObject.FromParsingName(ComicPath), Main.Language);
+            if (OutDir == null)
+                return false;
+
+            string IndexPath = null, ChapPath = null;
+            bool ChapsFound = false, IndexFound = false;
+
+            ILanguage ActiveLang = null;
+            foreach (var Language in Main.GetLanguagesInstance())
+            {
+                string PossibleCoverPath = Path.Combine(ComicPath, Language.Cover) + ".png";
+                string PossibleIndexPath = Path.Combine(ComicPath, Language.Index) + ".html";
+                string PossibleChapterPath = Path.Combine(ComicPath, Language.Chapters);
+                if (File.Exists(PossibleCoverPath))
+                {
+                    if (File.Exists(PossibleIndexPath))
+                    {
+                        IndexPath = PossibleIndexPath;
+                        IndexFound = true;
+                        ActiveLang = Language;
+                    }
+                    if (Directory.Exists(PossibleChapterPath))
+                    {
+                        ChapPath = PossibleChapterPath;
+                        ChapsFound = true;
+                        ActiveLang = Language;
+                    }
+                }
+            }
+
+            if (!ChapsFound || !IndexFound)
+                return false;
+
+            var Chapters = Directory.GetDirectories(ChapPath);
+            bool OneShot = Chapters.Count() == 1;
+
+            foreach (var Chapter in Chapters)
+            {
+                var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
+                var ChapDir = Format == null ? Chapter : ExportChapter(Chapter, OutDir, Format, ActiveLang);
+                if (ChapDir == null)
+                    continue;
+
+                if (Format != null && Directory.GetFiles(ChapDir).Length == 0)
+                    continue;
+
+                Main.Status = ActiveLang.Compressing;
+                Main.SubStatus = ChapName;
+
+                var FinalChapName = (OneShot ? Path.GetFileName(ComicPath.TrimEnd(' ', '\\', '/')) : ChapName);
+                var Output = Path.Combine(OutDir, NamePrefix + FinalChapName + ".cbz");
+                if (File.Exists(Output))
+                    return true;
+
+                CreateCBZ(ChapDir, Output);
+
+                if (Format != null)
+                    Directory.Delete(ChapDir, true);
+            }
+
+            Main.Status = ActiveLang.IDLE;
+            Main.SubStatus = "";
+            return true;
+        }
         public void CBZExportChapters(string Format, string OutDirectory = null, string NamePrefix = "")
         {
             var OutDir = OutDirectory ?? SelectDirectory();
@@ -528,7 +593,7 @@ namespace MangaUnhost
             foreach (var Chapter in Chapters)
             {
                 var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
-                var ChapDir = Format == null ? Chapter : ExportChapter(Chapter, OutDir, Format);
+                var ChapDir = Format == null ? Chapter : ExportChapter(Chapter, OutDir, Format, Language);
                 if (ChapDir == null)
                     continue;
 
@@ -552,7 +617,7 @@ namespace MangaUnhost
             Main.SubStatus = "";
         }
 
-        private void CreateCBZ(string InputDir, string Output)
+        private static void CreateCBZ(string InputDir, string Output)
         {
             using (ZipFile Zip = new ZipFile())
             {
@@ -562,14 +627,16 @@ namespace MangaUnhost
             }
         }
 
-        private string SelectDirectory()
+        private string SelectDirectory() => SelectDirectory((ShellContainer)ShellObject.FromParsingName(ChapPath));
+
+        public static string SelectDirectory(ShellContainer SContainer, ILanguage Language = null)
         {
-            using (var Container = ChaptersDir)
+            using (var Container = SContainer)
             using (CommonOpenFileDialog SaveAs = new CommonOpenFileDialog())
             {
                 SaveAs.AddPlace(Container, FileDialogAddPlaceLocation.Top);
                 SaveAs.AddPlace(KnownFolders.Desktop as ShellContainer, FileDialogAddPlaceLocation.Top);
-                SaveAs.Title = Language.SelectASaveDir;
+                SaveAs.Title = Language.SelectASaveDir ?? "Select a Directory";
                 SaveAs.ShowPlacesList = true;
                 SaveAs.IsFolderPicker = true;
                 SaveAs.EnsurePathExists = true;
@@ -623,7 +690,7 @@ namespace MangaUnhost
                 Directory.CreateDirectory(Path.GetDirectoryName(TmpChapter));
 
             Directory.Move(Chapter, TmpChapter);
-            bool OK = Retry(() => ExportChapter(TmpChapter, ChapPath, Format, Language.Converting));
+            bool OK = Retry(() => ExportChapter(TmpChapter, ChapPath, Format, Language, true, Language.Converting));
 
             if (!OK)
             {
@@ -695,7 +762,7 @@ namespace MangaUnhost
             return Files.ToArray();
         }
 
-        private bool Retry(Action Operation, int Times = 3)
+        private static bool Retry(Action Operation, int Times = 3)
         {
             try
             {
