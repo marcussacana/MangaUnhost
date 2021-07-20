@@ -627,7 +627,7 @@ namespace MangaUnhost
             }
         }
 
-        private string SelectDirectory() => SelectDirectory((ShellContainer)ShellObject.FromParsingName(ChapPath));
+        private string SelectDirectory() => SelectDirectory((ShellContainer)ShellObject.FromParsingName(ChapPath), Language);
 
         public static string SelectDirectory(ShellContainer SContainer, ILanguage Language = null)
         {
