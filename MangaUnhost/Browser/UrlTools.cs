@@ -81,19 +81,19 @@ namespace MangaUnhost.Browser
             return url.AbsoluteUri.Split('?').FirstOrDefault() ?? string.Empty;
         }
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErrors = null) =>
-            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent, Proxy, CFData?.Cookies, AcceptableErrors);
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErrors = null) =>
-            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent, Proxy, CFData?.Cookies, AcceptableErrors);
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, System.Text.Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
-            Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Cookies, AcceptableErrors);
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
+            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
+            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
+            Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Accept, Headers, Cookies, AcceptableErrors);
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
         {
             if (Encoding == null)
                 Encoding = Encoding.UTF8;
 
-            string HTML = Encoding.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Cookies, AcceptableErrors) ?? new byte[0]);
+            string HTML = Encoding.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookies, AcceptableErrors) ?? new byte[0]);
 
             Document.LoadHtml(HTML);
 
@@ -104,20 +104,20 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent, Proxy, CFData?.Cookies, AcceptableErros, Retries);
-        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent, Proxy, CFData?.Cookies, AcceptableErros, Retries);
-        public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries);
+        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
+            Url.TryDownload(Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
+        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
+            Url.TryDownload(Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
+        public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
+            new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
 
-        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
+        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
         {
             byte[] Result = null;
 
             var Thread = new System.Threading.Thread(() =>
             Result = AsyncContext.Run(async () =>
-            await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries)));
+            await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries)));
 
             Thread.Start();
 
@@ -127,18 +127,18 @@ namespace MangaUnhost.Browser
             return Result;
         }
 
-        public static async Task<byte[]> TryDownloadAsync(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, CFData.Cookies, AcceptableErros, Retries);
-        public static async Task<byte[]> TryDownloadAsync(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, CFData.Cookies, AcceptableErros, Retries);
-        public static async Task<byte[]> TryDownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            await new Uri(Url).TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries);
+        public static async Task<byte[]> TryDownloadAsync(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
+            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies, AcceptableErros, Retries);
+        public static async Task<byte[]> TryDownloadAsync(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
+            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies, AcceptableErros, Retries);
+        public static async Task<byte[]> TryDownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
+            await new Uri(Url).TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
 
-        public static async Task<byte[]> TryDownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
+        public static async Task<byte[]> TryDownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
         {
             try
             {
-                return await Url.DownloadAsync(Referer, UserAgent, Proxy, Cookie);
+                return await Url.DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
             }
             catch (Exception ex)
             {
@@ -163,7 +163,7 @@ namespace MangaUnhost.Browser
                         }
                     }
                     if (Retries > 0)
-                        return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Cookie, AcceptableErrors, Retries - 1);
+                        return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries - 1);
                 }
                 if (Program.Debug)
                 {
@@ -174,15 +174,15 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null) =>
-            new Uri(Url).Download(Referer, UserAgent, Proxy, Cookie);
-        public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null)
+        public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
+            new Uri(Url).Download(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+        public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
         {
             byte[] Result = null;
 
             var Thread = new System.Threading.Thread(() =>
             Result = AsyncContext.Run(async () =>
-            await Url.DownloadAsync(Referer, UserAgent, Proxy, Cookie)));
+            await Url.DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
 
             Thread.Start();
 
@@ -191,11 +191,19 @@ namespace MangaUnhost.Browser
 
             return Result;
         }
-        public static async Task<byte[]> DownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null) =>
-            await new Uri(Url).DownloadAsync(Referer, UserAgent, Proxy, Cookie);
-        public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, CookieContainer Cookie = null)
+        public static async Task<byte[]> DownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
+            await new Uri(Url).DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+        public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
         {
             HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(Url);
+
+            if (Headers == null)
+                Request.Headers["Host"] = Url.Host;
+            else
+            {
+                foreach (var Entry in Headers)
+                    Request.Headers[Entry.Key] = Entry.Value;
+            }
 
             Request.UseDefaultCredentials = true;
             Request.Method = "GET";
@@ -209,6 +217,9 @@ namespace MangaUnhost.Browser
 
             if (UserAgent != null)
                 Request.UserAgent = UserAgent;
+
+            if (Accept != null)
+                Request.Accept = Accept;
 
             if (Proxy != null)
                 Request.Proxy = new WebProxy(Proxy);

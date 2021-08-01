@@ -79,15 +79,27 @@ namespace MangaUnhost {
         }
 
         public static CefSharp.Cookie[] GetCookies(this IBrowser Browser) {
-            return AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().VisitUrlCookiesAsync(Browser.MainFrame.Url, true)).ToArray();
+            try
+            {
+                return AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().VisitUrlCookiesAsync(Browser.MainFrame.Url, true)).ToArray();
+            }
+            catch { return null;  }
         }
 
         public static void DeleteCookies(this IBrowser Browser) {
-            AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().DeleteCookiesAsync(new Uri(Browser.MainFrame.Url).Host));
+            try
+            {
+                AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().DeleteCookiesAsync(new Uri(Browser.MainFrame.Url).Host));
+            }
+            catch { }
         }
 
         public static void DeleteCookie(this IBrowser Browser, string Name) {
-            AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().DeleteCookiesAsync(Browser.MainFrame.Url, Name));
+            try
+            {
+                AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().DeleteCookiesAsync(Browser.MainFrame.Url, Name));
+            }
+            catch { }
         }
 
         public static void UpdateCookie(this IBrowser Browser, System.Net.Cookie Cookie) {
@@ -101,7 +113,11 @@ namespace MangaUnhost {
             });
         }
         public static void UpdateCookie(this IBrowser Browser, CefSharp.Cookie Cookie) {
-            AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().SetCookieAsync(Browser.MainFrame.Url, Cookie));
+            try
+            {
+                AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().SetCookieAsync(Browser.MainFrame.Url, Cookie));
+            }
+            catch { }
         }
 
         public static bool IsRunning(this Thread Thread)

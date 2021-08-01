@@ -54,15 +54,13 @@ namespace MangaUnhost.Hosts
 
         private Dictionary<int, string> GetChapters(int Page, int Serie) {
             var ApiUrl = new Uri($"https://mangalivre.net/series/chapters_list.json?page={Page}&id_serie={Serie}");
-            var Request = (HttpWebRequest)WebRequest.Create(ApiUrl);
-            Request.Method = "GET";
-            Request.Accept = "application/json, text/javascript, */*; q=0.01";
-            Request.Referer = MangaUrl;
-            Request.UserAgent = UserAgent;
-            Request.CookieContainer = Cookies;
-            Request.Headers["X-Requested-With"] = "XMLHttpRequest";
 
-            var JSON = Encoding.UTF8.GetString(Request.GetResponseData());
+            var Data = ApiUrl.Download(MangaUrl, UserAgent, Accept: "application/json, text/javascript, */*; q=0.01", Headers: new[] { 
+                    ("Host", ApiUrl.Host),
+                    ("X-Requested-With", "XMLHttpRequest" )
+                }, Cookie: Cookies);
+
+            var JSON = Encoding.UTF8.GetString(Data);
             Dictionary<int, string> Chapters = new Dictionary<int, string>();
             while (true) {
                 var IDStr = DataTools.ReadJson(JSON, "id_release");
@@ -91,15 +89,12 @@ namespace MangaUnhost.Hosts
                 return PagesCache[RelID];
 
             var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={Key}");
-            var Request = (HttpWebRequest)WebRequest.Create(ApiUrl);
-            Request.Method = "GET";
-            Request.Accept = "application/json, text/javascript, */*; q=0.01";
-            Request.Referer = ChapterLink;
-            Request.UserAgent = UserAgent;
-            Request.CookieContainer = Cookies;
-            Request.Headers["X-Requested-With"] = "XMLHttpRequest";
+            var Data = ApiUrl.Download(ChapterLink, UserAgent, Accept: "application/json, text/javascript, */*; q=0.01", Headers: new[] {
+                    ("Host", ApiUrl.Host),
+                    ("X-Requested-With", "XMLHttpRequest" )
+                }, Cookie: Cookies);
 
-            var JSON = Encoding.UTF8.GetString(Request.GetResponseData());
+            var JSON = Encoding.UTF8.GetString(Data);
             ChapterPages Pages = Extensions.JsonDecode<ChapterPages>(JSON);
             PagesCache[RelID] = Pages.images;
             return Pages.images;

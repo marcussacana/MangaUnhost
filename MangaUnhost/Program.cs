@@ -2,9 +2,11 @@
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -66,6 +68,8 @@ namespace MangaUnhost
 
             var PATH = Environment.GetEnvironmentVariable("PATH");
             Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + Path.GetDirectoryName(LibWebP));
+
+            UnlockHeaders();
 
             Application.Run(new Main());
 
@@ -200,6 +204,27 @@ namespace MangaUnhost
             {
                 return;
             }
+        }
+
+        /// <summary>
+        /// We aren't kids microsoft, we shouldn't need this
+        /// </summary>
+        public static void UnlockHeaders()
+        {
+            var tHashtable = typeof(WebHeaderCollection).Assembly.GetType("System.Net.HeaderInfoTable")
+                            .GetFields(BindingFlags.NonPublic | BindingFlags.Static)
+                            .Where(x => x.FieldType.Name == "Hashtable").Single();
+
+            var Table = (Hashtable)tHashtable.GetValue(null);
+            foreach (var Key in Table.Keys.Cast<string>().ToArray())
+            {
+                var HeaderInfo = Table[Key];
+                HeaderInfo.GetType().GetField("IsRequestRestricted", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(HeaderInfo, false);
+                HeaderInfo.GetType().GetField("IsResponseRestricted", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(HeaderInfo, false);
+                Table[Key] = HeaderInfo;
+            }
+
+            tHashtable.SetValue(null, Table);
         }
 
         public static void WineHelper()
