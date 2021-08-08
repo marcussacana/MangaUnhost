@@ -63,26 +63,35 @@ namespace MangaUnhost.Hosts
             {
                 string URL = Node.GetAttributeValue("href", "");
                 string Name = Node.InnerText.Trim().ToLower();
+                string Prefix = string.Empty;
+
+                char[] GeneralTrim = new char[] { ' ', '-', '\t', '.' };
+
+                if (Name.StartsWith("vol")) {
+                    Name = Name.Substring(" ").Trim();
+                    Prefix = "Vol. " + Name.Substring(null, " ") + " Ch. ";
+                    Name = Name.Substring(" ").Trim(GeneralTrim);
+                }
 
                 if (Name.StartsWith("chapter"))
-                    Name = Name.Substring("chapter").Trim();
+                    Name = Name.Substring("chapter").Trim(GeneralTrim);
 
                 if (Name.StartsWith("chap"))
-                    Name = Name.Substring("chap").Trim(' ', '\t', '.');
+                    Name = Name.Substring("chap").Trim(GeneralTrim);
+
+                if (Name.StartsWith("capítulo"))
+                    Name = Name.Substring("capítulo").Trim(GeneralTrim);
 
                 if (Name.StartsWith("cap"))
-                    Name = Name.Substring("cap").Trim(' ', '\t', '.');
+                    Name = Name.Substring("cap").Trim(GeneralTrim);
 
                 if (Name.StartsWith("ch."))
                     Name = Name.Substring("ch.", " ", IgnoreMissmatch: true);
 
-                if (Name.StartsWith("capítulo"))
-                    Name = Name.Substring("capítulo").Trim(' ', '\t', '.');
-
                 if (Name.Contains("-"))
-                    Name = Name.Split('-').First().Trim();
+                    Name = Name.Split('-').First().Trim(GeneralTrim);
 
-                Name = DataTools.GetRawName(Name);
+                Name = Prefix + DataTools.GetRawName(Name);
 
                 LinkMap[ID] = URL;
 
@@ -132,7 +141,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 1)
+                Version = new Version(2, 2)
             };
         }
 
@@ -149,12 +158,7 @@ namespace MangaUnhost.Hosts
             if (!HTML.Contains("wp-manga-chapter") && !HTML.Contains("wpManga"))
                 return false;
 
-            if (URL.AbsolutePath.ToLower().Contains("manga/"))
-                return true;
-            if (URL.AbsolutePath.ToLower().Contains("webtoon/"))
-                return true;
-
-            return false;
+            return true;
         }
 
         Uri CurrentUrl;
