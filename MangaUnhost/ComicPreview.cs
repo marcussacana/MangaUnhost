@@ -16,8 +16,6 @@ using MangaUnhost.Browser;
 using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
-using System.Threading;
-using System.Web.WebSockets;
 
 namespace MangaUnhost
 {
@@ -93,9 +91,15 @@ namespace MangaUnhost
 
             Visible = true;
 
-            var Initializer = new Task(InitializePreview);
+            ParentChanged += OnParentChanged;
+        }
 
-            Initializer.Start();
+        private void OnParentChanged(object sender, EventArgs e)
+        {
+            if (Parent == null)
+                return;
+            ParentChanged -= OnParentChanged;
+            InitializePreview();
         }
 
         readonly string[] Langs = new string[] { "EN", "JA", "ZH", "RU", "FR", "IT", "ES", "PT" };
@@ -166,7 +170,10 @@ namespace MangaUnhost
             {
                 try
                 {
-                    HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.Host, ProxyTools.UserAgent));
+                    HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.AbsoluteUri, ProxyTools.UserAgent));
+                    if (HTML.IsCloudflareTriggered()) {
+                        HTML = ComicUrl.AbsoluteUri.BypassCloudflare().HTML;
+                    }
                     HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
 
                 }
@@ -288,10 +295,10 @@ namespace MangaUnhost
             }
         }
 
-        public void GetComicInfo(bool UseCache)
+        public async void GetComicInfo(bool UseCache)
         {
             while (!Initialized)
-                Nito.AsyncEx.AsyncContext.Run(async () => await Task.Delay(50));
+               await Task.Delay(50);
 
             try
             {
@@ -302,19 +309,15 @@ namespace MangaUnhost
                     ComicInfo = InfoCache[ComicPath];
                 else
                 {
-
-                    Nito.AsyncEx.AsyncContext.Run(() =>
+                    try
                     {
-                        try
-                        {
-                            InfoCache[ComicPath] = ComicInfo = ComicHost.LoadUri(ComicUrl);
-                        }
-                        catch
-                        {
-                            if (!IndexFound)
-                                Invoke(new MethodInvoker(() => Visible = false));
-                        }
-                    });
+                        InfoCache[ComicPath] = ComicInfo = ComicHost.LoadUri(ComicUrl);
+                    }
+                    catch
+                    {
+                        if (!IndexFound)
+                            Invoke(new MethodInvoker(() => Visible = false));
+                    }
                 }
 
                 if (!CoverFound)
@@ -355,7 +358,7 @@ namespace MangaUnhost
                 return;
 
             //Prevent for update check freezes
-            ThreadTools.ForceTimeoutAt = DateTime.Now.AddMinutes(2);
+            ThreadTools.ForceTimeoutAt = DateTime.Now.AddMinutes(1);
 
             Nito.AsyncEx.AsyncContext.Run(() =>
             {

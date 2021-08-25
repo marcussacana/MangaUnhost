@@ -79,7 +79,7 @@ namespace MangaUnhost.Browser
             return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
         }
 
-        public static CloudflareData BypassCloudflare(string Url)
+        public static CloudflareData BypassCloudflare(this string Url)
         {
             var Status = Main.Status;
             Main.Status = Main.Language.BypassingCloudFlare;
