@@ -141,7 +141,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 2)
+                Version = new Version(2, 3)
             };
         }
 
@@ -193,7 +193,10 @@ namespace MangaUnhost.Hosts
             }
 
             ComicInfo Info = new ComicInfo();
-            Info.Title = Document.SelectSingleNode("//div[@class='post-title']/*[self::h3 or self::h2 or self::h1]").InnerText.Trim();
+            var TitleNode = Document.SelectSingleNode("//div[@class='post-title']/*[self::h3 or self::h2 or self::h1]");
+            try { TitleNode.RemoveChild(TitleNode.ChildNodes.Where(x => x.Name == "span").Single()); } catch { }
+            Info.Title = TitleNode.InnerText.Trim();
+
             if (Info.Title.ToUpper().StartsWith("HOT"))
                 Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
