@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -24,9 +25,10 @@ namespace MangaUnhost.Hosts
         {
             var Link = LinkDB[ID];
             var HTML = TryDownString(Link);
-            string Key = HTML.Substring("&token=", "&");
+            string Identitifer = HTML.Substring("&token=", "&");
+            string Token = HTML.Substring("isVertical, \"", "\"");
 
-            foreach (var Page in GetPages(ID, Key, Link.AbsoluteUri)) {
+            foreach (var Page in GetPages(ID, Identitifer, Token, Link.AbsoluteUri)) {
                 yield return TryDownload(new Uri(Page));
             }
         }
@@ -47,9 +49,10 @@ namespace MangaUnhost.Hosts
         {
             var Link = LinkDB[ID];
             var HTML = TryDownString(Link);
-            string Key = HTML.Substring("&token=", "&");
+            string Identitifer = HTML.Substring("&token=", "&");
+            string Token = HTML.Substring("isVertical, \"", "\"");
 
-            return GetPages(ID, Key, Link.AbsoluteUri).Length;
+            return GetPages(ID, Identitifer, Token, Link.AbsoluteUri).Length;
         }
 
         private Dictionary<int, string> GetChapters(int Page, int Serie) {
@@ -83,25 +86,27 @@ namespace MangaUnhost.Hosts
         }
 
         Dictionary<int, string[]> PagesCache = new Dictionary<int, string[]>();
-        private string[] GetPages(int RelID, string Key, string ChapterLink)
+        private string[] GetPages(int RelID, string Identifier, string Token, string ChapterLink)
         {
             if (PagesCache.ContainsKey(RelID))
                 return PagesCache[RelID];
 
-            var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={Key}");
-            var Data = ApiUrl.Download(ChapterLink, UserAgent, Accept: "application/json, text/javascript, */*; q=0.01", Headers: new[] {
-                    ("Host", ApiUrl.Host),
-                    ("X-Requested-With", "XMLHttpRequest" )
-                }, Cookie: Cookies);
+            var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenToken(Identifier, Token, RelID)}");
+            var Data = ApiUrl.Download(ChapterLink, UserAgent);
 
             var JSON = Encoding.UTF8.GetString(Data);
             ChapterPages Pages = Extensions.JsonDecode<ChapterPages>(JSON);
-            PagesCache[RelID] = Pages.images;
-            return Pages.images;
+            return PagesCache[RelID] = Pages.images.Select(x => x.legacy).ToArray();
         }
 
         struct ChapterPages {
-            public string[] images;
+            public ImageEntry[] images;
+        }
+
+        struct ImageEntry
+        {
+            public string legacy;
+            public string avif;
         }
 
         public IDecoder GetDecoder()
@@ -116,7 +121,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 2),
+                Version = new Version(2, 3),
                 Icon = Resources.Icons.MangaLivre
             };
         }
@@ -169,6 +174,52 @@ namespace MangaUnhost.Hosts
             UserAgent = Browser.GetUserAgent();
             Cookies = Browser.GetCookies().ToContainer();
             Browser.Dispose();
+        }
+
+
+        static string GenToken(string Identifier, string Token, int ID)
+        {
+            var RollIndex = Math.Max(ID % 7, 1);
+            var TokenParts = SplitByLen(Token, 5);
+            var TokenChars = string.Join("", TokenParts.Skip(RollIndex).Concat(TokenParts.Take(RollIndex))).ToArray();
+
+            var ReverseIdentifier = Identifier.Reverse().ToArray();
+
+            //t = TokenChars, s = ReverseIdentifier, n = Identifier
+
+            const string CharList = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            Random rnd = new Random();
+
+            var RealToken = string.Empty;
+            for (int i = 0; i < Identifier.Length; i++)
+            {
+                RealToken += CharList[rnd.Next(0, CharList.Length)];
+                RealToken += Identifier[i];
+                RealToken += ReverseIdentifier[i];
+                RealToken += TokenChars[i];
+                RealToken += CharList[rnd.Next(0, CharList.Length)];
+            }
+
+            var RTokenParts = SplitByLen(RealToken, ID % 11);
+
+            string FinalToken = string.Empty;
+            for (int i = 0; i < RTokenParts.Length; i++)
+            {
+                FinalToken += string.Join("", (new char[RollIndex]).Select(x => CharList[rnd.Next(0, CharList.Length)])); // Just Random shit
+                FinalToken += RTokenParts[i];
+            }
+
+            return FinalToken;
+        }
+
+        public static string[] SplitByLen(string Str, int Len)
+        {
+            var Regex = new Regex(".{1," + Len + "}");
+            var Matches = Regex.Matches(Str);
+            List<string> Parts = new List<string>();
+            foreach (var Match in Matches.Cast<Match>())
+                Parts.Add(Match.Value);
+            return Parts.ToArray();
         }
 
         static Dictionary<int, Uri> LinkDB = new Dictionary<int, Uri>();
