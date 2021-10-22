@@ -121,7 +121,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 3),
+                Version = new Version(2, 3, 1),
                 Icon = Resources.Icons.MangaLivre
             };
         }
@@ -214,7 +214,7 @@ namespace MangaUnhost.Hosts
 
         public static string[] SplitByLen(string Str, int Len)
         {
-            var Regex = new Regex(".{1," + Len + "}");
+            var Regex = new Regex(".{1," + Math.Max(Len, 1) + "}");
             var Matches = Regex.Matches(Str);
             List<string> Parts = new List<string>();
             foreach (var Match in Matches.Cast<Match>())
