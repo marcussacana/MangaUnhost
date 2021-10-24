@@ -8,10 +8,26 @@ using System.Web;
 
 namespace MangaUnhost.Others {
     public static class ChapterTools {
-        public static void GenerateComicReader(ILanguage CurrentLanguage, string[] Pages, string NextChapterPath, string ComicDir, string ChapterPath, string ChapterName) {
+        public static void GenerateComicReader(ILanguage CurrentLanguage, string[] Pages, string LastChapter, string NextChapterPath, string ComicDir, string ChapterPath, string ChapterName) {
             string HtmlPath = Path.Combine(ComicDir, ChapterPath.TrimEnd('\\', '/') + ".html");
+            string LastHtmlPath = Path.Combine(ComicDir, LastChapter.TrimEnd('\\', '/') + ".html");
 
             ChapterPath = Path.GetFileName(ChapterPath);
+
+            if (LastHtmlPath != null && File.Exists(LastHtmlPath)) {
+                var LastHtml = File.ReadAllText(LastHtmlPath);
+                if (!LastHtml.Contains("<a href=")) {
+                    int EndReader = LastHtml.IndexOf("</div>");
+                    if (EndReader > 0)
+                    {
+                        while (LastHtml[EndReader - 1] != '>')
+                            EndReader--;
+
+                        LastHtml =  LastHtml.Insert(EndReader, string.Format(Properties.Resources.ComicReaderNextChapterBase, HtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter)));
+                        File.WriteAllText(LastHtmlPath, LastHtml);
+                    }
+                }
+            }
 
             string NextHtmlPath = null;
             if (NextChapterPath != null)

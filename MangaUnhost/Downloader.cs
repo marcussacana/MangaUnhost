@@ -182,6 +182,12 @@ namespace MangaUnhost
             Status = CurrentLanguage.Loading;
 
             int KIndex = Chapters.IndexOfKey(ID);
+
+            string LastChapter = null;
+
+            if (KIndex < Chapters.Keys.Count)
+                LastChapter = DataTools.GetRawName(Chapters.Values.ElementAt(KIndex + 1), FileNameMode: true);
+
             string NName = null;
             string NextChapterPath = null;
 
@@ -201,6 +207,9 @@ namespace MangaUnhost
 
             ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, Name, out string ChapterPath, false);
 
+            if (NName != null)
+                ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, NName, out NextChapterPath, false);
+
             string AbsoluteChapterPath = Path.Combine(TitleDir, ChapterPath);
 
             if (Settings.SkipDownloaded && File.Exists(AbsoluteChapterPath.TrimEnd('\\', '/') + ".html"))
@@ -218,7 +227,7 @@ namespace MangaUnhost
                 if (Settings.SkipDownloaded && Directory.Exists(AbsoluteChapterPath))
                 {
                     var Pages = (from x in Directory.GetFiles(AbsoluteChapterPath) select Path.GetFileName(x)).ToArray();
-                    ChapterTools.GenerateComicReader(CurrentLanguage, Pages, NextChapterPath, TitleDir, ChapterPath, Name);
+                    ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LastChapter, NextChapterPath, TitleDir, ChapterPath, Name);
                     string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
                     File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
                     return;
@@ -236,9 +245,6 @@ namespace MangaUnhost
 
             if (!Directory.Exists(AbsoluteChapterPath))
                 Directory.CreateDirectory(AbsoluteChapterPath);
-
-            if (NName != null)
-                ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, NName, out NextChapterPath, false);
 
             string UrlData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
             File.WriteAllText(Path.Combine(TitleDir, "Online.url"), UrlData);
@@ -354,7 +360,7 @@ namespace MangaUnhost
 
                     if (Settings.ReaderGenerator)
                     {
-                        ChapterTools.GenerateComicReader(CurrentLanguage, Pages.ToArray(), NextChapterPath, TitleDir, ChapterPath, Name);
+                        ChapterTools.GenerateComicReader(CurrentLanguage, Pages.ToArray(), LastChapter, NextChapterPath, TitleDir, ChapterPath, Name);
                         ChapterTools.GenerateReaderIndex(Languages, CurrentLanguage, Info, TitleDir, Name);
                     }
 

@@ -671,19 +671,25 @@ namespace MangaUnhost
             var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => Path.GetFileName(x).Substring(" ", IgnoreMissmatch: true)).ToArray();
             for (int i = 0; i < Chapters.Length; i++)
             {
+                string LastChapter = null;
                 string Chapter = Chapters[i];
                 string NextChapter = null;
+
+                if (i > 0)
+                    LastChapter = Chapters[i - 1];
+
                 if (i + 1 < Chapters.Length)
                     NextChapter = Chapters[i + 1];
 
-                ConvertChapter(Chapter, NextChapter, Format);
+
+                ConvertChapter(Chapter, LastChapter, NextChapter, Format);
             }
 
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
         }
 
-        private void ConvertChapter(string Chapter, string NextChapter, string Format)
+        private void ConvertChapter(string Chapter, string LastChapter, string NextChapter, string Format)
         {
             var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
             var TmpChapter = Path.Combine(ChapPath, "tmp", ChapName);
@@ -710,7 +716,7 @@ namespace MangaUnhost
                 return;
 
             var Pages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x)).ToArray();
-            ChapterTools.GenerateComicReader(Language, Pages, NextChapter, ChapPath, Chapter, ChapName);
+            ChapterTools.GenerateComicReader(Language, Pages, LastChapter, NextChapter, ChapPath, Chapter, ChapName);
         }
 
         void TranslateChapters(string SourceLang, string TargetLang)
