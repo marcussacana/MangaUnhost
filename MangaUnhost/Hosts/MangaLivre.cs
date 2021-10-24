@@ -27,8 +27,23 @@ namespace MangaUnhost.Hosts
             var HTML = TryDownString(Link);
             string Identitifer = HTML.Substring("&token=", "&");
             string Token = HTML.Substring("isVertical, \"", "\"");
-
+            //https://cdn.statically.io/img/images2.optimages.net/f=auto/firefox/HpSSrwPuYY_LvnfTXhKGFg/m6867758/11735/283339/296802/00.jpg
             foreach (var Page in GetPages(ID, Identitifer, Token, Link.AbsoluteUri)) {
+                if (Page.Contains("/f=auto/"))
+                {
+                    byte[] CurrPage = null;
+                    try
+                    {
+                        CurrPage = new Uri(Page.Replace("cdn.statically.io/img/", "").Replace("/f=auto", "")).Download();
+                    }
+                    catch { }
+
+                    if (CurrPage != null)
+                    {
+                        yield return CurrPage;
+                        continue;
+                    }
+                }
                 yield return TryDownload(new Uri(Page));
             }
         }
@@ -121,7 +136,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 3, 1),
+                Version = new Version(2, 4),
                 Icon = Resources.Icons.MangaLivre
             };
         }
