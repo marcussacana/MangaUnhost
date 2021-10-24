@@ -12,9 +12,12 @@ namespace MangaUnhost.Others {
             string HtmlPath = Path.Combine(ComicDir, ChapterPath.TrimEnd('\\', '/') + ".html");
             string LastHtmlPath = Path.Combine(ComicDir, LastChapter.TrimEnd('\\', '/') + ".html");
 
+            if (!File.Exists(LastHtmlPath) && File.Exists(LastChapter))
+                LastHtmlPath = LastChapter;
+
             ChapterPath = Path.GetFileName(ChapterPath);
 
-            if (LastHtmlPath != null && File.Exists(LastHtmlPath)) {
+            if (LastChapter != null && File.Exists(LastHtmlPath)) {
                 var LastHtml = File.ReadAllText(LastHtmlPath);
                 if (!LastHtml.Contains("<a href=")) {
                     int EndReader = LastHtml.IndexOf("</div>");
@@ -23,7 +26,7 @@ namespace MangaUnhost.Others {
                         while (LastHtml[EndReader - 1] != '>')
                             EndReader--;
 
-                        LastHtml =  LastHtml.Insert(EndReader, string.Format(Properties.Resources.ComicReaderNextChapterBase, HtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter)));
+                        LastHtml = LastHtml.Insert(EndReader, string.Format(Properties.Resources.ComicReaderNextChapterBase, HtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter)));
                         File.WriteAllText(LastHtmlPath, LastHtml);
                     }
                 }

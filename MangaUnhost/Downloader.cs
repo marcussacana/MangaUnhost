@@ -183,10 +183,11 @@ namespace MangaUnhost
 
             int KIndex = Chapters.IndexOfKey(ID);
 
-            string LastChapter = null;
+            string LName = null;
+            string LastChapterPah = null;
 
-            if (KIndex < Chapters.Keys.Count)
-                LastChapter = DataTools.GetRawName(Chapters.Values.ElementAt(KIndex + 1), FileNameMode: true);
+            if (KIndex + 1 < Chapters.Keys.Count)
+                LName = DataTools.GetRawName(Chapters.Values.ElementAt(KIndex + 1), FileNameMode: true);
 
             string NName = null;
             string NextChapterPath = null;
@@ -204,6 +205,9 @@ namespace MangaUnhost
                 Directory.CreateDirectory(TitleDir);
                 RefreshLibrary();
             }
+
+            if (LName != null)
+                ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, LName, out LastChapterPah, false);
 
             ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, Name, out string ChapterPath, false);
 
@@ -227,7 +231,7 @@ namespace MangaUnhost
                 if (Settings.SkipDownloaded && Directory.Exists(AbsoluteChapterPath))
                 {
                     var Pages = (from x in Directory.GetFiles(AbsoluteChapterPath) select Path.GetFileName(x)).ToArray();
-                    ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LastChapter, NextChapterPath, TitleDir, ChapterPath, Name);
+                    ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LName, NextChapterPath, TitleDir, ChapterPath, Name);
                     string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
                     File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
                     return;
@@ -360,7 +364,7 @@ namespace MangaUnhost
 
                     if (Settings.ReaderGenerator)
                     {
-                        ChapterTools.GenerateComicReader(CurrentLanguage, Pages.ToArray(), LastChapter, NextChapterPath, TitleDir, ChapterPath, Name);
+                        ChapterTools.GenerateComicReader(CurrentLanguage, Pages.ToArray(), LName, NextChapterPath, TitleDir, ChapterPath, Name);
                         ChapterTools.GenerateReaderIndex(Languages, CurrentLanguage, Info, TitleDir, Name);
                     }
 
