@@ -10,9 +10,9 @@ namespace MangaUnhost.Others {
     public static class ChapterTools {
         public static void GenerateComicReader(ILanguage CurrentLanguage, string[] Pages, string LastChapter, string NextChapterPath, string ComicDir, string ChapterPath, string ChapterName) {
             string HtmlPath = Path.Combine(ComicDir, ChapterPath.TrimEnd('\\', '/') + ".html");
-            string LastHtmlPath = Path.Combine(ComicDir, LastChapter.TrimEnd('\\', '/') + ".html");
+            string LastHtmlPath = LastChapter == null ? null : Path.Combine(ComicDir, LastChapter.TrimEnd('\\', '/') + ".html");
 
-            if (!File.Exists(LastHtmlPath) && File.Exists(LastChapter))
+            if (LastChapter != null && !File.Exists(LastHtmlPath) && File.Exists(LastChapter))
                 LastHtmlPath = LastChapter;
 
             ChapterPath = Path.GetFileName(ChapterPath);
