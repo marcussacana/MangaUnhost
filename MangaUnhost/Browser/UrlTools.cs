@@ -182,12 +182,15 @@ namespace MangaUnhost.Browser
 
             var Thread = new System.Threading.Thread(() =>
             Result = AsyncContext.Run(async () =>
-            await Url.DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
+            await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
 
             Thread.Start();
 
             while (Thread.IsRunning())
                 ThreadTools.Wait(100, true);
+
+            if (Result == null)
+                throw new WebException();
 
             return Result;
         }

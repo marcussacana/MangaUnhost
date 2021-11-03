@@ -442,47 +442,54 @@ namespace MangaUnhost
         }
 
         private byte[] BypassAPNG(byte[] Data) {
-            var Image = new APNG(Data);
-            if (Image.IsSimplePNG)
-                return Data;
-
-            var Width = (int)Image.DefaultImage.fcTLChunk.Width;
-            var Height = (int)Image.DefaultImage.fcTLChunk.Height;
-
-            var TmpData = Image.DefaultImage.GetStream().ToArray();
-
-            using (var OriStrm = new MemoryStream(TmpData))
-            using (Bitmap BaseImage = (Bitmap)Bitmap.FromStream(OriStrm))
-            using (Bitmap Bitmap = new Bitmap(Width, Height))
-            using (Graphics g = Graphics.FromImage(Bitmap))
+            try
             {
-                g.CompositingQuality = CompositingQuality.HighQuality;
-                g.SmoothingMode = SmoothingMode.HighQuality;
+                var Image = new APNG(Data);
+                if (Image.IsSimplePNG)
+                    return Data;
 
-                g.DrawImageUnscaled(BaseImage, Point.Empty);
+                var Width = (int)Image.DefaultImage.fcTLChunk.Width;
+                var Height = (int)Image.DefaultImage.fcTLChunk.Height;
 
-                BaseImage?.Dispose();
-                OriStrm?.Dispose();
+                var TmpData = Image.DefaultImage.GetStream().ToArray();
+
+                using (var OriStrm = new MemoryStream(TmpData))
+                using (Bitmap BaseImage = (Bitmap)Bitmap.FromStream(OriStrm))
+                using (Bitmap Bitmap = new Bitmap(Width, Height))
+                using (Graphics g = Graphics.FromImage(Bitmap))
+                {
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+
+                    g.DrawImageUnscaled(BaseImage, Point.Empty);
+
+                    BaseImage?.Dispose();
+                    OriStrm?.Dispose();
 
 
-                var LastFrame = Image.Frames.Last();
-                var XOffset = (int)LastFrame.fcTLChunk.XOffset;
-                var YOffset = (int)LastFrame.fcTLChunk.YOffset;
+                    var LastFrame = Image.Frames.Last();
+                    var XOffset = (int)LastFrame.fcTLChunk.XOffset;
+                    var YOffset = (int)LastFrame.fcTLChunk.YOffset;
 
-                TmpData = LastFrame.GetStream().ToArray();
+                    TmpData = LastFrame.GetStream().ToArray();
 
-                using (var LastStrm = new MemoryStream(TmpData))
-                using (Bitmap LastImg = new Bitmap(LastStrm))
-                    g.DrawImageUnscaled(LastImg, new Point(XOffset, YOffset));
+                    using (var LastStrm = new MemoryStream(TmpData))
+                    using (Bitmap LastImg = new Bitmap(LastStrm))
+                        g.DrawImageUnscaled(LastImg, new Point(XOffset, YOffset));
 
-                g.Flush();
+                    g.Flush();
 
-                using (var Output = new MemoryStream()) {
-                    Bitmap.Save(Output, ImageFormat.Png);
-                    return Output.ToArray();
+                    using (var Output = new MemoryStream())
+                    {
+                        Bitmap.Save(Output, ImageFormat.Png);
+                        return Output.ToArray();
+                    }
                 }
             }
-
+            catch
+            {
+                return Data;
+            }
         }
 
         private byte[] DecodeWebP(byte[] Data) { 

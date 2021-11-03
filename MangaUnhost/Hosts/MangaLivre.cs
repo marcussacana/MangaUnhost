@@ -28,7 +28,10 @@ namespace MangaUnhost.Hosts
             string Identitifer = HTML.Substring("&token=", "&");
             string Token = HTML.Substring("isVertical, \"", "\"");
             //https://cdn.statically.io/img/images2.optimages.net/f=auto/firefox/HpSSrwPuYY_LvnfTXhKGFg/m6867758/11735/283339/296802/00.jpg
-            foreach (var Page in GetPages(ID, Identitifer, Token, Link.AbsoluteUri)) {
+            var Legacy = GetPages(ID, Identitifer, Token, Link.AbsoluteUri);
+            var Avif = GetPages(ID, Identitifer, Token, Link.AbsoluteUri, false);
+            for (int i = 0; i < Legacy.Length; i++) {
+                string Page = Legacy[i];
                 if (Page.Contains("/f=auto/"))
                 {
                     byte[] CurrPage = null;
@@ -36,7 +39,12 @@ namespace MangaUnhost.Hosts
                     {
                         CurrPage = new Uri(Page.Replace("cdn.statically.io/img/", "").Replace("/f=auto", "")).Download();
                     }
-                    catch { }
+                    catch {
+                        CurrPage = new Uri(Page).TryDownload();
+
+                        if (CurrPage == null)
+                            CurrPage = new Uri(Avif[i]).TryDownload();
+                    }
 
                     if (CurrPage != null)
                     {
@@ -101,9 +109,9 @@ namespace MangaUnhost.Hosts
         }
 
         Dictionary<int, string[]> PagesCache = new Dictionary<int, string[]>();
-        private string[] GetPages(int RelID, string Identifier, string Token, string ChapterLink)
+        private string[] GetPages(int RelID, string Identifier, string Token, string ChapterLink, bool Legacy = true)
         {
-            if (PagesCache.ContainsKey(RelID))
+            if (PagesCache.ContainsKey(RelID) && Legacy)
                 return PagesCache[RelID];
 
             var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenToken(Identifier, Token, RelID)}");
@@ -111,7 +119,7 @@ namespace MangaUnhost.Hosts
 
             var JSON = Encoding.UTF8.GetString(Data);
             ChapterPages Pages = Extensions.JsonDecode<ChapterPages>(JSON);
-            return PagesCache[RelID] = Pages.images.Select(x => x.legacy).ToArray();
+            return PagesCache[RelID] = Pages.images.Select(x => Legacy ? x.legacy : x.avif).ToArray();
         }
 
         struct ChapterPages {
@@ -126,7 +134,7 @@ namespace MangaUnhost.Hosts
 
         public IDecoder GetDecoder()
         {
-            return new CommonImage();
+            return new AvifDecoder();
         }
 
         public PluginInfo GetPluginInfo()
@@ -136,7 +144,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 4),
+                Version = new Version(2, 5),
                 Icon = Resources.Icons.MangaLivre
             };
         }
