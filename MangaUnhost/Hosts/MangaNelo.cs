@@ -101,7 +101,7 @@ namespace MangaUnhost.Hosts {
             var PageList = Nodes.Where(x => x.GetAttributeValue("height", "") != "1");
 
             foreach (var Node in PageList)
-                Pages.Add(Node.GetAttributeValue("src", ""));
+                Pages.Add(Node.GetAttributeValue("src", null) ?? Node.GetAttributeValue("data-src", ""));
 
             return Pages.ToArray();
         }
@@ -123,7 +123,7 @@ namespace MangaUnhost.Hosts {
                 SupportComic = true,
                 GenericPlugin = true,
                 SupportNovel = false,
-                Version = new Version(1, 6)
+                Version = new Version(1, 7)
             };
         }
 
