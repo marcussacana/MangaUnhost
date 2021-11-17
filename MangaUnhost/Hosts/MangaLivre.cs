@@ -114,8 +114,17 @@ namespace MangaUnhost.Hosts
             if (PagesCache.ContainsKey(RelID) && Legacy)
                 return PagesCache[RelID];
 
-            var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenToken(Identifier, Token, RelID)}");
-            var Data = ApiUrl.Download(ChapterLink, UserAgent);
+            byte[] Data; 
+            try
+            {
+                var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenA(Identifier, Token, RelID)}");
+                Data = ApiUrl.Download(ChapterLink, UserAgent);
+            }
+            catch
+            {
+                var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenB(Identifier, Token, RelID)}");
+                Data = ApiUrl.Download(ChapterLink, UserAgent);
+            }
 
             var JSON = Encoding.UTF8.GetString(Data);
             ChapterPages Pages = Extensions.JsonDecode<ChapterPages>(JSON);
@@ -144,7 +153,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 5),
+                Version = new Version(2, 6),
                 Icon = Resources.Icons.MangaLivre
             };
         }
@@ -199,8 +208,8 @@ namespace MangaUnhost.Hosts
             Browser.Dispose();
         }
 
-
-        static string GenToken(string Identifier, string Token, int ID)
+        //look for match(/.{1,5}/gi)
+        static string GenTokenA(string Identifier, string Token, int ID)
         {
             var RollIndex = Math.Max(ID % 7, 1);
             var TokenParts = SplitByLen(Token, 5);
@@ -233,6 +242,27 @@ namespace MangaUnhost.Hosts
             }
 
             return FinalToken;
+        }
+
+        static string GenTokenB(string Identifier, string Token, int ID)
+        {
+            var RollIndex = Math.Max(ID % 7, 1);
+            var TokenParts = SplitByLen(Token, 5);
+            var TokenChars = string.Join("", TokenParts.Skip(RollIndex).Concat(TokenParts.Take(RollIndex))).ToArray();
+
+            var ReverseIdentifier = Identifier.Reverse().ToArray();
+
+            //t = TokenChars, s = ReverseIdentifier, n = Identifier
+
+            var RealToken = string.Empty;
+            for (int i = 0; i < Identifier.Length; i++)
+            {
+                RealToken += Identifier[i];
+                RealToken += ReverseIdentifier[i];
+                RealToken += TokenChars[i];
+            }
+
+            return RealToken;
         }
 
         public static string[] SplitByLen(string Str, int Len)
