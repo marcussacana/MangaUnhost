@@ -228,7 +228,7 @@ namespace MangaUnhost
             }
             catch { }
 
-            if (LastClipboard == Clip || Clip == null)
+            if (LastClipboard == Clip || string.IsNullOrWhiteSpace(Clip))
                 return;
 
             LastClipboard = Clip;
