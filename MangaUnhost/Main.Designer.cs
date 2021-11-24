@@ -156,11 +156,12 @@
             this.ThemeContainer.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(63)))), ((int)(((byte)(63)))), ((int)(((byte)(65)))));
             this.ThemeContainer.IconStyle = VSContainer.@__IconStyle.FormIcon;
             this.ThemeContainer.Location = new System.Drawing.Point(0, 0);
+            this.ThemeContainer.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ThemeContainer.Name = "ThemeContainer";
             this.ThemeContainer.NoTitleWrap = false;
             this.ThemeContainer.ShowDots = false;
             this.ThemeContainer.ShowIcon = true;
-            this.ThemeContainer.Size = new System.Drawing.Size(838, 530);
+            this.ThemeContainer.Size = new System.Drawing.Size(1117, 652);
             this.ThemeContainer.TabIndex = 0;
             this.ThemeContainer.Text = "MangaUnhost";
             // 
@@ -176,7 +177,8 @@
             this.StatusBar.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.StatusBar.imagetoShow = null;
             this.StatusBar.LinesToShow = VSStatusBar.LinesCount.One;
-            this.StatusBar.Location = new System.Drawing.Point(0, 507);
+            this.StatusBar.Location = new System.Drawing.Point(0, 624);
+            this.StatusBar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.StatusBar.Name = "StatusBar";
             this.StatusBar.RectangleColor = System.Drawing.Color.Red;
             this.StatusBar.SecondLabelAlignment = VSStatusBar.Alignments.Right;
@@ -185,7 +187,7 @@
             this.StatusBar.ShowBorder = true;
             this.StatusBar.showImage = true;
             this.StatusBar.ShowLine = true;
-            this.StatusBar.Size = new System.Drawing.Size(838, 23);
+            this.StatusBar.Size = new System.Drawing.Size(1117, 28);
             this.StatusBar.TabIndex = 1;
             this.StatusBar.Text = "Status Bar";
             this.StatusBar.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
@@ -211,10 +213,11 @@
             this.MainTabMenu.Controls.Add(this.DebugTab);
             this.MainTabMenu.HorizontalLineColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
             this.MainTabMenu.ItemSize = new System.Drawing.Size(240, 16);
-            this.MainTabMenu.Location = new System.Drawing.Point(1, 39);
+            this.MainTabMenu.Location = new System.Drawing.Point(1, 48);
+            this.MainTabMenu.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MainTabMenu.Name = "MainTabMenu";
             this.MainTabMenu.SelectedIndex = 0;
-            this.MainTabMenu.Size = new System.Drawing.Size(838, 467);
+            this.MainTabMenu.Size = new System.Drawing.Size(1117, 575);
             this.MainTabMenu.TabIndex = 0;
             this.MainTabMenu.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.MainTabMenu.SelectedIndexChanged += new System.EventHandler(this.OnTabChanged);
@@ -227,9 +230,10 @@
             this.DownloaderTab.Controls.Add(this.ButtonsContainer);
             this.DownloaderTab.Controls.Add(this.CoverBox);
             this.DownloaderTab.Location = new System.Drawing.Point(4, 20);
+            this.DownloaderTab.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.DownloaderTab.Name = "DownloaderTab";
-            this.DownloaderTab.Padding = new System.Windows.Forms.Padding(3);
-            this.DownloaderTab.Size = new System.Drawing.Size(830, 443);
+            this.DownloaderTab.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.DownloaderTab.Size = new System.Drawing.Size(1109, 551);
             this.DownloaderTab.TabIndex = 0;
             this.DownloaderTab.Text = "Downloader";
             // 
@@ -244,14 +248,15 @@
             this.ContainerScrollBar.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(66)))));
             this.ContainerScrollBar.ButtonSize = 16;
             this.ContainerScrollBar.LargeChange = 10;
-            this.ContainerScrollBar.Location = new System.Drawing.Point(805, 60);
+            this.ContainerScrollBar.Location = new System.Drawing.Point(1073, 74);
+            this.ContainerScrollBar.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ContainerScrollBar.Maximum = 100;
             this.ContainerScrollBar.Minimum = 0;
             this.ContainerScrollBar.Name = "ContainerScrollBar";
             this.ContainerScrollBar.OuterBorderColour = System.Drawing.Color.Empty;
             this.ContainerScrollBar.ShowOuterBorder = false;
             this.ContainerScrollBar.ShowThumbBorder = false;
-            this.ContainerScrollBar.Size = new System.Drawing.Size(19, 384);
+            this.ContainerScrollBar.Size = new System.Drawing.Size(25, 473);
             this.ContainerScrollBar.SmallChange = 1;
             this.ContainerScrollBar.TabIndex = 3;
             this.ContainerScrollBar.Text = "vsVerticalScrollBar1";
@@ -268,9 +273,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.TitleLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.TitleLabel.ForeColor = System.Drawing.Color.White;
-            this.TitleLabel.Location = new System.Drawing.Point(272, 1);
+            this.TitleLabel.Location = new System.Drawing.Point(363, 1);
+            this.TitleLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.TitleLabel.Name = "TitleLabel";
-            this.TitleLabel.Size = new System.Drawing.Size(553, 55);
+            this.TitleLabel.Size = new System.Drawing.Size(737, 68);
             this.TitleLabel.TabIndex = 2;
             this.TitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -280,9 +286,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ButtonsContainer.AutoScroll = true;
-            this.ButtonsContainer.Location = new System.Drawing.Point(272, 60);
+            this.ButtonsContainer.Location = new System.Drawing.Point(363, 74);
+            this.ButtonsContainer.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ButtonsContainer.Name = "ButtonsContainer";
-            this.ButtonsContainer.Size = new System.Drawing.Size(552, 383);
+            this.ButtonsContainer.Size = new System.Drawing.Size(736, 471);
             this.ButtonsContainer.TabIndex = 1;
             // 
             // CoverBox
@@ -290,8 +297,9 @@
             this.CoverBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.CoverBox.Location = new System.Drawing.Point(0, 0);
+            this.CoverBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.CoverBox.Name = "CoverBox";
-            this.CoverBox.Size = new System.Drawing.Size(266, 443);
+            this.CoverBox.Size = new System.Drawing.Size(355, 545);
             this.CoverBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.CoverBox.TabIndex = 0;
             this.CoverBox.TabStop = false;
@@ -302,9 +310,10 @@
             this.LibraryTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
             this.LibraryTab.Controls.Add(this.LibraryContainer);
             this.LibraryTab.Location = new System.Drawing.Point(4, 20);
+            this.LibraryTab.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.LibraryTab.Name = "LibraryTab";
-            this.LibraryTab.Padding = new System.Windows.Forms.Padding(3);
-            this.LibraryTab.Size = new System.Drawing.Size(830, 443);
+            this.LibraryTab.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.LibraryTab.Size = new System.Drawing.Size(1109, 551);
             this.LibraryTab.TabIndex = 4;
             this.LibraryTab.Text = "Library";
             // 
@@ -312,9 +321,10 @@
             // 
             this.LibraryContainer.AutoScroll = true;
             this.LibraryContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.LibraryContainer.Location = new System.Drawing.Point(3, 3);
+            this.LibraryContainer.Location = new System.Drawing.Point(4, 4);
+            this.LibraryContainer.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.LibraryContainer.Name = "LibraryContainer";
-            this.LibraryContainer.Size = new System.Drawing.Size(824, 437);
+            this.LibraryContainer.Size = new System.Drawing.Size(1101, 543);
             this.LibraryContainer.TabIndex = 0;
             // 
             // CrawlerTab
@@ -328,8 +338,9 @@
             this.CrawlerTab.Controls.Add(this.lblUrl);
             this.CrawlerTab.Controls.Add(this.tbCrawlerUrl);
             this.CrawlerTab.Location = new System.Drawing.Point(4, 20);
+            this.CrawlerTab.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.CrawlerTab.Name = "CrawlerTab";
-            this.CrawlerTab.Size = new System.Drawing.Size(830, 443);
+            this.CrawlerTab.Size = new System.Drawing.Size(1109, 551);
             this.CrawlerTab.TabIndex = 5;
             this.CrawlerTab.Text = "Crawler";
             // 
@@ -343,13 +354,14 @@
             this.LinksListBox.DontShowInnerScrollbarBorder = false;
             this.LinksListBox.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(199)))), ((int)(((byte)(199)))));
             this.LinksListBox.Items = new VSListBoxWBuiltInScrollBar.VSListBoxItem[0];
-            this.LinksListBox.Location = new System.Drawing.Point(10, 70);
+            this.LinksListBox.Location = new System.Drawing.Point(13, 86);
+            this.LinksListBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.LinksListBox.MultiSelect = true;
             this.LinksListBox.Name = "LinksListBox";
             this.LinksListBox.NonSelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
             this.LinksListBox.SelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
             this.LinksListBox.ShowWholeInnerBorder = true;
-            this.LinksListBox.Size = new System.Drawing.Size(817, 370);
+            this.LinksListBox.Size = new System.Drawing.Size(1089, 455);
             this.LinksListBox.TabIndex = 6;
             // 
             // CrawlerCopyBtn
@@ -362,12 +374,13 @@
             this.CrawlerCopyBtn.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.CrawlerCopyBtn.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.CrawlerCopyBtn.ImageChoice = null;
-            this.CrawlerCopyBtn.Location = new System.Drawing.Point(746, 39);
+            this.CrawlerCopyBtn.Location = new System.Drawing.Point(995, 48);
+            this.CrawlerCopyBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.CrawlerCopyBtn.Name = "CrawlerCopyBtn";
             this.CrawlerCopyBtn.ShowBorder = true;
             this.CrawlerCopyBtn.ShowImage = false;
             this.CrawlerCopyBtn.ShowText = true;
-            this.CrawlerCopyBtn.Size = new System.Drawing.Size(75, 23);
+            this.CrawlerCopyBtn.Size = new System.Drawing.Size(100, 28);
             this.CrawlerCopyBtn.TabIndex = 5;
             this.CrawlerCopyBtn.Text = "Copy";
             this.CrawlerCopyBtn.TextAlignment = System.Drawing.StringAlignment.Center;
@@ -376,9 +389,10 @@
             // lblRegex
             // 
             this.lblRegex.ForeColor = System.Drawing.Color.White;
-            this.lblRegex.Location = new System.Drawing.Point(7, 44);
+            this.lblRegex.Location = new System.Drawing.Point(9, 54);
+            this.lblRegex.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblRegex.Name = "lblRegex";
-            this.lblRegex.Size = new System.Drawing.Size(41, 13);
+            this.lblRegex.Size = new System.Drawing.Size(55, 16);
             this.lblRegex.TabIndex = 4;
             this.lblRegex.Text = "Regex:";
             this.lblRegex.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -390,12 +404,13 @@
             this.tbCrawlerRegex.BackColor = System.Drawing.Color.Transparent;
             this.tbCrawlerRegex.BackgroundColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
             this.tbCrawlerRegex.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.tbCrawlerRegex.Location = new System.Drawing.Point(54, 39);
+            this.tbCrawlerRegex.Location = new System.Drawing.Point(72, 48);
+            this.tbCrawlerRegex.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tbCrawlerRegex.MaxLength = 32767;
             this.tbCrawlerRegex.Multiline = false;
             this.tbCrawlerRegex.Name = "tbCrawlerRegex";
             this.tbCrawlerRegex.ReadOnly = false;
-            this.tbCrawlerRegex.Size = new System.Drawing.Size(686, 25);
+            this.tbCrawlerRegex.Size = new System.Drawing.Size(915, 30);
             this.tbCrawlerRegex.Style = VSNormalTextBox.Styles.NotRounded;
             this.tbCrawlerRegex.TabIndex = 3;
             this.tbCrawlerRegex.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -412,12 +427,13 @@
             this.CrawlerStartBtn.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.CrawlerStartBtn.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.CrawlerStartBtn.ImageChoice = null;
-            this.CrawlerStartBtn.Location = new System.Drawing.Point(746, 8);
+            this.CrawlerStartBtn.Location = new System.Drawing.Point(995, 10);
+            this.CrawlerStartBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.CrawlerStartBtn.Name = "CrawlerStartBtn";
             this.CrawlerStartBtn.ShowBorder = true;
             this.CrawlerStartBtn.ShowImage = false;
             this.CrawlerStartBtn.ShowText = true;
-            this.CrawlerStartBtn.Size = new System.Drawing.Size(75, 23);
+            this.CrawlerStartBtn.Size = new System.Drawing.Size(100, 28);
             this.CrawlerStartBtn.TabIndex = 2;
             this.CrawlerStartBtn.Text = "Start";
             this.CrawlerStartBtn.TextAlignment = System.Drawing.StringAlignment.Center;
@@ -426,9 +442,10 @@
             // lblUrl
             // 
             this.lblUrl.ForeColor = System.Drawing.Color.White;
-            this.lblUrl.Location = new System.Drawing.Point(7, 8);
+            this.lblUrl.Location = new System.Drawing.Point(9, 10);
+            this.lblUrl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblUrl.Name = "lblUrl";
-            this.lblUrl.Size = new System.Drawing.Size(41, 23);
+            this.lblUrl.Size = new System.Drawing.Size(55, 28);
             this.lblUrl.TabIndex = 1;
             this.lblUrl.Text = "Url:";
             this.lblUrl.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -440,12 +457,13 @@
             this.tbCrawlerUrl.BackColor = System.Drawing.Color.Transparent;
             this.tbCrawlerUrl.BackgroundColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
             this.tbCrawlerUrl.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.tbCrawlerUrl.Location = new System.Drawing.Point(54, 8);
+            this.tbCrawlerUrl.Location = new System.Drawing.Point(72, 10);
+            this.tbCrawlerUrl.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tbCrawlerUrl.MaxLength = 32767;
             this.tbCrawlerUrl.Multiline = false;
             this.tbCrawlerUrl.Name = "tbCrawlerUrl";
             this.tbCrawlerUrl.ReadOnly = false;
-            this.tbCrawlerUrl.Size = new System.Drawing.Size(686, 25);
+            this.tbCrawlerUrl.Size = new System.Drawing.Size(915, 30);
             this.tbCrawlerUrl.Style = VSNormalTextBox.Styles.NotRounded;
             this.tbCrawlerUrl.TabIndex = 0;
             this.tbCrawlerUrl.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -458,9 +476,10 @@
             this.SettingsTab.Controls.Add(this.FeaturesGroupBox);
             this.SettingsTab.Controls.Add(this.EnvironmentGroupBox);
             this.SettingsTab.Location = new System.Drawing.Point(4, 20);
+            this.SettingsTab.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SettingsTab.Name = "SettingsTab";
-            this.SettingsTab.Padding = new System.Windows.Forms.Padding(3);
-            this.SettingsTab.Size = new System.Drawing.Size(830, 443);
+            this.SettingsTab.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.SettingsTab.Size = new System.Drawing.Size(1109, 551);
             this.SettingsTab.TabIndex = 1;
             this.SettingsTab.Text = "Settings";
             // 
@@ -482,10 +501,11 @@
             this.FeaturesGroupBox.Controls.Add(this.panel1);
             this.FeaturesGroupBox.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.FeaturesGroupBox.HeaderColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.FeaturesGroupBox.Location = new System.Drawing.Point(6, 127);
+            this.FeaturesGroupBox.Location = new System.Drawing.Point(8, 156);
             this.FeaturesGroupBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.FeaturesGroupBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.FeaturesGroupBox.Name = "FeaturesGroupBox";
-            this.FeaturesGroupBox.Size = new System.Drawing.Size(824, 310);
+            this.FeaturesGroupBox.Size = new System.Drawing.Size(1099, 382);
             this.FeaturesGroupBox.TabIndex = 1;
             this.FeaturesGroupBox.Text = "Features";
             this.FeaturesGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
@@ -496,9 +516,10 @@
             this.panel10.Controls.Add(this.APNGBypassDisRadio);
             this.panel10.Controls.Add(this.APNGBypassEnaRadio);
             this.panel10.Controls.Add(this.label1);
-            this.panel10.Location = new System.Drawing.Point(587, 101);
+            this.panel10.Location = new System.Drawing.Point(783, 124);
+            this.panel10.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel10.Name = "panel10";
-            this.panel10.Size = new System.Drawing.Size(226, 60);
+            this.panel10.Size = new System.Drawing.Size(301, 74);
             this.panel10.TabIndex = 14;
             // 
             // APNGBypassDisRadio
@@ -507,9 +528,10 @@
             this.APNGBypassDisRadio.BackColor = System.Drawing.Color.Transparent;
             this.APNGBypassDisRadio.Checked = true;
             this.APNGBypassDisRadio.ForeColor = System.Drawing.Color.White;
-            this.APNGBypassDisRadio.Location = new System.Drawing.Point(116, 3);
+            this.APNGBypassDisRadio.Location = new System.Drawing.Point(155, 4);
+            this.APNGBypassDisRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.APNGBypassDisRadio.Name = "APNGBypassDisRadio";
-            this.APNGBypassDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.APNGBypassDisRadio.Size = new System.Drawing.Size(96, 27);
             this.APNGBypassDisRadio.TabIndex = 8;
             this.APNGBypassDisRadio.TabStop = true;
             this.APNGBypassDisRadio.Text = "Disabled";
@@ -520,9 +542,10 @@
             this.APNGBypassEnaRadio.AutoSize = true;
             this.APNGBypassEnaRadio.BackColor = System.Drawing.Color.Transparent;
             this.APNGBypassEnaRadio.ForeColor = System.Drawing.Color.White;
-            this.APNGBypassEnaRadio.Location = new System.Drawing.Point(116, 28);
+            this.APNGBypassEnaRadio.Location = new System.Drawing.Point(155, 34);
+            this.APNGBypassEnaRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.APNGBypassEnaRadio.Name = "APNGBypassEnaRadio";
-            this.APNGBypassEnaRadio.Size = new System.Drawing.Size(75, 23);
+            this.APNGBypassEnaRadio.Size = new System.Drawing.Size(92, 27);
             this.APNGBypassEnaRadio.TabIndex = 7;
             this.APNGBypassEnaRadio.Text = "Enabled";
             this.APNGBypassEnaRadio.UseVisualStyleBackColor = false;
@@ -532,9 +555,10 @@
             // 
             this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.ForeColor = System.Drawing.Color.White;
-            this.label1.Location = new System.Drawing.Point(3, 1);
+            this.label1.Location = new System.Drawing.Point(4, 1);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(107, 21);
+            this.label1.Size = new System.Drawing.Size(143, 26);
             this.label1.TabIndex = 6;
             this.label1.Text = "APNG Bypass:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -545,18 +569,20 @@
             this.panel9.Controls.Add(this.lblLibUpdates);
             this.panel9.Controls.Add(this.ManualUpCheckRadio);
             this.panel9.Controls.Add(this.AutoUpCheckRadio);
-            this.panel9.Location = new System.Drawing.Point(586, 35);
+            this.panel9.Location = new System.Drawing.Point(781, 43);
+            this.panel9.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(232, 60);
+            this.panel9.Size = new System.Drawing.Size(309, 74);
             this.panel9.TabIndex = 10;
             // 
             // lblLibUpdates
             // 
             this.lblLibUpdates.BackColor = System.Drawing.Color.Transparent;
             this.lblLibUpdates.ForeColor = System.Drawing.Color.White;
-            this.lblLibUpdates.Location = new System.Drawing.Point(3, 0);
+            this.lblLibUpdates.Location = new System.Drawing.Point(4, 0);
+            this.lblLibUpdates.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblLibUpdates.Name = "lblLibUpdates";
-            this.lblLibUpdates.Size = new System.Drawing.Size(139, 21);
+            this.lblLibUpdates.Size = new System.Drawing.Size(185, 26);
             this.lblLibUpdates.TabIndex = 5;
             this.lblLibUpdates.Text = "Library Updates:";
             this.lblLibUpdates.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -566,9 +592,10 @@
             this.ManualUpCheckRadio.AutoSize = true;
             this.ManualUpCheckRadio.BackColor = System.Drawing.Color.Transparent;
             this.ManualUpCheckRadio.ForeColor = System.Drawing.Color.White;
-            this.ManualUpCheckRadio.Location = new System.Drawing.Point(148, 28);
+            this.ManualUpCheckRadio.Location = new System.Drawing.Point(197, 34);
+            this.ManualUpCheckRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ManualUpCheckRadio.Name = "ManualUpCheckRadio";
-            this.ManualUpCheckRadio.Size = new System.Drawing.Size(73, 23);
+            this.ManualUpCheckRadio.Size = new System.Drawing.Size(88, 27);
             this.ManualUpCheckRadio.TabIndex = 1;
             this.ManualUpCheckRadio.Text = "Manual";
             this.ManualUpCheckRadio.UseVisualStyleBackColor = false;
@@ -579,9 +606,10 @@
             this.AutoUpCheckRadio.BackColor = System.Drawing.Color.Transparent;
             this.AutoUpCheckRadio.Checked = true;
             this.AutoUpCheckRadio.ForeColor = System.Drawing.Color.White;
-            this.AutoUpCheckRadio.Location = new System.Drawing.Point(148, -1);
+            this.AutoUpCheckRadio.Location = new System.Drawing.Point(197, -1);
+            this.AutoUpCheckRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.AutoUpCheckRadio.Name = "AutoUpCheckRadio";
-            this.AutoUpCheckRadio.Size = new System.Drawing.Size(57, 23);
+            this.AutoUpCheckRadio.Size = new System.Drawing.Size(68, 27);
             this.AutoUpCheckRadio.TabIndex = 0;
             this.AutoUpCheckRadio.TabStop = true;
             this.AutoUpCheckRadio.Text = "Auto";
@@ -596,9 +624,10 @@
             this.panel8.Controls.Add(this.MangaReaderRadio);
             this.panel8.Controls.Add(this.LegacyReaderRadio);
             this.panel8.Controls.Add(this.lblReader);
-            this.panel8.Location = new System.Drawing.Point(298, 234);
+            this.panel8.Location = new System.Drawing.Point(397, 288);
+            this.panel8.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel8.Name = "panel8";
-            this.panel8.Size = new System.Drawing.Size(282, 60);
+            this.panel8.Size = new System.Drawing.Size(376, 74);
             this.panel8.TabIndex = 13;
             // 
             // OtherReaderRadio
@@ -606,9 +635,10 @@
             this.OtherReaderRadio.AutoSize = true;
             this.OtherReaderRadio.BackColor = System.Drawing.Color.Transparent;
             this.OtherReaderRadio.ForeColor = System.Drawing.Color.White;
-            this.OtherReaderRadio.Location = new System.Drawing.Point(165, 24);
+            this.OtherReaderRadio.Location = new System.Drawing.Point(220, 30);
+            this.OtherReaderRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.OtherReaderRadio.Name = "OtherReaderRadio";
-            this.OtherReaderRadio.Size = new System.Drawing.Size(63, 23);
+            this.OtherReaderRadio.Size = new System.Drawing.Size(75, 27);
             this.OtherReaderRadio.TabIndex = 12;
             this.OtherReaderRadio.Text = "Other";
             this.OtherReaderRadio.UseVisualStyleBackColor = false;
@@ -619,9 +649,10 @@
             this.ComicReaderRadio.AutoSize = true;
             this.ComicReaderRadio.BackColor = System.Drawing.Color.Transparent;
             this.ComicReaderRadio.ForeColor = System.Drawing.Color.White;
-            this.ComicReaderRadio.Location = new System.Drawing.Point(94, 24);
+            this.ComicReaderRadio.Location = new System.Drawing.Point(125, 30);
+            this.ComicReaderRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ComicReaderRadio.Name = "ComicReaderRadio";
-            this.ComicReaderRadio.Size = new System.Drawing.Size(65, 23);
+            this.ComicReaderRadio.Size = new System.Drawing.Size(79, 27);
             this.ComicReaderRadio.TabIndex = 11;
             this.ComicReaderRadio.Text = "Comic";
             this.ComicReaderRadio.UseVisualStyleBackColor = false;
@@ -632,9 +663,10 @@
             this.MangaReaderRadio.AutoSize = true;
             this.MangaReaderRadio.BackColor = System.Drawing.Color.Transparent;
             this.MangaReaderRadio.ForeColor = System.Drawing.Color.White;
-            this.MangaReaderRadio.Location = new System.Drawing.Point(18, 24);
+            this.MangaReaderRadio.Location = new System.Drawing.Point(24, 30);
+            this.MangaReaderRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MangaReaderRadio.Name = "MangaReaderRadio";
-            this.MangaReaderRadio.Size = new System.Drawing.Size(70, 23);
+            this.MangaReaderRadio.Size = new System.Drawing.Size(84, 27);
             this.MangaReaderRadio.TabIndex = 10;
             this.MangaReaderRadio.Text = "Manga";
             this.MangaReaderRadio.UseVisualStyleBackColor = false;
@@ -646,9 +678,10 @@
             this.LegacyReaderRadio.BackColor = System.Drawing.Color.Transparent;
             this.LegacyReaderRadio.Checked = true;
             this.LegacyReaderRadio.ForeColor = System.Drawing.Color.White;
-            this.LegacyReaderRadio.Location = new System.Drawing.Point(165, 3);
+            this.LegacyReaderRadio.Location = new System.Drawing.Point(220, 4);
+            this.LegacyReaderRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.LegacyReaderRadio.Name = "LegacyReaderRadio";
-            this.LegacyReaderRadio.Size = new System.Drawing.Size(69, 23);
+            this.LegacyReaderRadio.Size = new System.Drawing.Size(83, 27);
             this.LegacyReaderRadio.TabIndex = 9;
             this.LegacyReaderRadio.TabStop = true;
             this.LegacyReaderRadio.Text = "Legacy";
@@ -659,9 +692,10 @@
             // 
             this.lblReader.BackColor = System.Drawing.Color.Transparent;
             this.lblReader.ForeColor = System.Drawing.Color.White;
-            this.lblReader.Location = new System.Drawing.Point(3, 0);
+            this.lblReader.Location = new System.Drawing.Point(4, 0);
+            this.lblReader.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblReader.Name = "lblReader";
-            this.lblReader.Size = new System.Drawing.Size(159, 21);
+            this.lblReader.Size = new System.Drawing.Size(212, 26);
             this.lblReader.TabIndex = 8;
             this.lblReader.Text = "Reader:";
             this.lblReader.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -673,9 +707,10 @@
             this.panel7.Controls.Add(this.AskRadio);
             this.panel7.Controls.Add(this.UpdateUrlRadio);
             this.panel7.Controls.Add(this.lblReplaceMode);
-            this.panel7.Location = new System.Drawing.Point(7, 234);
+            this.panel7.Location = new System.Drawing.Point(9, 288);
+            this.panel7.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel7.Name = "panel7";
-            this.panel7.Size = new System.Drawing.Size(285, 60);
+            this.panel7.Size = new System.Drawing.Size(380, 74);
             this.panel7.TabIndex = 12;
             // 
             // NewFolderRadio
@@ -683,9 +718,10 @@
             this.NewFolderRadio.AutoSize = true;
             this.NewFolderRadio.BackColor = System.Drawing.Color.Transparent;
             this.NewFolderRadio.ForeColor = System.Drawing.Color.White;
-            this.NewFolderRadio.Location = new System.Drawing.Point(166, 24);
+            this.NewFolderRadio.Location = new System.Drawing.Point(221, 30);
+            this.NewFolderRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.NewFolderRadio.Name = "NewFolderRadio";
-            this.NewFolderRadio.Size = new System.Drawing.Size(96, 23);
+            this.NewFolderRadio.Size = new System.Drawing.Size(117, 27);
             this.NewFolderRadio.TabIndex = 8;
             this.NewFolderRadio.Text = "New Folder";
             this.NewFolderRadio.UseVisualStyleBackColor = false;
@@ -696,9 +732,10 @@
             this.AskRadio.AutoSize = true;
             this.AskRadio.BackColor = System.Drawing.Color.Transparent;
             this.AskRadio.ForeColor = System.Drawing.Color.White;
-            this.AskRadio.Location = new System.Drawing.Point(166, 3);
+            this.AskRadio.Location = new System.Drawing.Point(221, 4);
+            this.AskRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.AskRadio.Name = "AskRadio";
-            this.AskRadio.Size = new System.Drawing.Size(49, 23);
+            this.AskRadio.Size = new System.Drawing.Size(57, 27);
             this.AskRadio.TabIndex = 7;
             this.AskRadio.Text = "Ask";
             this.AskRadio.UseVisualStyleBackColor = false;
@@ -710,9 +747,10 @@
             this.UpdateUrlRadio.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.UpdateUrlRadio.Checked = true;
             this.UpdateUrlRadio.ForeColor = System.Drawing.Color.White;
-            this.UpdateUrlRadio.Location = new System.Drawing.Point(7, 24);
+            this.UpdateUrlRadio.Location = new System.Drawing.Point(9, 30);
+            this.UpdateUrlRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.UpdateUrlRadio.Name = "UpdateUrlRadio";
-            this.UpdateUrlRadio.Size = new System.Drawing.Size(153, 23);
+            this.UpdateUrlRadio.Size = new System.Drawing.Size(204, 28);
             this.UpdateUrlRadio.TabIndex = 6;
             this.UpdateUrlRadio.TabStop = true;
             this.UpdateUrlRadio.Text = "Update URL";
@@ -724,9 +762,10 @@
             // 
             this.lblReplaceMode.BackColor = System.Drawing.Color.Transparent;
             this.lblReplaceMode.ForeColor = System.Drawing.Color.White;
-            this.lblReplaceMode.Location = new System.Drawing.Point(3, 0);
+            this.lblReplaceMode.Location = new System.Drawing.Point(4, 0);
+            this.lblReplaceMode.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblReplaceMode.Name = "lblReplaceMode";
-            this.lblReplaceMode.Size = new System.Drawing.Size(157, 21);
+            this.lblReplaceMode.Size = new System.Drawing.Size(209, 26);
             this.lblReplaceMode.TabIndex = 5;
             this.lblReplaceMode.Text = "Replace Mode:";
             this.lblReplaceMode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -737,9 +776,10 @@
             this.panel6.Controls.Add(this.SkipDownEnbRadio);
             this.panel6.Controls.Add(this.SkipDownDisRadio);
             this.panel6.Controls.Add(this.lblSkipDownloaded);
-            this.panel6.Location = new System.Drawing.Point(295, 167);
+            this.panel6.Location = new System.Drawing.Point(393, 206);
+            this.panel6.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel6.Name = "panel6";
-            this.panel6.Size = new System.Drawing.Size(285, 60);
+            this.panel6.Size = new System.Drawing.Size(380, 74);
             this.panel6.TabIndex = 11;
             // 
             // SkipDownEnbRadio
@@ -747,9 +787,10 @@
             this.SkipDownEnbRadio.AutoSize = true;
             this.SkipDownEnbRadio.BackColor = System.Drawing.Color.Transparent;
             this.SkipDownEnbRadio.ForeColor = System.Drawing.Color.White;
-            this.SkipDownEnbRadio.Location = new System.Drawing.Point(168, 32);
+            this.SkipDownEnbRadio.Location = new System.Drawing.Point(224, 39);
+            this.SkipDownEnbRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SkipDownEnbRadio.Name = "SkipDownEnbRadio";
-            this.SkipDownEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.SkipDownEnbRadio.Size = new System.Drawing.Size(92, 27);
             this.SkipDownEnbRadio.TabIndex = 7;
             this.SkipDownEnbRadio.Text = "Enabled";
             this.SkipDownEnbRadio.UseVisualStyleBackColor = false;
@@ -761,9 +802,10 @@
             this.SkipDownDisRadio.BackColor = System.Drawing.Color.Transparent;
             this.SkipDownDisRadio.Checked = true;
             this.SkipDownDisRadio.ForeColor = System.Drawing.Color.White;
-            this.SkipDownDisRadio.Location = new System.Drawing.Point(168, 3);
+            this.SkipDownDisRadio.Location = new System.Drawing.Point(224, 4);
+            this.SkipDownDisRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SkipDownDisRadio.Name = "SkipDownDisRadio";
-            this.SkipDownDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.SkipDownDisRadio.Size = new System.Drawing.Size(96, 27);
             this.SkipDownDisRadio.TabIndex = 6;
             this.SkipDownDisRadio.TabStop = true;
             this.SkipDownDisRadio.Text = "Disabled";
@@ -773,9 +815,10 @@
             // 
             this.lblSkipDownloaded.BackColor = System.Drawing.Color.Transparent;
             this.lblSkipDownloaded.ForeColor = System.Drawing.Color.White;
-            this.lblSkipDownloaded.Location = new System.Drawing.Point(3, 0);
+            this.lblSkipDownloaded.Location = new System.Drawing.Point(4, 0);
+            this.lblSkipDownloaded.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblSkipDownloaded.Name = "lblSkipDownloaded";
-            this.lblSkipDownloaded.Size = new System.Drawing.Size(159, 21);
+            this.lblSkipDownloaded.Size = new System.Drawing.Size(212, 26);
             this.lblSkipDownloaded.TabIndex = 5;
             this.lblSkipDownloaded.Text = "Skip Downloaded:";
             this.lblSkipDownloaded.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -789,9 +832,10 @@
             this.panel5.Controls.Add(this.lblSaveAs);
             this.panel5.Controls.Add(this.SaveAsJpgRadio);
             this.panel5.Controls.Add(this.SaveAsPngRadio);
-            this.panel5.Location = new System.Drawing.Point(295, 102);
+            this.panel5.Location = new System.Drawing.Point(393, 126);
+            this.panel5.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(285, 60);
+            this.panel5.Size = new System.Drawing.Size(380, 74);
             this.panel5.TabIndex = 10;
             // 
             // SaveAsAutoRadio
@@ -799,9 +843,10 @@
             this.SaveAsAutoRadio.AutoSize = true;
             this.SaveAsAutoRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsAutoRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsAutoRadio.Location = new System.Drawing.Point(104, 27);
+            this.SaveAsAutoRadio.Location = new System.Drawing.Point(139, 33);
+            this.SaveAsAutoRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SaveAsAutoRadio.Name = "SaveAsAutoRadio";
-            this.SaveAsAutoRadio.Size = new System.Drawing.Size(57, 23);
+            this.SaveAsAutoRadio.Size = new System.Drawing.Size(68, 27);
             this.SaveAsAutoRadio.TabIndex = 8;
             this.SaveAsAutoRadio.Text = "Auto";
             this.SaveAsAutoRadio.UseVisualStyleBackColor = false;
@@ -812,9 +857,10 @@
             this.SaveAsRawRadio.AutoSize = true;
             this.SaveAsRawRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsRawRadio.Location = new System.Drawing.Point(227, 27);
+            this.SaveAsRawRadio.Location = new System.Drawing.Point(303, 33);
+            this.SaveAsRawRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SaveAsRawRadio.Name = "SaveAsRawRadio";
-            this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsRawRadio.Size = new System.Drawing.Size(67, 27);
             this.SaveAsRawRadio.TabIndex = 7;
             this.SaveAsRawRadio.Text = "RAW";
             this.SaveAsRawRadio.UseVisualStyleBackColor = false;
@@ -825,9 +871,10 @@
             this.SaveAsBmpRadio.AutoSize = true;
             this.SaveAsBmpRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsBmpRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsBmpRadio.Location = new System.Drawing.Point(166, 27);
+            this.SaveAsBmpRadio.Location = new System.Drawing.Point(221, 33);
+            this.SaveAsBmpRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SaveAsBmpRadio.Name = "SaveAsBmpRadio";
-            this.SaveAsBmpRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsBmpRadio.Size = new System.Drawing.Size(66, 27);
             this.SaveAsBmpRadio.TabIndex = 6;
             this.SaveAsBmpRadio.Text = "BMP";
             this.SaveAsBmpRadio.UseVisualStyleBackColor = false;
@@ -837,9 +884,10 @@
             // 
             this.lblSaveAs.BackColor = System.Drawing.Color.Transparent;
             this.lblSaveAs.ForeColor = System.Drawing.Color.White;
-            this.lblSaveAs.Location = new System.Drawing.Point(7, 0);
+            this.lblSaveAs.Location = new System.Drawing.Point(9, 0);
+            this.lblSaveAs.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblSaveAs.Name = "lblSaveAs";
-            this.lblSaveAs.Size = new System.Drawing.Size(153, 21);
+            this.lblSaveAs.Size = new System.Drawing.Size(204, 26);
             this.lblSaveAs.TabIndex = 5;
             this.lblSaveAs.Text = "Save As:";
             this.lblSaveAs.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -849,9 +897,10 @@
             this.SaveAsJpgRadio.AutoSize = true;
             this.SaveAsJpgRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsJpgRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsJpgRadio.Location = new System.Drawing.Point(227, -2);
+            this.SaveAsJpgRadio.Location = new System.Drawing.Point(303, -2);
+            this.SaveAsJpgRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SaveAsJpgRadio.Name = "SaveAsJpgRadio";
-            this.SaveAsJpgRadio.Size = new System.Drawing.Size(50, 23);
+            this.SaveAsJpgRadio.Size = new System.Drawing.Size(59, 27);
             this.SaveAsJpgRadio.TabIndex = 1;
             this.SaveAsJpgRadio.Text = "JPG";
             this.SaveAsJpgRadio.UseVisualStyleBackColor = false;
@@ -863,9 +912,10 @@
             this.SaveAsPngRadio.BackColor = System.Drawing.Color.Transparent;
             this.SaveAsPngRadio.Checked = true;
             this.SaveAsPngRadio.ForeColor = System.Drawing.Color.White;
-            this.SaveAsPngRadio.Location = new System.Drawing.Point(166, -2);
+            this.SaveAsPngRadio.Location = new System.Drawing.Point(221, -2);
+            this.SaveAsPngRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SaveAsPngRadio.Name = "SaveAsPngRadio";
-            this.SaveAsPngRadio.Size = new System.Drawing.Size(55, 23);
+            this.SaveAsPngRadio.Size = new System.Drawing.Size(66, 27);
             this.SaveAsPngRadio.TabIndex = 0;
             this.SaveAsPngRadio.TabStop = true;
             this.SaveAsPngRadio.Text = "PNG";
@@ -878,18 +928,20 @@
             this.panel4.Controls.Add(this.lblClipWatcher);
             this.panel4.Controls.Add(this.ClipWatcherEnbRadio);
             this.panel4.Controls.Add(this.ClipWatcherDisRadio);
-            this.panel4.Location = new System.Drawing.Point(295, 36);
+            this.panel4.Location = new System.Drawing.Point(393, 44);
+            this.panel4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(285, 60);
+            this.panel4.Size = new System.Drawing.Size(380, 74);
             this.panel4.TabIndex = 9;
             // 
             // lblClipWatcher
             // 
             this.lblClipWatcher.BackColor = System.Drawing.Color.Transparent;
             this.lblClipWatcher.ForeColor = System.Drawing.Color.White;
-            this.lblClipWatcher.Location = new System.Drawing.Point(3, 0);
+            this.lblClipWatcher.Location = new System.Drawing.Point(4, 0);
+            this.lblClipWatcher.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblClipWatcher.Name = "lblClipWatcher";
-            this.lblClipWatcher.Size = new System.Drawing.Size(159, 21);
+            this.lblClipWatcher.Size = new System.Drawing.Size(212, 26);
             this.lblClipWatcher.TabIndex = 5;
             this.lblClipWatcher.Text = "Clipboard Watcher:";
             this.lblClipWatcher.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -899,9 +951,10 @@
             this.ClipWatcherEnbRadio.AutoSize = true;
             this.ClipWatcherEnbRadio.BackColor = System.Drawing.Color.Transparent;
             this.ClipWatcherEnbRadio.ForeColor = System.Drawing.Color.White;
-            this.ClipWatcherEnbRadio.Location = new System.Drawing.Point(168, 29);
+            this.ClipWatcherEnbRadio.Location = new System.Drawing.Point(224, 36);
+            this.ClipWatcherEnbRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ClipWatcherEnbRadio.Name = "ClipWatcherEnbRadio";
-            this.ClipWatcherEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ClipWatcherEnbRadio.Size = new System.Drawing.Size(92, 27);
             this.ClipWatcherEnbRadio.TabIndex = 1;
             this.ClipWatcherEnbRadio.Text = "Enabled";
             this.ClipWatcherEnbRadio.UseVisualStyleBackColor = false;
@@ -913,9 +966,10 @@
             this.ClipWatcherDisRadio.BackColor = System.Drawing.Color.Transparent;
             this.ClipWatcherDisRadio.Checked = true;
             this.ClipWatcherDisRadio.ForeColor = System.Drawing.Color.White;
-            this.ClipWatcherDisRadio.Location = new System.Drawing.Point(168, 0);
+            this.ClipWatcherDisRadio.Location = new System.Drawing.Point(224, 0);
+            this.ClipWatcherDisRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ClipWatcherDisRadio.Name = "ClipWatcherDisRadio";
-            this.ClipWatcherDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ClipWatcherDisRadio.Size = new System.Drawing.Size(96, 27);
             this.ClipWatcherDisRadio.TabIndex = 0;
             this.ClipWatcherDisRadio.TabStop = true;
             this.ClipWatcherDisRadio.Text = "Disabled";
@@ -927,18 +981,20 @@
             this.panel3.Controls.Add(this.lblReadeGenerator);
             this.panel3.Controls.Add(this.ReaderGenEnbRadio);
             this.panel3.Controls.Add(this.ReaderGenDisRadio);
-            this.panel3.Location = new System.Drawing.Point(7, 168);
+            this.panel3.Location = new System.Drawing.Point(9, 207);
+            this.panel3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(282, 60);
+            this.panel3.Size = new System.Drawing.Size(376, 74);
             this.panel3.TabIndex = 8;
             // 
             // lblReadeGenerator
             // 
             this.lblReadeGenerator.BackColor = System.Drawing.Color.Transparent;
             this.lblReadeGenerator.ForeColor = System.Drawing.Color.White;
-            this.lblReadeGenerator.Location = new System.Drawing.Point(3, 0);
+            this.lblReadeGenerator.Location = new System.Drawing.Point(4, 0);
+            this.lblReadeGenerator.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblReadeGenerator.Name = "lblReadeGenerator";
-            this.lblReadeGenerator.Size = new System.Drawing.Size(180, 21);
+            this.lblReadeGenerator.Size = new System.Drawing.Size(240, 26);
             this.lblReadeGenerator.TabIndex = 5;
             this.lblReadeGenerator.Text = "Reader Generator:";
             this.lblReadeGenerator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -948,9 +1004,10 @@
             this.ReaderGenEnbRadio.AutoSize = true;
             this.ReaderGenEnbRadio.BackColor = System.Drawing.Color.Transparent;
             this.ReaderGenEnbRadio.ForeColor = System.Drawing.Color.White;
-            this.ReaderGenEnbRadio.Location = new System.Drawing.Point(189, 29);
+            this.ReaderGenEnbRadio.Location = new System.Drawing.Point(252, 36);
+            this.ReaderGenEnbRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ReaderGenEnbRadio.Name = "ReaderGenEnbRadio";
-            this.ReaderGenEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ReaderGenEnbRadio.Size = new System.Drawing.Size(92, 27);
             this.ReaderGenEnbRadio.TabIndex = 1;
             this.ReaderGenEnbRadio.Text = "Enabled";
             this.ReaderGenEnbRadio.UseVisualStyleBackColor = false;
@@ -962,9 +1019,10 @@
             this.ReaderGenDisRadio.BackColor = System.Drawing.Color.Transparent;
             this.ReaderGenDisRadio.Checked = true;
             this.ReaderGenDisRadio.ForeColor = System.Drawing.Color.White;
-            this.ReaderGenDisRadio.Location = new System.Drawing.Point(189, 0);
+            this.ReaderGenDisRadio.Location = new System.Drawing.Point(252, 0);
+            this.ReaderGenDisRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ReaderGenDisRadio.Name = "ReaderGenDisRadio";
-            this.ReaderGenDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ReaderGenDisRadio.Size = new System.Drawing.Size(96, 27);
             this.ReaderGenDisRadio.TabIndex = 0;
             this.ReaderGenDisRadio.TabStop = true;
             this.ReaderGenDisRadio.Text = "Disabled";
@@ -976,18 +1034,20 @@
             this.panel2.Controls.Add(this.lblImageClipping);
             this.panel2.Controls.Add(this.ImgClipEnbRadio);
             this.panel2.Controls.Add(this.ImgClipDisRadio);
-            this.panel2.Location = new System.Drawing.Point(7, 102);
+            this.panel2.Location = new System.Drawing.Point(9, 126);
+            this.panel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(282, 60);
+            this.panel2.Size = new System.Drawing.Size(376, 74);
             this.panel2.TabIndex = 7;
             // 
             // lblImageClipping
             // 
             this.lblImageClipping.BackColor = System.Drawing.Color.Transparent;
             this.lblImageClipping.ForeColor = System.Drawing.Color.White;
-            this.lblImageClipping.Location = new System.Drawing.Point(3, 0);
+            this.lblImageClipping.Location = new System.Drawing.Point(4, 0);
+            this.lblImageClipping.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblImageClipping.Name = "lblImageClipping";
-            this.lblImageClipping.Size = new System.Drawing.Size(180, 21);
+            this.lblImageClipping.Size = new System.Drawing.Size(240, 26);
             this.lblImageClipping.TabIndex = 5;
             this.lblImageClipping.Text = "Image Clipping:";
             this.lblImageClipping.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -997,9 +1057,10 @@
             this.ImgClipEnbRadio.AutoSize = true;
             this.ImgClipEnbRadio.BackColor = System.Drawing.Color.Transparent;
             this.ImgClipEnbRadio.ForeColor = System.Drawing.Color.White;
-            this.ImgClipEnbRadio.Location = new System.Drawing.Point(189, 27);
+            this.ImgClipEnbRadio.Location = new System.Drawing.Point(252, 33);
+            this.ImgClipEnbRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ImgClipEnbRadio.Name = "ImgClipEnbRadio";
-            this.ImgClipEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ImgClipEnbRadio.Size = new System.Drawing.Size(92, 27);
             this.ImgClipEnbRadio.TabIndex = 1;
             this.ImgClipEnbRadio.Text = "Enabled";
             this.ImgClipEnbRadio.UseVisualStyleBackColor = false;
@@ -1011,9 +1072,10 @@
             this.ImgClipDisRadio.BackColor = System.Drawing.Color.Transparent;
             this.ImgClipDisRadio.Checked = true;
             this.ImgClipDisRadio.ForeColor = System.Drawing.Color.White;
-            this.ImgClipDisRadio.Location = new System.Drawing.Point(189, -2);
+            this.ImgClipDisRadio.Location = new System.Drawing.Point(252, -2);
+            this.ImgClipDisRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ImgClipDisRadio.Name = "ImgClipDisRadio";
-            this.ImgClipDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ImgClipDisRadio.Size = new System.Drawing.Size(96, 27);
             this.ImgClipDisRadio.TabIndex = 0;
             this.ImgClipDisRadio.TabStop = true;
             this.ImgClipDisRadio.Text = "Disabled";
@@ -1025,18 +1087,20 @@
             this.panel1.Controls.Add(this.lblCaptchaSolving);
             this.panel1.Controls.Add(this.SemiAutoCaptchaRadio);
             this.panel1.Controls.Add(this.ManualCaptchaRadio);
-            this.panel1.Location = new System.Drawing.Point(7, 36);
+            this.panel1.Location = new System.Drawing.Point(9, 44);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(282, 60);
+            this.panel1.Size = new System.Drawing.Size(376, 74);
             this.panel1.TabIndex = 6;
             // 
             // lblCaptchaSolving
             // 
             this.lblCaptchaSolving.BackColor = System.Drawing.Color.Transparent;
             this.lblCaptchaSolving.ForeColor = System.Drawing.Color.White;
-            this.lblCaptchaSolving.Location = new System.Drawing.Point(3, 0);
+            this.lblCaptchaSolving.Location = new System.Drawing.Point(4, 0);
+            this.lblCaptchaSolving.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCaptchaSolving.Name = "lblCaptchaSolving";
-            this.lblCaptchaSolving.Size = new System.Drawing.Size(180, 21);
+            this.lblCaptchaSolving.Size = new System.Drawing.Size(240, 26);
             this.lblCaptchaSolving.TabIndex = 5;
             this.lblCaptchaSolving.Text = "Captcha Solving:";
             this.lblCaptchaSolving.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1046,9 +1110,10 @@
             this.SemiAutoCaptchaRadio.AutoSize = true;
             this.SemiAutoCaptchaRadio.BackColor = System.Drawing.Color.Transparent;
             this.SemiAutoCaptchaRadio.ForeColor = System.Drawing.Color.White;
-            this.SemiAutoCaptchaRadio.Location = new System.Drawing.Point(189, 28);
+            this.SemiAutoCaptchaRadio.Location = new System.Drawing.Point(252, 34);
+            this.SemiAutoCaptchaRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SemiAutoCaptchaRadio.Name = "SemiAutoCaptchaRadio";
-            this.SemiAutoCaptchaRadio.Size = new System.Drawing.Size(90, 23);
+            this.SemiAutoCaptchaRadio.Size = new System.Drawing.Size(110, 27);
             this.SemiAutoCaptchaRadio.TabIndex = 1;
             this.SemiAutoCaptchaRadio.Text = "Semi Auto";
             this.SemiAutoCaptchaRadio.UseVisualStyleBackColor = false;
@@ -1060,9 +1125,10 @@
             this.ManualCaptchaRadio.BackColor = System.Drawing.Color.Transparent;
             this.ManualCaptchaRadio.Checked = true;
             this.ManualCaptchaRadio.ForeColor = System.Drawing.Color.White;
-            this.ManualCaptchaRadio.Location = new System.Drawing.Point(189, -1);
+            this.ManualCaptchaRadio.Location = new System.Drawing.Point(252, -1);
+            this.ManualCaptchaRadio.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.ManualCaptchaRadio.Name = "ManualCaptchaRadio";
-            this.ManualCaptchaRadio.Size = new System.Drawing.Size(73, 23);
+            this.ManualCaptchaRadio.Size = new System.Drawing.Size(88, 27);
             this.ManualCaptchaRadio.TabIndex = 0;
             this.ManualCaptchaRadio.TabStop = true;
             this.ManualCaptchaRadio.Text = "Manual";
@@ -1080,10 +1146,11 @@
             this.EnvironmentGroupBox.Controls.Add(this.lblLibrary);
             this.EnvironmentGroupBox.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.EnvironmentGroupBox.HeaderColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.EnvironmentGroupBox.Location = new System.Drawing.Point(6, 6);
+            this.EnvironmentGroupBox.Location = new System.Drawing.Point(8, 7);
             this.EnvironmentGroupBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.EnvironmentGroupBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.EnvironmentGroupBox.Name = "EnvironmentGroupBox";
-            this.EnvironmentGroupBox.Size = new System.Drawing.Size(824, 115);
+            this.EnvironmentGroupBox.Size = new System.Drawing.Size(1099, 142);
             this.EnvironmentGroupBox.TabIndex = 0;
             this.EnvironmentGroupBox.Text = "Environment";
             this.EnvironmentGroupBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
@@ -1092,9 +1159,10 @@
             // 
             this.lblLanguage.BackColor = System.Drawing.Color.Transparent;
             this.lblLanguage.ForeColor = System.Drawing.Color.White;
-            this.lblLanguage.Location = new System.Drawing.Point(3, 72);
+            this.lblLanguage.Location = new System.Drawing.Point(4, 89);
+            this.lblLanguage.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblLanguage.Name = "lblLanguage";
-            this.lblLanguage.Size = new System.Drawing.Size(81, 21);
+            this.lblLanguage.Size = new System.Drawing.Size(108, 26);
             this.lblLanguage.TabIndex = 4;
             this.lblLanguage.Text = "Language:";
             this.lblLanguage.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1113,9 +1181,10 @@
             this.LanguageBox.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.LanguageBox.FormattingEnabled = true;
             this.LanguageBox.LineColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
-            this.LanguageBox.Location = new System.Drawing.Point(90, 71);
+            this.LanguageBox.Location = new System.Drawing.Point(120, 87);
+            this.LanguageBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.LanguageBox.Name = "LanguageBox";
-            this.LanguageBox.Size = new System.Drawing.Size(723, 26);
+            this.LanguageBox.Size = new System.Drawing.Size(963, 31);
             this.LanguageBox.SqaureColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
             this.LanguageBox.SqaureHoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(52)))), ((int)(((byte)(52)))));
             this.LanguageBox.StartIndex = 0;
@@ -1132,12 +1201,13 @@
             this.bntLibSelect.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.bntLibSelect.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.bntLibSelect.ImageChoice = null;
-            this.bntLibSelect.Location = new System.Drawing.Point(777, 36);
+            this.bntLibSelect.Location = new System.Drawing.Point(1036, 44);
+            this.bntLibSelect.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.bntLibSelect.Name = "bntLibSelect";
             this.bntLibSelect.ShowBorder = true;
             this.bntLibSelect.ShowImage = false;
             this.bntLibSelect.ShowText = true;
-            this.bntLibSelect.Size = new System.Drawing.Size(36, 23);
+            this.bntLibSelect.Size = new System.Drawing.Size(48, 28);
             this.bntLibSelect.TabIndex = 2;
             this.bntLibSelect.Text = "...";
             this.bntLibSelect.TextAlignment = System.Drawing.StringAlignment.Center;
@@ -1150,12 +1220,13 @@
             this.LibraryPathTBox.BackColor = System.Drawing.Color.Transparent;
             this.LibraryPathTBox.BackgroundColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
             this.LibraryPathTBox.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.LibraryPathTBox.Location = new System.Drawing.Point(90, 36);
+            this.LibraryPathTBox.Location = new System.Drawing.Point(120, 44);
+            this.LibraryPathTBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.LibraryPathTBox.MaxLength = 32767;
             this.LibraryPathTBox.Multiline = false;
             this.LibraryPathTBox.Name = "LibraryPathTBox";
             this.LibraryPathTBox.ReadOnly = true;
-            this.LibraryPathTBox.Size = new System.Drawing.Size(681, 25);
+            this.LibraryPathTBox.Size = new System.Drawing.Size(908, 30);
             this.LibraryPathTBox.Style = VSNormalTextBox.Styles.NotRounded;
             this.LibraryPathTBox.TabIndex = 1;
             this.LibraryPathTBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -1166,9 +1237,10 @@
             // 
             this.lblLibrary.BackColor = System.Drawing.Color.Transparent;
             this.lblLibrary.ForeColor = System.Drawing.Color.White;
-            this.lblLibrary.Location = new System.Drawing.Point(3, 39);
+            this.lblLibrary.Location = new System.Drawing.Point(4, 48);
+            this.lblLibrary.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblLibrary.Name = "lblLibrary";
-            this.lblLibrary.Size = new System.Drawing.Size(81, 21);
+            this.lblLibrary.Size = new System.Drawing.Size(108, 26);
             this.lblLibrary.TabIndex = 0;
             this.lblLibrary.Text = "Library:";
             this.lblLibrary.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1180,9 +1252,10 @@
             this.AboutTab.Controls.Add(this.lblCredits);
             this.AboutTab.Controls.Add(this.lblTitle);
             this.AboutTab.Location = new System.Drawing.Point(4, 20);
+            this.AboutTab.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.AboutTab.Name = "AboutTab";
-            this.AboutTab.Padding = new System.Windows.Forms.Padding(3);
-            this.AboutTab.Size = new System.Drawing.Size(830, 443);
+            this.AboutTab.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.AboutTab.Size = new System.Drawing.Size(1109, 551);
             this.AboutTab.TabIndex = 2;
             this.AboutTab.Text = "About";
             // 
@@ -1195,10 +1268,11 @@
             this.SupportedHostsBox.Controls.Add(this.SupportedHostListBox);
             this.SupportedHostsBox.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.SupportedHostsBox.HeaderColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.SupportedHostsBox.Location = new System.Drawing.Point(9, 60);
+            this.SupportedHostsBox.Location = new System.Drawing.Point(12, 74);
             this.SupportedHostsBox.MainColour = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            this.SupportedHostsBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SupportedHostsBox.Name = "SupportedHostsBox";
-            this.SupportedHostsBox.Size = new System.Drawing.Size(812, 364);
+            this.SupportedHostsBox.Size = new System.Drawing.Size(1083, 448);
             this.SupportedHostsBox.TabIndex = 2;
             this.SupportedHostsBox.Text = "Supported Hosts";
             this.SupportedHostsBox.TextColour = System.Drawing.Color.FromArgb(((int)(((byte)(129)))), ((int)(((byte)(129)))), ((int)(((byte)(131)))));
@@ -1213,13 +1287,14 @@
             this.SupportedHostListBox.DontShowInnerScrollbarBorder = false;
             this.SupportedHostListBox.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(199)))), ((int)(((byte)(199)))));
             this.SupportedHostListBox.Items = new VSListBoxWBuiltInScrollBar.VSListBoxItem[0];
-            this.SupportedHostListBox.Location = new System.Drawing.Point(3, 33);
+            this.SupportedHostListBox.Location = new System.Drawing.Point(4, 41);
+            this.SupportedHostListBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.SupportedHostListBox.MultiSelect = false;
             this.SupportedHostListBox.Name = "SupportedHostListBox";
             this.SupportedHostListBox.NonSelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
             this.SupportedHostListBox.SelectedItemColour = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
             this.SupportedHostListBox.ShowWholeInnerBorder = true;
-            this.SupportedHostListBox.Size = new System.Drawing.Size(806, 319);
+            this.SupportedHostListBox.Size = new System.Drawing.Size(1075, 393);
             this.SupportedHostListBox.TabIndex = 0;
             this.SupportedHostListBox.DoubleClick += new System.EventHandler(this.SupportedHostClicked);
             // 
@@ -1228,9 +1303,10 @@
             this.lblCredits.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblCredits.AutoSize = true;
             this.lblCredits.ForeColor = System.Drawing.Color.White;
-            this.lblCredits.Location = new System.Drawing.Point(686, 427);
+            this.lblCredits.Location = new System.Drawing.Point(915, 526);
+            this.lblCredits.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCredits.Name = "lblCredits";
-            this.lblCredits.Size = new System.Drawing.Size(132, 13);
+            this.lblCredits.Size = new System.Drawing.Size(174, 17);
             this.lblCredits.TabIndex = 1;
             this.lblCredits.Text = "Created By Marcussacana";
             // 
@@ -1241,9 +1317,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.lblTitle.ForeColor = System.Drawing.Color.White;
-            this.lblTitle.Location = new System.Drawing.Point(3, 3);
+            this.lblTitle.Location = new System.Drawing.Point(4, 4);
+            this.lblTitle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(821, 72);
+            this.lblTitle.Size = new System.Drawing.Size(1095, 89);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "MangaUnhost";
             this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1256,9 +1333,10 @@
             this.DebugTab.Controls.Add(this.DbgButtonA);
             this.DebugTab.Controls.Add(this.DbgPreview);
             this.DebugTab.Location = new System.Drawing.Point(4, 20);
+            this.DebugTab.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.DebugTab.Name = "DebugTab";
-            this.DebugTab.Padding = new System.Windows.Forms.Padding(3);
-            this.DebugTab.Size = new System.Drawing.Size(830, 443);
+            this.DebugTab.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.DebugTab.Size = new System.Drawing.Size(1109, 551);
             this.DebugTab.TabIndex = 3;
             this.DebugTab.Text = "Debug";
             // 
@@ -1272,12 +1350,13 @@
             this.dbgButtonC.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.dbgButtonC.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.dbgButtonC.ImageChoice = null;
-            this.dbgButtonC.Location = new System.Drawing.Point(599, 6);
+            this.dbgButtonC.Location = new System.Drawing.Point(799, 7);
+            this.dbgButtonC.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.dbgButtonC.Name = "dbgButtonC";
             this.dbgButtonC.ShowBorder = true;
             this.dbgButtonC.ShowImage = false;
             this.dbgButtonC.ShowText = true;
-            this.dbgButtonC.Size = new System.Drawing.Size(103, 23);
+            this.dbgButtonC.Size = new System.Drawing.Size(137, 28);
             this.dbgButtonC.TabIndex = 3;
             this.dbgButtonC.Text = "Dbg Cloudflare";
             this.dbgButtonC.TextAlignment = System.Drawing.StringAlignment.Center;
@@ -1293,12 +1372,13 @@
             this.dbgButtonB.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.dbgButtonB.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.dbgButtonB.ImageChoice = null;
-            this.dbgButtonB.Location = new System.Drawing.Point(495, 6);
+            this.dbgButtonB.Location = new System.Drawing.Point(660, 7);
+            this.dbgButtonB.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.dbgButtonB.Name = "dbgButtonB";
             this.dbgButtonB.ShowBorder = true;
             this.dbgButtonB.ShowImage = false;
             this.dbgButtonB.ShowText = true;
-            this.dbgButtonB.Size = new System.Drawing.Size(98, 23);
+            this.dbgButtonB.Size = new System.Drawing.Size(131, 28);
             this.dbgButtonB.TabIndex = 2;
             this.dbgButtonB.Text = "Dbg hCaptcha";
             this.dbgButtonB.TextAlignment = System.Drawing.StringAlignment.Center;
@@ -1314,12 +1394,13 @@
             this.DbgButtonA.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
             this.DbgButtonA.ImageAlignment = VSButton.@__ImageAlignment.Left;
             this.DbgButtonA.ImageChoice = null;
-            this.DbgButtonA.Location = new System.Drawing.Point(397, 6);
+            this.DbgButtonA.Location = new System.Drawing.Point(529, 7);
+            this.DbgButtonA.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.DbgButtonA.Name = "DbgButtonA";
             this.DbgButtonA.ShowBorder = true;
             this.DbgButtonA.ShowImage = false;
             this.DbgButtonA.ShowText = true;
-            this.DbgButtonA.Size = new System.Drawing.Size(92, 23);
+            this.DbgButtonA.Size = new System.Drawing.Size(123, 28);
             this.DbgButtonA.TabIndex = 1;
             this.DbgButtonA.Text = "Dbg Captcha";
             this.DbgButtonA.TextAlignment = System.Drawing.StringAlignment.Center;
@@ -1332,20 +1413,22 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.DbgPreview.BackColor = System.Drawing.Color.White;
             this.DbgPreview.Location = new System.Drawing.Point(0, 0);
+            this.DbgPreview.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.DbgPreview.Name = "DbgPreview";
-            this.DbgPreview.Size = new System.Drawing.Size(391, 443);
+            this.DbgPreview.Size = new System.Drawing.Size(521, 545);
             this.DbgPreview.TabIndex = 0;
             this.DbgPreview.TabStop = false;
             // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(838, 530);
+            this.ClientSize = new System.Drawing.Size(1117, 652);
             this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximumSize = new System.Drawing.Size(1440, 860);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.MaximumSize = new System.Drawing.Size(1920, 1030);
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "MangaUnhost";

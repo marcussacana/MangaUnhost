@@ -140,6 +140,10 @@ namespace MangaUnhost
             };
 
             string URL = $"https://res/WebComicReader/Embedded/#Input=NativeImages&Mode={Mode}&Embedded=true&Base={HttpUtility.UrlEncode(Chapter)}&Pages={HttpUtility.UrlEncode(Pages)}";
+
+            if (Main.Config.ReaderWidth != 0)
+                URL += "&Width=" + Main.Config.ReaderWidth;
+
             Navigate(URL);
         }
     }

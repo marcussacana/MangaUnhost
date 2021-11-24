@@ -160,7 +160,8 @@ namespace MangaUnhost
                     LibraryPath = DefaultLibPath,
                     ReplaceMode = 1,
                     ReaderMode = 0,
-                    MaxPagesBuffer = 0
+                    MaxPagesBuffer = 0,
+                    ReaderWidth = 0
                 };
             }
 

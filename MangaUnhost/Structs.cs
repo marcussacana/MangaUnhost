@@ -72,6 +72,8 @@ namespace MangaUnhost {
         public int ReaderMode;
 
         public int MaxPagesBuffer;
+
+        public int ReaderWidth;
     }
 
 
