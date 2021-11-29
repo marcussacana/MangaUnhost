@@ -1,6 +1,7 @@
 ﻿using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using Microsoft.Win32;
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -16,7 +17,25 @@ namespace MangaUnhost
 {
     static class Program
     {
-        public static string PythonPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs\\Python\\Python39\\Python.exe");
+        static string _PyPath = null;
+        public static string PythonPath
+        {
+            get
+            {
+                if (_PyPath != null)
+                    return _PyPath;
+
+                var Def = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs\\Python\\Python39\\Python.exe");
+                if (File.Exists(Def))
+                    return _PyPath = Def;
+
+                Def = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "py.exe");
+                if (File.Exists(Def))
+                    return _PyPath = Def;
+
+                return "C:\\Python39\\Python.exe";
+            }
+        }
         public static string MTLPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MTL", "translate_single.py");
         
         static bool? _MTLAvailable = null;
