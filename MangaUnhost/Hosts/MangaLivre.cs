@@ -103,7 +103,7 @@ namespace MangaUnhost.Hosts
                 LinkDB[ID] = Link.EnsureAbsoluteUri("https://mangalivre.net/");
                 if (!JSON.Contains("\"link\":"))
                     break;
-                JSON = JSON.Substring("\"link\":", IgnoreMissmatch: true);
+                JSON = JSON.Substring("\"officialSerieLink\":", IgnoreMissmatch: true);
             }
             return Chapters;
         }
@@ -153,7 +153,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 6),
+                Version = new Version(2, 6, 1),
                 Icon = Resources.Icons.MangaLivre
             };
         }
