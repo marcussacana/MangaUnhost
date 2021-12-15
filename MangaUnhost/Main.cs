@@ -796,7 +796,7 @@ namespace MangaUnhost
             var Comics = Directory.GetDirectories(Settings.LibraryPath);
             bool Pagination = Comics.Count() > PageCount;
 
-            if (Page >= Comics.Length / PageCount)
+            if (Page > Comics.Length / PageCount)
                 Page = (Comics.Length / PageCount) - 1;
 
             if (Page < 0)
