@@ -126,7 +126,11 @@ namespace MangaUnhost.Hosts
                 foreach (var Img in Page.SelectNodes("//section[@id='imageWrapper']//img"))
                     Pages.Add(Img.GetAttributeValue("src", string.Empty));
 
-            return (from x in Pages select x.Replace(".webp", "").Replace("/images", "/mangas_files")).ToArray();
+            var Links = (from x in Pages select x.Replace(".webp", "").Replace("/images", "/mangas_files")).ToArray();
+            if (Links.Where(x => string.IsNullOrEmpty(System.IO.Path.GetExtension(x))).Any())
+                return Links.Select(x => x + ".webp").ToArray();
+
+            return Links;
         }
 
         private HtmlDocument GetChapterHtml(int ID)
@@ -196,7 +200,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 4, 1)
+                Version = new Version(3, 4, 2)
             };
         }
 
