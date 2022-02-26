@@ -234,7 +234,7 @@
       <Version>75.1.143</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.WinForms">
-      <Version>75.1.143</Version>
+      <Version>98.1.210</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">
       <Version>4.1.0</Version>
