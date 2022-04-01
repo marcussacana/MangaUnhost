@@ -170,7 +170,8 @@ namespace MangaUnhost
             {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath,
                 LogSeverity = LogSeverity.Disable,
-                WindowlessRenderingEnabled = true
+                WindowlessRenderingEnabled = true,
+                UserAgent = ProxyTools.UserAgent
             };
 
             CefSettings.RegisterScheme(new CefCustomScheme()

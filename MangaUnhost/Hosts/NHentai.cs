@@ -37,6 +37,8 @@ namespace MangaUnhost.Hosts {
             return GetChapterPages(ID).Length;
         }
 
+        string LinkPrefix = null;
+
         private string[] GetChapterPages(int ID) {
             var URI = ChapterLinks[ID];
 
@@ -62,6 +64,24 @@ namespace MangaUnhost.Hosts {
                 PageUrl = HttpUtility.HtmlDecode(PageUrl);
                 PageUrl = PageUrl.Replace("t.nhentai.net", "i.nhentai.net");
                 PageUrl = PageUrl.Replace("t.jpg", ".jpg").Replace("t.png", ".png").Replace("t.bmp", ".bmp");
+                PageUrl = "https://i" + PageUrl.Substring(PageUrl.IndexOf(".nhentai") - 1);
+
+                string OriPrefix = PageUrl.Substring("://", ".nhentai");
+                string[] Prefixes = new string[] { "i7", "i6", "i5", "i4", "i3", "i2", "i1", "t7", "t6", "t5", "t4", "t3", "t2", "t1"};
+
+                var rst = TryDownload(new Uri(PageUrl), 1);
+                foreach (var Prefix in Prefixes)
+                {
+                    if (rst != null)
+                        break;
+
+                    LinkPrefix = Prefix;
+                    rst = TryDownload(new Uri(PageUrl.Replace(OriPrefix, Prefix)));
+                }
+
+                if (LinkPrefix != null)
+                    PageUrl = PageUrl.Replace(OriPrefix, LinkPrefix);
+                
                 Pages.Add(PageUrl);
             }
             
@@ -79,7 +99,7 @@ namespace MangaUnhost.Hosts {
                 Name = "NHentai",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                Version = new Version(1, 2)
             };
         }
 
@@ -161,10 +181,10 @@ namespace MangaUnhost.Hosts {
             Document.LoadHtml(Encoding.UTF8.GetString(TryDownload(Url)));
             return Document;
         } 
-        public byte[] TryDownload(Uri Url) {
-            return Url.TryDownload(Referer: "http://nhentai.net",
-                                   UserAgent: Browser.GetBrowser().GetUserAgent(),
-                                   Cookie: Browser.GetBrowser().GetCookies().ToContainer());
+        public byte[] TryDownload(Uri Url, int Tries = 3) {
+            return Url.TryDownload(Referer: "https://nhentai.net",
+                                   UserAgent: ProxyTools.UserAgent,
+                                   Cookie: Browser.GetBrowser().GetCookies().ToContainer(), Retries: Tries);
         }
         public bool IsValidPage(string HTML, Uri URL) => false;
     }

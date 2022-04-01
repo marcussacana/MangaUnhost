@@ -91,7 +91,7 @@ namespace MangaUnhost.Hosts
         {
             return new PluginInfo()
             {
-                Name = "Wordpress MangaReader",
+                Name = "WPMangaReader",
                 Author = "Marcussacana",
                 GenericPlugin = true,
                 SupportComic = true,
