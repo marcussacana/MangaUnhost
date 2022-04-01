@@ -69,14 +69,17 @@ namespace MangaUnhost.Hosts {
                 string OriPrefix = PageUrl.Substring("://", ".nhentai");
                 string[] Prefixes = new string[] { "i7", "i6", "i5", "i4", "i3", "i2", "i1", "t7", "t6", "t5", "t4", "t3", "t2", "t1"};
 
-                var rst = TryDownload(new Uri(PageUrl), 1);
-                foreach (var Prefix in Prefixes)
+                if (Pages.Count == 0)
                 {
-                    if (rst != null)
-                        break;
+                    var rst = TryDownload(new Uri(PageUrl), 1);
+                    foreach (var Prefix in Prefixes)
+                    {
+                        if (rst != null)
+                            break;
 
-                    LinkPrefix = Prefix;
-                    rst = TryDownload(new Uri(PageUrl.Replace(OriPrefix, Prefix)));
+                        LinkPrefix = Prefix;
+                        rst = TryDownload(new Uri(PageUrl.Replace(OriPrefix, Prefix)));
+                    }
                 }
 
                 if (LinkPrefix != null)
@@ -99,7 +102,7 @@ namespace MangaUnhost.Hosts {
                 Name = "NHentai",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 2, 1)
             };
         }
 
