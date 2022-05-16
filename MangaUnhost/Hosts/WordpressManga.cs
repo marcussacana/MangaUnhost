@@ -82,6 +82,9 @@ namespace MangaUnhost.Hosts
                 if (Name.StartsWith("capítulo"))
                     Name = Name.Substring("capítulo").Trim(GeneralTrim);
 
+                if (Name.StartsWith("cap."))
+                    Name = Name.Substring("cap.").Trim(GeneralTrim);
+
                 if (Name.StartsWith("cap"))
                     Name = Name.Substring("cap").Trim(GeneralTrim);
 
@@ -119,7 +122,7 @@ namespace MangaUnhost.Hosts
             }
 
             string[] Links = (from x in Chapter
-                              .SelectNodes("//img[starts-with(@id, \"image-\")]")
+                              .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img")
                               select (x.GetAttributeValue("data-src", null) ??
                                       x.GetAttributeValue("src", null) ??
                                       x.GetAttributeValue("data-cfsrc", "")).Trim()).Distinct().ToArray();
@@ -141,7 +144,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 3)
+                Version = new Version(2, 4)
             };
         }
 
@@ -201,7 +204,7 @@ namespace MangaUnhost.Hosts
                 Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
 
-            var ImgNode = Document.SelectSingleNode("//div[@class='summary_image']/a/img");
+            var ImgNode = Document.SelectSingleNode("//div[@class='summary_image']//img");
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
 
