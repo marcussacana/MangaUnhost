@@ -9,8 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace MangaUnhost.Hosts
 {
@@ -24,12 +22,11 @@ namespace MangaUnhost.Hosts
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
             var Link = LinkDB[ID];
-            var HTML = TryDownString(Link);
-            string Identitifer = HTML.Substring("&token=", "&");
-            string Token = HTML.Substring("isVertical, \"", "\"");
+            var Keys = GetChapterKeys(Link);
+
             //https://cdn.statically.io/img/images2.optimages.net/f=auto/firefox/HpSSrwPuYY_LvnfTXhKGFg/m6867758/11735/283339/296802/00.jpg
-            var Legacy = GetPages(ID, Identitifer, Token, Link.AbsoluteUri);
-            var Avif = GetPages(ID, Identitifer, Token, Link.AbsoluteUri, false);
+            var Legacy = GetPages(ID, Keys.Identifer, Keys.Token, Link.AbsoluteUri);
+            var Avif = GetPages(ID, Keys.Identifer, Keys.Token, Link.AbsoluteUri, false);
             for (int i = 0; i < Legacy.Length; i++) {
                 string Page = Legacy[i];
                 if (Page.Contains("/f=auto/"))
@@ -71,11 +68,25 @@ namespace MangaUnhost.Hosts
         public int GetChapterPageCount(int ID)
         {
             var Link = LinkDB[ID];
-            var HTML = TryDownString(Link);
-            string Identitifer = HTML.Substring("&token=", "&");
-            string Token = HTML.Substring("isVertical, \"", "\"");
+            var Keys = GetChapterKeys(Link);
+            return GetPages(ID, Keys.Identifer, Keys.Token, Link.AbsoluteUri).Length;
+        }
 
-            return GetPages(ID, Identitifer, Token, Link.AbsoluteUri).Length;
+        public (string Token, string Identifer) GetChapterKeys(Uri Chapter)
+        {
+            var HTML = TryDownString(Chapter);
+            if (HTML.Contains("&token"))
+            {
+                string Identifer = HTML.Substring("&token=", "&");
+                string Token = HTML.Substring("isVertical, \"", "\"");
+                return (Token, Identifer);
+            }
+            else
+            {
+                var Identifer = HTML.Substring("READER_TOKEN", ";").Trim(' ', '\n', '\r', '\t', '=', '\'', '"');
+                string Token = HTML.Substring("isVertical, \"", "\"");
+                return (Token, Identifer);
+            }
         }
 
         private Dictionary<int, string> GetChapters(int Page, int Serie) {
@@ -118,12 +129,12 @@ namespace MangaUnhost.Hosts
             try
             {
                 var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenA(Identifier, Token, RelID)}");
-                Data = ApiUrl.Download(ChapterLink, UserAgent);
+                Data = TryDownload(ApiUrl, ChapterLink) ?? throw new Exception();
             }
             catch
             {
                 var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenB(Identifier, Token, RelID)}");
-                Data = ApiUrl.Download(ChapterLink, UserAgent);
+                Data = TryDownload(ApiUrl, ChapterLink) ?? throw new Exception();
             }
 
             var JSON = Encoding.UTF8.GetString(Data);
@@ -153,7 +164,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 6, 1),
+                Version = new Version(2, 7),
                 Icon = Resources.Icons.MangaLivre
             };
         }
@@ -254,6 +265,8 @@ namespace MangaUnhost.Hosts
 
             //t = TokenChars, s = ReverseIdentifier, n = Identifier
 
+            //t = TokenChars, e = ReverseIdentifier, n = identifier 
+
             var RealToken = string.Empty;
             for (int i = 0; i < Identifier.Length; i++)
             {
@@ -281,8 +294,8 @@ namespace MangaUnhost.Hosts
         static string ChapterUrl = null;
         static CookieContainer Cookies = null;
         static string UserAgent;
-        static byte[] TryDownload(Uri Url) {
-            return Url.TryDownload(ChapterUrl, UserAgent, Cookie: Cookies);
+        static byte[] TryDownload(Uri Url, string Referrer = null) {
+            return Url.TryDownload(Referrer ?? ChapterUrl, UserAgent, Cookie: Cookies);
         }
         static string TryDownString(Uri Url) => Encoding.UTF8.GetString(TryDownload(Url) ?? new byte[0]);
     }
