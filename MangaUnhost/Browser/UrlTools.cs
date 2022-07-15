@@ -81,10 +81,10 @@ namespace MangaUnhost.Browser
             return url.AbsoluteUri.Split('?').FirstOrDefault() ?? string.Empty;
         }
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
-            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
-            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
+            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
+        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
+            Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
         public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
             Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Accept, Headers, Cookies, AcceptableErrors);
 
@@ -104,10 +104,10 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
-        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
+        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
+        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
         public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
 

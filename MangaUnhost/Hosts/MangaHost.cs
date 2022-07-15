@@ -55,6 +55,7 @@ namespace MangaUnhost.Hosts
 
             while (Found)
             {
+                var CurrentLink = Link;
                 var Doc = LoadDocument(Link);
 
                 Link = Link.Substring(0, Link.LastIndexOf('/') + 1);
@@ -84,7 +85,43 @@ namespace MangaUnhost.Hosts
                     IDs.Insert(i, Founds.Keys.ElementAt(BID + i));
 
                 if (Found)
+                {
                     Link = ChapterLinks[BID];
+                    if (Link == CurrentLink)
+                    {
+                        var LastFound = Link.Split('/').Last();
+                        
+                        int ChapterIndex = 0;
+                        int ChapterSubIndex = 0;
+
+                        if (LastFound.Contains('.'))
+                        {
+                            ChapterIndex = int.Parse(LastFound.Split('.').First().Trim());
+                            ChapterSubIndex = int.Parse(LastFound.Split('.').Last().Trim());
+                        }
+                        else
+                            ChapterIndex = int.Parse(LastFound.Trim());
+
+                        for (int x = 0; x < 2; x++)
+                        {
+                            for (int y = 0; y < 6; y++)
+                            {
+                                var NextPart = ChapterSubIndex + y == 0 ? $"{(ChapterIndex + x)}" : $"{(ChapterIndex + x)}.{(ChapterSubIndex + y)}";
+                                Link = OriUrl + NextPart;
+                                
+                                if (Link == CurrentLink)
+                                    continue;
+
+                                var Result = Link.TryDownload(CFData, UserAgent: ProxyTools.UserAgent);
+                                if (Result != null)
+                                    goto Next;
+                            }
+                        }
+
+                        Next:;
+                        continue;
+                    }
+                }
             }
 
             foreach (var CID in IDs) {
@@ -143,7 +180,7 @@ namespace MangaUnhost.Hosts
         private HtmlDocument LoadDocument(string URL) {
 
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(URL, CFData, AcceptableErrors: Errors);
+            Document.LoadUrl(URL, CFData, Referer: URL, AcceptableErrors: Errors, UserAgent: ProxyTools.UserAgent);
             if (Document.IsCloudflareTriggered())
             {
                 using (ChromiumWebBrowser Browser = new ChromiumWebBrowser())
@@ -200,7 +237,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 4, 2)
+                Version = new Version(3, 4, 3)
             };
         }
 
