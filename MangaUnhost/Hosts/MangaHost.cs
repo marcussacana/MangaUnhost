@@ -61,6 +61,9 @@ namespace MangaUnhost.Hosts
                 Link = Link.Substring(0, Link.LastIndexOf('/') + 1);
                 var Options = Doc.SelectNodes("//header[@class=\"navigation\"]//select[@name=\"Chapters\"]/option");
 
+                if (Options == null)
+                    break;
+
                 int BID = ID;
 
                 Found = false;
@@ -112,7 +115,7 @@ namespace MangaUnhost.Hosts
                                 if (Link == CurrentLink)
                                     continue;
 
-                                var Result = Link.TryDownload(CFData, UserAgent: ProxyTools.UserAgent);
+                                var Result = Link.TryDownload(CFData, UserAgent: ProxyTools.UserAgent, Retries: 1);
                                 if (Result != null)
                                     goto Next;
                             }
@@ -237,7 +240,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 4, 3)
+                Version = new Version(3, 4, 4)
             };
         }
 
