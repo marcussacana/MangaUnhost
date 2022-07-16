@@ -107,7 +107,7 @@ namespace MangaUnhost.Hosts
 
                         for (int x = 0; x < 2; x++)
                         {
-                            for (int z = 0; z <= 2; z++)
+                            for (int z = 0; z <= 3; z++)
                             {
                                 int y = 0;
                                 switch (z) {
@@ -115,6 +115,9 @@ namespace MangaUnhost.Hosts
                                         y = 1;
                                         break;
                                     case 2:
+                                        y = 2;
+                                        break;
+                                    case 3:
                                         if (ChapterSubIndex == 0)
                                             y = 5;
                                         break;
@@ -129,7 +132,8 @@ namespace MangaUnhost.Hosts
                                 var Result = Link.TryDownload(CFData, UserAgent: ProxyTools.UserAgent, Retries: 1);
                                 if (Result != null)
                                     goto Next;
-                                System.Threading.Thread.Sleep(100);
+                                
+                                Thread.Sleep(100);
                             }
                         }
 

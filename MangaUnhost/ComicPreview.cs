@@ -371,8 +371,10 @@ namespace MangaUnhost
                     int ChapCount = 0;
                     if (UseCache && CountCache.ContainsKey(ComicPath))
                         ChapCount = CountCache[ComicPath];
-                    else
-                        CountCache[ComicPath] = ChapCount = ComicHost.EnumChapters().Count();
+                    else {
+                        var Chapters = ComicHost.EnumChapters().GroupBy(c => c.Value).Select(x => x.First()).ToArray();
+                        CountCache[ComicPath] = ChapCount = Chapters.Length;
+                    }
 
                     int NewChapters = ChapCount - DownloadedChapters;
 
