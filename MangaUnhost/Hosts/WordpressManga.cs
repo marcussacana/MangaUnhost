@@ -111,7 +111,7 @@ namespace MangaUnhost.Hosts
         {
             var Chapter = new HtmlDocument();
             
-            Chapter.LoadUrl(LinkMap[ID], UserAgent: CFData?.UserAgent, Cookies: Cookies);
+            Chapter.LoadUrl(LinkMap[ID], UserAgent: CFData?.UserAgent, Cookies: Cookies, Referer: CurrentUrl.AbsoluteUri);
 
             var ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'chapter_preloaded_images')]");
             if (ScriptNode != null)
@@ -144,7 +144,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 4)
+                Version = new Version(2, 4, 1)
             };
         }
 
@@ -222,11 +222,16 @@ namespace MangaUnhost.Hosts
             if (ImgUrl.StartsWith("//"))
                 ImgUrl = "http:" + ImgUrl;
 
-            Info.Cover = ImgUrl.TryDownload(CFData);
+            Info.Cover = TryDownload(ImgUrl);
 
             Info.ContentType = ContentType.Comic;
 
             return Info;
+        }
+
+        private byte[] TryDownload(string Url)
+        {
+            return Url.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri, UserAgent: ProxyTools.UserAgent);
         }
     }
 }

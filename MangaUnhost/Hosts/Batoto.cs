@@ -59,25 +59,45 @@ namespace MangaUnhost.Hosts {
             List<string> Pages = new List<string>();
 
             foreach (var Node in Page.DocumentNode.SelectNodes("//script[contains(., 'images')]")) {
-                if (!Node.InnerHtml.Contains("var images") && !Node.InnerHtml.Contains("const images"))
-                    continue;
-
-                //Did you think use encryption will give us work/lazy? ha! >_<
-                var JS = CryptJS+"\n\n";
-                JS += Node.InnerHtml+"\n\n";
-                JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8); var imgs = []; for (var i = 0; i < images.length; i++) imgs.push(JSON.parse(URL) + images[i]); imgs";
-                var Rst = JSTools.EvaluateScript<List<object>>(JS, true);
-
-                if (Rst == null)
-                    continue;
-
-                var Images = (from x in Rst select (string)x).ToArray();
-                foreach (var Image in Images)
+                if (Node.InnerHtml.Contains("var images") || Node.InnerHtml.Contains("const images"))
                 {
-                    if (Image.StartsWith("//"))
-                        Pages.Add("https:" + Image);
-                    else
-                        Pages.Add(Image);
+                    //Did you think use encryption will give us work/lazy? ha! >_<
+                    var JS = CryptJS + "\n\n";
+                    JS += Node.InnerHtml + "\n\n";
+                    JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8); var imgs = []; for (var i = 0; i < images.length; i++) imgs.push(JSON.parse(URL) + images[i]); imgs";
+                    var Rst = JSTools.EvaluateScript<List<object>>(JS, true);
+
+                    if (Rst == null)
+                        continue;
+
+                    var Images = (from x in Rst select (string)x).ToArray();
+                    foreach (var Image in Images)
+                    {
+                        if (Image.StartsWith("//"))
+                            Pages.Add("https:" + Image);
+                        else
+                            Pages.Add(Image);
+                    }
+                }
+                if (Node.InnerHtml.Contains("imgHttpLis"))
+                {
+                    //Lol, more of the same?
+                    var JS = CryptJS + "\n\n";
+                    JS += Node.InnerHtml + "\n\n";
+                    JS += "var Queries = JSON.parse(CryptoJS.AES.decrypt(batoWord, batoPass).toString(CryptoJS.enc.Utf8)); var imgs = []; for (var i = 0; i < imgHttpLis.length; i++) imgs.push(imgHttpLis[i] + '?' + Queries[i]); imgs";
+                    var Rst = JSTools.EvaluateScript<List<object>>(JS, true);
+
+                    if (Rst == null)
+                        continue;
+
+                    var Images = (from x in Rst select (string)x).ToArray();
+                    foreach (var Image in Images)
+                    {
+                        if (Image.StartsWith("//"))
+                            Pages.Add("https:" + Image);
+                        else
+                            Pages.Add(Image);
+                    }
                 }
             }
 
@@ -99,7 +119,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 1)
+                Version = new Version(2, 2)
             };
         }
 
@@ -128,9 +148,9 @@ namespace MangaUnhost.Hosts {
             Info.Title = Document.Descendants("title").First().InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title.Substring(0, Info.Title.LastIndexOf("Manga")).Trim());
 
-            string URL = Document
+            string URL = HttpUtility.HtmlDecode(Document
                 .SelectSingleNode("//div[@class=\"row detail-set\"]//img")
-                .GetAttributeValue("src", string.Empty);
+                .GetAttributeValue("src", string.Empty));
 
             if (URL.StartsWith("//"))
                 URL = "https:" + URL;
@@ -142,11 +162,11 @@ namespace MangaUnhost.Hosts {
             return Info;
         }
 
-        public static byte[] TryDownload(Uri URL) {
-            return URL.TryDownload(CFData.Value);
+        public byte[] TryDownload(Uri URL) {
+            return URL.TryDownload(CFData, Referer: CurrentDomain, UserAgent: ProxyTools.UserAgent);
         }
-        public static byte[] Download(Uri URL) {
-            return URL.TryDownload(CFData.Value) ?? throw new Exception("Failed to Download");
+        public byte[] Download(Uri URL) {
+            return URL.TryDownload(CFData, Referer: CurrentDomain, UserAgent: ProxyTools.UserAgent) ?? throw new Exception("Failed to Download");
         }
 
         public bool IsValidPage(string HTML, Uri URL) => false;

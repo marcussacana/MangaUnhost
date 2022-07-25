@@ -492,13 +492,12 @@ namespace MangaUnhost
             }
         }
 
-        private byte[] DecodeWebP(byte[] Data) { 
-            var Decoder = new Imazen.WebP.SimpleDecoder();
-            using (MemoryStream Output = new MemoryStream())
-            using (var Img = Decoder.DecodeFromBytes(Data, Data.LongLength))
+        private byte[] DecodeWebP(byte[] Data) {
+            using (var Image = Dynamicweb.WebP.Decoder.Decode(Data))
+            using (MemoryStream Buffer = new MemoryStream())
             {
-                Img.Save(Output, ImageFormat.Png);
-                return Output.ToArray();
+                Image.Save(Buffer, ImageFormat.Png);
+                return Buffer.ToArray();
             }
         }
 
