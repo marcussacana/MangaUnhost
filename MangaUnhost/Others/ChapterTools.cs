@@ -26,7 +26,7 @@ namespace MangaUnhost.Others {
                         while (LastHtml[EndReader - 1] != '>')
                             EndReader--;
 
-                        string RelativeHtmlPath = $".{Path.AltDirectorySeparatorChar}{Path.GetFileName(HtmlPath.TrimEnd('\\', '/') + ".html")}";
+                        string RelativeHtmlPath = $".{Path.AltDirectorySeparatorChar}{Path.GetFileName(HtmlPath.TrimEnd('\\', '/'))}";
 
                         LastHtml = LastHtml.Insert(EndReader, string.Format(Properties.Resources.ComicReaderNextChapterBase, RelativeHtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter)));
                         File.WriteAllText(LastHtmlPath, LastHtml);
