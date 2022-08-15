@@ -81,11 +81,16 @@ namespace MangaUnhost.Hosts
                 string Token = HTML.Substring("isVertical, \"", "\"");
                 return (Token, Identifer);
             }
-            else
+            else if (HTML.Contains("isVertical, \""))
             {
                 var Identifer = HTML.Substring("READER_TOKEN", ";").Trim(' ', '\n', '\r', '\t', '=', '\'', '"');
                 string Token = HTML.Substring("isVertical, \"", "\"");
                 return (Token, Identifer);
+            }
+            else
+            {
+                var Identifer = HTML.Substring("READER_TOKEN", ";").Trim(' ', '\n', '\r', '\t', '=', '\'', '"');
+                return (null, Identifer);
             }
         }
 
@@ -125,16 +130,24 @@ namespace MangaUnhost.Hosts
             if (PagesCache.ContainsKey(RelID) && Legacy)
                 return PagesCache[RelID];
 
-            byte[] Data; 
-            try
+            byte[] Data;
+            if (Token == null)
             {
-                var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenA(Identifier, Token, RelID)}");
+                var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={Identifier}");
                 Data = TryDownload(ApiUrl, ChapterLink) ?? throw new Exception();
             }
-            catch
+            else
             {
-                var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenB(Identifier, Token, RelID)}");
-                Data = TryDownload(ApiUrl, ChapterLink) ?? throw new Exception();
+                try
+                {
+                    var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenA(Identifier, Token, RelID)}");
+                    Data = TryDownload(ApiUrl, ChapterLink) ?? throw new Exception();
+                }
+                catch
+                {
+                    var ApiUrl = new Uri($"https://mangalivre.net/leitor/pages/{RelID}.json?key={GenTokenB(Identifier, Token, RelID)}");
+                    Data = TryDownload(ApiUrl, ChapterLink) ?? throw new Exception();
+                }
             }
 
             var JSON = Encoding.UTF8.GetString(Data);
@@ -164,7 +177,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 7),
+                Version = new Version(2, 8),
                 Icon = Resources.Icons.MangaLivre
             };
         }
