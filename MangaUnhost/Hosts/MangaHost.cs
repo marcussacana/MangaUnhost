@@ -266,7 +266,7 @@ namespace MangaUnhost.Hosts
         }
 
         string OriUrl = null;
-        CloudflareData? CFData = null;
+        static CloudflareData? CFData = null;
         WebExceptionStatus[] Errors => new WebExceptionStatus[] { WebExceptionStatus.ConnectionClosed, WebExceptionStatus.ProtocolError };
         public ComicInfo LoadUri(Uri Uri)
         {
