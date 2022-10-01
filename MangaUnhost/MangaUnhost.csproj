@@ -91,6 +91,7 @@
       <DependentUpon>ComicPage.cs</DependentUpon>
     </Compile>
     <Compile Include="Decoders\AvifDecoder.cs" />
+    <Compile Include="Hosts\BilibiliComics.cs" />
     <Compile Include="Hosts\Mangadex.cs" />
     <Compile Include="Hosts\WPMangaReader.cs" />
     <Compile Include="Others\FormUpload.cs" />
@@ -112,7 +113,6 @@
     <Compile Include="Hosts\Batoto.cs" />
     <Compile Include="Hosts\GoldenMangas.cs" />
     <Compile Include="Hosts\HeavenManga.cs" />
-    <Compile Include="Hosts\HentaiCafe.cs" />
     <Compile Include="Hosts\HipercooL.cs" />
     <Compile Include="Hosts\HQHentai.cs" />
     <Compile Include="Hosts\LHScan.cs" />
@@ -252,6 +252,9 @@
     </PackageReference>
     <PackageReference Include="NAudio">
       <Version>1.10.0</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.1</Version>
     </PackageReference>
     <PackageReference Include="Nito.AsyncEx">
       <Version>5.0.0</Version>
