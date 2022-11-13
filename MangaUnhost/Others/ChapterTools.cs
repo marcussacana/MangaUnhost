@@ -116,18 +116,31 @@ namespace MangaUnhost.Others {
             if (Directory.Exists(BaseDir)) {
                 string[] Dirs = Directory.GetDirectories(BaseDir, "*", SearchOption.TopDirectoryOnly);
                 Dirs = (from x in Dirs select Path.GetFileName(x.TrimEnd('/', '\\'))).ToArray();
-                string[] MDirs = (from x in Dirs select MinifyString(x)).ToArray();
+                var MDirs = (from x in Dirs select (from y in x.Split(' ') where y.Length > 4 select MinifyString(y)).ToArray()).ToArray();
 
-                string MDir = MinifyString(Dir);
-                for (int i = 0; i < MDirs.Length; i++) {
-                    if (MDir == MDirs[i]) {
-                        string CDir = Dirs[i];
+                var MDir = (from x in Dir.Split(' ') where x.Length > 4 select MinifyString(x)).ToArray();
+                for (int i = 0; i < MDirs.Length; i++)
+                {
+                    string CurrentSavedUrl = null;
+                    string CurrentDir = Dirs[i]; 
+                    string CurrentOnlineUrl = Path.Combine(BaseDir, CurrentDir, "Online.url");
+                    if (File.Exists(CurrentOnlineUrl)) {
+                        CurrentSavedUrl = Ini.GetConfig("InternetShortcut", "URL", CurrentOnlineUrl).Substring(null, "#", IgnoreMissmatch: true);
+                    }
+
+                    if (CurrentSavedUrl == Url.AbsoluteUri)
+                    {
+                        Dir = CurrentDir;
+                        break;
+                    }
+
+                    if (DiffCheck(MDirs[i], MDir) > 0.5f) {
 
                         //Search For Next New Folder Name or if this one is already Downloaded in any possible New Folder
-                        string NDir = CDir;
+                        string NDir = CurrentDir;
                         int x = 0;
                         do {
-                            NDir = CDir + (x++ == 0 ? "" : " (" + x.ToString("D2") + ")");
+                            NDir = CurrentDir + (x++ == 0 ? "" : " (" + x.ToString("D2") + ")");
                             string OnlineUrl = Path.Combine(BaseDir, NDir, "Online.url");
                             if (!File.Exists(OnlineUrl))
                                 break;
@@ -144,7 +157,7 @@ namespace MangaUnhost.Others {
                         } while (true);
 
 
-                        if (CDir != NDir) {
+                        if (CurrentDir != NDir) {
                             switch (Mode) {
                                 case ReplaceMode.Ask:
                                     var Reply = AccountTools.PromptOption(Language.ReplaceMode, new[] { Language.UpdateURL, Language.NewFolder });
@@ -155,19 +168,37 @@ namespace MangaUnhost.Others {
                                 case ReplaceMode.UpdateURL:
                                     break;
                                 case ReplaceMode.NewFolder:
-                                    CDir = NDir;
+                                    CurrentDir = NDir;
                                     break;
                             }
                         }
 
 
-                        Dir = CDir;
+                        Dir = CurrentDir;
                         break;
                     }
                 }
             }
 
             Dir = new string((from x in Dir where !Path.GetInvalidFileNameChars().Contains(x) select x).ToArray());
+        }
+
+        public static double DiffCheck(string[] ItemsA, string[] ItemsB)
+        {
+            double MatchCount = 0;
+            double MissMatchCount = 0;
+
+            var Primary = ItemsA.Length > ItemsB.Length ? ItemsA : ItemsB;
+            var Secondary = ItemsA.Length > ItemsB.Length ? ItemsB : ItemsA;
+            for (int i = 0; i < Primary.Length; i++)
+            {
+                if (Secondary.Contains(Primary[i]))
+                    MatchCount++;
+                else
+                    MissMatchCount++;
+            }
+
+            return (MatchCount - MissMatchCount) / Secondary.Length;
         }
 
         public static void GetChapterPath(ILanguage[] Languages, ILanguage CurrentLanguage, string MangaDir, string ChapterName, out string ChapterPath, bool IncludeDir = true) {
