@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
 
@@ -116,9 +117,12 @@ namespace MangaUnhost.Others {
             if (Directory.Exists(BaseDir)) {
                 string[] Dirs = Directory.GetDirectories(BaseDir, "*", SearchOption.TopDirectoryOnly);
                 Dirs = (from x in Dirs select Path.GetFileName(x.TrimEnd('/', '\\'))).ToArray();
-                var MDirs = (from x in Dirs select (from y in x.Split(' ') where y.Length > 4 select MinifyString(y)).ToArray()).ToArray();
+                var MDirs = (from x in Dirs select (from y in x.Split(' ') select MinifyString(y)).ToArray()).ToArray();
 
-                var MDir = (from x in Dir.Split(' ') where x.Length > 4 select MinifyString(x)).ToArray();
+                
+                double[] Diffs = new double[Dirs.Length]; //For debugging
+
+                var MDir = (from x in Dir.Split(' ') select MinifyString(x)).ToArray();
                 for (int i = 0; i < MDirs.Length; i++)
                 {
                     string CurrentSavedUrl = null;
@@ -134,7 +138,10 @@ namespace MangaUnhost.Others {
                         break;
                     }
 
-                    if (DiffCheck(MDirs[i], MDir) > 0.8) {
+                    var Diff = DiffCheck(MDirs[i], MDir);
+                    Diffs[i] = Diff;
+
+                    if (Diff > 0.5) {
 
                         //Search For Next New Folder Name or if this one is already Downloaded in any possible New Folder
                         string NDir = CurrentDir;
