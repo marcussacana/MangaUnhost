@@ -186,7 +186,6 @@ namespace MangaUnhost.Others {
         public static double DiffCheck(string[] ItemsA, string[] ItemsB)
         {
             double MatchCount = 0;
-            double MissMatchCount = 0;
 
             var Primary = ItemsA.Length > ItemsB.Length ? ItemsA : ItemsB;
             var Secondary = ItemsA.Length > ItemsB.Length ? ItemsB : ItemsA;
@@ -194,11 +193,9 @@ namespace MangaUnhost.Others {
             {
                 if (Secondary.Contains(Primary[i]))
                     MatchCount++;
-                else
-                    MissMatchCount++;
             }
 
-            return (MatchCount - MissMatchCount) / Secondary.Length;
+            return MatchCount / Primary.Length;
         }
 
         public static void GetChapterPath(ILanguage[] Languages, ILanguage CurrentLanguage, string MangaDir, string ChapterName, out string ChapterPath, bool IncludeDir = true) {
