@@ -134,7 +134,7 @@ namespace MangaUnhost.Others {
                         break;
                     }
 
-                    if (DiffCheck(MDirs[i], MDir) > 0.5f) {
+                    if (DiffCheck(MDirs[i], MDir) > 0.8) {
 
                         //Search For Next New Folder Name or if this one is already Downloaded in any possible New Folder
                         string NDir = CurrentDir;
