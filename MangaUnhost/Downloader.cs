@@ -264,7 +264,7 @@ namespace MangaUnhost
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
                         Application.DoEvents();
 
-                        bool IsWebP = Data.Length > 12 && BitConverter.ToUInt32(Data, 8) == 0x50424557;
+                        bool IsWebP = Main.IsWebP(Data);
 
                         try
                         {
@@ -492,7 +492,12 @@ namespace MangaUnhost
             }
         }
 
-        private byte[] DecodeWebP(byte[] Data) {
+        public static bool IsWebP(byte[] Data)
+        {
+            var Signature = BitConverter.ToUInt32(Data, 8);
+            return Data.Length > 12 && (Signature == 0x50424557 || Signature == 0x46464952);
+        }
+        public static byte[] DecodeWebP(byte[] Data) {
             using (var Image = Dynamicweb.WebP.Decoder.Decode(Data))
             using (MemoryStream Buffer = new MemoryStream())
             {

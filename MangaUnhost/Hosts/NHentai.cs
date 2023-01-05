@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
-namespace MangaUnhost.Hosts {
+namespace MangaUnhost.Hosts
+{
     class NHentai : IHost {
         static string CurrentUrl;
         static ChromiumWebBrowser Browser = null;

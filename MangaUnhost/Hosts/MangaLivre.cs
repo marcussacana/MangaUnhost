@@ -24,6 +24,8 @@ namespace MangaUnhost.Hosts
             var Link = LinkDB[ID];
             var Keys = GetChapterKeys(Link);
 
+            ChapterUrl = Link.AbsoluteUri;
+
             //https://cdn.statically.io/img/images2.optimages.net/f=auto/firefox/HpSSrwPuYY_LvnfTXhKGFg/m6867758/11735/283339/296802/00.jpg
             var Legacy = GetPages(ID, Keys.Identifer, Keys.Token, Link.AbsoluteUri);
             var Avif = GetPages(ID, Keys.Identifer, Keys.Token, Link.AbsoluteUri, false);
@@ -308,8 +310,10 @@ namespace MangaUnhost.Hosts
         static CookieContainer Cookies = null;
         static string UserAgent;
         static byte[] TryDownload(Uri Url, string Referrer = null) {
-            return Url.TryDownload(Referrer ?? ChapterUrl, UserAgent, Cookie: Cookies);
+            return Url.TryDownload(Referrer ?? ChapterUrl ?? MangaUrl, UserAgent, Cookie: Cookies, Accept: Accept);
         }
+
+        const string Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
         static string TryDownString(Uri Url) => Encoding.UTF8.GetString(TryDownload(Url) ?? new byte[0]);
     }
 }
