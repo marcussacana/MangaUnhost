@@ -10,11 +10,16 @@ namespace MangaUnhost.Browser
         public static bool IsLoading(this IBrowser Browser) => Browser.MainFrame.IsLoading();
         public static bool IsLoading(this IFrame Frame)
         {
-            if (Frame.Browser.IsLoading)
-                return true;
-            var Status = (string)Frame.EvaluateScriptAsync(Properties.Resources.GetDocumentStatus).GetAwaiter().GetResult().Result;
-            if (Status?.Trim().ToLower() == "complete")
-                return false;
+            try
+            {
+                if (Frame.Browser.IsLoading)
+                    return true;
+                var Status = (string)Frame.EvaluateScriptAsync(Properties.Resources.GetDocumentStatus).GetAwaiter().GetResult().Result;
+                if (Status?.Trim().ToLower() == "complete")
+                    return false;
+            }
+            catch { return false; }
+
             return true;
         }
 

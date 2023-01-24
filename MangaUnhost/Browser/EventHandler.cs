@@ -6,16 +6,55 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Windows.Forms;
 using CefSharp.Handler;
 
 namespace CefSharp.EventHandler {
 
-    public class RequestEventHandler : DefaultRequestHandler {
+    public class LifeSpanEventHandler : LifeSpanHandler
+    {
+
+        public event EventHandler<BrowserEventArgs> OnBeforeCloseEvent;
+        public event EventHandler<OnBeforePopupEventArgs> OnBeforePopupEvent;
+        public event EventHandler<BrowserEventArgs> OnAfterCreatedEvent;
+
+        protected override void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            var Args = new BrowserEventArgs(chromiumWebBrowser, browser);
+            OnBeforeCloseEvent?.Invoke(this, Args);
+
+            base.OnBeforeClose(chromiumWebBrowser, browser);
+        }
+
+        protected override bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+        {
+            var Args = new OnBeforePopupEventArgs(chromiumWebBrowser, browser, frame, targetUrl, targetFrameName, targetDisposition, userGesture, popupFeatures, windowInfo, browserSettings, noJavascriptAccess);
+
+            OnBeforePopupEvent?.Invoke(this, Args);
+
+            noJavascriptAccess = Args.NoJavascriptAccess;
+
+            newBrowser = Args.NewBrowser;
+
+            return false;
+        }
+
+        protected override void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            var Args = new BrowserEventArgs(chromiumWebBrowser, browser);
+
+            OnAfterCreatedEvent?.Invoke(this, Args);
+
+            base.OnAfterCreated(chromiumWebBrowser, browser);
+        }
+    }
+
+    public class RequestEventHandler : RequestHandler {
 
         public event EventHandler<OnBeforeBrowseEventArgs> OnBeforeBrowseEvent;
         public event EventHandler<OnOpenUrlFromTabEventArgs> OnOpenUrlFromTabEvent;
         public event EventHandler<OnCertificateErrorEventArgs> OnCertificateErrorEvent;
-        public event EventHandler<OnPluginCrashedEventArgs> OnPluginCrashedEvent;
+        //public event EventHandler<OnPluginCrashedEventArgs> OnPluginCrashedEvent;
         public event EventHandler<GetAuthCredentialsEventArgs> GetAuthCredentialsEvent;
         public event EventHandler<OnRenderProcessTerminatedEventArgs> OnRenderProcessTerminatedEvent;
         public event EventHandler<OnQuotaRequestEventArgs> OnQuotaRequestEvent;
@@ -28,7 +67,8 @@ namespace CefSharp.EventHandler {
             this.Credential = Credential;
         }
 
-        public override bool OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
+        
+        protected override bool OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
             var args = new OnBeforeBrowseEventArgs(browserControl, browser, frame, request, userGesture, isRedirect);
 
             OnBeforeBrowseEvent?.Invoke(this, args);
@@ -36,7 +76,7 @@ namespace CefSharp.EventHandler {
             return args.CancelNavigation;
         }
 
-        public override bool OnOpenUrlFromTab(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture) {
+        protected override bool OnOpenUrlFromTab(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture) {
             var args = new OnOpenUrlFromTabEventArgs(browserControl, browser, frame, targetUrl, targetDisposition, userGesture);
 
             OnOpenUrlFromTabEvent?.Invoke(this, args);
@@ -44,7 +84,7 @@ namespace CefSharp.EventHandler {
             return args.CancelNavigation;
         }
 
-        public override bool OnCertificateError(IWebBrowser browserControl, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback) {
+        protected override bool OnCertificateError(IWebBrowser browserControl, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback) {
             var args = new OnCertificateErrorEventArgs(browserControl, browser, errorCode, requestUrl, sslInfo, callback);
 
             OnCertificateErrorEvent?.Invoke(this, args);
@@ -53,13 +93,13 @@ namespace CefSharp.EventHandler {
             return args.ContinueAsync;
         }
 
-        public override void OnPluginCrashed(IWebBrowser browserControl, IBrowser browser, string pluginPath) {
+       /* protected override void OnPluginCrashed(IWebBrowser browserControl, IBrowser browser, string pluginPath) {
             var args = new OnPluginCrashedEventArgs(browserControl, browser, pluginPath);
 
             OnPluginCrashedEvent?.Invoke(this, args);
-        }
+        }*/
 
-        public override bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
+        protected override bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
         {
             var args = new GetAuthCredentialsEventArgs(browserControl, browser, isProxy, host, port, realm, scheme, callback);
 
@@ -68,13 +108,14 @@ namespace CefSharp.EventHandler {
             EnsureCallbackDisposal(callback);
             return args.ContinueAsync;
         }
-        public override void OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
+
+        protected override void OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
             var args = new OnRenderProcessTerminatedEventArgs(browserControl, browser, status);
 
             OnRenderProcessTerminatedEvent?.Invoke(this, args);
         }
 
-        public override bool OnQuotaRequest(IWebBrowser browserControl, IBrowser browser, string originUrl, long newSize, IRequestCallback callback) {
+        protected override bool OnQuotaRequest(IWebBrowser browserControl, IBrowser browser, string originUrl, long newSize, IRequestCallback callback) {
             var args = new OnQuotaRequestEventArgs(browserControl, browser, originUrl, newSize, callback);
             OnQuotaRequestEvent?.Invoke(this, args);
 
@@ -82,7 +123,7 @@ namespace CefSharp.EventHandler {
             return args.ContinueAsync;
         }
 
-        public override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
+        protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
         {
             var args = new OnResourceRequestEventArgs(browserControl, browser, frame, request, iNavigation, isDownload, requestInitiator, disableDefaultHandling);
             OnResourceRequestEvent?.Invoke(this, args);
@@ -91,6 +132,8 @@ namespace CefSharp.EventHandler {
 
             if (args.Cancel)
                 return null;
+
+            request = args.Request;
 
             return base.GetResourceRequestHandler(browserControl, browser, frame, request, iNavigation, isDownload, requestInitiator, ref disableDefaultHandling);
         }
@@ -227,17 +270,17 @@ namespace CefSharp.EventHandler {
 
     #region EventArgs
 
-    public abstract class BaseRequestEventArgs : EventArgs {
-        protected BaseRequestEventArgs(IWebBrowser browserControl, IBrowser browser) {
-            this.browserControl = browserControl;
+    public class BrowserEventArgs : EventArgs {
+        public BrowserEventArgs(IWebBrowser browserControl, IBrowser browser) {
+            this.BrowserControl = browserControl;
             Browser = browser;
         }
 
-        public IWebBrowser browserControl { get; private set; }
+        public IWebBrowser BrowserControl { get; private set; }
         public IBrowser Browser { get; private set; }
     }
 
-    public class GetAuthCredentialsEventArgs : BaseRequestEventArgs {
+    public class GetAuthCredentialsEventArgs : BrowserEventArgs {
         public GetAuthCredentialsEventArgs(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback) : base(browserControl, browser) {
             IsProxy = isProxy;
             Host = host;
@@ -259,7 +302,7 @@ namespace CefSharp.EventHandler {
         public bool ContinueAsync { get; set; }
     }
 
-    public class OnBeforeBrowseEventArgs : BaseRequestEventArgs {
+    public class OnBeforeBrowseEventArgs : BrowserEventArgs {
         public OnBeforeBrowseEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect)
             : base(browserControl, browser) {
             Frame = frame;
@@ -278,7 +321,35 @@ namespace CefSharp.EventHandler {
         public bool CancelNavigation { get; set; }
     }
 
-    public class OnCertificateErrorEventArgs : BaseRequestEventArgs {
+    public class OnBeforePopupEventArgs : BrowserEventArgs
+    {
+        public OnBeforePopupEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, bool noJavascriptAccess) : base(browserControl, browser)
+        {
+            Frame = frame;
+            TargetURL = TargetURL;
+            TargetFrameName = targetFrameName;
+            TargetDisposition = targetDisposition;
+            UseGesture = userGesture;
+            PopupFeatures = popupFeatures;
+            WindowInfo = windowInfo;
+            BrowserSettings = browserSettings;
+            NoJavascriptAccess = noJavascriptAccess;
+        }
+
+        public IFrame Frame { get; set; }
+        public string TargetURL { get; set; }
+        public string TargetFrameName { get; set; }
+        public WindowOpenDisposition TargetDisposition { get; set; }
+        public bool UseGesture { get; set; }
+        public IPopupFeatures PopupFeatures { get; set; }
+        public IWindowInfo WindowInfo { get; set; }
+        public IBrowserSettings BrowserSettings { get; set; }
+        public bool NoJavascriptAccess { get; set; }
+
+        public IWebBrowser NewBrowser { get; set; } = null;
+    }
+
+    public class OnCertificateErrorEventArgs : BrowserEventArgs {
         public OnCertificateErrorEventArgs(IWebBrowser browserControl, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback)
             : base(browserControl, browser) {
             ErrorCode = errorCode;
@@ -298,7 +369,7 @@ namespace CefSharp.EventHandler {
         public bool ContinueAsync { get; set; }
     }
 
-    public class OnOpenUrlFromTabEventArgs : BaseRequestEventArgs {
+    public class OnOpenUrlFromTabEventArgs : BrowserEventArgs {
         public OnOpenUrlFromTabEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture)
             : base(browserControl, browser) {
             Frame = frame;
@@ -317,7 +388,7 @@ namespace CefSharp.EventHandler {
         public bool CancelNavigation { get; set; }
     }
 
-    public class OnPluginCrashedEventArgs : BaseRequestEventArgs {
+    public class OnPluginCrashedEventArgs : BrowserEventArgs {
         public OnPluginCrashedEventArgs(IWebBrowser browserControl, IBrowser browser, string pluginPath) : base(browserControl, browser) {
             PluginPath = pluginPath;
         }
@@ -325,7 +396,7 @@ namespace CefSharp.EventHandler {
         public string PluginPath { get; private set; }
     }
 
-    public class OnProtocolExecutionEventArgs : BaseRequestEventArgs {
+    public class OnProtocolExecutionEventArgs : BrowserEventArgs {
         public OnProtocolExecutionEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) : base(browserControl, browser) {
             Frame = frame;
             Request = request;
@@ -340,7 +411,7 @@ namespace CefSharp.EventHandler {
         public bool AttemptExecution { get; set; }
     }
 
-    public class OnQuotaRequestEventArgs : BaseRequestEventArgs {
+    public class OnQuotaRequestEventArgs : BrowserEventArgs {
         public OnQuotaRequestEventArgs(IWebBrowser browserControl, IBrowser browser, string originUrl, long newSize, IRequestCallback callback)
             : base(browserControl, browser) {
             OriginUrl = originUrl;
@@ -358,7 +429,7 @@ namespace CefSharp.EventHandler {
         public bool ContinueAsync { get; set; }
     }
 
-    public class OnRenderProcessTerminatedEventArgs : BaseRequestEventArgs
+    public class OnRenderProcessTerminatedEventArgs : BrowserEventArgs
     {
         public OnRenderProcessTerminatedEventArgs(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status)
             : base(browserControl, browser)
@@ -369,7 +440,7 @@ namespace CefSharp.EventHandler {
         public CefTerminationStatus Status { get; private set; }
     }
     
-    public class OnResourceResponseEventArgs : BaseRequestEventArgs
+    public class OnResourceResponseEventArgs : BrowserEventArgs
     {
         public OnResourceResponseEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) : base(browserControl, browser)
         {
@@ -390,7 +461,7 @@ namespace CefSharp.EventHandler {
         public bool Retry { get; set; }
     }
 
-    public class OnBeforeResourceLoadEventArgs : BaseRequestEventArgs
+    public class OnBeforeResourceLoadEventArgs : BrowserEventArgs
     {
         public OnBeforeResourceLoadEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback) : base(browserControl, browser)
         {
@@ -410,7 +481,7 @@ namespace CefSharp.EventHandler {
         public CefReturnValue ReturnValue { get; set; }
     }
 
-    public class OnResourceRequestEventArgs : BaseRequestEventArgs
+    public class OnResourceRequestEventArgs : BrowserEventArgs
     {
         public OnResourceRequestEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, bool disableDefaultHandling) : base(browserControl, browser)
         {
@@ -421,7 +492,7 @@ namespace CefSharp.EventHandler {
         }
 
         public IFrame Frame { get; private set; }
-        public IRequest Request { get; private set; }
+        public IRequest Request { get; set; }
         public string TargetUrl => Request.Url;
 
         public bool DisableDefaultHandling { get; set; }
@@ -429,7 +500,7 @@ namespace CefSharp.EventHandler {
         public bool Cancel { get; set; }
     }    
 
-    public class OnGetCookieAccessFilterEventArgs : BaseRequestEventArgs
+    public class OnGetCookieAccessFilterEventArgs : BrowserEventArgs
     {
         public OnGetCookieAccessFilterEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request)  : base(browserControl, browser)
         {
@@ -443,7 +514,7 @@ namespace CefSharp.EventHandler {
         public ICookieAccessFilter CookieAccessFilter { get; set; }
     }
    
-    public class OnGetResourceHandlerEventArgs : BaseRequestEventArgs
+    public class OnGetResourceHandlerEventArgs : BrowserEventArgs
     {
         public OnGetResourceHandlerEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) : base(browserControl, browser)
         {
@@ -457,7 +528,7 @@ namespace CefSharp.EventHandler {
         public IResourceHandler ResourceHandler { get; set; }
     }
 
-    public class OnGetResourceResponseFilterEventArgs : BaseRequestEventArgs
+    public class OnGetResourceResponseFilterEventArgs : BrowserEventArgs
     {
         public OnGetResourceResponseFilterEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) : base(browserControl, browser)
         {
@@ -473,7 +544,7 @@ namespace CefSharp.EventHandler {
         public IResponseFilter ResponseFilter { get; set; }
     }
 
-    public class OnResourceLoadCompleteEventArgs : BaseRequestEventArgs
+    public class OnResourceLoadCompleteEventArgs : BrowserEventArgs
     {
         public OnResourceLoadCompleteEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, UrlRequestStatus status, long receivedContentLength) : base(browserControl, browser)
         {
@@ -492,7 +563,7 @@ namespace CefSharp.EventHandler {
         public long RecivedContentLength { get; private set; }
     }
 
-    public class OnResourceRedirectEventArgs : BaseRequestEventArgs {
+    public class OnResourceRedirectEventArgs : BrowserEventArgs {
         public OnResourceRedirectEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) : base (browserControl, browser){
             Frame = frame;
             Request = request;

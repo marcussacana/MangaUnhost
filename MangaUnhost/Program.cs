@@ -1,6 +1,7 @@
 ﻿using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using System;
 using System.Collections;
@@ -112,19 +113,20 @@ namespace MangaUnhost
             }
         }
 
-        private static void CefUpdater()
+        private static void CefUpdater(string CefRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
         {
-            string CefRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/";
-
             bool Outdated = false;
             if (!File.Exists(BrowserSubprocessPath))
                 Outdated = true;
 
+            var TargetVer = new Version(107, 1, 120, 0);
+
             if (!Outdated)
             {
                 var VerStr = FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion;
-                if (new Version(VerStr) != new Version(75, 1, 143, 0))
+                //if (new Version(VerStr) != new Version(75, 1, 143, 0))
                 //if (new Version(VerStr) != new Version(79, 1, 360, 0))
+                if (new Version(VerStr) != TargetVer)
                 {
                     Outdated = true;
                 }
@@ -136,8 +138,8 @@ namespace MangaUnhost
             if (!Outdated)
                 return;
 
-            string CEFName = $"CEF{(Environment.Is64BitProcess ? "x64" : "x86")}.zip";
-            string Url = $"{CefRepo}{CEFName}";
+            string CEFName = $"CEF{(Environment.Is64BitProcess ? "x64" : "x86")}-v{TargetVer}.zip";
+            string Url = $"{CefRepo}{CEFName}?raw=true";
             string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
 
             string DbgPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -157,20 +159,38 @@ namespace MangaUnhost
                     }
                     catch
                     {
-                        File.Delete(Path.Combine(DbgPath, CEFName));
+                        if (!Debugger.IsAttached)
+                            File.Delete(Path.Combine(DbgPath, CEFName));
                     }
                 }
             }
 
+            if (!File.Exists(SaveAs))
+            {
+                try
+                {
 
-            DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
-            Application.Run(Window);
+                    DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
+                    Application.Run(Window);
+                }
+                catch
+                {
+                    var AltRepo = "https://github.com/marcussacana/MangaUnhost/blob/data/";
+                    if (CefRepo != AltRepo)
+                    {
+                        CefUpdater(AltRepo);
+                        return;
+                    }
+                    throw;
+                }
+            }
 
             ZipFile Zip = new ZipFile(SaveAs);
             Zip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
             Zip.Dispose();
 
-            File.Delete(SaveAs);
+            if (!Debugger.IsAttached)
+                File.Delete(SaveAs);
         }
 
         static string WCRLastCommit = null;

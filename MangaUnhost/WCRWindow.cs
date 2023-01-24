@@ -58,7 +58,7 @@ namespace MangaUnhost
             {
                 Browser = new ChromiumWebBrowser(URL);
 
-                Browser.BrowserSettings = new BrowserSettings() { WebSecurity = CefState.Disabled };
+                Browser.BrowserSettings = new BrowserSettings();
 
                 Browser.JavascriptObjectRepository.ResolveObject += (sender, args) =>
                 {

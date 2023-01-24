@@ -174,6 +174,9 @@ namespace MangaUnhost
                 UserAgent = ProxyTools.UserAgent
             };
 
+            //CefSettings.CefCommandLineArgs.Add("disable-web-security");
+            CefSettings.CefCommandLineArgs.Add("user-agent", ProxyTools.UserAgent);
+
             CefSettings.RegisterScheme(new CefCustomScheme()
             {
                 SchemeName = LocalSchemeFactory.SchemeName,
@@ -333,10 +336,7 @@ namespace MangaUnhost
 
         private void DbgButtonClicked(object sender, EventArgs e)
         {
-            var OBrowser = new ChromiumWebBrowser("https://patrickhlauke.github.io/recaptcha/", new BrowserSettings
-            {
-                WebSecurity = CefState.Disabled
-            });
+            var OBrowser = new ChromiumWebBrowser("https://patrickhlauke.github.io/recaptcha/");
 
             OBrowser.Size = new Size(1280, 720);
             OBrowser.ReCaptchaHook();
@@ -358,10 +358,7 @@ namespace MangaUnhost
         }
         private void DbgButtonBClicked(object sender, EventArgs e)
         {
-            var OBrowser = new ChromiumWebBrowser("https://www.tokyobitcoiner.com/hcaptcha", new BrowserSettings
-            {
-                WebSecurity = CefState.Disabled
-            });
+            var OBrowser = new ChromiumWebBrowser("https://www.tokyobitcoiner.com/hcaptcha");
 
             OBrowser.Size = new Size(1280, 720);
             OBrowser.WaitInitialize();
@@ -380,10 +377,7 @@ namespace MangaUnhost
         }
         private void DbgButtonCClicked(object sender, EventArgs e)
         {
-            var OBrowser = new ChromiumWebBrowser("https://bato.to/", new BrowserSettings
-            {
-                WebSecurity = CefState.Disabled
-            });
+            var OBrowser = new ChromiumWebBrowser("https://bato.to/");
 
             OBrowser.Size = new Size(1280, 720);
             OBrowser.WaitInitialize();
@@ -399,6 +393,19 @@ namespace MangaUnhost
 
             MessageBox.Show("Finished");
             DbgPreview.Image = OBrowser.ScreenshotOrNull();
+        }
+
+        private void dbgBrowser_Click(object sender, EventArgs e)
+        {
+            var Browser = new ChromiumWebBrowser("https://www.google.com");
+            Browser.BypassGoogleCEFBlock();
+            Browser.Size = new Size(1280, 720);
+
+            Browser.WaitInitialize();
+
+            BrowserPopup pop = new BrowserPopup(Browser, () => (Browser.EvaluateScript("globalThis.close") as string) == "1");
+
+            pop.ShowDialog();
         }
 
         private void BntLibSelectClicked(object sender, EventArgs e)

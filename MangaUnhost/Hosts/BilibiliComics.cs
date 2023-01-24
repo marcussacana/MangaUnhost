@@ -1,12 +1,18 @@
-﻿using MangaUnhost.Browser;
+﻿using CefSharp.DevTools.Audits;
+using CefSharp.OffScreen;
+using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Hosts
 {
@@ -25,14 +31,91 @@ namespace MangaUnhost.Hosts
             }
         }
 
-        public ChapterInfo GetChapterInfo(int ID)
+        public ChapterInfo? GetChapterInfo(int ID)
         {
             var jsonInfo = Post("https://www.bilibilicomics.com/twirp/comic.v1.Comic/GetImageIndex?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"ep_id\": {ID}}}");
 
             var RespInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfoResponse>(jsonInfo);
 
             if (RespInfo.code != 0)
-                throw new Exception(RespInfo.msg);
+                return null;
+
+            return RespInfo.data;
+        }
+
+        public ChapterInfo? GetPaidChapterInfo(int ChapterID)
+        {
+            var AccessToken = Ini.GetConfig(nameof(BilibiliComics), "AccessToken", Main.SettingsPath, false);
+            var RefreshToken = Ini.GetConfig(nameof(BilibiliComics), "RefreshToken", Main.SettingsPath, false);
+
+            if (string.IsNullOrEmpty(AccessToken) || string.IsNullOrEmpty(RefreshToken)) {
+                
+                using var Browser = new ChromiumWebBrowser("https://www.bilibilicomics.com/account");
+                Browser.BypassGoogleCEFBlock();
+                Browser.Size = new System.Drawing.Size(900, 500);
+                Browser.WaitForLoad();
+
+                var PopUp = new BrowserPopup(Browser, () =>
+                {
+                    return!Browser.GetCurrentUrl().Contains("bilibilicomics.com/account");
+                });
+
+
+                PopUp.ShowDialog();
+
+                Browser.WaitForLoad();
+
+                var Cookie = Browser.GetCookie("access_token");
+                Cookie = WebUtility.UrlDecode(Cookie);
+
+                var Obj = Newtonsoft.Json.JsonConvert.DeserializeObject((dynamic)Cookie);
+
+                AccessToken = Obj.accessToken;
+                RefreshToken = Obj.refreshToken;
+            }
+
+            dynamic data = new ExpandoObject();
+            data.refresh_token = RefreshToken;
+            var PostData = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+
+            try
+            {
+                var Response = Post("https://us-user.bilibilicomics.com/twirp/global.v1.User/RefreshToken?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", PostData, Authorization: "Bearer " + AccessToken);
+
+                var Obj = Newtonsoft.Json.JsonConvert.DeserializeObject((dynamic)Response);
+
+                AccessToken = Obj.data.access_token;
+                RefreshToken = Obj.data.refresh_token;
+
+                Ini.SetConfig(nameof(BilibiliComics), "AccessToken", AccessToken, Main.SettingsPath);
+                Ini.SetConfig(nameof(BilibiliComics), "RefreshToken", RefreshToken, Main.SettingsPath);
+            }
+            catch
+            {
+                return null;
+            }
+
+            string Credential = null;
+
+            try
+            {
+                var Response = Post("https://us-user.bilibilicomics.com/twirp/global.v1.User/GetCredential?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"type\": 1, \"comic_id\": {ComicID}, \"ep_id\": {ChapterID}}}", Authorization: "Bearer " + AccessToken);
+
+                var Obj = Newtonsoft.Json.JsonConvert.DeserializeObject((dynamic)Response);
+
+                Credential = Obj.data.credential;
+            }
+            catch
+            {
+                return null;
+            }
+
+            var jsonInfo = Post("https://www.bilibilicomics.com/twirp/comic.v1.Comic/GetImageIndex?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"ep_id\": {ChapterID}, \"credential\": \"{Credential}\"}}", Authorization: "Bearer " + AccessToken);
+
+            var RespInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfoResponse>(jsonInfo);
+
+            if (RespInfo.code != 0)
+                return null;
 
             return RespInfo.data;
         }
@@ -40,9 +123,11 @@ namespace MangaUnhost.Hosts
         public string[] GetChapterPages(int ID)
         {
 
-            var Chapter = GetChapterInfo(ID);
+            var Chapter = FreeMap[ID] ? GetChapterInfo(ID) : GetPaidChapterInfo(ID);
 
-            int Quality = Chapter.images.First().x;
+            if (Chapter == null) throw new Exception("Failed to get Chapter Info");
+
+            int Quality = Chapter.Value.images.First().x;
             if (Quality >= 2000)
                 Quality = 2000;
             else if (Quality >= 1600)
@@ -53,7 +138,7 @@ namespace MangaUnhost.Hosts
                 Quality = 1000;
 
             List<string> Urls = new List<string>();
-            foreach (var Image in Chapter.images)
+            foreach (var Image in Chapter.Value.images)
             {
                 string Path = $"{Image.path}@{Quality}w.webp";
 
@@ -75,17 +160,25 @@ namespace MangaUnhost.Hosts
             return Urls.ToArray();
         }
 
+        int FreeID = 0;
+
+        Dictionary<int, bool> FreeMap = new Dictionary<int, bool>();
+
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
-            foreach (var Chap in Info.ep_list.Where(x => x.pay_gold == 0).OrderByDescending(x => x.ord))
+            foreach (var Chap in Info.ep_list/*.Where(x => x.pay_gold == 0)*/.OrderByDescending(x => x.ord))
             {
+                FreeMap[Chap.id] = Chap.pay_gold == 0;
+                if (Chap.pay_gold == 0)
+                    FreeID = Chap.id;
+
                 yield return new KeyValuePair<int, string>(Chap.id, Chap.ord.ToString());
             }
         }
 
         public int GetChapterPageCount(int ID)
         {
-            return GetChapterInfo(ID).images.Count;
+            return (FreeMap[ID] ? GetChapterInfo(ID) : GetPaidChapterInfo(ID)).Value.images.Count;
         }
 
         public IDecoder GetDecoder()
@@ -139,13 +232,16 @@ namespace MangaUnhost.Hosts
 
 
 
-        public string Post(string URI, string Data, string ContentType = "application/json;charset=UTF-8", string Referer = "https://www.bilibilicomics.com/")
+        public string Post(string URI, string Data, string ContentType = "application/json;charset=UTF-8", string Referer = "https://www.bilibilicomics.com/", string Authorization = null)
         {
-            var Request = HttpWebRequest.CreateHttp(URI);
+            var Request = WebRequest.CreateHttp(URI);
             Request.Method = "POST";
             Request.ContentType = ContentType;
             Request.Referer = Referer;
             Request.UserAgent = ProxyTools.UserAgent;
+
+            if (Authorization != null)
+               Request.Headers[HttpRequestHeader.Authorization] = Authorization;
 
             using (var DataStream = new MemoryStream(Encoding.UTF8.GetBytes(Data)))
             using (var SendStream = Request.GetRequestStream())
