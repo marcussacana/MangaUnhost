@@ -57,7 +57,13 @@ namespace MangaUnhost.Hosts
 
                 var PopUp = new BrowserPopup(Browser, () =>
                 {
-                    return!Browser.GetCurrentUrl().Contains("bilibilicomics.com/account");
+                    try
+                    {
+                        return !Browser.GetCurrentUrl().Contains("bilibilicomics.com/account");
+                    }
+                    catch {
+                        return true;
+                    }
                 });
 
 
@@ -193,7 +199,7 @@ namespace MangaUnhost.Hosts
                 Name = "BiliBiliComics",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0)
+                Version = new Version(2, 0)
             };
         }
 
