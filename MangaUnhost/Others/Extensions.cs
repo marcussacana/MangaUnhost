@@ -127,6 +127,9 @@ namespace MangaUnhost {
         }
 
 
+        //XPATH JS Script for testing
+        //function $(X, A) { if (A === true) { var Results = []; var Query = document.evaluate(X, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (var i = 0, length = Query.snapshotLength; i < length; ++i) Results.push(Query.snapshotItem(i)); return Results; } return document.evaluate(X, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }
+        
         public static HtmlAgilityPack.HtmlNodeCollection SelectNodes(this HtmlAgilityPack.HtmlDocument Document, string XPath) => Document.DocumentNode.SelectNodes(XPath);
         public static HtmlAgilityPack.HtmlNode SelectSingleNode(this HtmlAgilityPack.HtmlDocument Document, string XPath) => Document.DocumentNode.SelectSingleNode(XPath);
         public static IEnumerable<HtmlAgilityPack.HtmlNode> Descendants(this HtmlAgilityPack.HtmlDocument Document, string name) => Document.DocumentNode.Descendants(name);
