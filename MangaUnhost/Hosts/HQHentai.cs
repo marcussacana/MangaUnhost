@@ -79,7 +79,12 @@ namespace MangaUnhost.Hosts
             ComicInfo Info = new ComicInfo();
             Info.ContentType = ContentType.Comic;
             Info.Title = HttpUtility.HtmlDecode(Document.SelectSingleNode("//h1[@class='Title']").InnerText);
-            Info.Cover = HttpUtility.HtmlDecode(Document.SelectSingleNode("//figure/img").GetAttributeValue("src", "")).TryDownload();
+
+            var CoverNode = Document.SelectSingleNode("//h1[@class='Title']/..//figure/img");
+
+            var CoverUrl = HttpUtility.HtmlDecode(CoverNode.GetAttributeValue("data-src", null) ?? CoverNode.GetAttributeValue("src", ""));
+
+            Info.Cover = TryDownload(new Uri(CoverUrl));
             Info.Url = Uri;
 
             return Info;

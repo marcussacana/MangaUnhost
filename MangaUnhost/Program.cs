@@ -193,7 +193,7 @@ namespace MangaUnhost
             Zip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
             Zip.Dispose();
 
-            File.WriteAllText(VerFilePaht, TargetVer.ToString());
+            File.WriteAllText(VerFilePath, TargetVer.ToString());
 
             if (!Debugger.IsAttached)
                 File.Delete(SaveAs);
