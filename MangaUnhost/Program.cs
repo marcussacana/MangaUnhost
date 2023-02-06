@@ -136,15 +136,23 @@ namespace MangaUnhost
             if (File.Exists(VerFilePath) && File.ReadAllText(VerFilePath).Trim() == TargetVer.ToString())
                 Outdated = false;
 
+			var WebP = false;
+			
             if (!File.Exists(LibWebP))
-                Outdated = true;
+				WebP = true;
 
-            if (!Outdated)
+            if (!Outdated && !WebP)
                 return;
 
             string CEFName = $"CEF{(Environment.Is64BitProcess ? "x64" : "x86")}-v{TargetVer}.zip";
             string Url = $"{CefRepo}{CEFName}?raw=true";
             string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
+			
+			if (!Outdated && WebP){
+				Url = CefRepo + "libWebp.zip?raw=true";
+				CEFName = "libWebp.zip";
+				SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
+			}
 
             string DbgPath = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -193,10 +201,16 @@ namespace MangaUnhost
             Zip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
             Zip.Dispose();
 
-            File.WriteAllText(VerFilePath, TargetVer.ToString());
+			if (Outdated)
+				File.WriteAllText(VerFilePath, TargetVer.ToString());
 
             if (!Debugger.IsAttached)
                 File.Delete(SaveAs);
+			
+			if (Outdated && WebP){
+                CefUpdater(AltRepo);
+				return;
+			}
         }
 
         static string WCRLastCommit = null;
