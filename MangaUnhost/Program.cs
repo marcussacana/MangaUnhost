@@ -115,6 +115,7 @@ namespace MangaUnhost
 
         private static void CefUpdater(string CefRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
         {
+            var VerFilePath = Path.Combine(CefDir, "version.txt");
             bool Outdated = false;
             if (!File.Exists(BrowserSubprocessPath))
                 Outdated = true;
@@ -131,6 +132,9 @@ namespace MangaUnhost
                     Outdated = true;
                 }
             }
+
+            if (File.Exists(VerFilePath) && File.ReadAllText(VerFilePath).Trim() == TargetVer.ToString())
+                Outdated = false;
 
             if (!File.Exists(LibWebP))
                 Outdated = true;
@@ -188,6 +192,8 @@ namespace MangaUnhost
             ZipFile Zip = new ZipFile(SaveAs);
             Zip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
             Zip.Dispose();
+
+            File.WriteAllText(VerFilePaht, TargetVer.ToString());
 
             if (!Debugger.IsAttached)
                 File.Delete(SaveAs);
