@@ -115,6 +115,8 @@ namespace MangaUnhost
 
         private static void CefUpdater(string CefRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
         {
+            var AltRepo = "https://github.com/marcussacana/MangaUnhost/blob/data/";
+
             var VerFilePath = Path.Combine(CefDir, "version.txt");
             bool Outdated = false;
             if (!File.Exists(BrowserSubprocessPath))
@@ -187,7 +189,6 @@ namespace MangaUnhost
                 }
                 catch
                 {
-                    var AltRepo = "https://github.com/marcussacana/MangaUnhost/blob/data/";
                     if (CefRepo != AltRepo)
                     {
                         CefUpdater(AltRepo);
