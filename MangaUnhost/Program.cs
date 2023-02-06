@@ -151,7 +151,7 @@ namespace MangaUnhost
             string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
 			
 			if (!Outdated && WebP){
-				Url = CefRepo + "libWebp.zip?raw=true";
+				Url = $"{CefRepo}libWebp{(Environment.Is64BitProcess ? "X64" : "X86")}.zip?raw=true";
 				CEFName = "libWebp.zip";
 				SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
 			}
