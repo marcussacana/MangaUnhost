@@ -99,7 +99,7 @@ namespace MangaUnhost.Hosts
         public PluginInfo GetPluginInfo() {
             return new PluginInfo() {
                 Author = "Marcussacana",
-                Name = "NHentai",
+                Name = "NH",
                 SupportComic = true,
                 SupportNovel = false,
                 Version = new Version(1, 2, 1)

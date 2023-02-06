@@ -43,7 +43,7 @@ namespace MangaUnhost.Hosts
         {
             return new PluginInfo()
             {
-                Name = "HQHentai",
+                Name = "HQH",
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
