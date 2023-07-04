@@ -184,7 +184,7 @@ namespace MangaUnhost.Hosts
 
             var Links = (from x in Pages select x.Replace(".webp", "").Replace("/images", "/mangas_files")).ToArray();
             if (Links.Where(x => string.IsNullOrEmpty(System.IO.Path.GetExtension(x))).Any())
-                return Links.Select(x => x + ".webp").ToArray();
+                return Pages.ToArray();
 
             return Links;
         }
@@ -256,7 +256,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 4, 4)
+                Version = new Version(3, 4, 5)
             };
         }
 
