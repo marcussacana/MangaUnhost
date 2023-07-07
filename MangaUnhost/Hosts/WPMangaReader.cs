@@ -4,12 +4,14 @@ using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
+using System.Xml;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace MangaUnhost.Hosts
@@ -34,9 +36,10 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             int ID = LinkMap.Count;
-            foreach (var Chap in Document.SelectNodes("//div[@id='chapterlist']//a"))
+            foreach (var Chap in Document.SelectNodes("//div[@id='chapterlist']//a") ?? ChapterDocument?.SelectNodes("//li[contains(@class, 'wp-manga-chapter')]/a"))
             {
-                string Name = HttpUtility.HtmlDecode(Chap.ChildNodes.Where(x => x.HasClass("chapternum")).First().InnerHtml.ToLowerInvariant().Trim());
+                var ChapNumInfo = Chap.ChildNodes.Where(x => x.HasClass("chapternum"));
+                string Name = HttpUtility.HtmlDecode((ChapNumInfo.Any() ? ChapNumInfo.First().InnerHtml : Chap.InnerText).ToLowerInvariant().Trim());
                 string URL = Chap.GetAttributeValue("href", "");
 
 
@@ -76,10 +79,38 @@ namespace MangaUnhost.Hosts
             var Doc = new HtmlDocument();
             Doc.LoadUrl(LinkMap[ID], CFData);
 
-            var JS = Doc.SelectSingleNode("//script[contains(., 'ts_reader')]").InnerHtml;
+            try
+            {
+                var JS = Doc.SelectSingleNode("//script[contains(., 'ts_reader')]").InnerHtml;
 
-            var ImgList = JS.Substring("\"source\"", "}");
-            return DataTools.ExtractHtmlLinks(ImgList, CurrentUrl.Host, true).ToArray();
+                var ImgList = JS.Substring("\"source\"", "}");
+                return DataTools.ExtractHtmlLinks(ImgList, CurrentUrl.Host, true).ToArray();
+            }
+            catch
+            {
+                List<string> Pages = new List<string>();
+                foreach (var Page in Doc.SelectNodes("//img[contains(@id, 'image-')]"))
+                {
+                    var ImgUrl = Page.GetAttributeValue("data-lazy-srcset", "");
+
+                    if (string.IsNullOrWhiteSpace(ImgUrl))
+                        ImgUrl = Page.GetAttributeValue("data-src", "");
+                    else
+                        ImgUrl = ImgUrl.Trim().Split(',', ' ').First();
+
+                    if (string.IsNullOrWhiteSpace(ImgUrl))
+                        ImgUrl = Page.GetAttributeValue("src", "");
+
+                    if (string.IsNullOrWhiteSpace(ImgUrl))
+                        ImgUrl = Page.GetAttributeValue("data-cfsrc", "");
+
+                    if (ImgUrl.StartsWith("//"))
+                        ImgUrl = "http:" + ImgUrl;
+
+                    Pages.Add(ImgUrl.Trim());
+                }
+                return Pages.ToArray();
+            }
         }
 
         public IDecoder GetDecoder()
@@ -96,13 +127,14 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(2, 0)
             };
         }
 
         public bool IsValidPage(string HTML, Uri URL)
         {
-            return HTML.Contains("/mangareader/") && HTML.Contains("\"main-info\"");
+            return (HTML.Contains("/mangareader/") && HTML.Contains("\"main-info\"") ) || 
+                   (HTML.Contains("wp-manga-chapter") && HTML.Contains("tab-chapter-listing"));
         }
 
         public bool IsValidUri(Uri Uri)
@@ -129,6 +161,7 @@ namespace MangaUnhost.Hosts
             }
         }
 
+        HtmlDocument ChapterDocument = null;
 
         HtmlDocument Document = new HtmlDocument();
         public ComicInfo LoadUri(Uri Uri)
@@ -143,10 +176,26 @@ namespace MangaUnhost.Hosts
                 Document.LoadHtml(CFData?.HTML);
             }
 
-            ComicInfo Info = new ComicInfo();
-            Info.Title = HttpUtility.HtmlDecode(Document.SelectSingleNode("//*[(self::h1 or self::h2 or self::h3) and @class='entry-title']").InnerText.Trim());
+            if (!CurrentUrl.AbsoluteUri.EndsWith("/"))
+                CurrentUrl = new Uri(CurrentUrl.AbsoluteUri + "/");
 
-            var ImgNode = Document.SelectSingleNode("//div[@class='thumb']/img");
+            var ChapsUrl = new Uri(CurrentUrl.AbsoluteUri + "ajax/chapters/");
+
+            try
+            {
+                var Data = ChapsUrl.Upload();
+                ChapterDocument = new HtmlDocument();
+                using (var Stream = new MemoryStream(Data))
+                    ChapterDocument.Load(Stream);
+            }
+            catch { }
+
+            ComicInfo Info = new ComicInfo();
+            Info.Title = HttpUtility.HtmlDecode((Document.SelectSingleNode("//*[(self::h1 or self::h2 or self::h3) and @class='entry-title']") ??
+                                                 Document.SelectSingleNode("//div[@id='manga-title']/*[(self::h1 or self::h2 or self::h3)]")).InnerText.Trim());
+
+            var ImgNode = Document.SelectSingleNode("//div[@class='thumb']/img") ??
+                          Document.SelectSingleNode("//div[@class='summary_image']//img");
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
 

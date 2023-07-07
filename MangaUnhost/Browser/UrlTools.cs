@@ -236,6 +236,78 @@ namespace MangaUnhost.Browser
             }
         }
 
+        public static byte[] Upload(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
+            new Uri(Url).Upload(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+        public static byte[] Upload(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
+        {
+            byte[] Result = null;
+
+            var Thread = new System.Threading.Thread(() =>
+            Result = AsyncContext.Run(async () =>
+            await Url.UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
+
+            Thread.Start();
+
+            while (Thread.IsRunning())
+                ThreadTools.Wait(100, true);
+
+            if (Result == null)
+                throw new WebException();
+
+            return Result;
+        }
+        public static async Task<byte[]> UploadAsync(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
+            await new Uri(Url).UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+        public static async Task<byte[]> UploadAsync(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
+        {
+            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(Url);
+
+            if (Headers == null)
+                Request.Headers["Host"] = Url.Host;
+            else
+            {
+                foreach (var Entry in Headers)
+                    Request.Headers[Entry.Key] = Entry.Value;
+            }
+
+            Request.UseDefaultCredentials = true;
+            Request.Method = "POST";
+            Request.Timeout = 1000 * 30;
+
+            if (Referer != null)
+                Request.Referer = Referer;
+
+            if (Cookie != null)
+                Request.CookieContainer = Cookie;
+
+            if (UserAgent != null)
+                Request.UserAgent = UserAgent;
+
+            if (Accept != null)
+                Request.Accept = Accept;
+
+            if (Proxy != null)
+                Request.Proxy = new WebProxy(Proxy);
+
+            if (Data != null)
+            {
+                Request.ContentLength = Data.Length;
+                using (var UploadStream = Request.GetRequestStream())
+                using (var Input = new MemoryStream(Data))
+                {
+                    Input.CopyTo(UploadStream);
+                }
+            }
+
+            using (var Response = await Request.GetResponseAsync())
+            using (var RespData = Response.GetResponseStream())
+            using (var Output = new MemoryStream())
+            {
+                await RespData.CopyToAsync(Output);
+                return Output.ToArray();
+            }
+        }
+
         public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null)
         {
             TcpClient Tcp = new TcpClient(Url.Host, 443);
