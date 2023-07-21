@@ -1,267 +1,324 @@
 ﻿using CefSharp.OffScreen;
 using MangaUnhost.Browser;
+using MangaUnhost.Decoders;
 using MangaUnhost.Others;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace MangaUnhost.Hosts {
-    class MangaDex : IHost {
-        string CurrentUrl;
-        HtmlAgilityPack.HtmlDocument Document;
-        Dictionary<int, string> ChapterNames = new Dictionary<int, string>();
-        Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
-        Dictionary<int, string> ChapterLangs = new Dictionary<int, string>();
-
-        public NovelChapter DownloadChapter(int ID) {
+namespace MangaUnhost.Hosts
+{
+    class MangaDex : IHost
+    {
+        public NovelChapter DownloadChapter(int ID)
+        {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<byte[]> DownloadPages(int ID) {
-            foreach (var PageUrl in GetChapterPages(ID)) {
-                var Data = TryDownload(new Uri(PageUrl), ChapterLinks[ID]);
-                if (Data == null)
-                    continue;
-                yield return Data;
+        public IEnumerable<byte[]> DownloadPages(int ID)
+        {
+            foreach (var Page in GetChapterPages(ID))
+            {
+                yield return Page.TryDownload();
             }
         }
 
-        public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
-            int ID = ChapterLinks.Count;
-            HtmlAgilityPack.HtmlDocument Page = Document;
-            string CurrentPage = CurrentUrl;
+        Dictionary<int, string> ChapterInfo = new Dictionary<int, string>();
+        public IEnumerable<KeyValuePair<int, string>> EnumChapters()
+        {
+            var Info = LoadChaptersInfo();
 
-            bool Empty;
-            List<int> Ids = new List<int>();
-            ChapterLangs = new Dictionary<int, string>();
-            ChapterLinks = new Dictionary<int, string>();
-            ChapterNames = new Dictionary<int, string>();
+            var Langs = Info.Data.Where(x => x.Type == "chapter").Select(x => x.Attributes.TranslatedLanguage).ToArray().Distinct();
 
-            do {
-                bool First = true;
-                Empty = true;
-                foreach (var Node in Page.SelectNodes("//*[@id=\"content\"]//div[contains(@class, \"chapter-row\")]")) {
-                    if (First) {
-                        First = false;
-                        continue;
-                    }
+            var TargetLang = SelectLanguage(Langs.ToArray());
 
-                    var ChapterInfo = Node.SelectSingleNode(Node.XPath + "//a[@class=\"text-truncate\"]");
-                    var ChapterLang = Node.SelectSingleNode(Node.XPath + "//span[contains(@class, \"flag\")]");
-
-                    var Name = HttpUtility.HtmlDecode(ChapterInfo.InnerText).ToLower();
-                    var Link = HttpUtility.HtmlDecode(ChapterInfo.GetAttributeValue("href", ""));
-                    var Lang = HttpUtility.HtmlDecode(ChapterLang.GetAttributeValue("title", "")).Trim();
-
-                    Link = Link.EnsureAbsoluteUrl("https://mangadex.org");
-
-                    if (ChapterLinks.Values.Contains(Link))
+            List<string> Names = new List<string>();
+            foreach (var Volume in Info.Data.Where(x=> x.Type == "chapter")
+                .OrderByDescending(x => x.Attributes.Volume)
+                .GroupBy(x=>x.Attributes.Volume))
+            {
+                foreach (var Chapter in Volume.OrderByDescending(x => x.Attributes.Chapter))
+                {
+                    if (Chapter.Attributes.TranslatedLanguage != TargetLang)
                         continue;
 
-                    Empty = false;
+                    string Name;
+                    
+                    if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
+                        Name = $"Ch. {Chapter.Attributes.Chapter}".Trim('.');
+                    else
+                        Name = $"Vol. {Chapter.Attributes.Volume} Ch. {Chapter.Attributes.Chapter}".Trim('.');
 
-                    if (Name.Contains('-'))
-                        Name = Name.Substring(0, Name.IndexOf("-"));
+                    if (Names.Contains(Name))
+                        continue;
 
-                    if (Name.Contains("vol.")) {
-                        Name = Name.Substring("vol. ");
+                    Names.Add(Name);
 
-                        var Parts = Name.Split(' ');
-                        if (Parts.Length > 2)
-                            Name = Parts[2];
-                        else
-                            Name = char.ToUpper(Name[0]) + Name.Substring(1);
+                    int ID = ChapterInfo.Count;
+                    ChapterInfo[ID] = Chapter.Id;
 
-                    } else if (Name.Contains("ch. "))
-                        Name = Name.Substring("ch. ");
-
-                    ChapterNames[ID] = DataTools.GetRawName(Name.Trim());
-                    ChapterLinks[ID] = Link;
-                    ChapterLangs[ID] = Lang;
-
-                    Ids.Add(ID++);
-
+                    yield return new KeyValuePair<int, string>(ID, Name);
                 }
-
-                if (!Empty) {
-                    CurrentPage = GetNextPage(CurrentPage);
-                    Page = new HtmlAgilityPack.HtmlDocument();
-                    Page.LoadUrl(CurrentPage, Referer: "https://mangadex.org", UserAgent: CFData?.UserAgent ?? null, Cookies: CFData?.Cookies ?? null);
-                }
-
-            } while (!Empty);
-
-            string SelectedLang = SelectLanguage((from x in Ids select ChapterLangs[x]).Distinct().ToArray());
-
-            return (from x in Ids
-                    where ChapterLangs[x] == SelectedLang
-                    select new KeyValuePair<int, string>(x, ChapterNames[x]));
+            }
         }
 
         private static string LastLang = null;
-        private string SelectLanguage(string[] Avaliable) {
+        private string SelectLanguage(string[] Avaliable)
+        {
             if (LastLang != null && Avaliable.Contains(LastLang))
                 return LastLang;
             return LastLang = AccountTools.PromptOption("Select a Language", Avaliable);
         }
 
-        private string GetNextPage(string Page) {
-            if (Page == null)
-                Page = CurrentUrl;
-
-            return Page.Substring(0, Page.IndexOf("/chapters/")) + "/chapters/" + (int.Parse(Page.Split('/').Last()) + 1);
-        }
-
-        public int GetChapterPageCount(int ID) {
+        public int GetChapterPageCount(int ID)
+        {
             return GetChapterPages(ID).Length;
         }
 
-        private string[] GetChapterPages(int ID) {
-            string CID = ChapterLinks[ID].Substring("/chapter/");
-            string API = $"https://mangadex.org/api/?id={CID}&server=null&saver=0&type=chapter";
+        Dictionary<int, string[]> PagesCache = new Dictionary<int, string[]>();
+        string[] GetChapterPages(int ID)
+        {
+            if (PagesCache.ContainsKey(ID))
+                return PagesCache[ID];
 
-            string JSON = TryDownload(API);
+            var ChapID = ChapterInfo[ID];
+            var QueryURI = $"https://api.mangadex.org/at-home/server/{ChapID}";
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download());
 
-            MangaDexApi Result = Extensions.JsonDecode<MangaDexApi>(JSON);
+            var Info = JsonConvert.DeserializeObject<MangaChapterData>(Resp);
 
-            if (Result.status == "delayed")
-                return null;
-            if (Result.status != "OK")
-                throw new Exception();
-
-            if (!Result.server.ToLower().Contains("mangadex."))
-                Result.server = "https://mangadex.org" + Result.server;
-
-            List<string> Pages = new List<string>();
-            foreach (string Page in Result.page_array) {
-                Pages.Add($"{Result.server}{Result.hash}/{Page}");
-            }
-
-            return Pages.ToArray();
+            return PagesCache[ID] = Info.Chapter.Data
+                .Select(x => $"{Info.BaseUrl}/data/{Info.Chapter.Hash}/{x}")
+                .ToArray();
         }
 
-        public IDecoder GetDecoder() {
-            return new Decoders.CommonImage();
+        string CurrentTitle = null;
+        Feed? Current = null;
+        Feed LoadChaptersInfo()
+        {
+            if (CurrentTitle == ComicID && Current != null)
+                return Current.Value;
+
+            CurrentTitle = ComicID;
+            Current = null;
+
+
+            var QueryURI = $"https://api.mangadex.org/manga/{ComicID}/feed";
+
+
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download());
+
+            var Info = JsonConvert.DeserializeObject<Feed>(Resp);
+
+            Current = Info;
+
+            return Info;
         }
 
-        public PluginInfo GetPluginInfo() {
-            var Info = new PluginInfo() {
-                Name = "MangaDex",
+        public IDecoder GetDecoder()
+        {
+            return new CommonImage();
+        }
+
+        public PluginInfo GetPluginInfo()
+        {
+            return new PluginInfo()
+            {
+                Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                SupportNovel = false,
-                Version = new Version(1, 6)
+                Version = new Version(2, 0)
             };
-
-            if (ChapterLangs.Count > 0) {
-                Info.Actions = new CustomAction[] {
-                    new CustomAction() {
-                        Name = Main.Language.SwitchLanguage,
-                        Availability = ActionTo.ChapterList,
-                        Action = () => {
-                            LastLang = null;
-                            Main.Instance.Reload();
-                        }
-                    }
-                };
-            }
-            return Info;
         }
 
-        public bool IsValidUri(Uri Uri) {
-            return Uri.Host.ToLower().Contains("mangadex") && Uri.AbsolutePath.ToLower().Contains("/title/");
+        public bool IsValidPage(string HTML, Uri URL)
+        {
+            return false;
         }
 
-        public ComicInfo LoadUri(Uri Uri) {
-            if (Uri.AbsoluteUri.Contains("/chapters/"))
-                Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.IndexOf("/chapters/")).TrimEnd('/') + "/chapters/1");
-            else
-                Uri = new Uri(Uri.AbsoluteUri.TrimEnd('/') + "/chapters/1");
-
-            if (CFData == null) {
-                using (ChromiumWebBrowser Browser = new ChromiumWebBrowser()) {
-                    Browser.WaitForLoad(Uri.AbsoluteUri);
-                    do {
-                        CFData = Browser.BypassCloudflare();
-                    } while (Browser.IsCloudflareTriggered());
-                }
-            }
-
-            Document = new HtmlAgilityPack.HtmlDocument();
-            Document.LoadUrl(Uri, Referer: "https://mangadex.org", UserAgent: CFData?.UserAgent ?? null, Cookies: CFData?.Cookies ?? null);
-
-            ComicInfo Info = new ComicInfo();
-
-            Info.Title = Document.SelectSingleNode("//*[@id=\"content\"]//h6/span[@class=\"mx-1\"]").InnerText;
-            Info.Title = HttpUtility.HtmlDecode(Info.Title);
-
-            Info.Cover = TryDownload(Document
-                .SelectSingleNode("//*[@id=\"content\"]//img[@class=\"rounded\"]")
-                .GetAttributeValue("src", string.Empty).EnsureAbsoluteUri("https://mangadex.org"));
-
-            Info.ContentType = ContentType.Comic;
-
-            CurrentUrl = Uri.AbsoluteUri;
-
-            if (Uri.AbsolutePath.Trim('/').Split('/').Length == 4) {
-                CurrentUrl = Document.SelectSingleNode("//link[@rel='canonical']").GetAttributeValue("href", null);
-                CurrentUrl = CurrentUrl.TrimEnd() + "/chapters/1";
-            }
-
-            return Info;
+        public bool IsValidUri(Uri Uri)
+        {
+            return Uri.Host.ToLower().Contains("mangadex.org")
+                && Uri.PathAndQuery.ToLower().StartsWith("/title/");
         }
 
-        static CloudflareData? CFData = null;
+        public ComicInfo LoadUri(Uri Uri)
+        {
+            ComicID = Uri.PathAndQuery.Split('/')[2];
 
-        private string TryDownload(string Url) {
-            var Uri = new Uri(Url);
-            var Data = TryDownload(Uri);
+            var QueryURI = $"https://api.mangadex.org/manga/{ComicID}?&includes[]=cover_art";
 
-            return Encoding.UTF8.GetString(Data);
-        }
-        
-        private byte[] TryDownload(Uri Url, string Referer = "https://mangadex.org") {
-            if (CFData != null) {
-                return Url.TryDownload(Referer, CFData?.UserAgent, Cookie: CFData?.Cookies);
-            }
-            try
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download());
+
+            var Info = JsonConvert.DeserializeObject<Manga>(Resp);
+
+            var CoverID = Info.Data.Relationships.First(x => x.Type == "cover_art")
+                          .Attributes.FileName;
+
+            var CoverURI = $"https://uploads.mangadex.org/covers/{ComicID}/{CoverID}";
+
+            return new ComicInfo()
             {
-                return Url.TryDownload(Referer);
-            }
-            catch {
-                CFData = JSTools.BypassCloudflare(Url.AbsoluteUri);
-                return TryDownload(Url, Referer);
-            }
+                Title = Info.Data.Attributes.Title.En,
+                ContentType = ContentType.Comic,
+                Cover = CoverURI.TryDownload(),
+                Url = Uri
+            };
         }
-        public bool IsValidPage(string HTML, Uri URL) => false;
 
-        struct MangaDexApi {
-            /*
-            public int? id;
-            public long? timestamp;
-            */
-            public string hash;
-            /*
-            public string volume;
-            public string chapter;
-            public string title;
-            public string lang_name;
-            public string lang_code;
-            public int? manga_id;
-            public int? group_id;
-            public string group_name;
-            public int? group_id_2;
-            public string group_name_2;
-            public int? group_id_3;
-            public string group_name_3;
-            public int? comments;
-            */
-            public string server;
-            public string[] page_array;
-            //public int? long_strip;
-            public string status;
+        string ComicID;
+
+        public struct ChapterData
+        {
+            public string Id { get; set; }
+            public string Type { get; set; }
+            public ChapterAttributes Attributes { get; set; }
+            public ChapterRelationship[] Relationships { get; set; }
+        }
+
+        public struct ChapterAttributes
+        {
+            public string Volume { get; set; }
+            public string Chapter { get; set; }
+            public string Title { get; set; }
+            public string TranslatedLanguage { get; set; }
+            public object ExternalUrl { get; set; }
+            public DateTime PublishAt { get; set; }
+            public DateTime ReadableAt { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
+            public int Pages { get; set; }
+            public int Version { get; set; }
+        }
+
+        public struct ChapterRelationship
+        {
+            public string Id { get; set; }
+            public string Type { get; set; }
+        }
+
+        public struct Feed
+        {
+            public string Result { get; set; }
+            public string Response { get; set; }
+            public ChapterData[] Data { get; set; }
+            public int Limit { get; set; }
+            public int Offset { get; set; }
+            public int Total { get; set; }
+        }
+
+
+        public struct LocalizatedString
+        {
+            public string En { get; set; }
+            public string JaRo { get; set; }
+            public string Ja { get; set; }
+        }
+
+        public struct MangaAttributesLinks
+        {
+            public string Al { get; set; }
+            public string Ap { get; set; }
+            public string Bw { get; set; }
+            public string Mu { get; set; }
+            public string Nu { get; set; }
+            public string Amz { get; set; }
+            public string Mal { get; set; }
+            public string Raw { get; set; }
+            public string Engtl { get; set; }
+        }
+
+        public struct MangaAttributes
+        {
+            public LocalizatedString Title { get; set; }
+            public List<LocalizatedString> AltTitles { get; set; }
+            public LocalizatedString Description { get; set; }
+            public bool IsLocked { get; set; }
+            public MangaAttributesLinks Links { get; set; }
+            public string OriginalLanguage { get; set; }
+            public string LastVolume { get; set; }
+            public string LastChapter { get; set; }
+            public string PublicationDemographic { get; set; }
+            public string Status { get; set; }
+            public int Year { get; set; }
+            public string ContentRating { get; set; }
+            public List<MangaTag> Tags { get; set; }
+            public string State { get; set; }
+            public bool ChapterNumbersResetOnNewVolume { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
+            public int Version { get; set; }
+            public List<string> AvailableTranslatedLanguages { get; set; }
+            public string LatestUploadedChapter { get; set; }
+        }
+
+        public struct MangaTagAttributes
+        {
+            public LocalizatedString Name { get; set; }
+        }
+
+        public struct MangaTag
+        {
+            public string Id { get; set; }
+            public string Type { get; set; }
+            public MangaTagAttributes Attributes { get; set; }
+            public List<MangaRelationship> Relationships { get; set; }
+        }
+
+        public struct MangaRelationship
+        {
+            public string Id { get; set; }
+            public string Type { get; set; }
+            public MangaRelationshipAttributes Attributes { get; set; }
+        }
+
+        public struct MangaRelationshipAttributes
+        {
+            public string Description { get; set; }
+            public string Volume { get; set; }
+            public string FileName { get; set; }
+            public string Locale { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
+            public int Version { get; set; }
+        }
+
+        public struct MangaData
+        {
+            public string Id { get; set; }
+            public string Type { get; set; }
+            public MangaAttributes Attributes { get; set; }
+            public List<MangaRelationship> Relationships { get; set; }
+        }
+
+        public struct MangaRelationships
+        {
+            public string Id { get; set; }
+            public string Type { get; set; }
+        }
+
+        public struct Manga
+        {
+            public string Result { get; set; }
+            public string Response { get; set; }
+            public MangaData Data { get; set; }
+            public List<MangaRelationships> Relationships { get; set; }
+        }
+        public struct MangaChapterData
+        {
+            public string Result { get; set; }
+            public string BaseUrl { get; set; }
+            public MangaChapter Chapter { get; set; }
+        }
+
+        public struct MangaChapter
+        {
+            public string Hash { get; set; }
+            public string[] Data { get; set; }
+            public string[] DataSaver { get; set; }
         }
     }
 }

@@ -81,15 +81,22 @@ namespace MangaUnhost
 
             VSButton DownAll = null;
 
+            int ButtonSize = -1;
+
             var Chapters = new Dictionary<int, string>();
-            foreach (var Chapter in CurrentHost.EnumChapters())
+            var ChapterList = CurrentHost.EnumChapters().ToArray();
+
+            foreach (var Chapter in ChapterList)
             {
                 if (Chapters.ContainsValue(Chapter.Value))
                     continue;
 
+                if (ButtonSize == -1)
+                    ButtonSize = ChapterList.Max(x => x.Value.Length) > 6 ? 140 : 110;
+
                 VSButton Button = new VSButton()
                 {
-                    Size = new Size(110, 30),
+                    Size = new Size(ButtonSize, 30),
                     Text = string.Format(CurrentLanguage.ChapterName, Chapter.Value),
                     Indentifier = CurrentHost
                 };
@@ -120,7 +127,7 @@ namespace MangaUnhost
             {
                 VSButton Button = new VSButton()
                 {
-                    Size = new Size(110, 30),
+                    Size = new Size(ButtonSize, 30),
                     Text = CurrentLanguage.DownloadAll,
                     Indentifier = CurrentHost
                 };
