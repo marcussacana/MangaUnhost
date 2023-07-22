@@ -35,10 +35,17 @@ namespace MangaUnhost.Hosts
 
             var TargetLang = SelectLanguage(Langs.ToArray());
 
+            var Query = Info.Data.Where(x => x.Type == "chapter")
+                .OrderByDescending(x => {
+                    var Vol = x.Attributes.Volume;
+                    if (string.IsNullOrWhiteSpace(Vol))
+                        Vol = "9999";
+                    return Vol;
+                })
+                .GroupBy(x => x.Attributes.Volume);
+
             List<string> Names = new List<string>();
-            foreach (var Volume in Info.Data.Where(x=> x.Type == "chapter")
-                .OrderByDescending(x => x.Attributes.Volume)
-                .GroupBy(x=>x.Attributes.Volume))
+            foreach (var Volume in Query)
             {
                 foreach (var Chapter in Volume.OrderByDescending(x => x.Attributes.Chapter))
                 {
@@ -130,7 +137,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 
