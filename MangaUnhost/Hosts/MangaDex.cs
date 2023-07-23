@@ -125,7 +125,7 @@ namespace MangaUnhost.Hosts
 
             var QueryURI = $"https://api.mangadex.org/manga/{ComicID}/feed?limit=500&offset=";
 
-            int Offset = -1;
+            int Offset = 0;
 
             Feed Info;
 
