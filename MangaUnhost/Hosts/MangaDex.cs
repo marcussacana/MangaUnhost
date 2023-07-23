@@ -66,7 +66,7 @@ namespace MangaUnhost.Hosts
                     if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
                         Name = $"Ch. {Chapter.Attributes.Chapter}".Trim('.');
                     else
-                        Name = $"Vol. {Chapter.Attributes.Volume} Ch. {Chapter.Attributes.Chapter}".Trim('.');
+                        Name = $"Vol. {Chapter.Attributes.Volume} Ch. {Chapter.Attributes.Chapter}".Trim('.', ' ');
 
                     if (Names.Contains(Name))
                         continue;
