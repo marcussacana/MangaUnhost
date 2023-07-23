@@ -2,9 +2,11 @@
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
+using NAudio.MediaFoundation;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -31,27 +33,34 @@ namespace MangaUnhost.Hosts
         {
             var Info = LoadChaptersInfo();
 
-            var Langs = Info.Data.Where(x => x.Type == "chapter").Select(x => x.Attributes.TranslatedLanguage).ToArray().Distinct();
+            var Langs = Info.Where(x => x.Type == "chapter").Select(x => x.Attributes.TranslatedLanguage).ToArray().Distinct();
 
             var TargetLang = SelectLanguage(Langs.ToArray());
 
-            var Query = Info.Data.Where(x => x.Type == "chapter")
-                .OrderByDescending(x => {
-                    var Vol = x.Attributes.Volume;
-                    if (string.IsNullOrWhiteSpace(Vol))
-                        Vol = "9999";
-                    return Vol;
-                })
-                .GroupBy(x => x.Attributes.Volume);
+            var Query = Info.Where(x => x.Type == "chapter" && x.Attributes.TranslatedLanguage == TargetLang)
+                    .OrderByDescending(x =>
+                    {
+                        var Vol = x.Attributes.Volume?.Trim();
+                        if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
+                            Vol = "99999";
+
+                        return float.Parse(Vol);
+                    })
+                    .GroupBy(x => x.Attributes.Volume);
 
             List<string> Names = new List<string>();
             foreach (var Volume in Query)
             {
-                foreach (var Chapter in Volume.OrderByDescending(x => x.Attributes.Chapter))
-                {
-                    if (Chapter.Attributes.TranslatedLanguage != TargetLang)
-                        continue;
+                var SubQuery = Volume.OrderByDescending(x => {
+                    var Vol = x.Attributes.Chapter?.Trim();
+                    if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
+                        Vol = "99999";
 
+                    return float.Parse(Vol);
+                });
+
+                foreach (var Chapter in SubQuery)
+                {
                     string Name;
                     
                     if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
@@ -103,26 +112,35 @@ namespace MangaUnhost.Hosts
         }
 
         string CurrentTitle = null;
-        Feed? Current = null;
-        Feed LoadChaptersInfo()
+        ChapterData[] Current = null;
+        ChapterData[] LoadChaptersInfo()
         {
             if (CurrentTitle == ComicID && Current != null)
-                return Current.Value;
+                return Current;
 
             CurrentTitle = ComicID;
             Current = null;
 
+            List<ChapterData> Chaps = new List<ChapterData>();
 
-            var QueryURI = $"https://api.mangadex.org/manga/{ComicID}/feed";
+            var QueryURI = $"https://api.mangadex.org/manga/{ComicID}/feed?limit=500&offset=";
 
+            int Offset = -1;
 
-            var Resp = Encoding.UTF8.GetString(QueryURI.Download());
+            Feed Info;
 
-            var Info = JsonConvert.DeserializeObject<Feed>(Resp);
+            do
+            {
+                Offset += 500;
 
-            Current = Info;
+                var Resp = Encoding.UTF8.GetString((QueryURI + Offset).Download());
 
-            return Info;
+                Info = JsonConvert.DeserializeObject<Feed>(Resp);
+
+                Chaps.AddRange(Info.Data);
+            } while (Chaps.Count < Info.Total);
+
+            return Current = Chaps.ToArray();
         }
 
         public IDecoder GetDecoder()
@@ -137,7 +155,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 1)
+                Version = new Version(2, 2)
             };
         }
 
@@ -178,6 +196,7 @@ namespace MangaUnhost.Hosts
 
         string ComicID;
 
+        [DebuggerDisplay("V. {Attributes.Volume} Ch. {Attributes.Chapter}")]
         public struct ChapterData
         {
             public string Id { get; set; }
