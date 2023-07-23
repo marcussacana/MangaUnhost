@@ -131,13 +131,13 @@ namespace MangaUnhost.Hosts
 
             do
             {
-                Offset += 500;
-
                 var Resp = Encoding.UTF8.GetString((QueryURI + Offset).Download());
 
                 Info = JsonConvert.DeserializeObject<Feed>(Resp);
 
                 Chaps.AddRange(Info.Data);
+
+                Offset += 500;
             } while (Chaps.Count < Info.Total);
 
             return Current = Chaps.ToArray();
