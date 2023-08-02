@@ -1,8 +1,6 @@
-﻿using CefSharp.OffScreen;
-using MangaUnhost.Browser;
+﻿using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
-using NAudio.MediaFoundation;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,7 +8,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Web;
 
 namespace MangaUnhost.Hosts
 {
@@ -173,7 +170,7 @@ namespace MangaUnhost.Hosts
 
         public ComicInfo LoadUri(Uri Uri)
         {
-            ComicID = Uri.PathAndQuery.Split('/')[2];
+            ComicID = Uri.PathAndQuery.Split('/')[2].Split('?')[0];
 
             var QueryURI = $"https://api.mangadex.org/manga/{ComicID}?&includes[]=cover_art";
 
@@ -270,7 +267,7 @@ namespace MangaUnhost.Hosts
             public string LastChapter { get; set; }
             public string PublicationDemographic { get; set; }
             public string Status { get; set; }
-            public int Year { get; set; }
+            public int? Year { get; set; }
             public string ContentRating { get; set; }
             public List<MangaTag> Tags { get; set; }
             public string State { get; set; }
