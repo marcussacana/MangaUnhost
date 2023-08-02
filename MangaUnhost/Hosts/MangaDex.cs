@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -40,7 +41,7 @@ namespace MangaUnhost.Hosts
             var Query = Info.Where(x => x.Type == "chapter" && x.Attributes.TranslatedLanguage == TargetLang)
                     .OrderByDescending(x =>
                     {
-                        var Vol = x.Attributes.Volume?.Trim();
+                        var Vol = x.Attributes.Volume?.Trim().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
                         if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
                             Vol = "99999";
 
@@ -52,7 +53,7 @@ namespace MangaUnhost.Hosts
             foreach (var Volume in Query)
             {
                 var SubQuery = Volume.OrderByDescending(x => {
-                    var Vol = x.Attributes.Chapter?.Trim();
+                    var Vol = x.Attributes.Chapter?.Trim().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
                     if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
                         Vol = "99999";
 
@@ -155,7 +156,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 2)
+                Version = new Version(2, 2, 1)
             };
         }
 
