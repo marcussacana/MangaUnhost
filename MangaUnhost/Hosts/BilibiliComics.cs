@@ -433,7 +433,10 @@ namespace MangaUnhost.Hosts
                 if (Chap.pay_gold == 0)
                     FreeID = Chap.id;
 
-                yield return new KeyValuePair<int, string>(Chap.id, Chap.ord.ToString());
+                int ID = Chap.ord;
+                int.TryParse(Chap.short_title, out ID);
+
+                yield return new KeyValuePair<int, string>(Chap.id, ID.ToString());
             }
         }
 
@@ -454,7 +457,7 @@ namespace MangaUnhost.Hosts
                 Name = "BiliBiliComics",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 
