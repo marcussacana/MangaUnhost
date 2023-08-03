@@ -230,7 +230,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <Choose>
-    <When Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <When Condition=" '$(Configuration)' == 'Release' ">
       <ItemGroup>
         <PackageReference Include="Costura.Fody" >
           <Version>4.1.0</Version>
