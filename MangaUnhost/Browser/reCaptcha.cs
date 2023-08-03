@@ -155,7 +155,8 @@ namespace MangaUnhost.Browser {
             } while (!Validate?.Invoke() ?? !Browser.ReCaptchaIsSolved(true));
         }
 
-        public static bool ReCaptchaClickImNotRobot(this ChromiumWebBrowser ChromiumBrowser, out Point NewCursorPos) {
+        public static bool ReCaptchaClickImNotRobot(this ChromiumWebBrowser ChromiumBrowser, out Point NewCursorPos)
+        {
             var BHost = ChromiumBrowser.GetBrowserHost();
             var Browser = ChromiumBrowser.GetBrowser();
 
@@ -165,10 +166,7 @@ namespace MangaUnhost.Browser {
 
             //Get Recaptcha Position in the page
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaIframeSearch + "\r\n" + Properties.Resources.reCaptchaGetAnchorPosition).GetAwaiter().GetResult().Result;
-            int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
-            int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
-            int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
-            int Height = int.Parse(DataTools.ReadJson(Result, "height").Split('.', ',')[0]);
+            InputTools.GetBoundsCoords(Result, out int X, out int Y, out int Width, out int Height);
 
             //Create Positions
             Point InitialPos = new Point(Random.Next(15, 20), Random.Next(25, 30));
@@ -178,7 +176,8 @@ namespace MangaUnhost.Browser {
 
             //Ensure the fake click don't will click in the "i'm not a robot"
             Point? FakeClick = null;
-            while (FakeClick == null || CaptchaRegion.Contains(FakeClick.Value)) {
+            while (FakeClick == null || CaptchaRegion.Contains(FakeClick.Value))
+            {
                 FakeClick = new Point(Random.Next(10, 500), Random.Next(20, 500));
             }
 
@@ -218,10 +217,7 @@ namespace MangaUnhost.Browser {
 
             //Get Audio Challenge Button Pos
             var Result = (string)BFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaGetSpeakPosition).GetAwaiter().GetResult().Result;
-            int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
-            int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
-            int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
-            int Height = int.Parse(DataTools.ReadJson(Result, "height").Split('.', ',')[0]);
+            InputTools.GetBoundsCoords(Result, out int X, out int Y, out int Width, out int Height);
 
             Point AudioBntPos = new Point(X + Random.Next(5, Width - 5), Y + Random.Next(5, Height - 5));
 
@@ -322,20 +318,14 @@ namespace MangaUnhost.Browser {
 
         public static Rectangle ReCaptchaGetBFrameRectangle(this IBrowser Browser) {
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaIframeSearch + "\r\n" + Properties.Resources.reCaptchaGetBFramePosition).GetAwaiter().GetResult().Result;
-            int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
-            int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
-            int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
-            int Height = int.Parse(DataTools.ReadJson(Result, "height").Split('.', ',')[0]);
+            InputTools.GetBoundsCoords(Result, out int X, out int Y, out int Width, out int Height);
 
             return new Rectangle(X, Y, Width, Height);
         }
 
         public static Rectangle ReCaptchaGetVerifyButtonRectangle(this IBrowser Browser) {
             var Result = (string)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetVerifyButtonPosition).GetAwaiter().GetResult().Result;
-            int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
-            int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
-            int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
-            int Height = int.Parse(DataTools.ReadJson(Result, "height").Split('.', ',')[0]);
+            InputTools.GetBoundsCoords(Result, out int X, out int Y, out int Width, out int Height);
 
             return new Rectangle(X, Y, Width, Height);
 

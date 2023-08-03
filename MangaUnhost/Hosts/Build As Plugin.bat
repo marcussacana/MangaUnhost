@@ -4,7 +4,7 @@ set PATH=%ProgramFiles(X86)%\Microsoft Visual Studio\2019\Preview\VC\Tools\MSVC\
 echo off
 cls
 REM csc  -target:library "%1" -lib:..\bin\Debug\,..\bin\debug\x64 -reference:MangaUnhost.exe -reference:HtmlAgilityPack.dll -reference:CefSharp.dll -reference:CefSharp.OffScreen.dll -reference:CefSharp.Core.dll
-csc -target:library "%1"  -lib:..\bin\Debug\,..\bin\debug\x64,%userprofile%\.nuget\packages\htmlagilitypack\1.11.23\lib\Net45 -reference:HtmlAgilityPack.dll -reference:MangaUnhost.exe -reference:CefSharp.dll -reference:CefSharp.OffScreen.dll -reference:CefSharp.Core.dll
+csc -target:library "%1"  -lib:..\bin\Debug\,..\bin\Debug\x64,%userprofile%\.nuget\packages\htmlagilitypack\1.11.46\lib\Net45 -reference:HtmlAgilityPack.dll -reference:MangaUnhost.exe -reference:CefSharp.dll -reference:CefSharp.OffScreen.dll -reference:CefSharp.Core.dll
 if exist "..\bin\Debug\Plugins" (
 move /y "%~n1.dll" "..\bin\Debug\Plugins"
 )

@@ -1,6 +1,8 @@
 ﻿using CefSharp;
 using CefSharp.OffScreen;
 using MangaUnhost.Others;
+using Microsoft.VisualBasic;
+using System;
 using System.Threading.Tasks;
 
 namespace MangaUnhost.Browser
@@ -61,15 +63,17 @@ namespace MangaUnhost.Browser
         public static void WaitForLoad(this IBrowser Browser)
         {
             ThreadTools.Wait(100);
-            while (Browser.IsLoading())
-                ThreadTools.Wait(5, true);
+            DateTime Begin = DateTime.Now;
+            while (Browser.IsLoading() && (DateTime.Now-Begin).TotalMinutes < 3)
+                ThreadTools.Wait(50, true);
         }
 
         public static void WaitForLoad(this IFrame Frame)
         {
             ThreadTools.Wait(100);
-            while (Frame.IsLoading())
-                ThreadTools.Wait(5, true);
+            DateTime Begin = DateTime.Now;
+            while (Frame.IsLoading() && (DateTime.Now - Begin).TotalMinutes < 3)
+                ThreadTools.Wait(50, true);
         }
         public static string GetCurrentUrl(this CefSharp.WinForms.ChromiumWebBrowser Browser) => Browser.GetBrowser().GetCurrentUrl();
         public static string GetCurrentUrl(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetCurrentUrl();

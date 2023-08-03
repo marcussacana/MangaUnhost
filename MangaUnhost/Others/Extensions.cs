@@ -250,8 +250,15 @@ namespace MangaUnhost {
         public static string JsonEncode<T>(T Data) {
             return new JavaScriptSerializer().Serialize(Data);
         }
+
         public static T JsonDecode<T>(string Json) {
-            return (T)new JavaScriptSerializer().Deserialize(Json, typeof(T));
+            try
+            {
+                return (T)new JavaScriptSerializer().Deserialize(Json, typeof(T));
+            }
+            catch {
+                return default(T);
+            }
         }
 
         public static byte[] GetResponseData(this WebRequest Request) {

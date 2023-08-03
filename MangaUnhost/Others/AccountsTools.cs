@@ -23,16 +23,32 @@ namespace MangaUnhost.Others
                 string Email = Ini.GetConfig($"{Type} Account.{i}", "Email", Main.SettingsPath, false);
                 string Login = Ini.GetConfig($"{Type} Account.{i}", "Login;Username", Main.SettingsPath);
                 string Pass = Ini.GetConfig($"{Type} Account.{i}", "Password", Main.SettingsPath);
+                string Data = Ini.GetConfig($"{Type} Account.{i}", "Data", Main.SettingsPath, false);
 
                 Accounts[i] = new Account()
                 {
+                    EntryID = i,
                     Login = Login,
                     Password = Pass,
-                    Email = Email == string.Empty ? null : Email
+                    Email = Email == string.Empty ? null : Email,
+                    Data = Data
                 };
             }
 
             return Accounts;
+        }
+
+        public static void SaveAccountData(string Type, string EmailOrLogin, string Data)
+        {
+            var Accs = LoadAccounts(Type);
+            var Target = Accs.Where(x => x.Email == EmailOrLogin || x.Login == EmailOrLogin);
+
+            if (!Target.Any())
+                throw new KeyNotFoundException(EmailOrLogin);
+
+            var Acc = Target.First();
+
+            Ini.SetConfig($"{Type} Account.{Acc.EntryID}", "Data", Data, Main.SettingsPath);
         }
 
         public static void SaveAccount(string Type, Account Acc) => SaveAccount(Type, Acc.Login, Acc.Password, Acc.Email);

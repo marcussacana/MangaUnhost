@@ -50,10 +50,14 @@ namespace MangaUnhost {
 
     public struct Account
     {
+        public uint EntryID;
+
         public string Login;
         public string Password;
 
         public string Email;
+
+        public string Data;
     }
 
     public struct Settings {

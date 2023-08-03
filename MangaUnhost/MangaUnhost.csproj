@@ -229,6 +229,15 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <Choose>
+    <When Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+      <ItemGroup>
+        <PackageReference Include="Costura.Fody" >
+          <Version>4.1.0</Version>
+        </PackageReference>
+      </ItemGroup>
+    </When>  
+  </Choose>
   <ItemGroup>
     <PackageReference Include="CefSharp.Common">
       <Version>107.1.120</Version>
@@ -238,9 +247,6 @@
     </PackageReference>
     <PackageReference Include="CefSharp.WinForms">
       <Version>107.1.120</Version>
-    </PackageReference>
-    <PackageReference Include="Costura.Fody">
-      <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="DotNetZip">
       <Version>1.16.0</Version>
@@ -262,6 +268,9 @@
     </PackageReference>
     <PackageReference Include="Nito.AsyncEx">
       <Version>5.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Portable.BouncyCastle">
+      <Version>1.9.0</Version>
     </PackageReference>
     <PackageReference Include="System.ValueTuple">
       <Version>4.5.0</Version>

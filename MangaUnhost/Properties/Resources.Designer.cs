@@ -19,7 +19,7 @@ namespace MangaUnhost.Properties {
     // através de uma ferramenta como ResGen ou Visual Studio.
     // Para adicionar ou remover um associado, edite o arquivo .ResX e execute ResGen novamente
     // com a opção /str, ou recrie o projeto do VS.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -347,6 +347,16 @@ namespace MangaUnhost.Properties {
         internal static string reCaptchaReset {
             get {
                 return ResourceManager.GetString("reCaptchaReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var bounds = target.getBoundingClientRect();
+        ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
+        /// </summary>
+        internal static string targetGetBounds {
+            get {
+                return ResourceManager.GetString("targetGetBounds", resourceCulture);
             }
         }
         

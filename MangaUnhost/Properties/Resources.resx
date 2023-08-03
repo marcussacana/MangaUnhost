@@ -252,4 +252,8 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
   <data name="hCaptchaReset" xml:space="preserve">
     <value>hcaptcha.reset();</value>
   </data>
+  <data name="targetGetBounds" xml:space="preserve">
+    <value>var bounds = target.getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
 </root>
