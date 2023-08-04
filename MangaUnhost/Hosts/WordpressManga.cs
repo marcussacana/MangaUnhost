@@ -79,6 +79,9 @@ namespace MangaUnhost.Hosts
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(GeneralTrim);
 
+                if (Name.StartsWith("capitulo"))
+                    Name = Name.Substring("capitulo").Trim(GeneralTrim);
+
                 if (Name.StartsWith("capítulo"))
                     Name = Name.Substring("capítulo").Trim(GeneralTrim);
 
@@ -144,7 +147,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 4, 1)
+                Version = new Version(2, 4, 2)
             };
         }
 
