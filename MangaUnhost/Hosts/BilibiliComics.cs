@@ -11,6 +11,7 @@ using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -434,7 +435,7 @@ namespace MangaUnhost.Hosts
                     FreeID = Chap.id;
 
                 float ID = Chap.ord;
-                float.TryParse(Chap.short_title, out ID);
+                float.TryParse(Chap.short_title.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator), out ID);
 
                 yield return new KeyValuePair<int, string>(Chap.id, ID.ToString());
             }
@@ -457,7 +458,7 @@ namespace MangaUnhost.Hosts
                 Name = "BiliBiliComics",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 1)
+                Version = new Version(2, 2)
             };
         }
 
