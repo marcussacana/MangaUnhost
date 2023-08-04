@@ -433,8 +433,8 @@ namespace MangaUnhost.Hosts
                 if (Chap.pay_gold == 0)
                     FreeID = Chap.id;
 
-                int ID = Chap.ord;
-                int.TryParse(Chap.short_title, out ID);
+                float ID = Chap.ord;
+                float.TryParse(Chap.short_title, out ID);
 
                 yield return new KeyValuePair<int, string>(Chap.id, ID.ToString());
             }
@@ -576,7 +576,7 @@ namespace MangaUnhost.Hosts
         struct ComicEpisode
         {
             public int id;
-            public int ord;
+            public float ord;
             public int read;
             public int play_mode;
             public bool is_locked;
