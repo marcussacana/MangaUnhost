@@ -48,6 +48,8 @@ namespace MangaUnhost.Hosts
             return RespInfo.data;
         }
 
+        List<Account> FailedAccounts = new List<Account>();
+
         public ChapterInfo? GetPaidChapterInfo(int ChapterID, bool LastAccTried = false)
         {
             bool NewAccount = false;
@@ -78,7 +80,7 @@ namespace MangaUnhost.Hosts
                     //that are never used with the current comic
                     Acc = FindAccount(ChapterID);
 
-                    if (Acc == null)
+                    if (Acc == null || FailedAccounts.Any(x=>x.Email == Acc?.Email))
                     {
                         Acc = CreateAccount();
                         NewAccount = true;
@@ -190,6 +192,8 @@ namespace MangaUnhost.Hosts
                         AccountTools.SaveAccountData(nameof(BilibiliComics), Acc.Value.Email, (Acc.Value.Data ?? "") + $"{Tag},");
 
                     Main.Status = "Loading...";
+
+                    FailedAccounts.Add(Acc.Value);
 
                     if (Credential == null && !NewAccount && !Waiting)
                         return GetPaidChapterInfo(ChapterID, true);
