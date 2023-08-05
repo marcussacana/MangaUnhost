@@ -50,6 +50,8 @@ namespace MangaUnhost.Hosts
 
         public ChapterInfo? GetPaidChapterInfo(int ChapterID, bool LastAccTried = false)
         {
+            bool NewAccount = false;
+
             Account? Acc = null;
             var FakeAccount = Ini.GetConfig(nameof(BilibiliComics), "FakeAccount", Main.SettingsPath, false)?.ToLower()?.Trim() == "true";
             var AccessToken = Ini.GetConfig(nameof(BilibiliComics), "AccessToken", Main.SettingsPath, false);
@@ -74,7 +76,13 @@ namespace MangaUnhost.Hosts
 
                     //Find account look in the old accounts for someone
                     //that are never used with the current comic
-                    Acc = FindAccount() ?? CreateAccount();
+                    Acc = FindAccount(ChapterID);
+
+                    if (Acc == null)
+                    {
+                        Acc = CreateAccount();
+                        NewAccount = true;
+                    }
 
                     ThreadTools.Wait(1000, true);
 
@@ -176,10 +184,12 @@ namespace MangaUnhost.Hosts
                 {
                     Credential = FreeUnlock(ChapterID, "Bearer " + AccessToken);
 
-                    AccountTools.SaveAccountData(nameof(BilibiliComics), Acc.Value.Email, (Acc.Value.Data ?? "") + $"{ComicID},");
-
+                    AccountTools.SaveAccountData(nameof(BilibiliComics), Acc.Value.Email, (Acc.Value.Data ?? "") + $"cm_{ComicID}-ch_{ChapterID},");
 
                     Main.Status = "Loading...";
+
+                    if (Credential == null && !NewAccount)
+                        return GetPaidChapterInfo(ChapterID, true);
                 }
                 else
                     return null;
@@ -196,13 +206,13 @@ namespace MangaUnhost.Hosts
             return RespInfo.data;
         }
 
-        private Account? FindAccount()
+        private Account? FindAccount(int ChapterID)
         {
             var Accs = AccountTools.LoadAccounts(nameof(BilibiliComics));
 
             foreach (var Acc in Accs)
             {
-                if (!Acc.Data.Contains(ComicID))
+                if (!Acc.Data.Contains(ComicID) || Acc.Data.Contains($"ch_{ChapterID}"))
                     return Acc;
             }
 
@@ -333,53 +343,74 @@ namespace MangaUnhost.Hosts
             return Convert.ToBase64String(Pass);
         }
 
-        public string FreeUnlock(int ChapterID, string Authorization)
+        public string FreeUnlock(int ChapterID, string Authorization, bool UnlockedTried = false)
         {
             Main.Status = "Unlocking Chapter...";
 
-            var Response = Post("https://www.bilibilicomics.com/twirp/global.v1.Comic/GetCredential?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"type\": 1, \"comic_id\": {ComicID}, \"ep_id\": {ChapterID}}}", Authorization: Authorization);
+            string jsonReq, Resp;
 
-            var Obj = JsonConvert.DeserializeObject((dynamic)Response);
+            dynamic Obj;
 
-            string Credential = Obj.data.credential;
-
-            var jsonReq = $"{{\"credential\":\"{Credential}\",\"comic_id\":{ComicID},\"buff_id\":0}}";
-
-            var Resp = Post("https://us-user.bilibilicomics.com/twirp/comic.v1.User/ActiveComicWaitFree?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", jsonReq, Authorization: Authorization);
-            
-            bool Success = Resp.Contains("\"code\":0");
-
-            if (!Success)
-                return null;
-
-            while (true)
+            if (UnlockedTried)
             {
-                jsonReq = $"{{\"comic_id\":{ComicID}}}";
 
-                Resp = Post("https://us-user.bilibilicomics.com/twirp/comic.v1.User/GetComicWaitFreeInfo?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", jsonReq, Authorization: Authorization);
+                var Response = Post("https://www.bilibilicomics.com/twirp/global.v1.Comic/GetCredential?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"type\": 1, \"comic_id\": {ComicID}, \"ep_id\": {ChapterID}}}", Authorization: Authorization);
 
-                Success = Resp.Contains("\"code\":0");
+                Obj = JsonConvert.DeserializeObject((dynamic)Response);
 
-                var Time = DataTools.ReadJson(Resp, "remain_wait_time");
-                if (Time == "0")
-                    break;
+                string Credential = Obj.data.credential;
 
-                ThreadTools.Wait(5000, true);
+                jsonReq = $"{{\"credential\":\"{Credential}\",\"comic_id\":{ComicID},\"buff_id\":0}}";
+
+                Resp = Post("https://us-user.bilibilicomics.com/twirp/comic.v1.User/ActiveComicWaitFree?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", jsonReq, Authorization: Authorization);
+
+                bool Success = Resp.Contains("\"code\":0");
+
+                if (!Success)
+                    return null;
+
+                while (true)
+                {
+                    jsonReq = $"{{\"comic_id\":{ComicID}}}";
+
+                    Resp = Post("https://us-user.bilibilicomics.com/twirp/comic.v1.User/GetComicWaitFreeInfo?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", jsonReq, Authorization: Authorization);
+
+                    Success = Resp.Contains("\"code\":0");
+
+                    var Time = DataTools.ReadJson(Resp, "remain_wait_time");
+                    var OK = int.TryParse(Time, out int iTime);
+                    if (OK && iTime == 0)
+                        break;
+                    if (OK && iTime > 60 * 5)
+                        return null;
+
+                    ThreadTools.Wait(5000, true);
+                }
+
             }
 
-            Resp = Post("https://www.bilibilicomics.com/twirp/global.v1.Comic/GetCredential?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"type\": 2, \"comic_id\": {ComicID}, \"ep_id\": {ChapterID}}}", Authorization: Authorization);
-            
-            Obj = JsonConvert.DeserializeObject((dynamic)Resp);
+            try
+            {
+                Resp = Post("https://www.bilibilicomics.com/twirp/global.v1.Comic/GetCredential?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", $"{{\"type\": 2, \"comic_id\": {ComicID}, \"ep_id\": {ChapterID}}}", Authorization: Authorization);
 
-            var Cred = Obj.data.credential;
+                Obj = JsonConvert.DeserializeObject((dynamic)Resp);
 
-            jsonReq = $"{{\"credential\":\"{Cred}\",\"comic_id\":{ComicID},\"ep_id\":{ChapterID},\"buff_id\":0}}";
+                var Cred = Obj.data.credential;
 
-            Resp = Post("https://us-user.bilibilicomics.com/twirp/comic.v1.User/WaitFreeEp?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", jsonReq, Authorization: Authorization);
+                jsonReq = $"{{\"credential\":\"{Cred}\",\"comic_id\":{ComicID},\"ep_id\":{ChapterID},\"buff_id\":0}}";
 
-            Obj = JsonConvert.DeserializeObject((dynamic)Resp);
+                Resp = Post("https://us-user.bilibilicomics.com/twirp/comic.v1.User/WaitFreeEp?mob_app=android_comic&version=2.14.0&device=android&platform=android&appkey=1d8b6e7d45233436&lang=en&sys_lang=en", jsonReq, Authorization: Authorization);
 
-            return Obj.data.credential;
+                Obj = JsonConvert.DeserializeObject((dynamic)Resp);
+
+                return Obj.data.credential;
+            }
+            catch {
+                if (!UnlockedTried)
+                    return FreeUnlock(ChapterID, Authorization, true);
+
+                throw;
+            }
         }
 
         public string[] GetChapterPages(int ID)
@@ -458,7 +489,7 @@ namespace MangaUnhost.Hosts
                 Name = "BiliBiliComics",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 2)
+                Version = new Version(2, 3)
             };
         }
 
