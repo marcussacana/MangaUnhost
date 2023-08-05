@@ -182,13 +182,13 @@ namespace MangaUnhost.Hosts
 
                 if (FakeAccount)
                 {
-                    Credential = FreeUnlock(ChapterID, "Bearer " + AccessToken);
+                    Credential = FreeUnlock(ChapterID, "Bearer " + AccessToken, out bool Waiting);
 
                     AccountTools.SaveAccountData(nameof(BilibiliComics), Acc.Value.Email, (Acc.Value.Data ?? "") + $"cm_{ComicID}-ch_{ChapterID},");
 
                     Main.Status = "Loading...";
 
-                    if (Credential == null && !NewAccount)
+                    if (Credential == null && !NewAccount && !Waiting)
                         return GetPaidChapterInfo(ChapterID, true);
                 }
                 else
@@ -212,7 +212,7 @@ namespace MangaUnhost.Hosts
 
             foreach (var Acc in Accs)
             {
-                if (!Acc.Data.Contains(ComicID) || Acc.Data.Contains($"ch_{ChapterID}"))
+                if (!Acc.Data.Contains(ComicID) || Acc.Data.Contains($"cm_{ComicID}-ch_{ChapterID}"))
                     return Acc;
             }
 
@@ -343,9 +343,11 @@ namespace MangaUnhost.Hosts
             return Convert.ToBase64String(Pass);
         }
 
-        public string FreeUnlock(int ChapterID, string Authorization, bool UnlockedTried = false)
+        public string FreeUnlock(int ChapterID, string Authorization, out bool LongWait, bool UnlockedTried = false)
         {
             Main.Status = "Unlocking Chapter...";
+
+            LongWait = false;
 
             string jsonReq, Resp;
 
@@ -381,8 +383,12 @@ namespace MangaUnhost.Hosts
                     var OK = int.TryParse(Time, out int iTime);
                     if (OK && iTime == 0)
                         break;
+
                     if (OK && iTime > 60 * 5)
+                    {
+                        LongWait = true;
                         return null;
+                    }
 
                     ThreadTools.Wait(5000, true);
                 }
@@ -407,7 +413,7 @@ namespace MangaUnhost.Hosts
             }
             catch {
                 if (!UnlockedTried)
-                    return FreeUnlock(ChapterID, Authorization, true);
+                    return FreeUnlock(ChapterID, Authorization, out LongWait, true);
 
                 throw;
             }

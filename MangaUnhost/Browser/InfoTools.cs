@@ -64,7 +64,7 @@ namespace MangaUnhost.Browser
         {
             ThreadTools.Wait(100);
             DateTime Begin = DateTime.Now;
-            while (Browser.IsLoading() && (DateTime.Now-Begin).TotalMinutes < 3)
+            while (Browser.IsLoading() && (DateTime.Now-Begin).TotalMinutes < 1)
                 ThreadTools.Wait(50, true);
         }
 
@@ -72,7 +72,7 @@ namespace MangaUnhost.Browser
         {
             ThreadTools.Wait(100);
             DateTime Begin = DateTime.Now;
-            while (Frame.IsLoading() && (DateTime.Now - Begin).TotalMinutes < 3)
+            while (Frame.IsLoading() && (DateTime.Now - Begin).TotalMinutes < 1)
                 ThreadTools.Wait(50, true);
         }
         public static string GetCurrentUrl(this CefSharp.WinForms.ChromiumWebBrowser Browser) => Browser.GetBrowser().GetCurrentUrl();
