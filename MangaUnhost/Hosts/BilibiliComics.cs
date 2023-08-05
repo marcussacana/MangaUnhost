@@ -184,7 +184,10 @@ namespace MangaUnhost.Hosts
                 {
                     Credential = FreeUnlock(ChapterID, "Bearer " + AccessToken, out bool Waiting);
 
-                    AccountTools.SaveAccountData(nameof(BilibiliComics), Acc.Value.Email, (Acc.Value.Data ?? "") + $"cm_{ComicID}-ch_{ChapterID},");
+                    string Tag = $"cm_{ComicID}-ch_{ChapterID}";
+
+                    if (!(Acc?.Data.Contains(Tag) ?? false))
+                        AccountTools.SaveAccountData(nameof(BilibiliComics), Acc.Value.Email, (Acc.Value.Data ?? "") + $"{Tag},");
 
                     Main.Status = "Loading...";
 
