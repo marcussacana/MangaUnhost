@@ -136,6 +136,8 @@
 
         public string ConfirmBulk => "Foram detectado {0} Comics na sua lista de links.\nTem certeza que deseja fazer download em massa?";
 
+        public string ConfirmDelete => "Você realmente deseja deletar o {0}?";
+
         public string ReplaceMode => "Você já tem um download com o mesmo nome, o que deseja fazer?";
 
         public string UpdateURL => "Atualizar URL";

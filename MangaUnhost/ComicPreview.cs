@@ -874,5 +874,22 @@ namespace MangaUnhost
             lblNewChapters.Text = Language.Loading;
             GetComicInfo(false);
         }
+
+        private void Delete_Click(object sender, EventArgs e)
+        {
+            var Title = Path.GetFileName(ComicPath.TrimEnd('/', '\\'));
+            var Result = MessageBox.Show(string.Format(Language.ConfirmDelete), Title, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (Result == DialogResult.Yes)
+            {
+                Hide();
+
+                try
+                {
+                    Directory.Delete(ComicPath, true);
+                }
+                catch { }
+            }
+        }
     }
 }
