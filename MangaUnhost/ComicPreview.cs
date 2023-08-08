@@ -878,7 +878,7 @@ namespace MangaUnhost
         private void Delete_Click(object sender, EventArgs e)
         {
             var Title = Path.GetFileName(ComicPath.TrimEnd('/', '\\'));
-            var Result = MessageBox.Show(string.Format(Language.ConfirmDelete), Title, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            var Result = MessageBox.Show(string.Format(Language.ConfirmDelete, Title), Title, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
             if (Result == DialogResult.Yes)
             {
