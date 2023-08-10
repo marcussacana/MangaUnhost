@@ -94,6 +94,7 @@
     <Compile Include="Hosts\BilibiliComics.cs" />
     <Compile Include="Hosts\Mangadex.cs" />
     <Compile Include="Hosts\Tsukondu.cs" />
+    <Compile Include="Hosts\Weloma.cs" />
     <Compile Include="Hosts\WPMangaReader.cs" />
     <Compile Include="Others\FormUpload.cs" />
     <Compile Include="WCRWindow.cs">
@@ -232,11 +233,11 @@
   <Choose>
     <When Condition=" '$(Configuration)' == 'Release' ">
       <ItemGroup>
-        <PackageReference Include="Costura.Fody" >
+        <PackageReference Include="Costura.Fody">
           <Version>4.1.0</Version>
         </PackageReference>
       </ItemGroup>
-    </When>  
+    </When>
   </Choose>
   <ItemGroup>
     <PackageReference Include="CefSharp.Common">
