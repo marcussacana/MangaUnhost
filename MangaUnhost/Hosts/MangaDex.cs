@@ -22,7 +22,7 @@ namespace MangaUnhost.Hosts
         {
             foreach (var Page in GetChapterPages(ID))
             {
-                yield return Page.TryDownload();
+                yield return Page.TryDownload(UserAgent: ProxyTools.UserAgent);
             }
         }
 
@@ -100,7 +100,7 @@ namespace MangaUnhost.Hosts
 
             var ChapID = ChapterInfo[ID];
             var QueryURI = $"https://api.mangadex.org/at-home/server/{ChapID}";
-            var Resp = Encoding.UTF8.GetString(QueryURI.Download());
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download(UserAgent: ProxyTools.UserAgent));
 
             var Info = JsonConvert.DeserializeObject<MangaChapterData>(Resp);
 
@@ -129,7 +129,7 @@ namespace MangaUnhost.Hosts
 
             do
             {
-                var Resp = Encoding.UTF8.GetString((QueryURI + Offset).Download());
+                var Resp = Encoding.UTF8.GetString((QueryURI + Offset).Download(UserAgent: ProxyTools.UserAgent));
 
                 Info = JsonConvert.DeserializeObject<Feed>(Resp);
 
@@ -153,7 +153,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 2, 1)
+                Version = new Version(2, 2, 2)
             };
         }
 
@@ -174,7 +174,7 @@ namespace MangaUnhost.Hosts
 
             var QueryURI = $"https://api.mangadex.org/manga/{ComicID}?&includes[]=cover_art";
 
-            var Resp = Encoding.UTF8.GetString(QueryURI.Download());
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download(UserAgent: ProxyTools.UserAgent));
 
             var Info = JsonConvert.DeserializeObject<Manga>(Resp);
 
@@ -187,7 +187,7 @@ namespace MangaUnhost.Hosts
             {
                 Title = Info.Data.Attributes.Title.En,
                 ContentType = ContentType.Comic,
-                Cover = CoverURI.TryDownload(),
+                Cover = CoverURI.TryDownload(UserAgent: ProxyTools.UserAgent),
                 Url = Uri
             };
         }

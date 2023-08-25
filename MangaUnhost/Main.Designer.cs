@@ -396,7 +396,7 @@
             this.tbCrawlerRegex.Multiline = false;
             this.tbCrawlerRegex.Name = "tbCrawlerRegex";
             this.tbCrawlerRegex.ReadOnly = false;
-            this.tbCrawlerRegex.Size = new System.Drawing.Size(686, 25);
+            this.tbCrawlerRegex.Size = new System.Drawing.Size(686, 28);
             this.tbCrawlerRegex.Style = VSNormalTextBox.Styles.NotRounded;
             this.tbCrawlerRegex.TabIndex = 3;
             this.tbCrawlerRegex.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -446,7 +446,7 @@
             this.tbCrawlerUrl.Multiline = false;
             this.tbCrawlerUrl.Name = "tbCrawlerUrl";
             this.tbCrawlerUrl.ReadOnly = false;
-            this.tbCrawlerUrl.Size = new System.Drawing.Size(686, 25);
+            this.tbCrawlerUrl.Size = new System.Drawing.Size(686, 28);
             this.tbCrawlerUrl.Style = VSNormalTextBox.Styles.NotRounded;
             this.tbCrawlerUrl.TabIndex = 0;
             this.tbCrawlerUrl.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -510,7 +510,7 @@
             this.APNGBypassDisRadio.ForeColor = System.Drawing.Color.White;
             this.APNGBypassDisRadio.Location = new System.Drawing.Point(116, 3);
             this.APNGBypassDisRadio.Name = "APNGBypassDisRadio";
-            this.APNGBypassDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.APNGBypassDisRadio.Size = new System.Drawing.Size(88, 25);
             this.APNGBypassDisRadio.TabIndex = 8;
             this.APNGBypassDisRadio.TabStop = true;
             this.APNGBypassDisRadio.Text = "Disabled";
@@ -523,7 +523,7 @@
             this.APNGBypassEnaRadio.ForeColor = System.Drawing.Color.White;
             this.APNGBypassEnaRadio.Location = new System.Drawing.Point(116, 28);
             this.APNGBypassEnaRadio.Name = "APNGBypassEnaRadio";
-            this.APNGBypassEnaRadio.Size = new System.Drawing.Size(75, 23);
+            this.APNGBypassEnaRadio.Size = new System.Drawing.Size(83, 25);
             this.APNGBypassEnaRadio.TabIndex = 7;
             this.APNGBypassEnaRadio.Text = "Enabled";
             this.APNGBypassEnaRadio.UseVisualStyleBackColor = false;
@@ -569,7 +569,7 @@
             this.ManualUpCheckRadio.ForeColor = System.Drawing.Color.White;
             this.ManualUpCheckRadio.Location = new System.Drawing.Point(148, 28);
             this.ManualUpCheckRadio.Name = "ManualUpCheckRadio";
-            this.ManualUpCheckRadio.Size = new System.Drawing.Size(73, 23);
+            this.ManualUpCheckRadio.Size = new System.Drawing.Size(80, 25);
             this.ManualUpCheckRadio.TabIndex = 1;
             this.ManualUpCheckRadio.Text = "Manual";
             this.ManualUpCheckRadio.UseVisualStyleBackColor = false;
@@ -582,7 +582,7 @@
             this.AutoUpCheckRadio.ForeColor = System.Drawing.Color.White;
             this.AutoUpCheckRadio.Location = new System.Drawing.Point(148, -1);
             this.AutoUpCheckRadio.Name = "AutoUpCheckRadio";
-            this.AutoUpCheckRadio.Size = new System.Drawing.Size(57, 23);
+            this.AutoUpCheckRadio.Size = new System.Drawing.Size(61, 25);
             this.AutoUpCheckRadio.TabIndex = 0;
             this.AutoUpCheckRadio.TabStop = true;
             this.AutoUpCheckRadio.Text = "Auto";
@@ -609,7 +609,7 @@
             this.OtherReaderRadio.ForeColor = System.Drawing.Color.White;
             this.OtherReaderRadio.Location = new System.Drawing.Point(165, 24);
             this.OtherReaderRadio.Name = "OtherReaderRadio";
-            this.OtherReaderRadio.Size = new System.Drawing.Size(63, 23);
+            this.OtherReaderRadio.Size = new System.Drawing.Size(68, 25);
             this.OtherReaderRadio.TabIndex = 12;
             this.OtherReaderRadio.Text = "Other";
             this.OtherReaderRadio.UseVisualStyleBackColor = false;
@@ -622,7 +622,7 @@
             this.ComicReaderRadio.ForeColor = System.Drawing.Color.White;
             this.ComicReaderRadio.Location = new System.Drawing.Point(94, 24);
             this.ComicReaderRadio.Name = "ComicReaderRadio";
-            this.ComicReaderRadio.Size = new System.Drawing.Size(65, 23);
+            this.ComicReaderRadio.Size = new System.Drawing.Size(72, 25);
             this.ComicReaderRadio.TabIndex = 11;
             this.ComicReaderRadio.Text = "Comic";
             this.ComicReaderRadio.UseVisualStyleBackColor = false;
@@ -635,7 +635,7 @@
             this.MangaReaderRadio.ForeColor = System.Drawing.Color.White;
             this.MangaReaderRadio.Location = new System.Drawing.Point(18, 24);
             this.MangaReaderRadio.Name = "MangaReaderRadio";
-            this.MangaReaderRadio.Size = new System.Drawing.Size(70, 23);
+            this.MangaReaderRadio.Size = new System.Drawing.Size(76, 25);
             this.MangaReaderRadio.TabIndex = 10;
             this.MangaReaderRadio.Text = "Manga";
             this.MangaReaderRadio.UseVisualStyleBackColor = false;
@@ -649,7 +649,7 @@
             this.LegacyReaderRadio.ForeColor = System.Drawing.Color.White;
             this.LegacyReaderRadio.Location = new System.Drawing.Point(165, 3);
             this.LegacyReaderRadio.Name = "LegacyReaderRadio";
-            this.LegacyReaderRadio.Size = new System.Drawing.Size(69, 23);
+            this.LegacyReaderRadio.Size = new System.Drawing.Size(76, 25);
             this.LegacyReaderRadio.TabIndex = 9;
             this.LegacyReaderRadio.TabStop = true;
             this.LegacyReaderRadio.Text = "Legacy";
@@ -686,7 +686,7 @@
             this.NewFolderRadio.ForeColor = System.Drawing.Color.White;
             this.NewFolderRadio.Location = new System.Drawing.Point(166, 24);
             this.NewFolderRadio.Name = "NewFolderRadio";
-            this.NewFolderRadio.Size = new System.Drawing.Size(96, 23);
+            this.NewFolderRadio.Size = new System.Drawing.Size(108, 25);
             this.NewFolderRadio.TabIndex = 8;
             this.NewFolderRadio.Text = "New Folder";
             this.NewFolderRadio.UseVisualStyleBackColor = false;
@@ -699,7 +699,7 @@
             this.AskRadio.ForeColor = System.Drawing.Color.White;
             this.AskRadio.Location = new System.Drawing.Point(166, 3);
             this.AskRadio.Name = "AskRadio";
-            this.AskRadio.Size = new System.Drawing.Size(49, 23);
+            this.AskRadio.Size = new System.Drawing.Size(53, 25);
             this.AskRadio.TabIndex = 7;
             this.AskRadio.Text = "Ask";
             this.AskRadio.UseVisualStyleBackColor = false;
@@ -750,7 +750,7 @@
             this.SkipDownEnbRadio.ForeColor = System.Drawing.Color.White;
             this.SkipDownEnbRadio.Location = new System.Drawing.Point(168, 32);
             this.SkipDownEnbRadio.Name = "SkipDownEnbRadio";
-            this.SkipDownEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.SkipDownEnbRadio.Size = new System.Drawing.Size(83, 25);
             this.SkipDownEnbRadio.TabIndex = 7;
             this.SkipDownEnbRadio.Text = "Enabled";
             this.SkipDownEnbRadio.UseVisualStyleBackColor = false;
@@ -764,7 +764,7 @@
             this.SkipDownDisRadio.ForeColor = System.Drawing.Color.White;
             this.SkipDownDisRadio.Location = new System.Drawing.Point(168, 3);
             this.SkipDownDisRadio.Name = "SkipDownDisRadio";
-            this.SkipDownDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.SkipDownDisRadio.Size = new System.Drawing.Size(88, 25);
             this.SkipDownDisRadio.TabIndex = 6;
             this.SkipDownDisRadio.TabStop = true;
             this.SkipDownDisRadio.Text = "Disabled";
@@ -802,7 +802,7 @@
             this.SaveAsAutoRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsAutoRadio.Location = new System.Drawing.Point(104, 27);
             this.SaveAsAutoRadio.Name = "SaveAsAutoRadio";
-            this.SaveAsAutoRadio.Size = new System.Drawing.Size(57, 23);
+            this.SaveAsAutoRadio.Size = new System.Drawing.Size(61, 25);
             this.SaveAsAutoRadio.TabIndex = 8;
             this.SaveAsAutoRadio.Text = "Auto";
             this.SaveAsAutoRadio.UseVisualStyleBackColor = false;
@@ -815,7 +815,7 @@
             this.SaveAsRawRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsRawRadio.Location = new System.Drawing.Point(227, 27);
             this.SaveAsRawRadio.Name = "SaveAsRawRadio";
-            this.SaveAsRawRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsRawRadio.Size = new System.Drawing.Size(62, 25);
             this.SaveAsRawRadio.TabIndex = 7;
             this.SaveAsRawRadio.Text = "RAW";
             this.SaveAsRawRadio.UseVisualStyleBackColor = false;
@@ -828,7 +828,7 @@
             this.SaveAsBmpRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsBmpRadio.Location = new System.Drawing.Point(166, 27);
             this.SaveAsBmpRadio.Name = "SaveAsBmpRadio";
-            this.SaveAsBmpRadio.Size = new System.Drawing.Size(56, 23);
+            this.SaveAsBmpRadio.Size = new System.Drawing.Size(60, 25);
             this.SaveAsBmpRadio.TabIndex = 6;
             this.SaveAsBmpRadio.Text = "BMP";
             this.SaveAsBmpRadio.UseVisualStyleBackColor = false;
@@ -852,7 +852,7 @@
             this.SaveAsJpgRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsJpgRadio.Location = new System.Drawing.Point(227, -2);
             this.SaveAsJpgRadio.Name = "SaveAsJpgRadio";
-            this.SaveAsJpgRadio.Size = new System.Drawing.Size(50, 23);
+            this.SaveAsJpgRadio.Size = new System.Drawing.Size(54, 25);
             this.SaveAsJpgRadio.TabIndex = 1;
             this.SaveAsJpgRadio.Text = "JPG";
             this.SaveAsJpgRadio.UseVisualStyleBackColor = false;
@@ -866,7 +866,7 @@
             this.SaveAsPngRadio.ForeColor = System.Drawing.Color.White;
             this.SaveAsPngRadio.Location = new System.Drawing.Point(166, -2);
             this.SaveAsPngRadio.Name = "SaveAsPngRadio";
-            this.SaveAsPngRadio.Size = new System.Drawing.Size(55, 23);
+            this.SaveAsPngRadio.Size = new System.Drawing.Size(60, 25);
             this.SaveAsPngRadio.TabIndex = 0;
             this.SaveAsPngRadio.TabStop = true;
             this.SaveAsPngRadio.Text = "PNG";
@@ -902,7 +902,7 @@
             this.ClipWatcherEnbRadio.ForeColor = System.Drawing.Color.White;
             this.ClipWatcherEnbRadio.Location = new System.Drawing.Point(168, 29);
             this.ClipWatcherEnbRadio.Name = "ClipWatcherEnbRadio";
-            this.ClipWatcherEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ClipWatcherEnbRadio.Size = new System.Drawing.Size(83, 25);
             this.ClipWatcherEnbRadio.TabIndex = 1;
             this.ClipWatcherEnbRadio.Text = "Enabled";
             this.ClipWatcherEnbRadio.UseVisualStyleBackColor = false;
@@ -916,7 +916,7 @@
             this.ClipWatcherDisRadio.ForeColor = System.Drawing.Color.White;
             this.ClipWatcherDisRadio.Location = new System.Drawing.Point(168, 0);
             this.ClipWatcherDisRadio.Name = "ClipWatcherDisRadio";
-            this.ClipWatcherDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ClipWatcherDisRadio.Size = new System.Drawing.Size(88, 25);
             this.ClipWatcherDisRadio.TabIndex = 0;
             this.ClipWatcherDisRadio.TabStop = true;
             this.ClipWatcherDisRadio.Text = "Disabled";
@@ -951,7 +951,7 @@
             this.ReaderGenEnbRadio.ForeColor = System.Drawing.Color.White;
             this.ReaderGenEnbRadio.Location = new System.Drawing.Point(189, 29);
             this.ReaderGenEnbRadio.Name = "ReaderGenEnbRadio";
-            this.ReaderGenEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ReaderGenEnbRadio.Size = new System.Drawing.Size(83, 25);
             this.ReaderGenEnbRadio.TabIndex = 1;
             this.ReaderGenEnbRadio.Text = "Enabled";
             this.ReaderGenEnbRadio.UseVisualStyleBackColor = false;
@@ -965,7 +965,7 @@
             this.ReaderGenDisRadio.ForeColor = System.Drawing.Color.White;
             this.ReaderGenDisRadio.Location = new System.Drawing.Point(189, 0);
             this.ReaderGenDisRadio.Name = "ReaderGenDisRadio";
-            this.ReaderGenDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ReaderGenDisRadio.Size = new System.Drawing.Size(88, 25);
             this.ReaderGenDisRadio.TabIndex = 0;
             this.ReaderGenDisRadio.TabStop = true;
             this.ReaderGenDisRadio.Text = "Disabled";
@@ -1000,7 +1000,7 @@
             this.ImgClipEnbRadio.ForeColor = System.Drawing.Color.White;
             this.ImgClipEnbRadio.Location = new System.Drawing.Point(189, 27);
             this.ImgClipEnbRadio.Name = "ImgClipEnbRadio";
-            this.ImgClipEnbRadio.Size = new System.Drawing.Size(75, 23);
+            this.ImgClipEnbRadio.Size = new System.Drawing.Size(83, 25);
             this.ImgClipEnbRadio.TabIndex = 1;
             this.ImgClipEnbRadio.Text = "Enabled";
             this.ImgClipEnbRadio.UseVisualStyleBackColor = false;
@@ -1014,7 +1014,7 @@
             this.ImgClipDisRadio.ForeColor = System.Drawing.Color.White;
             this.ImgClipDisRadio.Location = new System.Drawing.Point(189, -2);
             this.ImgClipDisRadio.Name = "ImgClipDisRadio";
-            this.ImgClipDisRadio.Size = new System.Drawing.Size(79, 23);
+            this.ImgClipDisRadio.Size = new System.Drawing.Size(88, 25);
             this.ImgClipDisRadio.TabIndex = 0;
             this.ImgClipDisRadio.TabStop = true;
             this.ImgClipDisRadio.Text = "Disabled";
@@ -1049,7 +1049,7 @@
             this.SemiAutoCaptchaRadio.ForeColor = System.Drawing.Color.White;
             this.SemiAutoCaptchaRadio.Location = new System.Drawing.Point(189, 28);
             this.SemiAutoCaptchaRadio.Name = "SemiAutoCaptchaRadio";
-            this.SemiAutoCaptchaRadio.Size = new System.Drawing.Size(90, 23);
+            this.SemiAutoCaptchaRadio.Size = new System.Drawing.Size(100, 25);
             this.SemiAutoCaptchaRadio.TabIndex = 1;
             this.SemiAutoCaptchaRadio.Text = "Semi Auto";
             this.SemiAutoCaptchaRadio.UseVisualStyleBackColor = false;
@@ -1063,7 +1063,7 @@
             this.ManualCaptchaRadio.ForeColor = System.Drawing.Color.White;
             this.ManualCaptchaRadio.Location = new System.Drawing.Point(189, -1);
             this.ManualCaptchaRadio.Name = "ManualCaptchaRadio";
-            this.ManualCaptchaRadio.Size = new System.Drawing.Size(73, 23);
+            this.ManualCaptchaRadio.Size = new System.Drawing.Size(80, 25);
             this.ManualCaptchaRadio.TabIndex = 0;
             this.ManualCaptchaRadio.TabStop = true;
             this.ManualCaptchaRadio.Text = "Manual";
@@ -1116,7 +1116,7 @@
             this.LanguageBox.LineColour = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
             this.LanguageBox.Location = new System.Drawing.Point(90, 71);
             this.LanguageBox.Name = "LanguageBox";
-            this.LanguageBox.Size = new System.Drawing.Size(723, 26);
+            this.LanguageBox.Size = new System.Drawing.Size(723, 29);
             this.LanguageBox.SqaureColour = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(55)))));
             this.LanguageBox.SqaureHoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(52)))), ((int)(((byte)(52)))));
             this.LanguageBox.StartIndex = 0;
@@ -1156,7 +1156,7 @@
             this.LibraryPathTBox.Multiline = false;
             this.LibraryPathTBox.Name = "LibraryPathTBox";
             this.LibraryPathTBox.ReadOnly = true;
-            this.LibraryPathTBox.Size = new System.Drawing.Size(681, 25);
+            this.LibraryPathTBox.Size = new System.Drawing.Size(681, 28);
             this.LibraryPathTBox.Style = VSNormalTextBox.Styles.NotRounded;
             this.LibraryPathTBox.TabIndex = 1;
             this.LibraryPathTBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -1368,7 +1368,7 @@
             this.Controls.Add(this.ThemeContainer);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximumSize = new System.Drawing.Size(1920, 1032);
+            this.MaximumSize = new System.Drawing.Size(1920, 1026);
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "MangaUnhost";
