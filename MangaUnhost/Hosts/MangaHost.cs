@@ -104,7 +104,7 @@ namespace MangaUnhost.Hosts
                         }
                         else
                             ChapterIndex = int.Parse(LastFound.Trim());
-
+                        /* May flood request and got an ban ip, but will ignore the delay for recent release chapters
                         for (int x = 0; x < 2; x++)
                         {
                             for (int z = 0; z <= 3; z++)
@@ -136,7 +136,7 @@ namespace MangaUnhost.Hosts
                                 Thread.Sleep(100);
                             }
                         }
-
+                        */
                         Next:;
                         continue;
                     }
@@ -256,7 +256,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(3, 4, 5)
+                Version = new Version(3, 4, 6)
             };
         }
 
