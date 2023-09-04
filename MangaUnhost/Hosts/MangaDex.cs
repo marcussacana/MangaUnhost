@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace MangaUnhost.Hosts
@@ -20,31 +21,53 @@ namespace MangaUnhost.Hosts
 
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
-            byte[] LastData = new byte[0], LastData2 = new byte[0];
             foreach (var Page in GetChapterPages(ID))
             {
-                retry:;
-                var Data = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: "https://mangadex.org");
-                ThreadTools.Wait(100);
-                var Data2 = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: "https://mangadex.org");
 
-                //bypass mangadex malicious api response for anonymous clients using their API
-                if (Data.SequenceEqual(Data2))
-                    yield return Data;
-                else if (Data.SequenceEqual(LastData))
-                    yield return Data;
-                else if (Data.SequenceEqual(LastData2))
-                    yield return Data;
-                else if (Data2.SequenceEqual(LastData))
-                    yield return Data2;
-                else if (Data2.SequenceEqual(LastData2))
-                    yield return Data2;
-                else
+                Dictionary<string, byte[]> Images = new Dictionary<string, byte[]>();
+                Dictionary<string, int> MatchCount = new Dictionary<string, int>();
+
+                while (true)
                 {
-                    LastData = Data;
-                    LastData2 = Data2;
-                    goto retry;
+                    var Image = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: "https://mangadex.org");
+                    var Hash = GetHash(Image);
+                    Images[Hash] = Image;
+
+                    if (MatchCount.ContainsKey(Hash))
+                        MatchCount[Hash]++;
+                    else
+                        MatchCount[Hash] = 1;
+
+                    if (MatchCount.Count > 1)
+                        ThreadTools.Wait(500);
+
+                    bool OK = false;
+
+                    foreach (var Pair in MatchCount)
+                    {
+                        if (Pair.Value > 3)
+                        {
+                            OK = true;
+                            yield return Images[Pair.Key];
+                            break;
+                        }
+                    }
+
+                    if (OK)
+                        break;
                 }
+
+                MatchCount.Clear();
+                Images.Clear();
+            }
+        }
+
+        public string GetHash(byte[] Data)
+        {
+            using (SHA256 Sha = SHA256.Create())
+            {
+                var Rst = Sha.ComputeHash(Data);
+                return string.Join(" ", Rst.Select(x => x.ToString("X2")));
             }
         }
 
