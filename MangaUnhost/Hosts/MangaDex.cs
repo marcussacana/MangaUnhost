@@ -20,9 +20,31 @@ namespace MangaUnhost.Hosts
 
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
+            byte[] LastData = new byte[0], LastData2 = new byte[0];
             foreach (var Page in GetChapterPages(ID))
             {
-                yield return Page.TryDownload(UserAgent: ProxyTools.UserAgent);
+                retry:;
+                var Data = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: "https://mangadex.org");
+                ThreadTools.Wait(100);
+                var Data2 = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: "https://mangadex.org");
+
+                //bypass mangadex malicious api response for anonymous clients using their API
+                if (Data.SequenceEqual(Data2))
+                    yield return Data;
+                else if (Data.SequenceEqual(LastData))
+                    yield return Data;
+                else if (Data.SequenceEqual(LastData2))
+                    yield return Data;
+                else if (Data2.SequenceEqual(LastData))
+                    yield return Data2;
+                else if (Data2.SequenceEqual(LastData2))
+                    yield return Data2;
+                else
+                {
+                    LastData = Data;
+                    LastData2 = Data2;
+                    goto retry;
+                }
             }
         }
 
@@ -153,7 +175,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 2, 2)
+                Version = new Version(2, 3)
             };
         }
 
