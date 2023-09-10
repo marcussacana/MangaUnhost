@@ -198,7 +198,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 3)
+                Version = new Version(2, 4)
             };
         }
 
@@ -230,7 +230,7 @@ namespace MangaUnhost.Hosts
 
             return new ComicInfo()
             {
-                Title = Info.Data.Attributes.Title.En,
+                Title = Info.Data.Attributes.Title.En ?? Info.Data.Attributes.Title.JaRo ?? Info.Data.Attributes.Title.Ja,
                 ContentType = ContentType.Comic,
                 Cover = CoverURI.TryDownload(UserAgent: ProxyTools.UserAgent),
                 Url = Uri
