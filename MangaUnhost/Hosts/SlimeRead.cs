@@ -80,7 +80,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0)
+                Version = new Version(1, 0, 1)
             };
         }
 
@@ -182,7 +182,6 @@ namespace MangaUnhost.Hosts
             public string book_uuid { get; set; }
             public Genre genre { get; set; }
             public Author author { get; set; }
-            public List<object> book_tag { get; set; }
             public List<Categories> book_categories { get; set; }
             public List<BookTemp> book_temp { get; set; }
             public List<object> book_infos { get; set; }
@@ -218,7 +217,6 @@ namespace MangaUnhost.Hosts
             public string book_synopsis { get; set; }
             public int book_status { get; set; }
             public List<BookCategory> book_categories { get; set; }
-            public List<string> book_tag { get; set; }
             public List<BookTemp> book_temp { get; set; }
         }
 
