@@ -63,7 +63,7 @@ namespace MangaUnhost.Others {
             File.WriteAllText(HtmlPath, Reader, Encoding.UTF8);
         }
 
-        public static void GenerateReaderIndex(ILanguage[] Language, ILanguage CurrentLanguage, ComicInfo Info, string ComicDir, string ChapterName) {
+        public static void GenerateReaderIndex(ILanguage[] Language, ILanguage CurrentLanguage, ComicInfo Info, string ComicDir, string ChapterName, IDecoder Decoder) {
             string IndexPath = MatchFile(ComicDir, CurrentLanguage.Index + ".html", (from x in Language select x.Index + ".html").ToArray());
             string CoverName = MatchFile(ComicDir, CurrentLanguage.Cover + ".png", (from x in Language select x.Cover + ".png").ToArray(), false);
 
@@ -75,8 +75,7 @@ namespace MangaUnhost.Others {
             }
 
             if (!File.Exists(CoverPath)) {
-                using (MemoryStream Stream = new MemoryStream(Info.Cover)) {
-                    Bitmap Cover = Image.FromStream(Stream) as Bitmap;
+                using (Bitmap Cover = Decoder.Decode(Info.Cover)) {
                     Cover.Save(CoverPath, ImageFormat.Png);
                 }
             }

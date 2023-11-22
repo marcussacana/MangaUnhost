@@ -372,7 +372,7 @@ namespace MangaUnhost
                     if (Settings.ReaderGenerator)
                     {
                         ChapterTools.GenerateComicReader(CurrentLanguage, Pages.ToArray(), LastChapterPah, NextChapterPath, TitleDir, ChapterPath, Name);
-                        ChapterTools.GenerateReaderIndex(Languages, CurrentLanguage, Info, TitleDir, Name);
+                        ChapterTools.GenerateReaderIndex(Languages, CurrentLanguage, Info, TitleDir, Name, Host.GetDecoder());
                     }
 
                     break;
