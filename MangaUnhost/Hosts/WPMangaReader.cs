@@ -42,21 +42,20 @@ namespace MangaUnhost.Hosts
                 string Name = HttpUtility.HtmlDecode((ChapNumInfo.Any() ? ChapNumInfo.First().InnerHtml : Chap.InnerText).ToLowerInvariant().Trim());
                 string URL = Chap.GetAttributeValue("href", "");
 
-
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim();
 
                 if (Name.StartsWith("chap"))
                     Name = Name.Substring("chap").Trim(' ', '\t', '.');
 
-                if (Name.StartsWith("cap"))
-                    Name = Name.Substring("cap").Trim(' ', '\t', '.');
-
                 if (Name.StartsWith("ch."))
                     Name = Name.Substring("ch.", " ", IgnoreMissmatch: true);
 
                 if (Name.StartsWith("capítulo"))
                     Name = Name.Substring("capítulo").Trim(' ', '\t', '.');
+
+                if (Name.StartsWith("cap"))
+                    Name = Name.Substring("cap").Trim(' ', '\t', '.');
 
                 if (Name.Contains("-"))
                     Name = Name.Split('-').First().Trim();
@@ -127,7 +126,7 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 

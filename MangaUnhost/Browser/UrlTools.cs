@@ -299,12 +299,19 @@ namespace MangaUnhost.Browser
                 }
             }
 
-            using (var Response = await Request.GetResponseAsync())
-            using (var RespData = Response.GetResponseStream())
-            using (var Output = new MemoryStream())
+            try
             {
-                await RespData.CopyToAsync(Output);
-                return Output.ToArray();
+                using (var Response = await Request.GetResponseAsync())
+                using (var RespData = Response.GetResponseStream())
+                using (var Output = new MemoryStream())
+                {
+                    await RespData.CopyToAsync(Output);
+                    return Output.ToArray();
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
 
