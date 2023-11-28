@@ -167,6 +167,19 @@ namespace MangaUnhost {
                 }
             }
         }
+
+        public static object GetAttributeValueByAlias(this HtmlAgilityPack.HtmlNode Node, params string[] Names)
+        {
+            foreach (var Name in Names)
+            {
+                var Val = Node.GetAttributeValue(Name, null);
+
+                if (Val != null)
+                    return Val;
+            }
+
+            return null;
+        }
         public static string ToLiteral(this string String, bool Quote = true, bool Apostrophe = false) {
             string Result = string.Empty;
             foreach (char c in String) {

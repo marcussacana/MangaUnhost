@@ -1,27 +1,47 @@
-﻿using HtmlAgilityPack;
+﻿using CefSharp.OffScreen;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using static MangaUnhost.Hosts.SlimeRead;
 
 namespace MangaUnhost.Hosts
 {
     internal class SlimeRead : IHost
     {
+        Dictionary<int, string> ChapterMap = new Dictionary<int, string>();
         public NovelChapter DownloadChapter(int ID)
         {
             throw new NotImplementedException();
         }
 
+        bool AltDomain = false;
+
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
             foreach (var Page in GetChapterPages(ID))
             {
-                yield return Page.TryDownload(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent);
+                var ModDomain = Page.Replace("/objects.", "/black.");
+                var OriDomain = Page;
+                var ImgUrl = AltDomain ? ModDomain : Page;
+                var Data = ImgUrl.TryDownload(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent);
+
+                if (Data == null)
+                {
+                    AltDomain = !AltDomain;
+                    ImgUrl = AltDomain ? ModDomain : Page;
+                    Data = ImgUrl.TryDownload(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent);
+                    if (Data == null)
+                        throw new Exception();
+                }
+
+                yield return Data;
             }
         }
 
@@ -33,13 +53,22 @@ namespace MangaUnhost.Hosts
             return BookChaps
                 .OrderByDescending(x => x.bt_id)
                 .SelectMany(x => x.book_temp_caps)
-                .Select(x => new KeyValuePair<int, string>(x.btc_cap, $"{x.btc_cap + 1}"));
+                .Select(x => {
+                    var ID = ChapterMap.Count;
+                    int RealChapNum = (int)Math.Truncate(x.btc_cap);
+                    int ChapNum = RealChapNum + 1;
+                    float ChapPart = (float)Math.Round((x.btc_cap - ChapNum + 1) * 100f);
+                    ChapterMap[ID] = ChapPart == 0 ? $"{RealChapNum}" : $"{RealChapNum}.{ChapPart}".TrimEnd('0', '.');
+                    var Name = ChapPart == 0 ? $"{ChapNum}" : $"{ChapNum}.{ChapPart}".TrimEnd('0', '.');
+
+                    return new KeyValuePair<int, string>(ID, $"{Name}");
+                 });
         }
 
         public RootInfo GetComicInfo()
         {
             //possible get json with this url as well
-            //https://slimeread.com/_next/data/1nr6q596kW01DJAlvZUfP/manga/3278/index.json
+            //https://slimeread.com/_next/data/aoKuUaWGR_--cgEqsV76H/index.json
             var Info = Document.SelectSingleNode("//script[@type='application/json']").InnerText;
 
             return Newtonsoft.Json.JsonConvert.DeserializeObject<RootInfo>(Info);
@@ -52,10 +81,9 @@ namespace MangaUnhost.Hosts
 
         public string[] GetChapterPages(int ID)
         {
-            var Uri = $"https://apiv2.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ID}";
+            var Uri = $"https://ai3.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
 
-            var Data = Uri.TryDownload(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent);
-            var JSON = Encoding.UTF8.GetString(Data);
+            var JSON = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent);
 
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfo>(JSON);
 
@@ -80,7 +108,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0, 1)
+                Version = new Version(1, 0, 2)
             };
         }
 
@@ -94,15 +122,51 @@ namespace MangaUnhost.Hosts
             return Uri.Host.ToLower().Contains("slimeread.com") && Uri.PathAndQuery.Contains("manga/");
         }
 
+        string Token = null;
+        public void EnsureLogin()
+        {
+            Token = Ini.GetConfig("SlimeRead", "Token", Main.SettingsPath, false);
+
+            if (Token != null)
+            {
+                var LogURI = "https://slimeread.com/api/auth/login?token=" + Token;
+
+                var Response = LogURI.TryDownloadString();
+
+                if (Response.Contains("user_nickname"))
+                    return;
+            }
+
+            var CEF = new ChromiumWebBrowser();
+
+            CEF.WaitInitialize();
+            CEF.LoadUrl("https://slimeread.com/login");
+            CEF.WaitForLoad();
+
+            var Browser = new BrowserPopup(CEF, () => { return !CEF.GetCurrentUrl().Contains("/login") && !CEF.GetCurrentUrl().Contains("/registrar"); });
+            Browser.ShowDialog();
+
+            Token = CEF.GetCookie("nextauth.token");
+
+            Ini.SetConfig("SlimeRead", "Token", Token, Main.SettingsPath);
+
+            EnsureLogin();
+        }
+
         string MangaID;
         HtmlDocument Document = new HtmlDocument();
+
+        string UserAgent = null;
+        Uri CurrentUrl = null;
         public ComicInfo LoadUri(Uri Uri)
         {
-            Document.LoadUrl(Uri);
+            Document.LoadUrl(CurrentUrl = Uri);
+
+            //EnsureLogin();
 
             MangaID = Uri.PathAndQuery.TrimStart('/').Split('/')[1];
             var Title = Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]//p[contains(@class, 'font-bold')]").InnerText;
-            var Cover = Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]/../img").GetAttributeValue("src", "");
+            var Cover = Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]/../img").GetAttributeValueByAlias("src", "data-cfsrc") as string;
 
             var CoverData = Cover.TryDownload(Cover);
 
@@ -140,7 +204,7 @@ namespace MangaUnhost.Hosts
 
         public struct BtcCap
         {
-            public int btc_cap { get; set; }
+            public float btc_cap { get; set; }
             public DateTime btc_date_updated { get; set; }
             public string btc_name { get; set; }
             public Scan scan { get; set; }
