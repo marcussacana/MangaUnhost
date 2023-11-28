@@ -155,6 +155,13 @@ namespace MangaUnhost.Hosts
 
                 var Obj = JsonConvert.DeserializeObject((dynamic)Response);
 
+                if (Obj.code == 401001)
+                {
+                    Ini.SetConfig(nameof(BilibiliComics), "AccessToken", "", Main.SettingsPath);
+                    Ini.SetConfig(nameof(BilibiliComics), "RefreshToken", "", Main.SettingsPath);
+                    return GetPaidChapterInfo(ChapterID, LastAccTried);
+                }
+
                 AccessToken = Obj.data.access_token;
                 RefreshToken = Obj.data.refresh_token;
 
@@ -502,7 +509,7 @@ namespace MangaUnhost.Hosts
                 Name = "BiliBiliComics",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 3)
+                Version = new Version(2, 3, 1)
             };
         }
 
@@ -531,7 +538,7 @@ namespace MangaUnhost.Hosts
             {
                 Title = Info.title,
                 ContentType = ContentType.Comic,
-                Cover = Info.vertical_cover.Download(Referer: "https://www.bilibilicomics.com/"),
+                Cover = Info.vertical_cover.Replace("https://", "http://").Download(Referer: "http://www.bilibilicomics.com/", UserAgent: ProxyTools.UserAgent),
                 Url = Uri
             };
         }
