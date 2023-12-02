@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MangaUnhost.Hosts
@@ -81,7 +82,15 @@ namespace MangaUnhost.Hosts
             var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapter/versions/{ID}").TryDownloadString();
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterDetails>(JSON);
 
-            return Info.pages.Select(x => x.url).ToArray();
+            var Regex = new Regex("(\\d+)\\.(png|jpg|jpeg|gif|webp)", RegexOptions.IgnoreCase);
+            try
+            {
+                return Info.pages.Select(x => x.url).OrderBy(x => int.Parse(Regex.Match(x).Groups[1].Value)).ToArray();
+            }
+            catch
+            {
+                return Info.pages.Select(x => x.url).ToArray();
+            }
         }
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
@@ -116,7 +125,7 @@ namespace MangaUnhost.Hosts
                 Name = "TsukiMangas",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0, 1)
+                Version = new Version(1, 0, 2)
             };
         }
 
