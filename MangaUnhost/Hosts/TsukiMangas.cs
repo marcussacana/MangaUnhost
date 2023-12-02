@@ -20,6 +20,7 @@ namespace MangaUnhost.Hosts
         string[] Hosts = new string[] { "tsuki-mangas.com", "cdn2.tsuki-mangas.com", "cdn.tsuki-mangas.com" };
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
+            var Decoder = GetDecoder();
             int HostIndex = 1;
             string CurrentHost = Hosts.First();
             string CurrentDir = "/";
@@ -30,6 +31,7 @@ namespace MangaUnhost.Hosts
                 try
                 {
                     Data = PageURL.Download(UserAgent: ProxyTools.UserAgent, Referer: "https://tsuki-mangas.com/");
+                    CheckImage(Decoder, Data);
                 }
                 catch
                 {
@@ -40,6 +42,7 @@ namespace MangaUnhost.Hosts
                         try
                         {
                             Data = PageURL.Download(UserAgent: ProxyTools.UserAgent, Referer: "https://tsuki-mangas.com/");
+                            CheckImage(Decoder, Data);
                             CurrentDir = "/"; 
                             break;
                         }
@@ -49,6 +52,7 @@ namespace MangaUnhost.Hosts
                         try
                         {
                             Data = PageURL.Download(UserAgent: ProxyTools.UserAgent, Referer: "https://tsuki-mangas.com/");
+                            CheckImage(Decoder, Data);
                             CurrentDir = "/tsuki/";
                             break;
                         }
@@ -57,6 +61,18 @@ namespace MangaUnhost.Hosts
                 }
 
                 yield return Data;
+            }
+        }
+
+        private static void CheckImage(IDecoder Decoder, byte[] Data)
+        {
+            if (!Main.IsWebP(Data))
+            {
+                using (var Img = Decoder.Decode(Data))
+                {
+                    if (Img == null)
+                        throw new Exception();
+                }
             }
         }
 
@@ -100,7 +116,7 @@ namespace MangaUnhost.Hosts
                 Name = "TsukiMangas",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0)
+                Version = new Version(1, 0, 1)
             };
         }
 
