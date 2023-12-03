@@ -82,15 +82,7 @@ namespace MangaUnhost.Hosts
             var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapter/versions/{ID}").TryDownloadString();
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterDetails>(JSON);
 
-            var Regex = new Regex("(\\d+)\\.(png|jpg|jpeg|gif|webp)", RegexOptions.IgnoreCase);
-            try
-            {
-                return Info.pages.Select(x => x.url).OrderBy(x => int.Parse(Regex.Match(x).Groups[1].Value)).ToArray();
-            }
-            catch
-            {
-                return Info.pages.Select(x => x.url).ToArray();
-            }
+            return Info.pages.Select(x => x.url).OrderByFilenameNumber();
         }
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()

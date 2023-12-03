@@ -86,10 +86,14 @@ namespace MangaUnhost
             {
                 Instance.StatusBar.AmountOfString = value ? VSStatusBar.AmountOfStrings.Three : VSStatusBar.AmountOfStrings.Two;
 
-                if (Instance.InvokeRequired)
-                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
-                else
-                    Application.DoEvents();
+                try
+                {
+                    if (Instance.InvokeRequired)
+                        Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
+                    else
+                        Application.DoEvents();
+                }
+                catch { }
             }
         }
 
