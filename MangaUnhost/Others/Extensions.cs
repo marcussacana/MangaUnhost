@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web.Script.Serialization;
 
@@ -306,6 +307,19 @@ namespace MangaUnhost {
                     if (next)
                         yield return enumerator.Current;
                 }
+            }
+        }
+
+        public static IEnumerable<string> OrderByFilenameNumber(this IEnumerable<string> src)
+        {
+            var Regex = new Regex("(\\d+)\\.(png|jpg|jpeg|bmp|tiff|gif|webp)", RegexOptions.IgnoreCase);
+            try
+            {
+                return src.Select(x => Path.GetFileName(x.Split('?').First())).OrderBy(x => int.Parse(Regex.Match(x).Groups[1].Value)).ToArray();
+            }
+            catch
+            {
+                return src.Select(x => x).ToArray();
             }
         }
     }
