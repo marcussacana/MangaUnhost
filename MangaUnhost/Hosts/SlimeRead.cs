@@ -108,7 +108,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0, 2)
+                Version = new Version(1, 0, 3)
             };
         }
 
@@ -163,10 +163,12 @@ namespace MangaUnhost.Hosts
             Document.LoadUrl(CurrentUrl = Uri);
 
             //EnsureLogin();
+            //
+            var Info = GetComicInfo();
 
             MangaID = Uri.PathAndQuery.TrimStart('/').Split('/')[1];
-            var Title = Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]//p[contains(@class, 'font-bold')]").InnerText;
-            var Cover = Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]/../img").GetAttributeValueByAlias("src", "data-cfsrc") as string;
+            var Title = Info.props.pageProps.book_info.book_name_original ?? Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]//p[contains(@class, 'font-bold')]").InnerText;
+            var Cover = Info.props.pageProps.book_info.book_image ?? Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]/../img").GetAttributeValueByAlias("src", "data-cfsrc") as string;
 
             var CoverData = Cover.TryDownload(Cover);
 
