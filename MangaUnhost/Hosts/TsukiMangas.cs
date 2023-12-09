@@ -79,7 +79,7 @@ namespace MangaUnhost.Hosts
 
         private IEnumerable<string> GetChapterPages(int ID)
         {
-            var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapter/versions/{ID}").TryDownloadString();
+            var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapter/versions/{ID}").TryDownloadString(Referer: CurrentUrl.AbsoluteUri);
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterDetails>(JSON);
 
             return Info.pages.Select(x => x.url).OrderByFilenameNumber();
@@ -90,7 +90,7 @@ namespace MangaUnhost.Hosts
             ChaptersInfo info = new ChaptersInfo() { lastPage = 1 };
             for (int i = 1; i <= info.lastPage; i++)
             {
-                var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapters?manga_id={MangaID}&order=desc&page={i}&filter=").TryDownloadString(UserAgent: ProxyTools.UserAgent);
+                var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapters?manga_id={MangaID}&order=desc&page={i}&filter=").TryDownloadString(UserAgent: ProxyTools.UserAgent, Referer: CurrentUrl.AbsoluteUri);
                 info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChaptersInfo>(JSON);
                 foreach (var Chapter in info.data)
                 {
@@ -140,11 +140,11 @@ namespace MangaUnhost.Hosts
 
             MangaID = Uri.PathAndQuery.Substring("/obra/", "/");
 
-            var JSON = new Uri($"https://tsuki-mangas.com/api/v2/mangas/{MangaID}").TryDownloadString(UserAgent: ProxyTools.UserAgent);
+            var JSON = new Uri($"https://tsuki-mangas.com/api/v2/mangas/{MangaID}").TryDownloadString(UserAgent: ProxyTools.UserAgent, Referer: Uri.AbsoluteUri);
 
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<MangaInfo>(JSON);
 
-            var Cover = new Uri($"https://tsuki-mangas.com/img/imgs/{Info.poster}").TryDownload(UserAgent: ProxyTools.UserAgent);
+            var Cover = new Uri($"https://tsuki-mangas.com/img/imgs/{Info.poster}").TryDownload(UserAgent: ProxyTools.UserAgent, Referer: Uri.AbsoluteUri);
 
             return new ComicInfo()
             {
