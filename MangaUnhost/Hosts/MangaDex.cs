@@ -29,7 +29,7 @@ namespace MangaUnhost.Hosts
 
                 while (true)
                 {
-                    var Image = Page.TryDownload(UserAgent: ProxyTools.UserAgent, Referer: "https://mangadex.org");
+                    var Image = Page.TryDownload(UserAgent: AccountTools.GenerateName(), Referer: "https://mangadex.org");
                     var Hash = GetHash(Image);
                     Images[Hash] = Image;
 
@@ -198,7 +198,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 4)
+                Version = new Version(2, 4, 1)
             };
         }
 
@@ -230,7 +230,7 @@ namespace MangaUnhost.Hosts
 
             return new ComicInfo()
             {
-                Title = Info.Data.Attributes.Title.En ?? Info.Data.Attributes.Title.JaRo ?? Info.Data.Attributes.Title.Ja,
+                Title = Info.Data.Attributes.Title.En ?? Info.Data.Attributes.Title.JaRo ?? Info.Data.Attributes.Title.Ja ?? Info.Data.Attributes.Title.Ko,
                 ContentType = ContentType.Comic,
                 Cover = CoverURI.TryDownload(UserAgent: ProxyTools.UserAgent),
                 Url = Uri
@@ -285,6 +285,7 @@ namespace MangaUnhost.Hosts
             public string En { get; set; }
             public string JaRo { get; set; }
             public string Ja { get; set; }
+            public string Ko { get; set; }
         }
 
         public struct MangaAttributesLinks

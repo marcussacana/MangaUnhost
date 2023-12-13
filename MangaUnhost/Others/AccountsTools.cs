@@ -92,6 +92,10 @@ namespace MangaUnhost.Others
             return res.ToString();
         }
 
+        public static string GenerateName(int Length = 10) {
+            return DataTools.GetRawName(GeneratePassword(Length));
+        }
+
         public static string GetRandomComment()
         {
             string[] GenericComments = new string[] {
