@@ -1,9 +1,14 @@
 ﻿using CefSharp;
+using CefSharp.DevTools.Debugger;
+using CefSharp.EventHandler;
+using CefSharp.Handler;
 using CefSharp.OffScreen;
 using HtmlAgilityPack;
 using MangaUnhost;
 using MangaUnhost.Others;
 using Nito.AsyncEx;
+using System;
+using System.Net;
 
 namespace MangaUnhost.Browser
 {
@@ -59,22 +64,77 @@ namespace MangaUnhost.Browser
             return Rst;
         }
 
+        public static void EarlyInjection(this IWebBrowser Browser, string Javascript, JavascriptInjectionFilter.Locations Location = JavascriptInjectionFilter.Locations.HEAD)
+        {
+            Browser.DisableCORS();
+
+            if (!(Browser.RequestHandler is RequestEventHandler))
+                Browser.RequestHandler = new RequestEventHandler();
+
+            ((RequestEventHandler)Browser.RequestHandler).OnResourceRequestEvent += (sender, args) =>
+            {
+                if (!(args.ResourceRequestHandler is ResourceRequestEventHandler))
+                    args.ResourceRequestHandler = new ResourceRequestEventHandler();
+
+                ((ResourceRequestEventHandler)args.ResourceRequestHandler).OnGetResourceResponseFilterEvent += (sender, args) =>
+                {
+                    if (!args.Frame.IsValid)
+                        return;
+
+                    if (args.Frame.IsMain && args.Request.ResourceType == ResourceType.MainFrame)
+                    {
+                        args.ResponseFilter = new JavascriptInjectionFilter(Javascript, Location);
+                    }
+                };
+            };
+        }
+
+        public static void DisableCORS(this IWebBrowser Browser)
+        {
+            Browser.RegisterWebRequestHandlerEvents(null, (sender, args) =>
+            {
+                var HasCookies = args.WebRequest.Headers["Cookie"] != null;
+
+                var Uri = args.WebRequest.RequestUri;
+                var Origin = new Uri(args.WebRequest.Referer ?? args.WebRequest.Headers["Origin"] ?? args.WebRequest.RequestUri.AbsoluteUri);
+                args.Headers["Access-Control-Allow-Origin"] = HasCookies ? $"{Uri.Scheme}://{Origin.Host}" : "*";
+                args.Headers["Content-Security-Policy"] = "default-src * data: mediastream: blob: filesystem: about: ws: wss: 'unsafe-eval' 'wasm-unsafe-eval' 'unsafe-inline';";
+            });
+        }
+
+        public static void InjectXPATH(this ChromiumWebBrowser Browser) => Browser.GetBrowser().InjectXPATH();
+        public static void InjectXPATH(this IBrowser Browser) => Browser.EvaluateScript(Properties.Resources.XPATHScript);
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
         public static T EvaluateScript<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScript(Script);
+        public static T EvaluateScriptUnsafe<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScriptUnsafe(Script);
         public static void EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script, out T Result) => Result = (T)Browser.GetBrowser().EvaluateScript(Script);
         public static void EvaluateScript<T>(this IBrowser Browser, string Script, out T Result) => Result = (T)Browser.MainFrame.EvaluateScript(Script);
+        public static void EvaluateScriptUnsafe<T>(this IBrowser Browser, string Script, out T Result) => Result = (T)Browser.MainFrame.EvaluateScriptUnsafe(Script);
         public static object EvaluateScript(this ChromiumWebBrowser Browser, string Script) => Browser.GetBrowser().EvaluateScript(Script);
+        public static object EvaluateScriptUnsafe(this ChromiumWebBrowser Browser, string Script) => Browser.GetBrowser().EvaluateScriptUnsafe(Script);
         public static object EvaluateScript(this IBrowser Browser, string Script)
         {
             return Browser.MainFrame.EvaluateScript(Script);
         }
+        public static object EvaluateScriptUnsafe(this IBrowser Browser, string Script)
+        {
+            return Browser.MainFrame.EvaluateScriptUnsafe(Script);
+        }
         public static T EvaluateScript<T>(this IFrame Frame, string Script) => (T)Frame.EvaluateScript(Script);
+        public static T EvaluateScriptUnsafe<T>(this IFrame Frame, string Script) => (T)Frame.EvaluateScriptUnsafe(Script);
         public static object EvaluateScript(this IFrame Frame, string Script)
         {
             if (Program.Debug)
                 Program.Writer?.WriteLine("EVAL At: {0}\r\nScript: {1}", Frame.Url, Script);
             
             Frame.WaitForLoad();
+
+            return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
+        }
+        public static object EvaluateScriptUnsafe(this IFrame Frame, string Script)
+        {
+            if (Program.Debug)
+                Program.Writer?.WriteLine("EVAL At: {0}\r\nScript: {1}", Frame.Url, Script);
 
             return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
         }

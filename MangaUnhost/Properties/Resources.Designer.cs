@@ -166,6 +166,71 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///&lt;head&gt;
+        ///  &lt;meta charset=&quot;UTF-8&quot;&gt;
+        ///  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+        ///  &lt;style&gt;
+        ///	body {{
+        ///	  margin: 0;
+        ///	  background-color: #000000;
+        ///	}}
+        ///
+        ///	.reader {{
+        ///	  position: absolute;
+        ///	  margin: auto;
+        ///	  top: 0;
+        ///	  right: 0;
+        ///	  bottom: 0;
+        ///	  left: 0;
+        ///	  width: max-content;
+        ///	  background-color: #ccc;
+        ///	}}
+        ///	.container {{
+        ///	  position: relative;
+        ///	  width: max-content;
+        ///	  height: max-content;
+        ///	  margin-bottom: -5px;
+        ///	  overflow: hi [o restante da cadeia de caracteres foi truncado]&quot;;.
+        /// </summary>
+        internal static string ComicTlReaderHtmlBase {
+            get {
+                return ResourceManager.GetString("ComicTlReaderHtmlBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a 	&lt;div class=&quot;container&quot;&gt;
+        ///	        &lt;img src=&quot;{0}&quot; style=&quot;max-width:100%;&quot; id=&quot;img{1}&quot;/&gt;
+        ///		&lt;div class=&quot;overlay&quot; style=&quot;clip-path: circle(0px at 0% 0%);&quot;&gt;
+        ///			&lt;img src=&quot;{2}&quot; id=&quot;ovl{1}&quot;/&gt;
+        ///		&lt;/div&gt;
+        ///	&lt;/div&gt;
+        ///.
+        /// </summary>
+        internal static string ComicTlReaderLastPageBase {
+            get {
+                return ResourceManager.GetString("ComicTlReaderLastPageBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a 	&lt;div class=&quot;container&quot;&gt;
+        ///	        &lt;img src=&quot;{0}&quot; style=&quot;max-width:100%;&quot; id=&quot;img{1}&quot; onload=&quot;img{2}.src = &apos;{3}&apos;&quot; onerror=&quot;img{2}.src = &apos;{3}&apos;&quot;/&gt;
+        ///		&lt;div class=&quot;overlay&quot; style=&quot;clip-path: circle(0px at 0% 0%);&quot;&gt;
+        ///			&lt;img src=&quot;{4}&quot; id=&quot;ovl{1}&quot; onload=&quot;ovl{2}.src = &apos;{5}&apos;&quot; onerror=&quot;ovl{2}.src = &apos;{5}&apos;&quot;/&gt;
+        ///		&lt;/div&gt;
+        ///	&lt;/div&gt;
+        ///.
+        /// </summary>
+        internal static string ComicTlReaderPageBase {
+            get {
+                return ResourceManager.GetString("ComicTlReaderPageBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a document.readyState;.
         /// </summary>
         internal static string GetDocumentStatus {
@@ -361,6 +426,15 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a function toDataURL(e,n){var o=new XMLHttpRequest;o.onload=function(){var e=new FileReader;e.onloadend=function(){n(e.result)},e.readAsDataURL(o.response)},o.open(&quot;GET&quot;,e),o.responseType=&quot;blob&quot;,o.send()}.
+        /// </summary>
+        internal static string toDataURL {
+            get {
+                return ResourceManager.GetString("toDataURL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a [{{000214A0-0000-0000-C000-000000000046}}]
         ///Prop3=19,2
         ///[InternetShortcut]
@@ -370,6 +444,15 @@ namespace MangaUnhost.Properties {
         internal static string UrlFile {
             get {
                 return ResourceManager.GetString("UrlFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a function XPATH(X, A) { if (A === true) { var Results = []; var Query = document.evaluate(X, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (var i = 0, length = Query.snapshotLength; i &lt; length; ++i) Results.push(Query.snapshotItem(i)); return Results; } return document.evaluate(X, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }.
+        /// </summary>
+        internal static string XPATHScript {
+            get {
+                return ResourceManager.GetString("XPATHScript", resourceCulture);
             }
         }
     }

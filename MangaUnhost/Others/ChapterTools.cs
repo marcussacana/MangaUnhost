@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -21,7 +22,7 @@ namespace MangaUnhost.Others {
             if (LastChapter != null && File.Exists(LastHtmlPath)) {
                 var LastHtml = File.ReadAllText(LastHtmlPath);
                 if (!LastHtml.Contains("<a href=")) {
-                    int EndReader = LastHtml.IndexOf("</div>");
+                    int EndReader = LastHtml.LastIndexOf("</div>");
                     if (EndReader > 0)
                     {
                         while (LastHtml[EndReader - 1] != '>')
@@ -59,6 +60,73 @@ namespace MangaUnhost.Others {
                 Content += "\r\n" + string.Format(Properties.Resources.ComicReaderNextChapterBase, NextHtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter));
 
             Reader = string.Format(Reader, HttpUtility.HtmlEncode(string.Format(CurrentLanguage.ChapterName, ChapterName)), Content);
+
+            File.WriteAllText(HtmlPath, Reader, Encoding.UTF8);
+        }
+
+        public static void GenerateComicReaderWithTranslation(ILanguage CurrentLanguage, string[] Pages, string[] TLPages, string LastChapter, string NextChapterPath, string ChapterPath)
+        {
+            Pages = Pages.Select(x => Path.GetFileName(x)).ToArray();
+            TLPages = TLPages.Select(x => Path.GetFileName(x)).ToArray();
+
+            string ChapterName = Path.GetFileName(ChapterPath.TrimEnd('\\', '/'));
+            string HtmlPath = ChapterPath.TrimEnd('\\', '/') + ".html";
+            string LastHtmlPath = LastChapter == null ? null : LastChapter.TrimEnd('\\', '/') + ".html";
+
+            if (LastChapter != null && !File.Exists(LastHtmlPath) && File.Exists(LastChapter))
+                LastHtmlPath = LastChapter;
+
+            ChapterPath = Path.GetFileName(ChapterPath);
+
+            if (LastChapter != null && File.Exists(LastHtmlPath))
+            {
+                var LastHtml = File.ReadAllText(LastHtmlPath);
+                if (!LastHtml.Contains("<a href="))
+                {
+                    int EndReader = LastHtml.LastIndexOf("</div>");
+                    if (EndReader > 0)
+                    {
+                        while (LastHtml[EndReader - 1] != '>')
+                            EndReader--;
+
+                        string RelativeHtmlPath = $".{Path.AltDirectorySeparatorChar}{Path.GetFileName(HtmlPath.TrimEnd('\\', '/'))}";
+
+                        LastHtml = LastHtml.Insert(EndReader, string.Format(Properties.Resources.ComicReaderNextChapterBase, RelativeHtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter)));
+                        File.WriteAllText(LastHtmlPath, LastHtml);
+                    }
+                }
+            }
+
+            string NextHtmlPath = null;
+            if (NextChapterPath != null)
+                NextHtmlPath = $".{Path.AltDirectorySeparatorChar}{Path.GetFileName(NextChapterPath.TrimEnd('\\', '/') + ".html")}";
+
+            string Reader = Properties.Resources.ComicTlReaderHtmlBase;
+            string Content = string.Empty;
+
+            for (int i = 0; i < Pages.Length; i++)
+            {
+
+                bool Last = i + 1 >= Pages.Length;
+                string Page = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i])}";
+                string TlPage = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, TLPages[i])}";
+
+                if (Last && i != 0)
+                {
+                    Content += string.Format(Properties.Resources.ComicTlReaderLastPageBase, null, i, null);
+                }
+                else
+                {
+                    string NextPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i + 1])}";
+                    string NextTlPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, TLPages[i + 1])}";
+                    Content += string.Format(Properties.Resources.ComicTlReaderPageBase, i == 0 ? Page.ToLiteral() : null, i, i + 1, NextPage.ToLiteral(), i == 0 ? TlPage.ToLiteral() : null, NextTlPage.ToLiteral());
+                }
+            }
+
+            if (NextHtmlPath != null)
+                Content += "\r\n" + string.Format(Properties.Resources.ComicReaderNextChapterBase, NextHtmlPath, HttpUtility.HtmlEncode(CurrentLanguage.NextChapter));
+
+            Reader = string.Format(Properties.Resources.ComicTlReaderHtmlBase, HttpUtility.HtmlEncode(string.Format(CurrentLanguage.ChapterName, ChapterName)), Content);
 
             File.WriteAllText(HtmlPath, Reader, Encoding.UTF8);
         }

@@ -128,6 +128,7 @@
         public string Refresh => "Refresh";
         public string CheckUpdates => "Check Updates";
         public string Translate => "Translate";
+        public string Translating => "Translating: {0}...";
 
 
         public string SwitchLanguage => "Switch Language";

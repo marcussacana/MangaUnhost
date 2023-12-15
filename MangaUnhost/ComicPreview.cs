@@ -65,10 +65,7 @@ namespace MangaUnhost
         public ComicPreview(string ComicDir, Action<string> OnExportAllAs)
         {
             InitializeComponent();
-
-            Translate.Visible = Program.MTLAvailable;
-            if (Program.MTLAvailable)
-                SetupLanguagePairs();
+            SetupLanguagePairs();
 
             ComicPath += ComicDir;
 
@@ -200,6 +197,7 @@ namespace MangaUnhost
                 {
                     var ID = i;
                     var Chapter = Chapters[i];
+                    var LastChapter = i != 0 ? Chapters[i - 1] : null;
 
                     string NextChapter = null;
                     if (i + 1 < Chapters.Length)
@@ -229,30 +227,27 @@ namespace MangaUnhost
                         }
                     };
 
-                    if (Program.MTLAvailable)
+                    var Translate = new ToolStripMenuItem(Language.Translate);
+                    foreach (var SL in new string[] { "AUTO" }.Concat(Langs))
                     {
-                        var Translate = new ToolStripMenuItem(Language.Translate);
-                        foreach (var SL in new string[] { "AUTO" }.Concat(Langs))
+                        var SourceLang = new ToolStripMenuItem(SL);
+                        foreach (var TL in Langs)
                         {
-                            var SourceLang = new ToolStripMenuItem(SL);
-                            foreach (var TL in Langs)
-                            {
-                                if (SL == TL)
-                                    continue;
+                            if (SL == TL)
+                                continue;
 
-                                var TargetLang = new ToolStripMenuItem(TL);
-                                TargetLang.Name = SL;
-                                TargetLang.Click += (sender, e) =>
-                                {
-                                    var TLItem = (ToolStripMenuItem)sender;
-                                    TranslateChapter(Chapter, TLItem.Name, TLItem.Text);
-                                };
-                                SourceLang.DropDownItems.Add(TargetLang);
-                            }
-                            Translate.DropDownItems.Add(SourceLang);
+                            var TargetLang = new ToolStripMenuItem(TL);
+                            TargetLang.Name = SL;
+                            TargetLang.Click += (sender, e) =>
+                            {
+                                var TLItem = (ToolStripMenuItem)sender;
+                                TranslateChapter(Chapter, LastChapter, NextChapter, TLItem.Name, TLItem.Text);
+                            };
+                            SourceLang.DropDownItems.Add(TargetLang);
                         }
-                        ChapItem.DropDownItems.Add(Translate);
+                        Translate.DropDownItems.Add(SourceLang);
                     }
+                    ChapItem.DropDownItems.Add(Translate);
 
                     OpenChapter.DropDownItems.Add(ChapItem);
                 }
@@ -723,46 +718,103 @@ namespace MangaUnhost
 
         void TranslateChapters(string SourceLang, string TargetLang)
         {
-            var Chapters = Directory.GetDirectories(ChapPath);
-            foreach (var Chapter in Chapters) {
-                TranslateChapter(Chapter, SourceLang, TargetLang);
+            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
+
+            for (int i = 0; i < Chapters.Length; i++){
+                string Chapter = Chapters[i];
+                string LastChapter = i == 0 ? null : Chapters[i - 1];
+                string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
+                TranslateChapter(Chapter, LastChapter, NextChapter, SourceLang, TargetLang);
             }
         }
 
-        private void TranslateChapter(string Chapter, string SourceLang, string TargetLang)
+        private void TranslateChapter(string Chapter, string LastChapter, string NextChapter, string SourceLang, string TargetLang)
         {
-            var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp").OrderBy(x=> int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0);
+            Main.Status = Language.Loading;
+
+            var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                .Where(x => !x.EndsWith(".tl.png"))
+                .OrderBy(x=> int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
             
-            foreach (var Page in Pages) {
-                var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLPath), Path.GetFileName(Page));
-                File.Copy(Page, NewPage, true);
+            var TlPages = new List<string>();
 
-                if (File.Exists(Page + ".bak"))
-                    continue;
+            string Reader = Chapter.TrimEnd('/', '\\') + ".html";
 
-                for (int i = 3; i >= 0 && !File.Exists(NewPage + ".out.png"); i--)
+            using var ImgTranslator = new ImageTranslator(SourceLang, TargetLang);
+
+            for (int i = 0; i < Pages.Length; i++) {
+                var Page = Pages[i];
+                var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLAvailable? Program.MTLPath:Page), Path.GetFileName(Page));
+                var TlPage = NewPage + ".tl.png";
+
+                bool TmpInNewDir = new FileInfo(NewPage).FullName != new FileInfo(Page).FullName;
+                if (TmpInNewDir)
+                    File.Copy(Page, NewPage, true);
+
+                if (File.Exists(TlPage))
                 {
-                    var StartInfo = new ProcessStartInfo(Program.PythonPath);
-                    StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --image \"{Path.GetFileName(Page)}\" --output \"{Path.GetFileName(Page)}.out.png\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting --use-cuda"; // --use-cuda";
-                    StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
-
-                    var Proc = Process.Start(StartInfo);
-
-                    while (!Proc.WaitForExit(100))
-                        Application.DoEvents();
+                    TlPages.Add(TlPage);
+                    continue;
                 }
 
-                if (!File.Exists(NewPage + ".out.png"))
+                if (Program.MTLAvailable)
+                {
+                    for (int x = 3; x >= 0 && !File.Exists(TlPage); x--)
+                    {
+                        var StartInfo = new ProcessStartInfo(Program.PythonPath);
+                        StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --image \"{Path.GetFileName(Page)}\" --output \"{Path.GetFileName(Page)}.out.png\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting --use-cuda"; // --use-cuda";
+                        StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
+
+                        var Proc = Process.Start(StartInfo);
+
+                        while (!Proc.WaitForExit(100))
+                            Application.DoEvents();
+                    }
+                }
+                else
+                {
+                    var ImgData = File.ReadAllBytes(NewPage);
+
+                    for (int x= 3; x >= 0; x--)
+                    {
+                        try
+                        {
+                            var NewData = ImgTranslator.TranslateImage(ImgData);
+
+                            using var OriData = new MemoryStream(ImgData);
+                            using var OriImage = Bitmap.FromStream(OriData);
+
+                            using var NewDataStream = new MemoryStream(NewData);
+                            using var NewImage = Bitmap.FromStream(NewDataStream);
+
+                            using var g = Graphics.FromImage(OriImage);
+                            g.DrawImage(NewImage, 0, 0, OriImage.Width, OriImage.Height);
+                            g.Flush();
+
+                            OriImage.Save(TlPage);
+
+                            break;
+                        }
+                        catch {
+                            ImgTranslator.Reload();
+                        }
+                    }
+                }
+
+                Main.Status = string.Format(Language.Translating, Path.GetFileName(Chapter.TrimEnd('/', '\\')));
+                Main.SubStatus = string.Format(Language.Reaming, Pages.Length - i - 1);
+
+                TlPages.Add(TlPage);
+
+                if (!File.Exists(TlPage))
                     continue;
 
-                if (!File.Exists(Page + ".bak"))
-                    File.Move(Page, Page + ".bak");
-                else
-                    File.Delete(Page);
-
-                File.Move(NewPage + ".out.png", Page);
-                File.Delete(NewPage);
+                if (TmpInNewDir)
+                    File.Delete(NewPage);
             }
+
+            ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, TlPages.ToArray(), LastChapter, NextChapter, Chapter);
+            Main.Status = Language.IDLE;
         }
 
 

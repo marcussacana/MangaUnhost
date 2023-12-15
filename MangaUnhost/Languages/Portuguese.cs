@@ -129,6 +129,7 @@
         public string Refresh => "Atualizar";
         public string CheckUpdates => "Procurar Atualizações";
         public string Translate => "Traduzir";
+        public string Translating => "Traduzindo: {0}...";
 
 
         public string SwitchLanguage => "Alterar Lingua";

@@ -4,12 +4,39 @@
 // Edited by marcussacana; 2020
 
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 using CefSharp.Handler;
 
-namespace CefSharp.EventHandler {
+namespace CefSharp.EventHandler
+{
+
+    public class DialogEventHandler : IDialogHandler
+    {
+        public event EventHandler<FileDialogEventArgs> FileDialog;
+
+        public bool OnFileDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, CefFileDialogMode mode, string title, string defaultFilePath, List<string> acceptFilters, IFileDialogCallback callback)
+        {
+            var Args = new FileDialogEventArgs(chromiumWebBrowser, browser, mode, acceptFilters);
+
+            FileDialog?.Invoke(this, Args);
+
+            if (Args.Handled)
+            {
+                if (Args.Cancel)
+                {
+                    callback.Cancel();
+                    return true;
+                }
+                callback.Continue(Args.SelectedPaths.ToList());
+                return true;
+            }
+
+            return false;
+        }
+    }
 
     public class LifeSpanEventHandler : LifeSpanHandler
     {
@@ -58,7 +85,8 @@ namespace CefSharp.EventHandler {
         public event EventHandler<GetAuthCredentialsEventArgs> GetAuthCredentialsEvent;
         public event EventHandler<OnRenderProcessTerminatedEventArgs> OnRenderProcessTerminatedEvent;
         public event EventHandler<OnQuotaRequestEventArgs> OnQuotaRequestEvent;
-        public event EventHandler<OnResourceRequestEventArgs> OnResourceRequestEvent;              
+        public event EventHandler<OnResourceRequestEventArgs> OnResourceRequestEvent;
+        public event EventHandler<DocumentLoadedEventArgs> OnDocumentLoaded;
 
 
         public NetworkCredential Credential { get; private set; }
@@ -67,7 +95,13 @@ namespace CefSharp.EventHandler {
             this.Credential = Credential;
         }
 
-        
+
+        protected override void OnDocumentAvailableInMainFrame(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            OnDocumentLoaded?.Invoke(this, new DocumentLoadedEventArgs(chromiumWebBrowser, browser));
+            base.OnDocumentAvailableInMainFrame(chromiumWebBrowser, browser);
+        }
+
         protected override bool OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
             var args = new OnBeforeBrowseEventArgs(browserControl, browser, frame, request, userGesture, isRedirect);
 
@@ -115,14 +149,6 @@ namespace CefSharp.EventHandler {
             OnRenderProcessTerminatedEvent?.Invoke(this, args);
         }
 
-        protected override bool OnQuotaRequest(IWebBrowser browserControl, IBrowser browser, string originUrl, long newSize, IRequestCallback callback) {
-            var args = new OnQuotaRequestEventArgs(browserControl, browser, originUrl, newSize, callback);
-            OnQuotaRequestEvent?.Invoke(this, args);
-
-            EnsureCallbackDisposal(callback);
-            return args.ContinueAsync;
-        }
-
         protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
         {
             var args = new OnResourceRequestEventArgs(browserControl, browser, frame, request, iNavigation, isDownload, requestInitiator, disableDefaultHandling);
@@ -132,6 +158,9 @@ namespace CefSharp.EventHandler {
 
             if (args.Cancel)
                 return null;
+
+            if (args.ResourceRequestHandler != null)
+                return args.ResourceRequestHandler;
 
             request = args.Request;
 
@@ -269,6 +298,40 @@ namespace CefSharp.EventHandler {
     }
 
     #region EventArgs
+
+    public class FileDialogEventArgs : BrowserEventArgs
+    {
+        public string[] Filters;
+
+        /// <summary>
+        /// When false the event result will be ignored
+        /// and the default browser window will open
+        /// </summary>
+        public bool Handled { get; set; }
+        public bool IsSaving { get; set; }
+        public bool IsFolder { get; set; }
+        public bool IsMultiselect { get; set; }
+        public bool Cancel { get; set; }
+        public string SelectedPath { get => SelectedPaths.FirstOrDefault(null); set => SelectedPaths = new string[] { value }; }
+        public string[] SelectedPaths { get; set; }
+        public FileDialogEventArgs(IWebBrowser BrowserControl, IBrowser Browser, CefFileDialogMode Mode, IEnumerable<string> Filters) : base(BrowserControl, Browser)
+        {
+            this.Filters = Filters.ToArray();  
+
+            switch (Mode)
+            {
+                case CefFileDialogMode.OpenFolder:
+                    IsFolder = true;
+                    break;
+                case CefFileDialogMode.OpenMultiple:
+                    IsMultiselect = true;
+                    break;
+                case CefFileDialogMode.Save:
+                    IsSaving = true;
+                    break;
+            }
+        }
+    }
 
     public class BrowserEventArgs : EventArgs {
         public BrowserEventArgs(IWebBrowser browserControl, IBrowser browser) {
@@ -481,6 +544,13 @@ namespace CefSharp.EventHandler {
         public CefReturnValue ReturnValue { get; set; }
     }
 
+    public class DocumentLoadedEventArgs : BrowserEventArgs
+    {
+        public DocumentLoadedEventArgs(IWebBrowser browserControl, IBrowser control) : base(browserControl, control)
+        {
+
+        }
+    }
     public class OnResourceRequestEventArgs : BrowserEventArgs
     {
         public OnResourceRequestEventArgs(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, bool disableDefaultHandling) : base(browserControl, browser)
@@ -490,7 +560,7 @@ namespace CefSharp.EventHandler {
 
             DisableDefaultHandling = disableDefaultHandling;
         }
-
+        public IResourceRequestHandler ResourceRequestHandler { get; set; }
         public IFrame Frame { get; private set; }
         public IRequest Request { get; set; }
         public string TargetUrl => Request.Url;

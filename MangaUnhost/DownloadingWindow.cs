@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NAudio.Wave.SampleProviders;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -61,6 +62,50 @@ namespace MangaUnhost
 
         public void Download()
         {
+            try
+            {
+                DoDownload(URL, SaveAs);
+            }
+            catch {
+                try
+                {
+                    int part = 0;
+                    while (true)
+                    {
+                        try
+                        {
+                            DoDownload(URL.Replace(".zip", $".zip.{part:D3}"), SaveAs + $".{part}");
+                            part++;
+                        }
+                        catch
+                        {
+                            break;
+                        }
+                    }
+
+
+                    using var Output = File.Create(SaveAs);
+                    for (int i = 0; i < part; i++)
+                    {
+                        using (var Fragment = File.OpenRead(SaveAs + $".{i}"))
+                        {
+                            Fragment.CopyTo(Output);
+                        }
+                        File.Delete(SaveAs + $".{i}");
+                    }
+
+                    Finished = true;
+                    return;
+                }
+                catch { }
+                throw;
+            }
+
+            Finished = true;
+        }
+
+        private void DoDownload(string URL, string SaveAs)
+        {
             HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
 
             Request.UseDefaultCredentials = true;
@@ -83,8 +128,6 @@ namespace MangaUnhost
                     Downloaded += Readed;
                 } while (Readed != 0);
             }
-
-            Finished = true;
         }
     }
 }

@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Net;
 using MangaUnhost.Others;
 using Microsoft.VisualBasic;
+using CefSharp.DevTools;
+using System.Windows;
+using System.Linq;
 
 namespace MangaUnhost.Browser
 {
@@ -45,7 +48,7 @@ namespace MangaUnhost.Browser
             };
         }
 
-        public static void SetUserAgent(this IBrowser Browser, string UserAgent)
+        private static void SetUserAgent(this IBrowser Browser, string UserAgent)
         {
             using var DevTools = Browser.GetDevToolsClient();
             DevTools.Emulation.SetUserAgentOverrideAsync(UserAgent);
@@ -99,11 +102,41 @@ namespace MangaUnhost.Browser
 
                 Browser.GetBrowser().SetUserAgent(UA);
             }
+            
+            if (!(Browser.RequestHandler is RequestEventHandler))
+                Browser.RequestHandler = new RequestEventHandler();
+
+            Browser.RegisterWebRequestHandlerEvents((sender, args) => {
+                var UAHelper = MangaUnhost.Browser.UserAgent.Parse(UA);
+                var BrowserExt = UAHelper.Extensions.LastOrDefault(x => new string[] { "Edg", "Chrome", "OPR" }.Contains(x.Name));
+                
+                if (BrowserExt == null)
+                    BrowserExt = UAHelper.Extensions.LastOrDefault();
+                
+                if (BrowserExt == null)
+                    return;
+
+                var Name = BrowserExt.Name switch {
+                    "Edg" => "Microsoft Edge",
+                    "Chrome" => "Google Chrome",
+                    "OPR" => "Opera",
+                    _ => BrowserExt.Name
+                };
+
+                var Version = BrowserExt.Version;
+                var ShortVersion = Version.Split('.').First();
+
+                args.Headers["Sec-Ch-Ua"] = $"\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"{ShortVersion}\", \"Microsoft Edge\";v=\"{ShortVersion}\"";
+                args.Headers["Sec-Ch-Ua-Full-Version-List"] = $"\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"{Version}\", \"Microsoft Edge\";v=\"{Version}\"";
+                args.Headers["Sec-Ch-Ua-Full-Version"] = Version;
+            }, null);
+
+            Browser.EarlyInjection("Object.defineProperty(navigator, 'userAgentData', {value: {brands:[ { brand: 'Not_A Brand', version: '8' }, {brand: 'Chromium', version: '128'}, {brand: 'Microsoft Edge', version: '120'}], mobile: false, platform: 'Windows'}, configurable: false, writable: false,});");
         }
 
         public static void BypassGoogleCEFBlock(this ChromiumWebBrowser Browser)
         {
-            Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0");
+            Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0");
         }
 
         //public delegate void Func<in T>(T arg);

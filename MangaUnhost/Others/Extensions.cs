@@ -1,10 +1,12 @@
 ﻿using CefSharp;
+using CefSharp.EventHandler;
 using CefSharp.OffScreen;
 using MangaUnhost.Browser;
 using Nito.AsyncEx;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
@@ -13,7 +15,9 @@ using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using ThreadState = System.Threading.ThreadState;
 
 namespace MangaUnhost {
     public static class Extensions {
@@ -308,6 +312,53 @@ namespace MangaUnhost {
                         yield return enumerator.Current;
                 }
             }
+        }
+
+        public static void RegisterWebRequestHandlerEvents(this IWebBrowser Browser, EventHandler<OnWebRequestEventArgs> Request, EventHandler<OnWebResponseEventArgs> Response)
+        {
+            if (!(Browser.RequestHandler is RequestEventHandler))
+                Browser.RequestHandler = new RequestEventHandler();
+
+            ((RequestEventHandler)Browser.RequestHandler).OnResourceRequestEvent += (sender, args) =>
+            {
+                if (!(args.ResourceRequestHandler is ResourceRequestEventHandler))
+                    args.ResourceRequestHandler = new ResourceRequestEventHandler();
+
+                ((ResourceRequestEventHandler)args.ResourceRequestHandler).OnGetResourceHandlerEvent += (sender, args) =>
+                {
+                    bool IsHttpRequest = args.Request.Url.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+                    if (IsHttpRequest)
+                    {
+                        if (!(args.ResourceHandler is WebRequestResourceHandler))
+                            args.ResourceHandler = new WebRequestResourceHandler();
+
+                        if (Request != null)
+                            ((WebRequestResourceHandler)args.ResourceHandler).OnRequest += Request;
+
+                        if (Response != null)
+                            ((WebRequestResourceHandler)args.ResourceHandler).OnResponse += Response;
+                    }
+                };
+            };
+
+            if (!(Browser.ResourceRequestHandlerFactory is ResourceRequestEventHandlerFactory))
+                Browser.ResourceRequestHandlerFactory = new ResourceRequestEventHandlerFactory();
+
+            ((ResourceRequestEventHandlerFactory)Browser.ResourceRequestHandlerFactory).OnGetResourceHandlerEvent += (sender, args) =>
+            {
+                bool IsHttpRequest = args.Request.Url.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+                if (IsHttpRequest)
+                {
+                    if (!(args.ResourceHandler is WebRequestResourceHandler))
+                        args.ResourceHandler = new WebRequestResourceHandler();
+
+                    if (Request != null)
+                        ((WebRequestResourceHandler)args.ResourceHandler).OnRequest += Request;
+
+                    if (Response != null)
+                        ((WebRequestResourceHandler)args.ResourceHandler).OnResponse += Response;
+                }
+            };
         }
 
         public static IEnumerable<string> OrderByFilenameNumber(this IEnumerable<string> src)

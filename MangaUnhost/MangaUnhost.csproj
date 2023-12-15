@@ -75,7 +75,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Browser\hCaptcha.cs" />
+    <Compile Include="Browser\ImageTranslator.cs" />
     <Compile Include="Browser\InputTools.cs" />
+    <Compile Include="Browser\JavascriptInjectionFilter.cs" />
     <Compile Include="Browser\JsDialogHandler.cs" />
     <Compile Include="Browser\JSTools.cs" />
     <Compile Include="Browser\LocalScheme.cs" />
@@ -84,6 +86,8 @@
     <Compile Include="Browser\RequestTools.cs" />
     <Compile Include="Browser\InfoTools.cs" />
     <Compile Include="Browser\UrlTools.cs" />
+    <Compile Include="Browser\UserAgentParser.cs" />
+    <Compile Include="Browser\WebRequestResourceHandler.cs" />
     <Compile Include="ComicPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -243,13 +247,13 @@
   </Choose>
   <ItemGroup>
     <PackageReference Include="CefSharp.Common">
-      <Version>107.1.120</Version>
+      <Version>119.4.30</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.OffScreen">
-      <Version>107.1.120</Version>
+      <Version>119.4.30</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.WinForms">
-      <Version>107.1.120</Version>
+      <Version>119.4.30</Version>
     </PackageReference>
     <PackageReference Include="DotNetZip">
       <Version>1.16.0</Version>
