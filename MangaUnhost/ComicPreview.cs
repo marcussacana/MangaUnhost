@@ -823,7 +823,7 @@ namespace MangaUnhost
             }
             finally
             {
-                ImgTranslator.Dispose();
+                ImgTranslator?.Dispose();
             }
 
             ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, TlPages.ToArray(), LastChapter, NextChapter, Chapter);
