@@ -17,7 +17,7 @@ namespace MangaUnhost.Browser {
         public static void ExecuteMove(this IBrowserHost Browser, List<MimicStep> Steps) {
             foreach (var Step in Steps) {
                 Browser.SendMouseMoveEvent(new MouseEvent(Step.Location.X, Step.Location.Y, CefEventFlags.None), false);
-                ThreadTools.Wait(Step.Delay);
+                ThreadTools.Wait(Step.Delay, true);
             }
         }
         public static void ExecuteClick(this ChromiumWebBrowser Browser, Point Position) => Browser.GetBrowserHost().ExecuteClick(Position);
@@ -26,7 +26,7 @@ namespace MangaUnhost.Browser {
 
         public static void ExecuteClick(this IBrowserHost Browser, Point Position) {
             Browser.SendMouseClickEvent(new MouseEvent(Position.X, Position.Y, CefEventFlags.LeftMouseButton), MouseButtonType.Left, false, 1);
-            ThreadTools.Wait(random.Next(49, 101));
+            ThreadTools.Wait(random.Next(49, 101), true);
             Browser.SendMouseClickEvent(new MouseEvent(Position.X, Position.Y, CefEventFlags.LeftMouseButton), MouseButtonType.Left, true, 1);
         }
 
