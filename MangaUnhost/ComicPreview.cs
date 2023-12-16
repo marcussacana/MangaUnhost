@@ -828,6 +828,7 @@ namespace MangaUnhost
 
             ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, TlPages.ToArray(), LastChapter, NextChapter, Chapter);
             Main.Status = Language.IDLE;
+            Main.SubStatus = "";
         }
 
 
