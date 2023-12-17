@@ -292,10 +292,10 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 	  background-color: #000000;
 	}}
 
-	#next {
+	#next {{
 	  display: block;
 	  text-align: center;
-	}
+	}}
 
 	.reader {{
 	  position: absolute;

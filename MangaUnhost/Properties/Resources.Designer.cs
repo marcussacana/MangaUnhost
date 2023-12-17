@@ -177,10 +177,10 @@ namespace MangaUnhost.Properties {
         ///	  background-color: #000000;
         ///	}}
         ///
-        ///	#next {
+        ///	#next {{
         ///	  display: block;
         ///	  text-align: center;
-        ///	}
+        ///	}}
         ///
         ///	.reader {{
         ///	  position: absolute;
@@ -195,7 +195,7 @@ namespace MangaUnhost.Properties {
         ///	.container {{
         ///	  position: relative;
         ///	  width: max-content;
-        ///	  he [o restante da cadeia de caracteres foi truncado]&quot;;.
+        ///	   [o restante da cadeia de caracteres foi truncado]&quot;;.
         /// </summary>
         internal static string ComicTlReaderHtmlBase {
             get {
