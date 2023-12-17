@@ -262,6 +262,24 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
   <data name="XPATHScript" xml:space="preserve">
     <value>function XPATH(X, A) { if (A === true) { var Results = []; var Query = document.evaluate(X, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (var i = 0, length = Query.snapshotLength; i &lt; length; ++i) Results.push(Query.snapshotItem(i)); return Results; } return document.evaluate(X, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }</value>
   </data>
+  <data name="ComicTlReaderLastPageBase" xml:space="preserve">
+    <value>	&lt;div class="container"&gt;
+	        &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;
+		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
+			&lt;img src="{2}" id="ovl{1}"/&gt;
+		&lt;/div&gt;
+	&lt;/div&gt;
+</value>
+  </data>
+  <data name="ComicTlReaderPageBase" xml:space="preserve">
+    <value>	&lt;div class="container"&gt;
+	        &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;
+		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
+			&lt;img src="{4}" id="ovl{1}" onload="ovl{2}.src = '{5}'" onerror="ovl{2}.src = '{5}'"/&gt;
+		&lt;/div&gt;
+	&lt;/div&gt;
+</value>
+  </data>
   <data name="ComicTlReaderHtmlBase" xml:space="preserve">
     <value>&lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
@@ -273,6 +291,11 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 	  margin: 0;
 	  background-color: #000000;
 	}}
+
+	#next {
+	  display: block;
+	  text-align: center;
+	}
 
 	.reader {{
 	  position: absolute;
@@ -314,6 +337,7 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 			  size = size.split('#')[1];
 			  return parseInt(size);
 			}}
+			updateCircleSize(100);
 			return 100;
 		}}
 		function updateCircleSize(size) {{
@@ -388,23 +412,5 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;</value>
-  </data>
-  <data name="ComicTlReaderLastPageBase" xml:space="preserve">
-    <value>	&lt;div class="container"&gt;
-	        &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;
-		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
-			&lt;img src="{2}" id="ovl{1}"/&gt;
-		&lt;/div&gt;
-	&lt;/div&gt;
-</value>
-  </data>
-  <data name="ComicTlReaderPageBase" xml:space="preserve">
-    <value>	&lt;div class="container"&gt;
-	        &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;
-		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
-			&lt;img src="{4}" id="ovl{1}" onload="ovl{2}.src = '{5}'" onerror="ovl{2}.src = '{5}'"/&gt;
-		&lt;/div&gt;
-	&lt;/div&gt;
-</value>
   </data>
 </root>
