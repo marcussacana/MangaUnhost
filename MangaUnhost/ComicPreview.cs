@@ -112,8 +112,9 @@ namespace MangaUnhost
                     TargetLang.Name = SL;
                     TargetLang.Click += (sender, e) =>
                     {
+                        var Skip = MessageBox.Show(Language.ForceRetranslation, "MangaUnhost", MessageBoxButtons.YesNo) == DialogResult.Yes;
                         var TLItem = (ToolStripMenuItem)sender;
-                        TranslateChapters(TLItem.Name, TLItem.Text);
+                        TranslateChapters(TLItem.Name, TLItem.Text, Skip);
                     };
                     SourceLang.DropDownItems.Add(TargetLang);
                 }
@@ -241,7 +242,7 @@ namespace MangaUnhost
                             TargetLang.Click += (sender, e) =>
                             {
                                 var TLItem = (ToolStripMenuItem)sender;
-                                TranslateChapter(Chapter, LastChapter, NextChapter, TLItem.Name, TLItem.Text);
+                                TranslateChapter(Chapter, LastChapter, NextChapter, TLItem.Name, TLItem.Text, false);
                             };
                             SourceLang.DropDownItems.Add(TargetLang);
                         }
@@ -716,7 +717,7 @@ namespace MangaUnhost
             ChapterTools.GenerateComicReader(Language, Pages, LastChapter, NextChapter, ChapPath, Chapter, ChapName);
         }
 
-        void TranslateChapters(string SourceLang, string TargetLang)
+        void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
         {
             var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
 
@@ -724,11 +725,11 @@ namespace MangaUnhost
                 string Chapter = Chapters[i];
                 string LastChapter = i == 0 ? null : Chapters[i - 1];
                 string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
-                TranslateChapter(Chapter, LastChapter, NextChapter, SourceLang, TargetLang);
+                TranslateChapter(Chapter, LastChapter, NextChapter, SourceLang, TargetLang, AllowSkip);
             }
         }
 
-        private void TranslateChapter(string Chapter, string LastChapter, string NextChapter, string SourceLang, string TargetLang)
+        private void TranslateChapter(string Chapter, string LastChapter, string NextChapter, string SourceLang, string TargetLang, bool AllowSkip)
         {
             Main.Status = Language.Loading;
 
@@ -755,7 +756,7 @@ namespace MangaUnhost
                     if (TmpInNewDir)
                         File.Copy(Page, NewPage, true);
 
-                    if (File.Exists(TlPage))
+                    if (File.Exists(TlPage) && AllowSkip)
                     {
                         using var TLImg = Bitmap.FromFile(TlPage);
                         var TLSize = TLImg.Size;

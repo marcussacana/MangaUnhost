@@ -138,6 +138,8 @@
 
         public string ConfirmDelete => "Do you really want delete the {0}?";
 
+        public string ForceRetranslation => "Do you wanna skip chapters already translated?";
+
         public string ReplaceMode => "You already have downloaded something with the same name, What you wanna do?";
 
         public string UpdateURL => "Update URL";

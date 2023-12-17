@@ -139,6 +139,8 @@
 
         public string ConfirmDelete => "Você realmente deseja deletar o {0}?";
 
+        public string ForceRetranslation => "Você deseja pular os capítulos já traduzidos?";
+
         public string ReplaceMode => "Você já tem um download com o mesmo nome, o que deseja fazer?";
 
         public string UpdateURL => "Atualizar URL";
