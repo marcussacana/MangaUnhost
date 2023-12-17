@@ -147,7 +147,7 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a          &lt;a href=&quot;{0}&quot; style=&quot;color: #FFF;&quot;&gt;{1}&lt;/a&gt;.
+        ///   Consulta uma cadeia de caracteres localizada semelhante a          &lt;a id=&quot;next&quot; href=&quot;{0}&quot; style=&quot;color: #FFF;&quot;&gt;{1}&lt;/a&gt;.
         /// </summary>
         internal static string ComicReaderNextChapterBase {
             get {

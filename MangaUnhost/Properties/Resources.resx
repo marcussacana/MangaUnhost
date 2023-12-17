@@ -144,7 +144,7 @@
 </value>
   </data>
   <data name="ComicReaderNextChapterBase" xml:space="preserve">
-    <value>         &lt;a href="{0}" style="color: #FFF;"&gt;{1}&lt;/a&gt;</value>
+    <value>         &lt;a id="next" href="{0}" style="color: #FFF;"&gt;{1}&lt;/a&gt;</value>
   </data>
   <data name="GetDocumentStatus" xml:space="preserve">
     <value>document.readyState;</value>
@@ -307,7 +307,19 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 	&lt;/div&gt;
   &lt;script&gt;
 	document.addEventListener('DOMContentLoaded', function () {{
-		let circleSize = 100;
+		let circleSize = getCircleSize();
+		function getCircleSize() {{
+			var size = location.hash;
+			if (size.indexOf("#") &gt;= 0) {{
+			  size = size.split('#')[1];
+			  return parseInt(size);
+			}}
+			return 100;
+		}}
+		function updateCircleSize(size) {{
+			location.hash = '#' + size;
+			next.href = next.href.split('#')[0] + location.hash;
+		}}
 		const containers = Array.from(document.getElementsByClassName("container")).forEach((container, index) =&gt; {{
 			const imageContainer = container;
 			const imageOverlay = imageContainer.getElementsByClassName('overlay')[0];
@@ -360,6 +372,7 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 				if (isInsideImage(mouseX, mouseY)) {{
 				  circleSize += e.deltaY &gt; 0 ? -10 : 10;
 				  circleSize = Math.max(0, circleSize);
+				  updateCircleSize(circleSize);
 
 				  updateClipPath(mouseX, mouseY);
 				  e.preventDefault();

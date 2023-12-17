@@ -21,7 +21,7 @@ namespace MangaUnhost.Others {
 
             if (LastChapter != null && File.Exists(LastHtmlPath)) {
                 var LastHtml = File.ReadAllText(LastHtmlPath);
-                if (!LastHtml.Contains("<a href=")) {
+                if (!LastHtml.Contains("<a href=") && !LastHtml.Contains("<a id=\"next\"")) { 
                     int EndReader = LastHtml.LastIndexOf("</div>");
                     if (EndReader > 0)
                     {
@@ -81,7 +81,7 @@ namespace MangaUnhost.Others {
             if (LastChapter != null && File.Exists(LastHtmlPath))
             {
                 var LastHtml = File.ReadAllText(LastHtmlPath);
-                if (!LastHtml.Contains("<a href="))
+                if (!LastHtml.Contains("<a href=") && !LastHtml.Contains("<a id=\"next\""))
                 {
                     int EndReader = LastHtml.LastIndexOf("</div>");
                     if (EndReader > 0)
