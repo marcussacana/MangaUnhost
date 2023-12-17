@@ -757,8 +757,17 @@ namespace MangaUnhost
 
                     if (File.Exists(TlPage))
                     {
-                        TlPages.Add(TlPage);
-                        continue;
+                        using var TLImg = Bitmap.FromFile(TlPage);
+                        var TLSize = TLImg.Size;
+
+                        using var Img = Bitmap.FromFile(Page);
+                        var ImgSize = Img.Size;
+
+                        if (ImgSize == TLSize)
+                        {
+                            TlPages.Add(TlPage);
+                            continue;
+                        }
                     }
 
                     if (Program.MTLAvailable)
