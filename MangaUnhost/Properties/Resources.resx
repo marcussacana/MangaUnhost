@@ -335,7 +335,9 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 			var size = location.hash;
 			if (size.indexOf("#") &gt;= 0) {{
 			  size = size.split('#')[1];
-			  return parseInt(size);
+			  var s = parseInt(size);
+			  updateCircleSize(s);
+			  return s;
 			}}
 			updateCircleSize(100);
 			return 100;
