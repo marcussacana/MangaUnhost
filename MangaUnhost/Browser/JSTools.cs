@@ -103,8 +103,9 @@ namespace MangaUnhost.Browser
         }
 
         public static void InjectXPATH(this ChromiumWebBrowser Browser) => Browser.GetBrowser().InjectXPATH();
-        public static void InjectXPATH(this IBrowser Browser) => Browser.EvaluateScript(Properties.Resources.XPATHScript);
+        public static void InjectXPATH(this IBrowser Browser) => Browser.EvaluateScriptUnsafe(Properties.Resources.XPATHScript);
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
+        public static T EvaluateScriptUnsafe<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScriptUnsafe(Script);
         public static T EvaluateScript<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScript(Script);
         public static T EvaluateScriptUnsafe<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScriptUnsafe(Script);
         public static void EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script, out T Result) => Result = (T)Browser.GetBrowser().EvaluateScript(Script);
