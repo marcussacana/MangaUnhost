@@ -735,14 +735,22 @@ namespace MangaUnhost
 
             var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
                 .Where(x => !x.EndsWith(".tl.png"))
-                .OrderBy(x=> int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
-            
+                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
+
+            var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                .Where(x => x.EndsWith(".tl.png"))
+                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
+
+
             var TlPages = new List<string>();
 
             string Reader = Chapter.TrimEnd('/', '\\') + ".html";
 
-            ImageTranslator ImgTranslator = null;
+            if (ReadyPages.Length == Pages.Length && AllowSkip)
+                return;
 
+            ImageTranslator ImgTranslator = null;
+            
             try
             {
 
@@ -830,6 +838,7 @@ namespace MangaUnhost
                     if (TmpInNewDir)
                         File.Delete(NewPage);
                 }
+
             }
             finally
             {
