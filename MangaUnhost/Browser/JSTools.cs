@@ -161,12 +161,11 @@ namespace MangaUnhost.Browser
             var Browser = DefaultBrowser.GetBrowser();
             DefaultBrowser.JsDialogHandler = new JsDialogHandler();
             DefaultBrowser.Load(Url);
-            Browser.WaitForLoad();
+            Browser.WaitForLoad(10);
 
             while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha())
             {
                 ThreadTools.Wait(100, true);
-                Browser.WaitForLoad();
             }
 
             if (Browser.IsCloudflareAskingCaptcha())
@@ -193,7 +192,7 @@ namespace MangaUnhost.Browser
                 }
             }
 
-            Browser.WaitForLoad();
+            Browser.WaitForLoad(10);
             var HTML = Browser.GetHTML();
             var Cookies = Browser.GetCookies().ToContainer();
 

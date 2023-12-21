@@ -60,19 +60,19 @@ namespace MangaUnhost.Browser
                 ThreadTools.Wait(5, true);
         }
 
-        public static void WaitForLoad(this IBrowser Browser)
+        public static void WaitForLoad(this IBrowser Browser, int MaxSeconds = 60)
         {
             ThreadTools.Wait(100);
             DateTime Begin = DateTime.Now;
-            while (Browser.IsLoading() && (DateTime.Now-Begin).TotalMinutes < 1)
+            while (Browser.IsLoading() && (DateTime.Now-Begin).TotalSeconds < MaxSeconds)
                 ThreadTools.Wait(50, true);
         }
 
-        public static void WaitForLoad(this IFrame Frame)
+        public static void WaitForLoad(this IFrame Frame, int MaxSeconds = 60)
         {
             ThreadTools.Wait(100);
             DateTime Begin = DateTime.Now;
-            while (Frame.IsLoading() && (DateTime.Now - Begin).TotalMinutes < 1)
+            while (Frame.IsLoading() && (DateTime.Now - Begin).TotalSeconds < MaxSeconds)
                 ThreadTools.Wait(50, true);
         }
         public static string GetCurrentUrl(this CefSharp.WinForms.ChromiumWebBrowser Browser) => Browser.GetBrowser().GetCurrentUrl();

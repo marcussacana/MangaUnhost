@@ -74,7 +74,7 @@ namespace MangaUnhost.Hosts
                 return Cache[ID];
 
             var Doc = new HtmlDocument();
-            var Data = Doc.LoadUrl(LinkMap[ID], CFData);
+            var Data = Doc.LoadUrl(LinkMap[ID], Referer: CurrentUrl.AbsoluteUri, CFData: CFData);
             if (Data != null)
                 CFData = Data;
 
@@ -83,7 +83,7 @@ namespace MangaUnhost.Hosts
                 var JS = Doc.SelectSingleNode("//script[contains(., 'ts_reader')]").InnerHtml;
 
                 var ImgList = JS.Substring("\"source\"", "}");
-                return DataTools.ExtractHtmlLinks(ImgList, CurrentUrl.Host, true).ToArray();
+                return Cache[ID] = DataTools.ExtractHtmlLinks(ImgList, CurrentUrl.Host, true).ToArray();
             }
             catch
             {
