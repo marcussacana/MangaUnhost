@@ -81,19 +81,26 @@ namespace MangaUnhost.Browser
             return url.AbsoluteUri.Split('?').FirstOrDefault() ?? string.Empty;
         }
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
+        public static CloudflareData? LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
             Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
+        public static CloudflareData? LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, CloudflareData? CFData, System.Text.Encoding Encoding = null, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null) =>
             Document.LoadUrl(Url, Encoding, Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErrors);
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
+        public static CloudflareData? LoadUrl(this HtmlAgilityPack.HtmlDocument Document, string Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null) =>
             Document.LoadUrl(new Uri(Url), Encoding, Referer, UserAgent, Proxy, Accept, Headers, Cookies, AcceptableErrors);
 
-        public static void LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
+        public static CloudflareData? LoadUrl(this HtmlAgilityPack.HtmlDocument Document, Uri Url, Encoding Encoding = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookies = null, WebExceptionStatus[] AcceptableErrors = null)
         {
             if (Encoding == null)
                 Encoding = Encoding.UTF8;
 
-            string HTML = Encoding.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookies, AcceptableErrors) ?? new byte[0]);
+            string HTML = Encoding.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookies, AcceptableErrors ?? new WebExceptionStatus[] { WebExceptionStatus.ProtocolError }) ?? new byte[0]);
+
+            if (HTML.IsCloudflareTriggered())
+            {
+                var CFData = Url.AbsoluteUri.BypassCloudflare();
+                Document.LoadHtml(CFData.HTML);
+                return CFData;
+            }
 
             Document.LoadHtml(HTML);
 
@@ -102,6 +109,8 @@ namespace MangaUnhost.Browser
                 Program.Writer?.WriteLine("Load URL: {0}\r\nHTML: {1}", Url.AbsoluteUri, HTML);
                 Program.Writer?.Flush();
             }
+
+            return null;
         }
         public static string TryDownloadString(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             Encoding.UTF8.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries) ?? new byte[0]);

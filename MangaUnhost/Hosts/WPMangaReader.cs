@@ -67,10 +67,16 @@ namespace MangaUnhost.Hosts
             return GetChapterPages(ID).Length;
         }
 
+        Dictionary<int, string[]> Cache = new Dictionary<int, string[]>();
         string[] GetChapterPages(int ID)
         {
+            if (Cache.ContainsKey(ID))
+                return Cache[ID];
+
             var Doc = new HtmlDocument();
-            Doc.LoadUrl(LinkMap[ID], CFData);
+            var Data = Doc.LoadUrl(LinkMap[ID], CFData);
+            if (Data != null)
+                CFData = Data;
 
             try
             {
@@ -102,7 +108,7 @@ namespace MangaUnhost.Hosts
 
                     Pages.Add(ImgUrl.Trim());
                 }
-                return Pages.ToArray();
+                return Cache[ID] = Pages.ToArray();
             }
         }
 
