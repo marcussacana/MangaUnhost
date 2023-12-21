@@ -237,6 +237,8 @@ namespace MangaUnhost.Browser
 
             if (Accept != null)
                 Request.Accept = Accept;
+            else
+                Request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
 
             if (Proxy != null)
                 Request.Proxy = new WebProxy(Proxy);
