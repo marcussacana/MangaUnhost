@@ -305,10 +305,10 @@ namespace MangaUnhost
                 {
                     Status = CurrentLanguage.Loading;
                     string HTML;
-                    var Data = URL.TryDownload(URL.Host, ProxyTools.UserAgent);
+                    var Data = URL.TryDownload(URL.AbsoluteUri, ProxyTools.UserAgent);
                     if (Data == null)
                     {
-                        var BypassData = JSTools.BypassCloudflare(URL.Host);
+                        var BypassData = JSTools.BypassCloudflare(URL.AbsoluteUri);
                         HTML = BypassData.HTML;
                     }
                     else

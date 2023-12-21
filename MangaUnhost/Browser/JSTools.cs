@@ -8,7 +8,10 @@ using MangaUnhost;
 using MangaUnhost.Others;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Windows.Forms;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace MangaUnhost.Browser
 {
@@ -25,6 +28,7 @@ namespace MangaUnhost.Browser
 
                 _DefBrowser = new ChromiumWebBrowser("about:blank");
                 _DefBrowser.ReCaptchaHook();
+                _DefBrowser.SetUserAgent(ProxyTools.UserAgent);
 
                 while (!DefaultBrowser.IsBrowserInitialized)
                 {
@@ -102,6 +106,15 @@ namespace MangaUnhost.Browser
             });
         }
 
+        public static IEnumerable<IFrame> GetFrames(this IBrowser Browser)
+        {
+            foreach (var FrameID in Browser.GetFrameIdentifiers())
+            {
+                var Frame = Browser.GetFrame(FrameID);
+                if (Frame != null && Frame.IsValid)
+                    yield return Frame;
+            }
+        }
         public static void InjectXPATH(this ChromiumWebBrowser Browser) => Browser.GetBrowser().InjectXPATH();
         public static void InjectXPATH(this IBrowser Browser) => Browser.EvaluateScriptUnsafe(Properties.Resources.XPATHScript);
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
@@ -150,25 +163,30 @@ namespace MangaUnhost.Browser
             DefaultBrowser.Load(Url);
             Browser.WaitForLoad();
 
-            while (Browser.IsCloudflareTriggered())
+            while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha())
             {
                 ThreadTools.Wait(100, true);
                 Browser.WaitForLoad();
             }
 
-            if (Browser.GetHTML().Contains("why_captcha_headline"))
+            if (Browser.IsCloudflareAskingCaptcha())
             {
-                while (Browser.IsCloudflareTriggered() || Browser.IsCloudflareAskingCaptcha())
+                while (Browser.IsCloudflareTriggered())
                 {
                     if (!DefaultBrowser.ReCaptchaIsSolved())
                     {
                         DefaultBrowser.ReCaptchaTrySolve(Main.Solver);
                         EvaluateScript(Properties.Resources.CloudFlareSubmitCaptcha);
                     }
-                    if (!DefaultBrowser.hCaptchaIsSolved())
+                    else if (!DefaultBrowser.hCaptchaIsSolved())
                     {
                         DefaultBrowser.hCaptchaSolve();
                         ThreadTools.Wait(1000, true);
+                    }
+                    else
+                    {
+                        var Popup = new BrowserPopup(DefaultBrowser, () => !DefaultBrowser.IsCloudflareTriggered());
+                        Popup.ShowDialog();
                     }
                     ThreadTools.Wait(1000, true);
                     Browser.WaitForLoad();
@@ -212,8 +230,8 @@ namespace MangaUnhost.Browser
 
         public static bool IsCloudflareTriggered(this HtmlDocument Document) => Document.ToHTML().IsCloudflareTriggered();
         public static bool IsCloudflareAskingCaptcha(this HtmlDocument Document) => Document.ToHTML().IsCloudflareAskingCaptcha();
-        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Please Wait... | Cloudflare") || HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD");
-        public static bool IsCloudflareAskingCaptcha(this string HTML) => HTML.Contains("why_captcha_headline");
+        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Please Wait... | Cloudflare") || HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD") || HTML.Contains("Checking if the site connection is secure");
+        public static bool IsCloudflareAskingCaptcha(this string HTML) => HTML.Contains("why_captcha_headline") || HTML.Contains("captcha-prompt spacer");
         public static IFrame GetFrameByUrl(this ChromiumWebBrowser Browser, string UrlFragment) => Browser.GetBrowser().GetFrameByUrl(UrlFragment);
         public static IFrame GetFrameByUrl(this IBrowser Browser, string UrlFragment)
         {

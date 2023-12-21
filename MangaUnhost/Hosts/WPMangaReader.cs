@@ -1,17 +1,11 @@
-﻿using HtmlAgilityPack;
-using MangaUnhost.Browser;
+﻿using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
-using System.Windows.Forms;
-using System.Xml;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace MangaUnhost.Hosts

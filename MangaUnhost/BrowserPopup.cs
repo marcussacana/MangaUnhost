@@ -66,6 +66,7 @@ namespace MangaUnhost {
             try {
                 ScreenBox.Image = new Bitmap(ViewRectangle.Width, ViewRectangle.Height);
                 Graphics = Graphics.FromImage(ScreenBox.Image);
+                Graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                 Width += ViewRectangle.Width - ScreenBox.Width;
                 Height += ViewRectangle.Height - ScreenBox.Height;
                 ScreenBox.Size = ViewRectangle.Size;

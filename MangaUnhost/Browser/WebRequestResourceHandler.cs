@@ -24,12 +24,13 @@ namespace MangaUnhost.Browser
             {
                 using (callback)
                 {
+                    HttpWebRequest httpWebRequest = null;
                     try
                     {
                         //Create a clone of the headers so we can modify it
                         var headers = new NameValueCollection(request.Headers);
 
-                        var httpWebRequest = (HttpWebRequest)WebRequest.Create(request.Url);
+                        httpWebRequest = (HttpWebRequest)WebRequest.Create(request.Url);
                         httpWebRequest.UserAgent = headers["User-Agent"];
                         httpWebRequest.Accept = headers["Accept"];
                         httpWebRequest.Method = request.Method;
@@ -49,36 +50,22 @@ namespace MangaUnhost.Browser
                         httpWebRequest.Headers.Add(request.Headers);
 
                         var httpWebResponse = await httpWebRequest.GetResponseAsync() as HttpWebResponse;
-
-                        // Get the stream associated with the response.
-                        var receiveStream = httpWebResponse.GetResponseStream();
-
-                        var Response = new OnWebResponseEventArgs(httpWebResponse, httpWebRequest, new NameValueCollection(httpWebResponse.Headers), receiveStream);
-                        OnResponse?.Invoke(this, Response);
-
-                        var contentType = new ContentTypeHeader(httpWebResponse.ContentType);
-                        var mimeType = contentType.MediaType;
-                        var charSet = contentType.CharSet;
-                        var statusCode = httpWebResponse.StatusCode;
-
-                        var Stream = Response.ResponseData;
-
-                        ResponseLength = httpWebResponse.ContentLength >= 0 ? (long?)httpWebResponse.ContentLength : null;
-                        MimeType = mimeType;
-                        Charset = charSet ?? "UTF-8";
-                        StatusCode = (int)statusCode;
-                        base.Stream = Stream;
-                        AutoDisposeStream = true;
-
-
-                        Headers.Clear();
-                        Headers.Add(Response.Headers);
+                        
+                        FinishResponse(httpWebResponse, httpWebRequest);
 
                         callback.Continue();
                     }
                     catch (NotSupportedException ex)
                     {
                         DefaultHandler(request, callback);
+                    }
+                    catch (WebException ex) {
+                        var Response = ex.Response;
+                        if (Response != null)
+                        {
+                            FinishResponse(Response as HttpWebResponse, httpWebRequest);
+                            callback.Continue();
+                        }
                     }
                     catch
                     {
@@ -88,6 +75,33 @@ namespace MangaUnhost.Browser
             });
 
             return CefReturnValue.ContinueAsync;
+        }
+
+        private void FinishResponse(HttpWebResponse httpWebResponse, HttpWebRequest httpWebRequest)
+        {
+            // Get the stream associated with the response.
+            var receiveStream = httpWebResponse.GetResponseStream();
+
+            var Response = new OnWebResponseEventArgs(httpWebResponse, httpWebRequest, new NameValueCollection(httpWebResponse.Headers), receiveStream);
+            OnResponse?.Invoke(this, Response);
+
+            var contentType = new ContentTypeHeader(httpWebResponse.ContentType);
+            var mimeType = contentType.MediaType;
+            var charSet = contentType.CharSet;
+            var statusCode = httpWebResponse.StatusCode;
+
+            var Stream = Response.ResponseData;
+
+            ResponseLength = httpWebResponse.ContentLength >= 0 ? (long?)httpWebResponse.ContentLength : null;
+            MimeType = mimeType;
+            Charset = charSet ?? "UTF-8";
+            StatusCode = (int)statusCode;
+            base.Stream = Stream;
+            AutoDisposeStream = true;
+
+
+            Headers.Clear();
+            Headers.Add(Response.Headers);
         }
 
         private CefReturnValue DefaultHandler(IRequest request, ICallback callback)
