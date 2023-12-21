@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,6 +46,12 @@ namespace MangaUnhost.Browser
                         {
                             using var RequestStream = httpWebRequest.GetRequestStream();
                             RequestStream.Write(RawPostData, 0, RawPostData.Length);
+                        }
+
+                        foreach (var Header in request.Headers.ToPair())
+                        {
+                            if (httpWebRequest.Headers.AllKeys.Contains(Header.Key))
+                                httpWebRequest.Headers.Remove(Header.Key);
                         }
 
                         httpWebRequest.Headers.Add(request.Headers);

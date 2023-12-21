@@ -268,6 +268,8 @@ namespace MangaUnhost
                     List<string> Pages = new List<string>();
                     foreach (var Data in Host.DownloadPages(ID).CatchExceptions())
                     {
+                        if (Data == null) continue;
+
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
                         Application.DoEvents();
 
@@ -501,6 +503,9 @@ namespace MangaUnhost
 
         public static bool IsWebP(byte[] Data)
         {
+            if (Data == null)
+                return false;
+
             var Signature = BitConverter.ToUInt32(Data, 8);
             return Data.Length > 12 && (Signature == 0x50424557 || Signature == 0x46464952);
         }

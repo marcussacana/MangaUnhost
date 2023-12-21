@@ -6,6 +6,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Drawing;
@@ -131,6 +132,14 @@ namespace MangaUnhost {
                 || Thread.ThreadState == ThreadState.WaitSleepJoin;
         }
 
+        public static IEnumerable<KeyValuePair<string, string>> ToPair(this NameValueCollection Collection)
+        {
+            foreach (var Key in Collection.AllKeys)
+            {
+                foreach (var Value in Collection.GetValues(Key))
+                    yield return new KeyValuePair<string, string>(Key, Value);
+            }
+        }
 
         //XPATH JS Script for testing
         //function $(X, A) { if (A === true) { var Results = []; var Query = document.evaluate(X, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (var i = 0, length = Query.snapshotLength; i < length; ++i) Results.push(Query.snapshotItem(i)); return Results; } return document.evaluate(X, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }

@@ -21,7 +21,16 @@ namespace MangaUnhost.Hosts
         {
             foreach (var Page in GetChapterPages(ID))
             {
-                yield return Page.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri);
+                var Data = Page.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri);
+
+                if (Data == null)
+                {
+                    CFData = Page.BypassCloudflare();
+
+                    Data = Page.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri);
+                }
+
+                yield return Data;
             }
         }
 
