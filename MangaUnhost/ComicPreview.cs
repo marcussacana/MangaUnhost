@@ -713,7 +713,9 @@ namespace MangaUnhost
             if (!File.Exists(ChapReader))
                 return;
 
-            var Pages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x)).ToArray();
+            var Pages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x))
+                .OrderBy(x => ForceNumber(x)).ToArray();
+
             ChapterTools.GenerateComicReader(Language, Pages, LastChapter, NextChapter, ChapPath, Chapter, ChapName);
         }
 
