@@ -666,7 +666,7 @@ namespace MangaUnhost
 
         private void ConvertChapters(string Format)
         {
-            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => Path.GetFileName(x).Substring(" ", IgnoreMissmatch: true)).ToArray();
+            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
             for (int i = 0; i < Chapters.Length; i++)
             {
                 string LastChapter = null;
