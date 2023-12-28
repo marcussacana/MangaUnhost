@@ -143,6 +143,7 @@
 
         public string ReplaceMode => "Você já tem um download com o mesmo nome, o que deseja fazer?";
 
+        public string TaskCompleted => "Tarefa concluída com sucesso.";
         public string UpdateURL => "Atualizar URL";
         public string NewFolder => "Nova Pasta";
         public string Ask => "Perguntar";

@@ -142,6 +142,8 @@
 
         public string ReplaceMode => "You already have downloaded something with the same name, What you wanna do?";
 
+        public string TaskCompleted => "Task Completed Successfully";
+
         public string UpdateURL => "Update URL";
         public string NewFolder => "New Folder";
         public string Ask => "Ask";

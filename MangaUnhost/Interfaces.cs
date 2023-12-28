@@ -174,6 +174,7 @@ namespace MangaUnhost {
         string ConfirmBulk { get; }
         string ConfirmDelete { get; }
         string ForceRetranslation { get; }
+        string TaskCompleted { get; }
 
         string ReplaceMode { get; }
         string UpdateURL { get; }

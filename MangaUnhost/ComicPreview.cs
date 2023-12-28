@@ -245,7 +245,7 @@ namespace MangaUnhost
                             TargetLang.Click += (sender, e) =>
                             {
                                 var TLItem = (ToolStripMenuItem)sender;
-                                TranslateChapter(TLItem.Name, TLItem.Text, false, Chapter, LastChapter, NextChapter);
+                                TranslateChapter(TLItem.Name, TLItem.Text, false, Chapter, LastChapter, NextChapter, null);
                             };
                             SourceLang.DropDownItems.Add(TargetLang);
                         }
@@ -739,7 +739,7 @@ namespace MangaUnhost
         }
 
         static IPacket[] Translators = null;
-        void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
+        async void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
         {
             var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
 
@@ -749,7 +749,14 @@ namespace MangaUnhost
                 string LastChapter = i == 0 ? null : Chapters[i - 1];
                 string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
 
-                TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapter, LastChapter, NextChapter);
+                var Finished = false;
+
+                TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapter, LastChapter, NextChapter, () => Finished = true);
+
+                while (!Finished)
+                {
+                    await Task.Delay(100);
+                }
             }
 
             foreach (var Translator in Translators)
@@ -759,9 +766,14 @@ namespace MangaUnhost
 
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
+
+            Main.Instance.BeginInvoke(new MethodInvoker(() =>
+            {
+                MessageBox.Show(Language.TaskCompleted, "MangaUnhost", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }));
         }
 
-        private async void TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter)
+        private async void TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter, Action OnFinish)
         {
             if (Translators == null)
             {
@@ -796,11 +808,7 @@ namespace MangaUnhost
             Parallel.For(0, Pages.Length, new ParallelOptions()
             {
                 MaxDegreeOfParallelism = Translators.Length
-            }, TranslatePage(SourceLang, TargetLang, AllowSkip, Pages, ReadyPages, (i) =>
-            {
-                Translated++;
-                Main.Status = string.Format(Language.Translating, $"({Translated}/{Pages.Length})");
-            }));
+            }, TranslatePage(SourceLang, TargetLang, AllowSkip, Pages, ReadyPages, (i) => Translated++));
 
             int LastProgressCheck = 0;
             DateTime LastChanged = DateTime.Now;
@@ -811,6 +819,7 @@ namespace MangaUnhost
                 {
                     LastProgressCheck = Translated;
                     LastChanged = DateTime.Now;
+                    Main.Status = string.Format(Language.Translating, $"({Translated}/{Pages.Length})");
                 }
                 await Task.Delay(100);
             }
@@ -821,6 +830,8 @@ namespace MangaUnhost
 
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
+
+            OnFinish?.Invoke();
         }
 
         static SemaphoreSlim TlSemaphore = null;
@@ -862,7 +873,11 @@ namespace MangaUnhost
                 finally
                 {
                     TlSemaphore.Release();
-                    OnPageReady?.Invoke(i);
+
+                    lock (this)
+                    {
+                        OnPageReady?.Invoke(i);
+                    }
                 }
 
             };
