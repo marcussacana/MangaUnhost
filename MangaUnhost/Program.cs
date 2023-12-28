@@ -1,6 +1,7 @@
 ﻿using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using MangaUnhost.Parallelism;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using System;
@@ -59,7 +60,7 @@ namespace MangaUnhost
         /// Ponto de entrada principal para o aplicativo.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] Args)
         {
             if (Debug)
                 Writer = File.CreateText(Path.Combine(Path.GetDirectoryName(CurrentAssembly), "Debug.log"));                
@@ -74,12 +75,32 @@ namespace MangaUnhost
                     Assembly.LoadFrom(PluginPath);
                 }
             }
+
+            if (Args?.Length > 0)
+            {
+                foreach(var Arg in Args)
+                {
+                    
+                    var fArg = Arg.TrimStart('/', '\\', '-', '\"').Trim().Trim('\"');
+                    var Name = fArg.Contains("=") ? fArg.Split('=').First() : fArg;
+                    var Value = fArg.Contains("=") ? fArg.Substring("=") : null;
+
+                    switch (Name.ToLower())
+                    {
+                        case "parallel":
+                            Server.Connect(Value);
+                            return;
+                    }
+                }
+            }
             
             
             if (IsRealWindows)
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+
+                //Application.Run(new ImageTest());
             }
 
             FinishUpdate();

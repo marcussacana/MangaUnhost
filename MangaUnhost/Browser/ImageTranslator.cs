@@ -51,12 +51,13 @@ namespace MangaUnhost.Browser
             var tmpPath = Path.ChangeExtension(Path.GetTempFileName(), "png");
             File.WriteAllBytes(tmpPath, Image);
 
-            /*
+            /*            
             Browser.ShowDevTools();
 
             var test = new BrowserPopup(Browser, () => { return false; });
-            test.ShowDialog();
+            test.Show();
             */
+            
 
             //select image
             TargetFile = tmpPath;

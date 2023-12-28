@@ -16,6 +16,9 @@ using MangaUnhost.Browser;
 using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
+using MangaUnhost.Parallelism;
+using CefSharp.DevTools.Log;
+using System.Threading;
 
 namespace MangaUnhost
 {
@@ -242,7 +245,10 @@ namespace MangaUnhost
                             TargetLang.Click += (sender, e) =>
                             {
                                 var TLItem = (ToolStripMenuItem)sender;
-                                TranslateChapter(Chapter, LastChapter, NextChapter, TLItem.Name, TLItem.Text, false);
+                                var Act = TranslateChapter(TLItem.Name, TLItem.Text, false, new string[] { Chapter });
+                                Act.Invoke(0);
+                                Main.Status = Language.IDLE;
+                                Main.SubStatus = "";
                             };
                             SourceLang.DropDownItems.Add(TargetLang);
                         }
@@ -719,139 +725,104 @@ namespace MangaUnhost
             ChapterTools.GenerateComicReader(Language, Pages, LastChapter, NextChapter, ChapPath, Chapter, ChapName);
         }
 
+        static IPacket[] Translators = new IPacket[5];
         void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
         {
             var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
 
-            for (int i = 0; i < Chapters.Length; i++){
-                string Chapter = Chapters[i];
-                string LastChapter = i == 0 ? null : Chapters[i - 1];
-                string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
-                TranslateChapter(Chapter, LastChapter, NextChapter, SourceLang, TargetLang, AllowSkip);
-            }
-        }
-
-        private void TranslateChapter(string Chapter, string LastChapter, string NextChapter, string SourceLang, string TargetLang, bool AllowSkip)
-        {
-            Main.Status = Language.Loading;
-
-            var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
-                .Where(x => !x.EndsWith(".tl.png"))
-                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
-
-            var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
-                .Where(x => x.EndsWith(".tl.png"))
-                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
-
-
-            var TlPages = new List<string>();
-
-            string Reader = Chapter.TrimEnd('/', '\\') + ".html";
-
-            if (ReadyPages.Length == Pages.Length && AllowSkip)
-                return;
-
-            ImageTranslator ImgTranslator = null;
-            
-            try
+            Parallel.For(0, Chapters.Length, new ParallelOptions()
             {
+                MaxDegreeOfParallelism = Translators.Length
+            }, TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapters));
 
-                for (int i = 0; i < Pages.Length; i++)
-                {
-                    var Page = Pages[i];
-                    var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLAvailable ? Program.MTLPath : Page), Path.GetFileName(Page));
-                    var TlPage = NewPage + ".tl.png";
-
-                    bool TmpInNewDir = new FileInfo(NewPage).FullName != new FileInfo(Page).FullName;
-                    if (TmpInNewDir)
-                        File.Copy(Page, NewPage, true);
-
-                    if (File.Exists(TlPage) && AllowSkip)
-                    {
-                        using var TLImg = Bitmap.FromFile(TlPage);
-                        var TLSize = TLImg.Size;
-
-                        using var Img = Bitmap.FromFile(Page);
-                        var ImgSize = Img.Size;
-
-                        if (ImgSize == TLSize)
-                        {
-                            TlPages.Add(TlPage);
-                            continue;
-                        }
-                    }
-
-                    if (Program.MTLAvailable)
-                    {
-                        for (int x = 3; x >= 0 && !File.Exists(TlPage); x--)
-                        {
-                            var StartInfo = new ProcessStartInfo(Program.PythonPath);
-                            StartInfo.Arguments = $"{Path.GetFileName(Program.MTLPath)} --image \"{Path.GetFileName(Page)}\" --output \"{Path.GetFileName(Page)}.out.png\" --sourcelang {SourceLang} --targetlang {TargetLang} --use-inpainting --use-cuda"; // --use-cuda";
-                            StartInfo.WorkingDirectory = Path.GetDirectoryName(Program.MTLPath);
-
-                            var Proc = Process.Start(StartInfo);
-
-                            while (!Proc.WaitForExit(100))
-                                Application.DoEvents();
-                        }
-                    }
-                    else
-                    {
-                        if (ImgTranslator == null)
-                            ImgTranslator = new ImageTranslator(SourceLang, TargetLang);
-
-                        var ImgData = File.ReadAllBytes(NewPage);
-
-                        for (int x = 3; x >= 0; x--)
-                        {
-                            try
-                            {
-                                var NewData = ImgTranslator.TranslateImage(ImgData);
-
-                                using var OriData = new MemoryStream(ImgData);
-                                using var OriImage = Bitmap.FromStream(OriData);
-
-                                using var NewDataStream = new MemoryStream(NewData);
-                                using var NewImage = Bitmap.FromStream(NewDataStream);
-
-                                using var g = Graphics.FromImage(OriImage);
-                                g.DrawImage(NewImage, 0, 0, OriImage.Width, OriImage.Height);
-                                g.Flush();
-
-                                OriImage.Save(TlPage);
-
-                                break;
-                            }
-                            catch
-                            {
-                                ImgTranslator.Reload();
-                            }
-                        }
-                    }
-
-                    Main.Status = string.Format(Language.Translating, Path.GetFileName(Chapter.TrimEnd('/', '\\')));
-                    Main.SubStatus = string.Format(Language.Reaming, Pages.Length - i - 1);
-
-                    TlPages.Add(TlPage);
-
-                    if (!File.Exists(TlPage))
-                        continue;
-
-                    if (TmpInNewDir)
-                        File.Delete(NewPage);
-                }
-
-            }
-            finally
+            foreach (var Translator in Translators)
             {
-                ImgTranslator?.Dispose();
+                Translator?.Dispose();
             }
 
-            ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, TlPages.ToArray(), LastChapter, NextChapter, Chapter);
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
         }
 
+        static SemaphoreSlim TlSemaphore = new SemaphoreSlim(Translators.Length);
+
+        private Action<int> TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string[] Chapters)
+        {
+            return async (i) =>
+            {
+                while (TlSemaphore.CurrentCount == 0)
+                    await Task.Delay(100);
+
+                TlSemaphore.Wait();
+
+                while (true)
+                {
+                    try
+                    {
+                        string Chapter = Chapters[i];
+                        string LastChapter = i == 0 ? null : Chapters[i - 1];
+                        string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
+
+                        IPacket Translator = null;
+                        int TranslatorID = 0;
+
+                        if (GetNullTranslators().Any())
+                        {
+                            var Info = GetNullTranslators().First();
+
+                            TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
+
+                            _ = Server.Run(Server.HandlerType.Translate, (Packet) =>
+                            {
+                                Translator = Packet;
+                                TCS.SetResult(true);
+                            });
+
+                            await TCS.Task;
+
+                            Translators[TranslatorID = Info.Item2] = Translator;
+                        }
+                        else
+                        {
+                            while (!GetFreeTranslators().Any())
+                            {
+                                await Task.Delay(100);
+                            }
+
+                            var Info = GetFreeTranslators().First();
+                            Translator = Info.Item1;
+                            Translators[TranslatorID = Info.Item2] = Translator;
+                        }
+
+                        Translator.Request(LastChapter, Chapter, NextChapter, SourceLang, TargetLang, AllowSkip);
+
+                        var OK = await Translator.WaitForEnd((i, total) =>
+                        {
+                            Main.Status = string.Format(Language.Translating, $"({i}/{total})");
+                            Main.SubStatus = Path.GetFileName(Chapter.TrimEnd('/', '\\'));
+                        });
+
+                        if (!OK)
+                            continue;
+                    }
+                    finally
+                    {
+                        TlSemaphore.Release();
+                    }
+
+                    break;
+                }
+            };
+        }
+
+        private IEnumerable<(IPacket,int)> GetNullTranslators()
+        {
+            return Translators.Select((x, i) => (x, i)).Where(x => x.x == null || !x.x.PipeStream.IsConnected);
+        }
+        private IEnumerable<(IPacket, int)> GetFreeTranslators()
+        {
+            return Translators.Select((x, i) => (x, i)).Where(x => x.x != null && !x.x.Busy && x.x.PipeStream.IsConnected);
+        }
 
         private string[] ListFiles(string Dir, params string[] Filters) {
             List<string> Files = new List<string>();

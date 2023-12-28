@@ -103,6 +103,15 @@
     <Compile Include="Hosts\Weloma.cs" />
     <Compile Include="Hosts\WPMangaReader.cs" />
     <Compile Include="Others\FormUpload.cs" />
+    <Compile Include="Parallelism\ChapterTranslator.cs" />
+    <Compile Include="Parallelism\IPacket.cs" />
+    <Compile Include="Parallelism\Server.cs" />
+    <Compile Include="ImageTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ImageTest.Designer.cs">
+      <DependentUpon>ImageTest.cs</DependentUpon>
+    </Compile>
     <Compile Include="WCRWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -187,6 +196,9 @@
     <EmbeddedResource Include="ComicPage.resx">
       <DependentUpon>ComicPage.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ImageTest.resx">
+      <DependentUpon>ImageTest.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="WCRWindow.resx">
       <DependentUpon>WCRWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -243,6 +255,9 @@
     </When>
   </Choose>
   <ItemGroup>
+    <PackageReference Include="AForge.Imaging">
+      <Version>2.2.5</Version>
+    </PackageReference>
     <PackageReference Include="CefSharp.Common">
       <Version>119.4.30</Version>
     </PackageReference>

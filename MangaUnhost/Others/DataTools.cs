@@ -1,12 +1,16 @@
-﻿using HtmlAgilityPack;
+﻿using AForge.Imaging.Filters;
+using AForge.Imaging;
+using HtmlAgilityPack;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
+using Image = System.Drawing.Image;
 
 namespace MangaUnhost.Others {
 
@@ -257,6 +261,42 @@ namespace MangaUnhost.Others {
 
 
             return Links;
+        }
+
+        public static bool AreImagesSimilar(this Image ImageA, Image ImageB, double MinSimilarity = 0.997, float threshold = 0.8f)
+        {
+            if (threshold > 1)
+                throw new ArgumentOutOfRangeException(nameof(threshold));
+
+            // Carregar as imagens
+            Bitmap image1 = new Bitmap(ImageA);
+            Bitmap image2 = new Bitmap(ImageB);
+
+            try
+            {
+                // Redimensionar as imagens para a mesma resolução
+                ResizeNearestNeighbor resizeFilter = new ResizeNearestNeighbor(image1.Width, image1.Height);
+                image2 = resizeFilter.Apply(image2);
+
+                // Converter as imagens para escala de cinza para simplificar a comparação
+                Grayscale grayscaleFilter = new Grayscale(0.2125, 0.7154, 0.0721);
+                using var grayImg1 = grayscaleFilter.Apply(image1);
+                using var grayImg2 = grayscaleFilter.Apply(image2);
+
+                var Results = new ExhaustiveTemplateMatching(threshold).ProcessImage(grayImg1.To24bppRgbFormat(), grayImg2.To24bppRgbFormat());
+
+                return Results.Any(x => x.Similarity >= MinSimilarity);
+            }
+            finally
+            {
+                image1.Dispose();
+                image2.Dispose();
+            }
+        }
+        public static Bitmap To24bppRgbFormat(this Bitmap img)
+        {
+            return img.Clone(new Rectangle(0, 0, img.Width, img.Height),
+                System.Drawing.Imaging.PixelFormat.Format24bppRgb);
         }
     }
 }

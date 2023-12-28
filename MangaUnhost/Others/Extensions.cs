@@ -288,6 +288,27 @@ namespace MangaUnhost {
             }
         }
 
+
+        public static void WriteNullableString(this BinaryWriter Writer, string String)
+        {
+            if (String == null)
+            {
+                Writer.Write(false);
+                return;
+            }
+
+            Writer.Write(true);
+            Writer.Write(String);
+        }
+        public static string ReadNullableString(this BinaryReader Reader)
+        {
+            if (Reader.ReadBoolean())
+            {
+                return Reader.ReadString();
+            }
+
+            return null;
+        }
         public static byte[] GetResponseData(this WebRequest Request) {
             using (var Response = Request.GetResponse())
             using (var ResponseData = Response.GetResponseStream())
