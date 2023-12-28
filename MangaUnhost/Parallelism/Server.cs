@@ -15,12 +15,14 @@ namespace MangaUnhost.Parallelism
     {
         public enum HandlerType : int
         {
-            Translate
+            ChapterTranslate,
+            PageTranslate
         }
 
         static Dictionary<HandlerType, Func<IPacket>> Packets = new Dictionary<HandlerType, Func<IPacket>>()
         {
-            { HandlerType.Translate, new Func<IPacket>(() => new ChapterTranslator()) }
+            { HandlerType.ChapterTranslate, new Func<IPacket>(() => new ChapterTranslator()) },
+            { HandlerType.PageTranslate, new Func<IPacket>(() => new PageTranslator()) }
         };
 
         public static void Connect(string arg)
@@ -42,6 +44,7 @@ namespace MangaUnhost.Parallelism
 
                 Stream.Connect();
                 Writer.Write((int)Type);
+                Writer.Write(Process.GetCurrentProcess().Id);
                 Writer.Flush();
 
                 Packet = Packets[Type]();
@@ -53,7 +56,9 @@ namespace MangaUnhost.Parallelism
             }
             catch (Exception ex)
             {
+#if DEBUG
                 MessageBox.Show(ex.ToString(), "SERVICE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+#endif
             }
         }
 
@@ -70,15 +75,18 @@ namespace MangaUnhost.Parallelism
 
             await Stream.WaitForConnectionAsync();
 
-            var ID = (HandlerType)Reader.ReadInt32();
+            var PacketID = (HandlerType)Reader.ReadInt32();
+            var ProcessID = Reader.ReadInt32();
 
-            if (!Packets.TryGetValue(ID, out var HandlerInfo))
+            if (!Packets.TryGetValue(PacketID, out var HandlerInfo))
             {
                 throw new Exception("Invalid pipe Packet Type");
             }
 
             var Handler = HandlerInfo();
+
             Handler.PipeStream = Stream;
+            Handler.ProcessID = ProcessID;
 
             PacketHandler?.Invoke(Handler);
 

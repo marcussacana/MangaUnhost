@@ -245,10 +245,7 @@ namespace MangaUnhost
                             TargetLang.Click += (sender, e) =>
                             {
                                 var TLItem = (ToolStripMenuItem)sender;
-                                var Act = TranslateChapter(TLItem.Name, TLItem.Text, false, new string[] { Chapter });
-                                Act.Invoke(0);
-                                Main.Status = Language.IDLE;
-                                Main.SubStatus = "";
+                                TranslateChapter(TLItem.Name, TLItem.Text, false, Chapter, LastChapter, NextChapter);
                             };
                             SourceLang.DropDownItems.Add(TargetLang);
                         }
@@ -628,7 +625,11 @@ namespace MangaUnhost
         {
             using (ZipFile Zip = new ZipFile())
             {
-                Zip.AddDirectory(InputDir, "/");
+                var Pages = Directory.GetFiles(InputDir)
+                    .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x)))
+                    .ToArray();
+
+                Zip.AddFiles(Pages, "");
                 Zip.CompressionMethod = CompressionMethod.BZip2;
                 Zip.Save(Output);
             }
@@ -685,7 +686,6 @@ namespace MangaUnhost
                 if (i + 1 < Chapters.Length)
                     NextChapter = Chapters[i + 1];
 
-
                 ConvertChapter(Chapter, LastChapter, NextChapter, Format);
             }
 
@@ -720,20 +720,37 @@ namespace MangaUnhost
                 return;
 
             var Pages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x))
+                .Where(x => !x.EndsWith(".tl" + Path.GetExtension(x)))
                 .OrderBy(x => ForceNumber(x)).ToArray();
 
-            ChapterTools.GenerateComicReader(Language, Pages, LastChapter, NextChapter, ChapPath, Chapter, ChapName);
+            var TlPages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x))
+                .Where(x => x.EndsWith(".tl" + Path.GetExtension(x)))
+                .OrderBy(x => ForceNumber(x)).ToArray();
+
+            if (TlPages.Length == 0)
+            {
+                ChapterTools.GenerateComicReader(Language, Pages, LastChapter, NextChapter, ChapPath, Chapter, ChapName);
+            }
+            else
+            {
+                ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, TlPages, LastChapter, NextChapter, Chapter);
+            }
+
         }
 
-        static IPacket[] Translators = new IPacket[5];
+        static IPacket[] Translators = null;
         void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
         {
             var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
 
-            Parallel.For(0, Chapters.Length, new ParallelOptions()
+            for (int i = 0; i < Chapters.Length; i++)
             {
-                MaxDegreeOfParallelism = Translators.Length
-            }, TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapters));
+                string Chapter = Chapters[i];
+                string LastChapter = i == 0 ? null : Chapters[i - 1];
+                string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
+
+                TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapter, LastChapter, NextChapter);
+            }
 
             foreach (var Translator in Translators)
             {
@@ -744,9 +761,71 @@ namespace MangaUnhost
             Main.SubStatus = "";
         }
 
-        static SemaphoreSlim TlSemaphore = new SemaphoreSlim(Translators.Length);
+        private async void TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter)
+        {
+            if (Translators == null)
+            {
+                var Value = Ini.GetConfig("Settings", "TLConcurrency", Main.SettingsPath, false);
 
-        private Action<int> TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string[] Chapters)
+                if (int.TryParse(Value, out int Threads))
+                {
+                    Translators = new IPacket[Math.Max(1, Threads)];
+                }
+                else
+                {
+                    Translators = new IPacket[5];
+                     Ini.SetConfig("Settings", "TLConcurrency", "5", Main.SettingsPath);
+                }
+
+                TlSemaphore = new SemaphoreSlim(Translators.Length);
+            }
+
+            var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                                .Where(x => !x.EndsWith(".tl.png"))
+                                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
+
+            var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                .Where(x => x.EndsWith(".tl.png"))
+                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
+
+            Main.Status = Language.Loading;
+            Main.SubStatus = Path.GetFileName(Chapter.TrimEnd('/', '\\'));
+
+            int Translated = 0;
+
+            Parallel.For(0, Pages.Length, new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = Translators.Length
+            }, TranslatePage(SourceLang, TargetLang, AllowSkip, Pages, ReadyPages, (i) =>
+            {
+                Translated++;
+                Main.Status = string.Format(Language.Translating, $"({Translated}/{Pages.Length})");
+            }));
+
+            int LastProgressCheck = 0;
+            DateTime LastChanged = DateTime.Now;
+
+            while (Translated != Pages.Length && (DateTime.Now - LastChanged).TotalMinutes < 5)
+            {
+                if (LastProgressCheck != Translated)
+                {
+                    LastProgressCheck = Translated;
+                    LastChanged = DateTime.Now;
+                }
+                await Task.Delay(100);
+            }
+
+            ReadyPages = Pages.Select(x => x + ".tl.png").ToArray();
+
+            ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, ReadyPages, LastChapter, NextChapter, Chapter);
+
+            Main.Status = Language.IDLE;
+            Main.SubStatus = "";
+        }
+
+        static SemaphoreSlim TlSemaphore = null;
+
+        private Action<int> TranslatePage(string SourceLang, string TargetLang, bool AllowSkip, string[] Pages, string[] ReadyPages, Action<int> OnPageReady)
         {
             return async (i) =>
             {
@@ -755,64 +834,72 @@ namespace MangaUnhost
 
                 TlSemaphore.Wait();
 
-                while (true)
+                try
                 {
-                    try
+                    for (int x = 0; x < 3; x++)
                     {
-                        string Chapter = Chapters[i];
-                        string LastChapter = i == 0 ? null : Chapters[i - 1];
-                        string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
+                        var Page = Pages[i];
+                        if (ReadyPages.Contains(Page + ".tl.png") && AllowSkip)
+                            break;
 
-                        IPacket Translator = null;
-                        int TranslatorID = 0;
-
-                        if (GetNullTranslators().Any())
+                        try
                         {
-                            var Info = GetNullTranslators().First();
+                            IPacket Translator = await GetTranslator();
+                            Translator.Request(new string[] { Page }, SourceLang, TargetLang);
 
-                            TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
+                            var OK = await Translator.WaitForEnd((i, total) => { });
 
-                            _ = Server.Run(Server.HandlerType.Translate, (Packet) =>
-                            {
-                                Translator = Packet;
-                                TCS.SetResult(true);
-                            });
-
-                            await TCS.Task;
-
-                            Translators[TranslatorID = Info.Item2] = Translator;
+                            if (!OK)
+                                continue;
                         }
-                        else
-                        {
-                            while (!GetFreeTranslators().Any())
-                            {
-                                await Task.Delay(100);
-                            }
-
-                            var Info = GetFreeTranslators().First();
-                            Translator = Info.Item1;
-                            Translators[TranslatorID = Info.Item2] = Translator;
-                        }
-
-                        Translator.Request(LastChapter, Chapter, NextChapter, SourceLang, TargetLang, AllowSkip);
-
-                        var OK = await Translator.WaitForEnd((i, total) =>
-                        {
-                            Main.Status = string.Format(Language.Translating, $"({i}/{total})");
-                            Main.SubStatus = Path.GetFileName(Chapter.TrimEnd('/', '\\'));
-                        });
-
-                        if (!OK)
+                        catch {
                             continue;
-                    }
-                    finally
-                    {
-                        TlSemaphore.Release();
-                    }
+                        }
 
-                    break;
+                        break;
+                    }
                 }
+                finally
+                {
+                    TlSemaphore.Release();
+                    OnPageReady?.Invoke(i);
+                }
+
             };
+        }
+        private async Task<IPacket> GetTranslator()
+        {
+            IPacket Translator = null;
+
+            if (GetNullTranslators().Any())
+            {
+                var Info = GetNullTranslators().First();
+
+                TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
+
+                _ = Server.Run(Server.HandlerType.PageTranslate, (Packet) =>
+                {
+                    Translator = Packet;
+                    TCS.SetResult(true);
+                });
+
+                await TCS.Task;
+
+                Translators[Info.Item2]?.Dispose();
+                Translators[Info.Item2] = Translator;
+            }
+            else
+            {
+                while (!GetFreeTranslators().Any())
+                {
+                    await Task.Delay(100);
+                }
+
+                var Info = GetFreeTranslators().First();
+                Translator = Info.Item1;
+            }
+
+            return Translator;
         }
 
         private IEnumerable<(IPacket,int)> GetNullTranslators()

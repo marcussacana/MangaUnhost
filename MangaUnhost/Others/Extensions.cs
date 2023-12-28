@@ -309,6 +309,35 @@ namespace MangaUnhost {
 
             return null;
         }
+
+        public static void WriteStringArray(this BinaryWriter Writer, string[] Strings)
+        {
+            if (Strings == null)
+            {
+                Writer.Write(false);
+                return;
+            }
+
+            Writer.Write(true);
+            Writer.Write(Strings.Length);
+
+            foreach (var String in Strings)
+                Writer.WriteNullableString(String);
+        }
+        public static string[] ReadStringArray(this BinaryReader Reader)
+        {
+            if (!Reader.ReadBoolean())
+            {
+                return null;
+            }
+
+            var Data = new string[Reader.ReadInt32()];
+            for (int i = 0; i < Data.Length; i++)
+            {
+                Data[i] = Reader.ReadNullableString();
+            }
+            return Data;
+        }
         public static byte[] GetResponseData(this WebRequest Request) {
             using (var Response = Request.GetResponse())
             using (var ResponseData = Response.GetResponseStream())
