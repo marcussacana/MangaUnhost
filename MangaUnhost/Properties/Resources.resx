@@ -305,7 +305,7 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 	  bottom: 0;
 	  left: 0;
 	  width: max-content;
-	  background-color: #ccc;
+	  background-color: #000;
 	}}
 	.container {{
 	  position: relative;
@@ -313,6 +313,7 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 	  height: max-content;
 	  margin-bottom: -5px;
 	  overflow: hidden;
+	  margin: auto;
 	}}
 	
 	.overlay {{

@@ -190,7 +190,7 @@ namespace MangaUnhost.Properties {
         ///	  bottom: 0;
         ///	  left: 0;
         ///	  width: max-content;
-        ///	  background-color: #ccc;
+        ///	  background-color: #000;
         ///	}}
         ///	.container {{
         ///	  position: relative;
