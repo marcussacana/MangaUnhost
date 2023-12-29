@@ -345,7 +345,8 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 		}}
 		function updateCircleSize(size) {{
 			location.hash = '#' + size;
-			next.href = next.href.split('#')[0] + location.hash;
+			if (typeof(next) != 'undefined')
+			  next.href = next.href.split('#')[0] + location.hash;
 		}}
 		const containers = Array.from(document.getElementsByClassName("container")).forEach((container, index) =&gt; {{
 			const imageContainer = container;
