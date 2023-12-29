@@ -42,6 +42,7 @@ namespace MangaUnhost.Parallelism
                 using var Reader = new BinaryReader(Stream);
                 using var Writer = new BinaryWriter(Stream);
 
+
                 Stream.Connect();
                 Writer.Write((int)Type);
                 Writer.Write(Process.GetCurrentProcess().Id);
@@ -67,7 +68,7 @@ namespace MangaUnhost.Parallelism
         {
             string Name = $"{(int)Type}-{Rand.Next()}";
 
-            var Stream = new NamedPipeServerStream(Name);
+            var Stream = new NamedPipeServerStream(Name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
             var Reader = new BinaryReader(Stream);
             var Writer = new BinaryWriter(Stream);
 

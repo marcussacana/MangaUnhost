@@ -19,6 +19,7 @@ namespace MangaUnhost.Parallelism
         }
         public int PacketID => 0;
         public bool Busy { get; private set; }
+        public bool Disposed { get; private set; }
         public NamedPipeServerStream PipeStream { get; set; }
         public int ProcessID { get; set; }
 
@@ -208,6 +209,7 @@ namespace MangaUnhost.Parallelism
 
         public void Dispose()
         {
+            Disposed = true;
             PipeStream.Dispose();
         }
     }

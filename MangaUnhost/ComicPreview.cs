@@ -19,6 +19,8 @@ using System.Diagnostics;
 using MangaUnhost.Parallelism;
 using CefSharp.DevTools.Log;
 using System.Threading;
+using Org.BouncyCastle.Utilities.Encoders;
+using System.Xml.Schema;
 
 namespace MangaUnhost
 {
@@ -767,7 +769,7 @@ namespace MangaUnhost
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
 
-            Main.Instance.BeginInvoke(new MethodInvoker(() =>
+            Main.Instance.Invoke(new MethodInvoker(() =>
             {
                 MessageBox.Show(Language.TaskCompleted, "MangaUnhost", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }));
@@ -853,19 +855,28 @@ namespace MangaUnhost
                         if (ReadyPages.Contains(Page + ".tl.png") && AllowSkip)
                             break;
 
+                        IPacket Translator = null;
+
+                        bool OK = false;
                         try
                         {
-                            IPacket Translator = await GetTranslator();
+                            Translator = await GetTranslator();
+
                             Translator.Request(new string[] { Page }, SourceLang, TargetLang);
 
-                            var OK = await Translator.WaitForEnd((i, total) => { });
-
+                            OK = await Translator.WaitForEnd((i, total) => { });
+                        }
+                        catch { }
+                        finally
+                        {
                             if (!OK)
-                                continue;
+                            {
+                                Translator?.Dispose();
+                            }
                         }
-                        catch {
+
+                        if (!OK)
                             continue;
-                        }
 
                         break;
                     }
@@ -919,11 +930,11 @@ namespace MangaUnhost
 
         private IEnumerable<(IPacket,int)> GetNullTranslators()
         {
-            return Translators.Select((x, i) => (x, i)).Where(x => x.x == null || !x.x.PipeStream.IsConnected);
+            return Translators.Select((x, i) => (x, i)).Where(x => x.x == null || !x.x.PipeStream.IsConnected || x.x.Disposed);
         }
         private IEnumerable<(IPacket, int)> GetFreeTranslators()
         {
-            return Translators.Select((x, i) => (x, i)).Where(x => x.x != null && !x.x.Busy && x.x.PipeStream.IsConnected);
+            return Translators.Select((x, i) => (x, i)).Where(x => x.x != null && !x.x.Busy && x.x.PipeStream.IsConnected && !x.x.Disposed);
         }
 
         private string[] ListFiles(string Dir, params string[] Filters) {

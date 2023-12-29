@@ -1,5 +1,6 @@
 ﻿using MangaUnhost.Browser;
 using MangaUnhost.Others;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,6 +21,8 @@ namespace MangaUnhost.Parallelism
         public int PacketID => 1;
         public bool Busy { get; private set; }
         public int ProcessID { get; set; }
+
+        public bool Disposed { get; private set; }
         public NamedPipeServerStream PipeStream { get; set; }
 
         private NamedPipeClientStream PipeClientStream;
@@ -117,9 +120,14 @@ namespace MangaUnhost.Parallelism
 
         void IPacket.Request(params object[] Args)
         {
+            if (Disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
             if (Args.Length != 3) throw new ArgumentException("Must be (1 string array + 2 string) argument list");
 
             if (!PipeStream.IsConnected) throw new Exception("Pipe Connection Lost");
+
+            if (Busy) throw new Exception("Service Currently in a busy state");
 
             try
             {
@@ -133,48 +141,65 @@ namespace MangaUnhost.Parallelism
             }
             catch
             {
+                Busy = false;
                 PipeStream?.Disconnect();
             }
         }
 
         public async Task<bool> WaitForEnd(Action<int, int> ProgressChanged)
         {
+            if (Disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (!Busy)
+                throw new Exception("No task available to wait it.");
+
+            PipeStream.ReadTimeout = 1000;
             var Reader = new BinaryReader(PipeStream, Encoding.UTF8, true);
             var buffer = new byte[1];
-            while (PipeStream.IsConnected)
+            try
             {
-                try
+                while (PipeStream.IsConnected)
                 {
-                    int readed = await PipeStream.ReadAsync(buffer, 0, buffer.Length);
+                    try
+                    {
 
-                    if (readed == 0)
+                        int readed = await PipeStream.ReadAsync(buffer, 0, buffer.Length);
+
+                        if (readed == 0)
+                            break;
+
+                        if (buffer[0] != 0)
+                        {
+                            return true;
+                        }
+
+                        if (PipeStream.IsConnected)
+                        {
+                            var Current = Reader.ReadInt32();
+                            var Total = Reader.ReadInt32();
+                            ProgressChanged.Invoke(Current, Total);
+                        }
+                    }
+                    catch
+                    {
                         break;
-
-                    if (buffer[0] != 0)
-                    {
-                        Busy = false;
-                        return true;
-                    }
-
-                    if (PipeStream.IsConnected)
-                    {
-                        var Current = Reader.ReadInt32();
-                        var Total = Reader.ReadInt32();
-                        ProgressChanged.Invoke(Current, Total);
                     }
                 }
-                catch
-                {
-                    break;
-                }
+
+                return false;
             }
-
-            Busy = false;
-            return false;
+            finally {
+                Busy = false;
+            }
         }
-
         public void Dispose()
         {
+            if (Disposed)
+                return;
+
+            Disposed = true;
+            Busy = false;
             PipeStream?.Dispose();
 
             try

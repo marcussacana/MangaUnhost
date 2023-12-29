@@ -8,6 +8,7 @@ namespace MangaUnhost.Parallelism
     internal interface IPacket : IDisposable
     {
         public int ProcessID { get; set; }
+        public bool Disposed { get; }
         public NamedPipeServerStream PipeStream { get; set; }
         public bool Busy { get; }
         public int PacketID { get; }
