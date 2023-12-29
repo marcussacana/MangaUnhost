@@ -833,7 +833,6 @@ namespace MangaUnhost
                             LibraryContainer.Controls.Add(Preview);
                         }
                         catch { }
-                        Thread.Sleep(5);
                         Application.DoEvents();
                     }
                 }

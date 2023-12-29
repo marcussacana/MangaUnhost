@@ -1,4 +1,5 @@
-﻿using MangaUnhost.Browser;
+﻿using CefSharp;
+using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using Microsoft.VisualBasic;
 using System;
@@ -9,7 +10,9 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Parallelism
 {
@@ -30,13 +33,20 @@ namespace MangaUnhost.Parallelism
         public void Process(BinaryReader Reader, BinaryWriter Writer)
         {
             PipeClientStream = (NamedPipeClientStream)Reader.BaseStream;
-            var Pages = Reader.ReadStringArray();
-            var SourceLanguage = Reader.ReadNullableString();
-            var TargetLanguage = Reader.ReadNullableString();
 
-            TranslatePages(Pages, SourceLanguage, TargetLanguage);
+            try
+            {
+                var Pages = Reader.ReadStringArray();
+                var SourceLanguage = Reader.ReadNullableString();
+                var TargetLanguage = Reader.ReadNullableString();
 
-            Writer.Write(true);
+                TranslatePages(Pages, SourceLanguage, TargetLanguage);
+            }
+            finally
+            {
+                Writer.Write(true);
+                Writer.Flush();
+            }
         }
 
         private void TranslatePages(string[] Pages, string SourceLang, string TargetLang)
@@ -68,26 +78,8 @@ namespace MangaUnhost.Parallelism
                     {
                         try
                         {
-                            var NewData = ImgTranslator.TranslateImage(ImgData);
-
-                            using var OriData = new MemoryStream(ImgData);
-                            using var OriImage = Bitmap.FromStream(OriData);
-                            using var OriImageRef = Bitmap.FromStream(OriData);
-
-                            using var NewDataStream = new MemoryStream(NewData);
-                            using var NewImage = Bitmap.FromStream(NewDataStream);
-
-                            using var g = Graphics.FromImage(OriImage);
-                            g.DrawImage(NewImage, 0, 0, OriImage.Width, OriImage.Height);
-                            g.Flush();
-
-                            if (OriImageRef.AreImagesSimilar(OriImage) && x > 0)
-                            {
-                                throw new Exception("Translated Image not Changed");
-                            }
-
-                            OriImage.Save(TlPage);
-
+                            var NewData = AutoSplitAndTranslate(ImgTranslator, ImgData, x);
+                            File.WriteAllBytes(TlPage, NewData);
                             break;
                         }
                         catch
@@ -116,6 +108,85 @@ namespace MangaUnhost.Parallelism
             {
                 ImgTranslator?.Dispose();
             }
+        }
+
+        private static byte[] AutoSplitAndTranslate(ImageTranslator ImgTranslator, byte[] ImgData, int TriesLeft = 0)
+        {
+            bool TooBig = ImgData.Length >= 1024 * 1024 * 10;
+
+            if (!TooBig)
+            {
+                using MemoryStream ImgStream = new MemoryStream(ImgData);
+                using Bitmap img = Bitmap.FromStream(ImgStream) as Bitmap;
+                if (img.Width < img.Height / 3)
+                    TooBig = true;
+            }
+
+            if (TooBig)
+            {
+                byte[] NewDataA, NewDataB;
+
+                using MemoryStream ImgStream = new MemoryStream(ImgData);
+                using Bitmap FullImage = Bitmap.FromStream(ImgStream) as Bitmap;
+                {
+                    using MemoryStream PartAData = new MemoryStream();
+                    using MemoryStream PartBData = new MemoryStream();
+                    {
+                        using Bitmap PartA = FullImage.Clone(new Rectangle(0, 0, FullImage.Width, FullImage.Height / 2), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                        using Bitmap PartB = FullImage.Clone(new Rectangle(0, FullImage.Height / 2, FullImage.Width, FullImage.Height / 2), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+                        PartA.Save(PartAData, System.Drawing.Imaging.ImageFormat.Png);
+                        PartB.Save(PartBData, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+
+
+                    NewDataA = AutoSplitAndTranslate(ImgTranslator, PartAData.ToArray(), TriesLeft);
+                    NewDataB = AutoSplitAndTranslate(ImgTranslator, PartBData.ToArray(), TriesLeft);
+                }
+
+                using MemoryStream NewPartAData = new MemoryStream(NewDataA);
+                using Bitmap NewPartA = Bitmap.FromStream(NewPartAData) as Bitmap;
+                using MemoryStream NewPartBData = new MemoryStream(NewDataB);
+                using Bitmap NewPartB = Bitmap.FromStream(NewPartBData) as Bitmap;
+
+                using Graphics Render = Graphics.FromImage(FullImage);
+                Render.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                Render.DrawImage(NewPartA, 0, 0, FullImage.Width, FullImage.Height / 2);
+                Render.DrawImage(NewPartB, 0, FullImage.Height / 2, FullImage.Width, FullImage.Height / 2);
+                Render.Flush();
+
+                using MemoryStream NewImage = new MemoryStream();
+                FullImage.Save(NewImage, System.Drawing.Imaging.ImageFormat.Png);
+                return NewImage.ToArray();
+            }
+
+            var NewData = ImgTranslator.TranslateImage(ImgData);
+
+            using MemoryStream OriData = new MemoryStream(ImgData);
+            using Bitmap OriImage = Bitmap.FromStream(OriData) as Bitmap;
+
+            using Bitmap FinalImage = new Bitmap(OriImage.Width, OriImage.Height);            
+            using Graphics graphics = Graphics.FromImage(FinalImage);
+            {
+                using MemoryStream tmpData = new MemoryStream(NewData);
+                using Bitmap tmpImage = Bitmap.FromStream(tmpData) as Bitmap;
+                graphics.DrawImage(tmpImage, 0, 0, FinalImage.Width, FinalImage.Height);
+            }
+
+            if (OriImage.AreImagesSimilar(FinalImage) && TriesLeft > 0)
+            {
+                if (TriesLeft > 0)
+                {
+                    ImgTranslator.Reload();
+                    return AutoSplitAndTranslate(ImgTranslator, ImgData, 0);    
+                }
+
+                throw new Exception("Translated Image not Changed");
+            }
+
+            using MemoryStream FinalData = new MemoryStream();
+            FinalImage.Save(FinalData, System.Drawing.Imaging.ImageFormat.Png);
+            return FinalData.ToArray();
         }
 
         void IPacket.Request(params object[] Args)
@@ -154,7 +225,6 @@ namespace MangaUnhost.Parallelism
             if (!Busy)
                 throw new Exception("No task available to wait it.");
 
-            PipeStream.ReadTimeout = 1000;
             var Reader = new BinaryReader(PipeStream, Encoding.UTF8, true);
             var buffer = new byte[1];
             try
@@ -163,8 +233,7 @@ namespace MangaUnhost.Parallelism
                 {
                     try
                     {
-
-                        int readed = await PipeStream.ReadAsync(buffer, 0, buffer.Length);
+                        var readed = await PipeStream.ReadAsync(buffer, 0, buffer.Length);
 
                         if (readed == 0)
                             break;

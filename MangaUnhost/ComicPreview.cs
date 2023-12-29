@@ -17,10 +17,7 @@ using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
 using MangaUnhost.Parallelism;
-using CefSharp.DevTools.Log;
 using System.Threading;
-using Org.BouncyCastle.Utilities.Encoders;
-using System.Xml.Schema;
 
 namespace MangaUnhost
 {
@@ -277,7 +274,7 @@ namespace MangaUnhost
             }
             try
             {
-                return double.Parse(Numbers, System.Globalization.NumberFormatInfo.InvariantInfo);
+                return double.Parse(Numbers.Trim('.', ','), System.Globalization.NumberFormatInfo.InvariantInfo);
             }
             catch
             {
@@ -866,7 +863,8 @@ namespace MangaUnhost
 
                             OK = await Translator.WaitForEnd((i, total) => { });
                         }
-                        catch { }
+                        catch { 
+                        }
                         finally
                         {
                             if (!OK)
@@ -981,9 +979,9 @@ namespace MangaUnhost
                     {
                         using (var g = Graphics.FromImage(target))
                         {
-                            g.CompositingQuality = CompositingQuality.HighQuality;
-                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            g.SmoothingMode = SmoothingMode.HighQuality;
+                            g.CompositingQuality = CompositingQuality.HighSpeed;
+                            g.InterpolationMode = InterpolationMode.Default;
+                            g.SmoothingMode = SmoothingMode.HighSpeed;
 
                             // Scaling
                             float scaling;

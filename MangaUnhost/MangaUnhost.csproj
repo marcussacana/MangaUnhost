@@ -104,7 +104,6 @@
     <Compile Include="Hosts\WPMangaReader.cs" />
     <Compile Include="Others\FormUpload.cs" />
     <Compile Include="Parallelism\PageTranslator.cs" />
-    <Compile Include="Parallelism\ChapterTranslator.cs" />
     <Compile Include="Parallelism\IPacket.cs" />
     <Compile Include="Parallelism\Server.cs" />
     <Compile Include="ImageTest.cs">

@@ -15,13 +15,11 @@ namespace MangaUnhost.Parallelism
     {
         public enum HandlerType : int
         {
-            ChapterTranslate,
             PageTranslate
         }
 
         static Dictionary<HandlerType, Func<IPacket>> Packets = new Dictionary<HandlerType, Func<IPacket>>()
         {
-            { HandlerType.ChapterTranslate, new Func<IPacket>(() => new ChapterTranslator()) },
             { HandlerType.PageTranslate, new Func<IPacket>(() => new PageTranslator()) }
         };
 
@@ -44,6 +42,8 @@ namespace MangaUnhost.Parallelism
 
 
                 Stream.Connect();
+                Stream.ReadMode = PipeTransmissionMode.Byte;
+
                 Writer.Write((int)Type);
                 Writer.Write(Process.GetCurrentProcess().Id);
                 Writer.Flush();
