@@ -18,6 +18,7 @@ using System.Drawing.Drawing2D;
 using System.Diagnostics;
 using MangaUnhost.Parallelism;
 using System.Threading;
+using System.Globalization;
 
 namespace MangaUnhost
 {
@@ -253,6 +254,7 @@ namespace MangaUnhost
                     ChapItem.DropDownItems.Add(Translate);
 
                     OpenChapter.DropDownItems.Add(ChapItem);
+                    Application.DoEvents();
                 }
                 OpenChapter.Visible = true;
             }
@@ -260,7 +262,7 @@ namespace MangaUnhost
 
         private double ForceNumber(string Str)
         {
-            Str = Path.GetFileName(Str);
+            Str = Path.GetFileName(Str.ToLower().Replace("ch", "."));
             string Numbers = string.Empty;
             foreach (var Char in Str)
             {
@@ -272,9 +274,38 @@ namespace MangaUnhost
 
                 Numbers += Char;
             }
+
+            Numbers = Numbers.Trim('.', ',').Replace(",", ".");
+
+            var Reversed = Numbers.Reverse().ToArray();
+
+            Numbers = "";
+            var Multiplier = "";
+            bool InVol = false;
+            foreach (var Char in Reversed)
+            {
+                if (Char == '.' && Numbers.Contains('.'))
+                {
+                    InVol = true;
+                    continue;
+                }
+
+                if (InVol)
+                    Multiplier = Char + Multiplier;
+                else
+                    Numbers = Char + Numbers;
+            }
+
+            Numbers = Numbers.Trim('.', ',');
+            Multiplier = Multiplier.Trim('.', ',');
+
             try
             {
-                return double.Parse(Numbers.Trim('.', ','), System.Globalization.NumberFormatInfo.InvariantInfo);
+                var NumA = double.Parse(Numbers, NumberFormatInfo.InvariantInfo);
+                if (double.TryParse(Multiplier, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo, out double NumB))
+                    return NumA * NumB;
+
+                return NumA;
             }
             catch
             {
@@ -740,7 +771,8 @@ namespace MangaUnhost
         static IPacket[] Translators = null;
         async void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
         {
-            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
+            var Chapters = Directory.GetDirectories(ChapPath)
+                .OrderBy(x => ForceNumber(Path.GetFileName(x.TrimEnd('/', '\\')))).ToArray();
 
             for (int i = 0; i < Chapters.Length; i++)
             {
