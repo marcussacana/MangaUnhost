@@ -178,7 +178,7 @@ namespace MangaUnhost.Parallelism
                 if (TriesLeft > 0)
                 {
                     ImgTranslator.Reload();
-                    return AutoSplitAndTranslate(ImgTranslator, ImgData, 0);    
+                    return AutoSplitAndTranslate(ImgTranslator, ImgData, TriesLeft - 1);    
                 }
 
                 throw new Exception("Translated Image not Changed");

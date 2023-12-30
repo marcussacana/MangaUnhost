@@ -846,7 +846,7 @@ namespace MangaUnhost
 
                 try
                 {
-                    for (int x = 0; x < 3; x++)
+                    for (int x = 0; x < 4; x++)
                     {
                         var Page = Pages[i];
                         if (ReadyPages.Contains(Page + ".tl.png") && AllowSkip)
@@ -863,8 +863,7 @@ namespace MangaUnhost
 
                             OK = await Translator.WaitForEnd((i, total) => { });
                         }
-                        catch { 
-                        }
+                        catch { }
                         finally
                         {
                             if (!OK)
@@ -873,7 +872,7 @@ namespace MangaUnhost
                             }
                         }
 
-                        if (!OK)
+                        if (!OK || !File.Exists(Page + ".tl.png"))
                             continue;
 
                         break;
