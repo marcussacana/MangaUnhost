@@ -102,7 +102,7 @@ namespace MangaUnhost
             InitializePreview();
         }
 
-        readonly string[] Langs = new string[] { "EN", "JA", "ZH", "RU", "FR", "IT", "ES", "PT" };
+        readonly string[] Langs = new string[] { "EN", "JA", "zh-CN", "RU", "FR", "IT", "ES", "PT" };
 
         void SetupLanguagePairs() {
             foreach (var SL in new string[] { "AUTO" }.Concat(Langs)) {

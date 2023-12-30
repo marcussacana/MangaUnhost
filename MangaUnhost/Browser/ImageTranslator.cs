@@ -15,8 +15,8 @@ namespace MangaUnhost.Browser
         ChromiumWebBrowser Browser;
         public ImageTranslator(string SourceLang, string TargetLang)
         {
-            this.SourceLang = SourceLang.ToLower();
-            this.TargetLang = TargetLang.ToLower();
+            this.SourceLang = SourceLang;
+            this.TargetLang = TargetLang;
 
             Browser = new ChromiumWebBrowser();
             Browser.DialogHandler = new DialogEventHandler();
