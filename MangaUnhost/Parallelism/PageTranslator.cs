@@ -187,7 +187,7 @@ namespace MangaUnhost.Parallelism
             return FinalData.ToArray();
         }
 
-        void IPacket.Request(params object[] Args)
+        async Task IPacket.Request(params object[] Args)
         {
             if (Disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -202,9 +202,9 @@ namespace MangaUnhost.Parallelism
             {
                 var Writer = new BinaryWriter(PipeStream, Encoding.UTF8, true);
 
-                Writer.WriteStringArray((string[])Args[0]);//last chapter
-                Writer.WriteNullableString((string)Args[1]);//source lang
-                Writer.WriteNullableString((string)Args[2]);//target lang
+                await Writer.WriteStringArray((string[])Args[0]);//last chapter
+                await Writer.WriteNullableString((string)Args[1]);//source lang
+                await Writer.WriteNullableString((string)Args[2]);//target lang
                 Writer.Flush();
 
                 Busy = true;

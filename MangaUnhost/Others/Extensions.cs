@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -297,10 +298,10 @@ namespace MangaUnhost {
         {
             int readed = 0;
             TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
-            new Thread(async () => {
+            new Thread(() => {
                 try
                 {
-                    readed = await strm.ReadAsync(buffer, offset, count);
+                    readed = strm.Read(buffer, offset, count);
                     TCS.SetResult(true);
                 }
                 catch
@@ -317,40 +318,79 @@ namespace MangaUnhost {
 
             return -2;
         }
-        public static void WriteNullableString(this BinaryWriter Writer, string String)
+
+        /// <summary>
+        /// Returns -1 if write operation failed with an exception,
+        /// Returns -2 if write operation failed with timeout
+        /// </summary>
+        public static async Task TimeoutWriteAsync(this Stream strm, byte[] buffer, int offset, int count, TimeSpan Timeout)
         {
-            if (String == null)
+            TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
+            new Thread(() => {
+                try
+                {
+                    strm.Write(buffer, offset, count);
+                    TCS.SetResult(true);
+                }
+                catch
+                {
+                    TCS.SetResult(false);
+                }
+            }).Start();
+
+            var rst = await Task.WhenAny(TCS.Task, Task.Delay(Timeout));
+
+            if (rst is Task<bool> bTask)
             {
-                Writer.Write(false);
+                if (!bTask.Result)
+                    throw new IOException("Failed to write");
                 return;
             }
 
-            Writer.Write(true);
-            Writer.Write(String);
+            throw new IOException("Pipe not respoding.");
+        }
+        public static async Task WriteNullableString(this BinaryWriter Writer, string String)
+        {
+            if (String == null)
+            {
+                await Writer.BaseStream.TimeoutWriteAsync(new byte[1], 0, 1, TimeSpan.FromSeconds(60));
+                return;
+            }
+
+            await Writer.BaseStream.TimeoutWriteAsync(new byte[] { 1 }, 0, 1, TimeSpan.FromSeconds(60));
+            
+            var Data = Encoding.UTF8.GetBytes(String);
+            await Writer.BaseStream.TimeoutWriteAsync(BitConverter.GetBytes(Data.Length), 0, 4, TimeSpan.FromSeconds(60));
+            await Writer.BaseStream.TimeoutWriteAsync(Data, 0, Data.Length, TimeSpan.FromSeconds(60));
         }
         public static string ReadNullableString(this BinaryReader Reader)
         {
             if (Reader.ReadBoolean())
             {
-                return Reader.ReadString();
+                var Size = Reader.ReadInt32();
+                var Data = new byte[Size];
+                Reader.Read(Data, 0, Size);
+
+                return Encoding.UTF8.GetString(Data);
             }
 
             return null;
         }
 
-        public static void WriteStringArray(this BinaryWriter Writer, string[] Strings)
+        public static async Task WriteStringArray(this BinaryWriter Writer, string[] Strings)
         {
             if (Strings == null)
             {
-                Writer.Write(false);
+                await Writer.BaseStream.TimeoutWriteAsync(new byte[1], 0, 1, TimeSpan.FromSeconds(60));
                 return;
             }
 
-            Writer.Write(true);
-            Writer.Write(Strings.Length);
+            await Writer.BaseStream.TimeoutWriteAsync(new byte[] { 1 }, 0, 1, TimeSpan.FromSeconds(60));
+
+            await Writer.BaseStream.TimeoutWriteAsync(BitConverter.GetBytes(Strings.Length), 0, 4, TimeSpan.FromSeconds(60));
 
             foreach (var String in Strings)
-                Writer.WriteNullableString(String);
+                await Writer.WriteNullableString(String);
         }
         public static string[] ReadStringArray(this BinaryReader Reader)
         {

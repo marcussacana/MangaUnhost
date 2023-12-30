@@ -14,7 +14,7 @@ namespace MangaUnhost.Parallelism
         public int PacketID { get; }
         public void Process(BinaryReader Reader, BinaryWriter Writer);
 
-        public void Request(params object[] Args);
+        public Task Request(params object[] Args);
 
         public Task<bool> WaitForEnd(Action<int, int> ProgressChanged);
     }

@@ -47,9 +47,7 @@ namespace MangaUnhost
             {
                 Instance.StatusBar.FirstLabelText = value;
 
-                if (Instance.InvokeRequired)
-                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
-                else
+                if (!Instance.InvokeRequired)
                     Application.DoEvents();
             }
         }
@@ -60,9 +58,7 @@ namespace MangaUnhost
             {
                 Instance.StatusBar.SecondLabelText = value;
 
-                if (Instance.InvokeRequired)
-                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
-                else
+                if (!Instance.InvokeRequired)
                     Application.DoEvents();
             }
         }
@@ -73,9 +69,7 @@ namespace MangaUnhost
             {
                 Instance.StatusBar.ThirdLabelText = value;
 
-                if (Instance.InvokeRequired)
-                    Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
-                else
+                if (!Instance.InvokeRequired)
                     Application.DoEvents();
             }
         }
@@ -88,9 +82,7 @@ namespace MangaUnhost
 
                 try
                 {
-                    if (Instance.InvokeRequired)
-                        Instance.Invoke(new MethodInvoker(() => Application.DoEvents()));
-                    else
+                    if (!Instance.InvokeRequired)
                         Application.DoEvents();
                 }
                 catch { }

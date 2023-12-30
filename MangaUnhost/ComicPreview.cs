@@ -896,7 +896,7 @@ namespace MangaUnhost
                         {
                             Translator = await GetTranslator();
 
-                            Translator.Request(new string[] { Page }, SourceLang, TargetLang);
+                            await Translator.Request(new string[] { Page }, SourceLang, TargetLang);
 
                             OK = await Translator.WaitForEnd((i, total) => { 
                                 //Translator?.Dispose();
