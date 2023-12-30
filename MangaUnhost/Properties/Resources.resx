@@ -311,9 +311,9 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 	  position: relative;
 	  width: max-content;
 	  height: max-content;
-	  margin-bottom: -5px;
 	  overflow: hidden;
 	  margin: auto;
+	  margin-bottom: -5px;
 	}}
 	
 	.overlay {{
