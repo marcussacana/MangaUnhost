@@ -133,53 +133,60 @@ namespace MangaUnhost.Others
 
         public static string PromptOption(string Question, string[] Options)
         {
-            if (Options.Length == 1)
-                return Options.Single();
-
-            var Form = new Form {
-                Size = new System.Drawing.Size(270, 120)
-            };
-
-            VSContainer ThemeContainer = new VSContainer() {
-                Form = Form,
-                FormOrWhole = VSContainer.__FormOrWhole.Form,
-                AllowMaximize = false,
-                AllowMinimize = false,
-                NoTitleWrap = true,                
-                Text = Question
-            };
-            Form.Controls.Add(ThemeContainer);
-
-
-            VSComboBox ComboBox = new VSComboBox()
+            lock (Main.Instance)
             {
-                Size = new System.Drawing.Size(235, 30),
-                Location = new System.Drawing.Point(10, 40)
-            };
+                if (Options.Length == 1)
+                    return Options.Single();
 
-            foreach (string Language in Options)
-                ComboBox.Items.Add(Language);
-
-            ComboBox.SelectedIndex = 0;
-
-            ThemeContainer.Controls.Add(ComboBox);
-
-            Timer Timer = null;
-            if (ThemeContainer.Text.Length > 20) {
-                ThemeContainer.ShowDots = true;
-                ThemeContainer.Text += " ";
-                Timer = new Timer();
-                Timer.Interval = 80;
-                Timer.Tick += (a, b) => {
-                    ThemeContainer.Text = ThemeContainer.Text.Substring(1) + ThemeContainer.Text[0];
+                var Form = new Form
+                {
+                    Size = new System.Drawing.Size(270, 120)
                 };
-                Timer.Enabled = true;
+
+                VSContainer ThemeContainer = new VSContainer()
+                {
+                    Form = Form,
+                    FormOrWhole = VSContainer.__FormOrWhole.Form,
+                    AllowMaximize = false,
+                    AllowMinimize = false,
+                    NoTitleWrap = true,
+                    Text = Question
+                };
+                Form.Controls.Add(ThemeContainer);
+
+
+                VSComboBox ComboBox = new VSComboBox()
+                {
+                    Size = new System.Drawing.Size(235, 30),
+                    Location = new System.Drawing.Point(10, 40)
+                };
+
+                foreach (string Language in Options)
+                    ComboBox.Items.Add(Language);
+
+                ComboBox.SelectedIndex = 0;
+
+                ThemeContainer.Controls.Add(ComboBox);
+
+                Timer Timer = null;
+                if (ThemeContainer.Text.Length > 20)
+                {
+                    ThemeContainer.ShowDots = true;
+                    ThemeContainer.Text += " ";
+                    Timer = new Timer();
+                    Timer.Interval = 80;
+                    Timer.Tick += (a, b) =>
+                    {
+                        ThemeContainer.Text = ThemeContainer.Text.Substring(1) + ThemeContainer.Text[0];
+                    };
+                    Timer.Enabled = true;
+                }
+
+                Form.ShowDialog(Main.Instance);
+                Timer?.Dispose();
+
+                return ComboBox.SelectedItem.ToString();
             }
-
-            Form.ShowDialog(Main.Instance);
-            Timer?.Dispose();
-
-            return ComboBox.SelectedItem.ToString();
         }
 
 
