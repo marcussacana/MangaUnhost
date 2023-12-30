@@ -855,6 +855,11 @@ namespace MangaUnhost
                 await Task.Delay(100);
             }
 
+            if (Pages.Any(x => !File.Exists(x + ".tl.png"))) {
+                TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish);
+                return;
+            }
+
             ReadyPages = Pages.Select(x => x + ".tl.png").ToArray();
 
             ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, ReadyPages, LastChapter, NextChapter, Chapter);
