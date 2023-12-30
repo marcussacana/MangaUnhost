@@ -272,9 +272,22 @@ namespace MangaUnhost
 
                 Numbers += Char;
             }
+            Numbers = Numbers.Trim('.', ',').Replace(",", ".");
+
+            var Reversed = Numbers.Reverse().ToArray();
+
+            Numbers = "";
+            foreach (var Char in Reversed)
+            {
+                if (Char == '.' && Numbers.Contains('.'))
+                    continue;
+
+                Numbers = Char + Numbers;
+            }
+
             try
             {
-                return double.Parse(Numbers.Trim('.', ','), System.Globalization.NumberFormatInfo.InvariantInfo);
+                return double.Parse(Numbers, System.Globalization.NumberFormatInfo.InvariantInfo);
             }
             catch
             {
@@ -740,7 +753,8 @@ namespace MangaUnhost
         static IPacket[] Translators = null;
         async void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
         {
-            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
+            var Chapters = Directory.GetDirectories(ChapPath)
+                .OrderBy(x => ForceNumber(Path.GetFileName(x.TrimEnd('/', '\\')))).ToArray();
 
             for (int i = 0; i < Chapters.Length; i++)
             {
