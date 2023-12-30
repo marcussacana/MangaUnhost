@@ -50,9 +50,17 @@ namespace MangaUnhost.Parallelism
 
                 Packet = Packets[Type]();
 
-                while (Stream.IsConnected)
+                try
                 {
-                    Packet.Process(Reader, Writer);
+                    while (Stream.IsConnected)
+                    {
+                        Packet.Process(Reader, Writer);
+                        Writer.Flush();
+                        Stream.Flush();
+                    }
+                } finally
+                {
+                    Packet.Dispose();
                 }
             }
             catch (Exception ex)
@@ -68,7 +76,7 @@ namespace MangaUnhost.Parallelism
         {
             string Name = $"{(int)Type}-{Rand.Next()}";
 
-            var Stream = new NamedPipeServerStream(Name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            using var Stream = new NamedPipeServerStream(Name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
             var Reader = new BinaryReader(Stream);
             var Writer = new BinaryWriter(Stream);
 

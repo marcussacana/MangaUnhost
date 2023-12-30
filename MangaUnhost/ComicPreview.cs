@@ -861,7 +861,9 @@ namespace MangaUnhost
 
                             Translator.Request(new string[] { Page }, SourceLang, TargetLang);
 
-                            OK = await Translator.WaitForEnd((i, total) => { });
+                            OK = await Translator.WaitForEnd((i, total) => { 
+                                //Translator?.Dispose();
+                            });
                         }
                         catch { }
                         finally
@@ -872,7 +874,7 @@ namespace MangaUnhost
                             }
                         }
 
-                        if (!OK || !File.Exists(Page + ".tl.png"))
+                        if (!File.Exists(Page + ".tl.png"))
                             continue;
 
                         break;

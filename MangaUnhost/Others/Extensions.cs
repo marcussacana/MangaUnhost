@@ -1,5 +1,6 @@
 ﻿using CefSharp;
 using CefSharp.EventHandler;
+using CefSharp.Internals;
 using CefSharp.OffScreen;
 using MangaUnhost.Browser;
 using Nito.AsyncEx;
@@ -288,7 +289,34 @@ namespace MangaUnhost {
             }
         }
 
+        /// <summary>
+        /// Returns -1 if read operation failed with an exception,
+        /// Returns -2 if read operation failed with timeout
+        /// </summary>
+        public static async Task<int> TimeoutReadAsync(this Stream strm, byte[] buffer, int offset, int count, TimeSpan Timeout)
+        {
+            int readed = 0;
+            TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
+            new Thread(async () => {
+                try
+                {
+                    readed = await strm.ReadAsync(buffer, offset, count);
+                    TCS.SetResult(true);
+                }
+                catch
+                {
+                    TCS.SetResult(false);
+                }
+            }).Start();
 
+            var rst = await Task.WhenAny(TCS.Task, Task.Delay(Timeout));
+            if (rst is Task<bool> bTask)
+            {
+                return bTask.Result ? readed : -1;
+            }
+
+            return -2;
+        }
         public static void WriteNullableString(this BinaryWriter Writer, string String)
         {
             if (String == null)

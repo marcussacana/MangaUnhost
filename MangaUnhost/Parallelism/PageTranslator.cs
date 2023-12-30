@@ -18,9 +18,18 @@ namespace MangaUnhost.Parallelism
 {
     internal class PageTranslator : IPacket
     {
+
+        ImageTranslator ImgTranslator = null;
+
+        public PageTranslator()
+        {
+            //Each instance runs a CEF so...
+            GC.AddMemoryPressure(1024 * 1024 * 100);
+        }
         ~PageTranslator() {
             Dispose();
         }
+
         public int PacketID => 1;
         public bool Busy { get; private set; }
         public int ProcessID { get; set; }
@@ -53,60 +62,49 @@ namespace MangaUnhost.Parallelism
         {
             var TlPages = new List<string>();
 
-            ImageTranslator ImgTranslator = null;
-
-            try
+            for (int i = 0; i < Pages.Length; i++)
             {
+                var Page = Pages[i];
+                var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLAvailable ? Program.MTLPath : Page), Path.GetFileName(Page));
+                var TlPage = NewPage + ".tl.png";
 
-                for (int i = 0; i < Pages.Length; i++)
+                bool TmpInNewDir = new FileInfo(NewPage).FullName != new FileInfo(Page).FullName;
+                if (TmpInNewDir)
+                    File.Copy(Page, NewPage, true);
+
+
+                if (ImgTranslator == null)
+                    ImgTranslator = new ImageTranslator(SourceLang, TargetLang);
+
+                var ImgData = File.ReadAllBytes(NewPage);
+
+                for (int x = 3; x >= 0; x--)
                 {
-                    var Page = Pages[i];
-                    var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLAvailable ? Program.MTLPath : Page), Path.GetFileName(Page));
-                    var TlPage = NewPage + ".tl.png";
-
-                    bool TmpInNewDir = new FileInfo(NewPage).FullName != new FileInfo(Page).FullName;
-                    if (TmpInNewDir)
-                        File.Copy(Page, NewPage, true);
-
-
-                    if (ImgTranslator == null)
-                        ImgTranslator = new ImageTranslator(SourceLang, TargetLang);
-
-                    var ImgData = File.ReadAllBytes(NewPage);
-
-                    for (int x = 3; x >= 0; x--)
+                    try
                     {
-                        try
-                        {
-                            var NewData = AutoSplitAndTranslate(ImgTranslator, ImgData, x);
-                            File.WriteAllBytes(TlPage, NewData);
-                            break;
-                        }
-                        catch
-                        {
-                            ImgTranslator.Reload();
-                        }
+                        var NewData = AutoSplitAndTranslate(ImgTranslator, ImgData, x);
+                        File.WriteAllBytes(TlPage, NewData);
+                        break;
                     }
-
-                    var Writer = new BinaryWriter(PipeClientStream, Encoding.UTF8, true);
-                    Writer.Write(false);
-                    Writer.Write(i);
-                    Writer.Write(Pages.Length);
-                    Writer.Flush();
-
-                    TlPages.Add(TlPage);
-
-                    if (!File.Exists(TlPage))
-                        continue;
-
-                    if (TmpInNewDir)
-                        File.Delete(NewPage);
+                    catch
+                    {
+                        ImgTranslator.Reload();
+                    }
                 }
 
-            }
-            finally
-            {
-                ImgTranslator?.Dispose();
+                var Writer = new BinaryWriter(PipeClientStream, Encoding.UTF8, true);
+                Writer.Write(false);
+                Writer.Write(i);
+                Writer.Write(Pages.Length);
+                Writer.Flush();
+
+                TlPages.Add(TlPage);
+
+                if (!File.Exists(TlPage))
+                    continue;
+
+                if (TmpInNewDir)
+                    File.Delete(NewPage);
             }
         }
 
@@ -208,6 +206,7 @@ namespace MangaUnhost.Parallelism
                 Writer.WriteNullableString((string)Args[1]);//source lang
                 Writer.WriteNullableString((string)Args[2]);//target lang
                 Writer.Flush();
+
                 Busy = true;
             }
             catch
@@ -233,9 +232,9 @@ namespace MangaUnhost.Parallelism
                 {
                     try
                     {
-                        var readed = await PipeStream.ReadAsync(buffer, 0, buffer.Length);
+                        var readed = await PipeStream.TimeoutReadAsync(buffer, 0, buffer.Length, TimeSpan.FromSeconds(60 * 3));
 
-                        if (readed == 0)
+                        if (readed <= 0)
                             break;
 
                         if (buffer[0] != 0)
@@ -270,6 +269,10 @@ namespace MangaUnhost.Parallelism
             Disposed = true;
             Busy = false;
             PipeStream?.Dispose();
+            PipeClientStream?.Dispose();
+            ImgTranslator?.Dispose();
+
+            GC.RemoveMemoryPressure(1024 * 1024 * 100);
 
             try
             {
