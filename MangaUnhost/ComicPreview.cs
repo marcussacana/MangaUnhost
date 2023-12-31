@@ -887,15 +887,21 @@ namespace MangaUnhost
                         //to skip images that is really translated already.
                         if (ReadyExists)
                         {
-                            try
+                            lock (this)
                             {
-                                using var ImgA = Bitmap.FromFile(Page);
-                                using var ImgB = Bitmap.FromFile(Page + ".tl.png");
+                                try
+                                {
+                                    using var ImgA = Bitmap.FromFile(Page);
+                                    using var ImgB = Bitmap.FromFile(Page + ".tl.png");
 
-                                if (!ImgA.AreImagesSimilar(ImgB))
-                                    break;
+                                    if (!ImgA.AreImagesSimilar(ImgB))
+                                    {
+                                        if (!Main.Config.UseAForge && !ImgA.OpenCV_SSIM_AreImageSimilar(ImgB))
+                                            break;
+                                    }
+                                }
+                                catch { }
                             }
-                            catch { }
                         }
 
                         IPacket Translator = null;

@@ -302,8 +302,53 @@ namespace MangaUnhost.Others
             if (similarity > 1)
                 throw new ArgumentOutOfRangeException(nameof(similarity));
 
-            using Mat image1 = new Mat();
-            using Mat image2 = new Mat();
+            Mat image1 = null;
+            Mat image2 = null;
+            try
+            {
+                EnsurePairSize(ImgA, ImgB, out image1, out image2);
+
+                if (image1.IsEmpty || image2.IsEmpty)
+                {
+                    throw new Exception("Failed to read the image");
+                }
+
+                Mat mat1 = new Mat();
+                Mat mat2 = new Mat();
+                CvInvoke.CvtColor(image1, mat1, ColorConversion.Rgb2Hsv);
+                CvInvoke.CvtColor(image2, mat2, ColorConversion.Rgb2Hsv);
+
+                mat1.ConvertTo(mat1, DepthType.Cv32F);
+                mat2.ConvertTo(mat2, DepthType.Cv32F);
+
+                using VectorOfUMat Vec1 = new VectorOfUMat();
+                using VectorOfUMat Vec2 = new VectorOfUMat();
+                Vec1.Push(mat1.GetUMat(AccessType.Read));
+                Vec2.Push(mat2.GetUMat(AccessType.Read));
+
+                using Mat hist1 = new Mat();
+                using Mat hist2 = new Mat();
+                CvInvoke.CalcHist(Vec1, new int[] { 0, 1 }, null, hist1, new int[] { 180, 256 }, new float[] { 0, 180, 0, 256 }, false);
+                CvInvoke.CalcHist(Vec2, new int[] { 0, 1 }, null, hist2, new int[] { 180, 256 }, new float[] { 0, 180, 0, 256 }, false);
+
+                CvInvoke.Normalize(hist1, hist1, 0, 1, NormType.MinMax);
+                CvInvoke.Normalize(hist2, hist2, 0, 1, NormType.MinMax);
+
+                double distance = CvInvoke.CompareHist(hist1, hist2, HistogramCompMethod.Bhattacharyya);
+
+                return distance < similarity;
+            }
+            finally
+            {
+                image1?.Dispose();
+                image2?.Dispose();
+            }
+        }
+
+        private static void EnsurePairSize(Image ImgA, Image ImgB, out Mat image1, out Mat image2)
+        {
+            image1 = new Mat();
+            image2 = new Mat();
             {
                 using MemoryStream DataA = new MemoryStream();
                 using MemoryStream DataB = new MemoryStream();
@@ -340,43 +385,26 @@ namespace MangaUnhost.Others
                 CvInvoke.Imdecode(DataA.ToArray(), ImreadModes.Color, image1);
                 CvInvoke.Imdecode(DataB.ToArray(), ImreadModes.Color, image2);
             }
+        }
 
-            if (image1.IsEmpty || image2.IsEmpty)
+        public static bool OpenCV_SSIM_AreImageSimilar(this Image ImgA, Image ImgB)
+        {
+            Mat image1 = null;
+            Mat image2 = null;
+            try
             {
-                throw new Exception("Failed to read the image");
-            }
+                EnsurePairSize(ImgA, ImgB, out image1, out image2);
 
-            Mat mat1 = new Mat();
-            Mat mat2 = new Mat();
-            CvInvoke.CvtColor(image1, mat1, ColorConversion.Rgb2Hsv);
-            CvInvoke.CvtColor(image2, mat2, ColorConversion.Rgb2Hsv);
-
-            mat1.ConvertTo(mat1, DepthType.Cv32F);
-            mat2.ConvertTo(mat2, DepthType.Cv32F);
-
-            using VectorOfUMat Vec1 = new VectorOfUMat();
-            using VectorOfUMat Vec2 = new VectorOfUMat();
-            Vec1.Push(mat1.GetUMat(AccessType.Read));
-            Vec2.Push(mat2.GetUMat(AccessType.Read));
-
-            using Mat hist1 = new Mat();
-            using Mat hist2 = new Mat();
-            CvInvoke.CalcHist(Vec1, new int[] { 0, 1 }, null, hist1, new int[] { 180, 256 }, new float[] { 0, 180, 0, 256 }, false);
-            CvInvoke.CalcHist(Vec2, new int[] { 0, 1 }, null, hist2, new int[] { 180, 256 }, new float[] { 0, 180, 0, 256 }, false);
-
-            CvInvoke.Normalize(hist1, hist1, 0, 1, NormType.MinMax);
-            CvInvoke.Normalize(hist2, hist2, 0, 1, NormType.MinMax);
-
-            double distance = CvInvoke.CompareHist(hist1, hist2, HistogramCompMethod.Bhattacharyya);
-
-            if (distance > similarity)
-            {
                 var SSIM = CalcSSIM(image1, image2);
                 return SSIM >= 0.990;
             }
-
-            return distance < similarity;
+            finally
+            {
+                image1?.Dispose();
+                image2?.Dispose();
+            }
         }
+
         enum RGBIndex
         {
             Red = 0,
@@ -411,20 +439,20 @@ namespace MangaUnhost.Others
             int nChan = img1_temp.NumberOfChannels;
             Size imageSize = new Size(imageWidth, imageHeight);
 
-            Image<Bgr, float> img1 = img1_temp.ConvertScale<float>(1.0, 1);
-            Image<Bgr, float> img2 = img2_temp.ConvertScale<float>(1.0, 1);
-            Image<Bgr, byte> diff = img2_temp.Copy();
+            using Image<Bgr, float> img1 = img1_temp.ConvertScale<float>(1.0, 1);
+            using Image<Bgr, float> img2 = img2_temp.ConvertScale<float>(1.0, 1);
+            using Image<Bgr, byte> diff = img2_temp.Copy();
 
-            Image<Bgr, float> img1_sq = img1.Pow(2);
-            Image<Bgr, float> img2_sq = img2.Pow(2);
-            Image<Bgr, float> img1_img2 = img1.Mul(img2);
+            using Image<Bgr, float> img1_sq = img1.Pow(2);
+            using Image<Bgr, float> img2_sq = img2.Pow(2);
+            using Image<Bgr, float> img1_img2 = img1.Mul(img2);
 
-            Image<Bgr, float> mu1 = img1.SmoothGaussian(11, 11, 1.5, 0);
-            Image<Bgr, float> mu2 = img2.SmoothGaussian(11, 11, 1.5, 0);
+            using Image<Bgr, float> mu1 = img1.SmoothGaussian(11, 11, 1.5, 0);
+            using Image<Bgr, float> mu2 = img2.SmoothGaussian(11, 11, 1.5, 0);
 
-            Image<Bgr, float> mu1_sq = mu1.Pow(2);
-            Image<Bgr, float> mu2_sq = mu2.Pow(2);
-            Image<Bgr, float> mu1_mu2 = mu1.Mul(mu2);
+            using Image<Bgr, float> mu1_sq = mu1.Pow(2);
+            using Image<Bgr, float> mu2_sq = mu2.Pow(2);
+            using Image<Bgr, float> mu1_mu2 = mu1.Mul(mu2);
 
             Image<Bgr, float> sigma1_sq = img1_sq.SmoothGaussian(11, 11, 1.5, 0);
             sigma1_sq = sigma1_sq.AddWeighted(mu1_sq, 1, -1, 0);
@@ -444,7 +472,7 @@ namespace MangaUnhost.Others
             temp2 = temp2.Add(new Bgr(C2, C2, C2));
 
             // ((2*mu1_mu2 + C1).*(2*sigma12 + C2))
-            Image<Bgr, float> temp3 = temp1.Mul(temp2);
+            using Image<Bgr, float> temp3 = temp1.Mul(temp2);
 
             // (mu1_sq + mu2_sq + C1)
             temp1 = mu1_sq.Add(mu2_sq);
@@ -452,14 +480,20 @@ namespace MangaUnhost.Others
 
             // (sigma1_sq + sigma2_sq + C2)
             temp2 = sigma1_sq.Add(sigma2_sq);
-            temp2 = temp2.Add(new Bgr(C2, C2, C2));
+            temp2 = temp2.Add(new Bgr(C2, C2, C2));            
 
             // ((mu1_sq + mu2_sq + C1).*(sigma1_sq + sigma2_sq + C2))
             temp1 = temp1.Mul(temp2, 1);
 
             // ((2*mu1_mu2 + C1).*(2*sigma12 + C2))./((mu1_sq + mu2_sq + C1).*(sigma1_sq + sigma2_sq + C2))
-            Image<Bgr, float> ssim_map = new Image<Bgr, float>(imageSize);
+            using Image<Bgr, float> ssim_map = new Image<Bgr, float>(imageSize);
             CvInvoke.Divide(temp3, temp1, ssim_map);
+
+            temp1.Dispose();
+            temp2.Dispose();
+            sigma1_sq.Dispose();
+            sigma2_sq.Dispose();
+            sigma12.Dispose();
 
             Bgr avg = new Bgr();
             MCvScalar sdv = new MCvScalar();
@@ -476,13 +510,13 @@ namespace MangaUnhost.Others
                 return SSIM[(int)RGBIndex.All];
             }
 
-            Image<Gray, float> gray32 = new Image<Gray, float>(imageSize);
+            using Image<Gray, float> gray32 = new Image<Gray, float>(imageSize);
             CvInvoke.CvtColor(ssim_map, gray32, ColorConversion.Bgr2Gray);
 
-            Image<Gray, byte> gray8 = gray32.ConvertScale<byte>(255, 0);
-            Image<Gray, byte> gray1 = gray8.ThresholdBinaryInv(new Gray(254), new Gray(255));
+            using Image<Gray, byte> gray8 = gray32.ConvertScale<byte>(255, 0);
+            using Image<Gray, byte> gray1 = gray8.ThresholdBinaryInv(new Gray(254), new Gray(255));
 
-            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+            using VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(gray1, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
             /*
             string ImageDifferent = "dbg.png";
