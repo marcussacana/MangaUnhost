@@ -17,6 +17,8 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MangaUnhost.Hosts
@@ -59,8 +61,8 @@ namespace MangaUnhost.Hosts
             var AccessToken = Ini.GetConfig(nameof(BilibiliComics), "AccessToken", Main.SettingsPath, false);
             var RefreshToken = Ini.GetConfig(nameof(BilibiliComics), "RefreshToken", Main.SettingsPath, false);
 
-            while (string.IsNullOrEmpty(AccessToken) || string.IsNullOrEmpty(RefreshToken) || (FakeAccount && LastAccTried)) 
-            {                
+            while (string.IsNullOrEmpty(AccessToken) || string.IsNullOrEmpty(RefreshToken) || (FakeAccount && LastAccTried))
+            {
                 using var Browser = new ChromiumWebBrowser("https://www.bilibilicomics.com/account");
                 Browser.BypassGoogleCEFBlock();
                 Browser.Size = new System.Drawing.Size(900, 500);
@@ -80,7 +82,7 @@ namespace MangaUnhost.Hosts
                     //that are never used with the current comic
                     Acc = FindAccount(ChapterID);
 
-                    if (Acc == null || FailedAccounts.Any(x=>x.Email == Acc?.Email))
+                    if (Acc == null || FailedAccounts.Any(x => x.Email == Acc?.Email))
                     {
                         Acc = CreateAccount();
                         NewAccount = true;
@@ -279,7 +281,7 @@ namespace MangaUnhost.Hosts
                 }
 
                 int Tries = 0;
-                
+
                 string Code = null;
                 while (true)
                 {
@@ -350,7 +352,7 @@ namespace MangaUnhost.Hosts
                 var PEM = new PemReader(Reader);
                 var Key = (RsaKeyParameters)PEM.ReadObject();
                 Algo = DotNetUtilities.ToRSA(Key);
-            }            
+            }
 
             var Pass = Algo.Encrypt(Encoding.UTF8.GetBytes(Password), RSAEncryptionPadding.Pkcs1);
 
@@ -550,6 +552,29 @@ namespace MangaUnhost.Hosts
 
         public string Post(string URI, string Data, string ContentType = "application/json;charset=UTF-8", string Referer = "https://www.bilibilicomics.com/", string Authorization = null)
         {
+            bool Finished = false;
+            string rst = null;
+            new Thread(async () =>
+            {
+                try
+                {
+                    rst = await PostAsync(URI, Data, ContentType, Referer, Authorization);
+                }
+                finally
+                {
+                    Finished = true;
+                }
+            }).Start();
+
+            while (!Finished)
+            {
+                ThreadTools.Wait(100, true);
+            }
+
+            return rst;
+        }
+        public async Task<string> PostAsync(string URI, string Data, string ContentType = "application/json;charset=UTF-8", string Referer = "https://www.bilibilicomics.com/", string Authorization = null)
+        {
             var Request = WebRequest.CreateHttp(URI);
             Request.Method = "POST";
             Request.ContentType = ContentType;
@@ -560,16 +585,16 @@ namespace MangaUnhost.Hosts
                Request.Headers[HttpRequestHeader.Authorization] = Authorization;
 
             using (var DataStream = new MemoryStream(Encoding.UTF8.GetBytes(Data)))
-            using (var SendStream = Request.GetRequestStream())
+            using (var SendStream = await Request.GetRequestStreamAsync())
             {
-                DataStream.CopyTo(SendStream);
+                await DataStream.CopyToAsync(SendStream);
             }
 
-            var Response = Request.GetResponse();
+            var Response = await Request.GetResponseAsync();
             using (var ResponseData = new MemoryStream())
             using (var ResponseStream = Response.GetResponseStream())
             {
-                ResponseStream.CopyTo(ResponseData);
+                await ResponseStream.CopyToAsync(ResponseData);
 
                 var FinalData = ResponseData.ToArray();
                 return Encoding.UTF8.GetString(FinalData);
