@@ -93,22 +93,24 @@ namespace MangaUnhost
                     }
                 }
             }
-            
-            
+
+            var PATH = Environment.GetEnvironmentVariable("PATH");
+            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + OCVDir + ";" + Path.GetDirectoryName(LibWebP));
+
+
             if (IsRealWindows)
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
+                //new Main();
                 //Application.Run(new ImageTest());
             }
 
             FinishUpdate();
             //WineHelper();
             CefUpdater();
-
-            var PATH = Environment.GetEnvironmentVariable("PATH");
-            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + Path.GetDirectoryName(LibWebP));
+            OcvUpdater();
 
             UnlockHeaders();
 
@@ -132,6 +134,53 @@ namespace MangaUnhost
                 Process.Start(Result);
                 Environment.Exit(0);
             }
+        }
+        private static string OCVDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86");
+        private static void OcvUpdater(string OcvRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
+        {
+            var AltRepo = "https://github.com/marcussacana/MangaUnhost/blob/data/";
+
+            var VerFlag = Path.Combine(OCVDir, "cvextern.dll");
+
+            var Outdated = false;
+            if (!File.Exists(VerFlag) || (new Version(FileVersionInfo.GetVersionInfo(VerFlag).FileVersion) != new Version(4, 8, 1, 5350)))
+                Outdated = true;
+
+            if (!Outdated)
+                return;
+
+            var OCVName = Environment.Is64BitProcess ? "opencv-x64.zip" : "opencv-x86.zip";
+            string Url = $"{OcvRepo}{OCVName}?raw=true";
+            string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, OCVName);
+
+            if (!File.Exists(SaveAs))
+            {
+                try
+                {
+
+                    DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
+                    Application.Run(Window);
+                }
+                catch
+                {
+                    if (OcvRepo != AltRepo)
+                    {
+                        CefUpdater(AltRepo);
+                        return;
+                    }
+                    throw;
+                }
+            }
+
+            if (!Directory.Exists(OCVDir))
+                Directory.CreateDirectory(OCVDir);
+
+            ZipFile Zip = new ZipFile(SaveAs);
+            Zip.ExtractAll(OCVDir, ExtractExistingFileAction.OverwriteSilently);
+            Zip.Dispose();
+
+            if (!Debugger.IsAttached)
+                File.Delete(SaveAs);
         }
 
         private static void CefUpdater(string CefRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")

@@ -78,6 +78,10 @@ namespace MangaUnhost {
         public int MaxPagesBuffer;
 
         public int ReaderWidth;
+        public int TLConcurrency;
+
+        public bool UseAForge;
+        public double ComparsionFactor;
     }
 
 

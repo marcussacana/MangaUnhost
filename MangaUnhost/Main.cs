@@ -157,7 +157,10 @@ namespace MangaUnhost
                     ReplaceMode = 1,
                     ReaderMode = 0,
                     MaxPagesBuffer = 0,
-                    ReaderWidth = 0
+                    ReaderWidth = 0,
+                    TLConcurrency = 5,
+                    UseAForge = true,
+                    ComparsionFactor = 0.1,
                 };
             }
 

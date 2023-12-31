@@ -20,7 +20,7 @@ namespace MangaUnhost
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var Rst = pictureBox1.Image.AreImagesSimilar(pictureBox2.Image, double.Parse(textBox1.Text.Replace(".", ",")), float.Parse(textBox2.Text.Replace(".", ",")));
+            var Rst = pictureBox1.Image.AForge_AreImagesSimilar(pictureBox2.Image, double.Parse(textBox1.Text.Replace(".", ",")), float.Parse(textBox2.Text.Replace(".", ",")));
 
             MessageBox.Show(Rst ? "Iguais!" : "Diferentes!");
         }
@@ -43,6 +43,13 @@ namespace MangaUnhost
 
             pictureBox2.Image?.Dispose();
             pictureBox2.Image = Image.FromFile(fd.FileName);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var Rst = pictureBox1.Image.AreImagesSimilar(pictureBox2.Image);
+
+            MessageBox.Show(Rst ? "Iguais!" : "Diferentes!");
         }
     }
 }

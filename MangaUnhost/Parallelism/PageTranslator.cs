@@ -1,4 +1,5 @@
-﻿using CefSharp;
+﻿using AForge.Math.Metrics;
+using CefSharp;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using Microsoft.VisualBasic;
@@ -170,6 +171,7 @@ namespace MangaUnhost.Parallelism
                 using Bitmap tmpImage = Bitmap.FromStream(tmpData) as Bitmap;
                 graphics.DrawImage(tmpImage, 0, 0, FinalImage.Width, FinalImage.Height);
             }
+
 
             if (OriImage.AreImagesSimilar(FinalImage) && TriesLeft > 0)
             {

@@ -808,18 +808,8 @@ namespace MangaUnhost
         {
             if (Translators == null)
             {
-                var Value = Ini.GetConfig("Settings", "TLConcurrency", Main.SettingsPath, false);
-
-                if (int.TryParse(Value, out int Threads))
-                {
-                    Translators = new IPacket[Math.Max(1, Threads)];
-                }
-                else
-                {
-                    Translators = new IPacket[5];
-                     Ini.SetConfig("Settings", "TLConcurrency", "5", Main.SettingsPath);
-                }
-
+                var Count = Math.Max(Main.Config.TLConcurrency, 1);
+                Translators = new IPacket[Count];
                 TlSemaphore = new SemaphoreSlim(Translators.Length);
             }
 
@@ -886,8 +876,27 @@ namespace MangaUnhost
                     for (int x = 0; x < 4; x++)
                     {
                         var Page = Pages[i];
-                        if (ReadyPages.Contains(Page + ".tl.png") && AllowSkip)
+
+                        var ReadyExists = ReadyPages.Contains(Page + ".tl.png");
+                        if (ReadyExists && AllowSkip)
                             break;
+
+                        //If user does not allow skip, means that want retranslate it
+                        //let's optimize by skipping images that seems to be translated
+                        //it will retranslate some images as well but should be help
+                        //to skip images that is really translated already.
+                        if (ReadyExists)
+                        {
+                            try
+                            {
+                                using var ImgA = Bitmap.FromFile(Page);
+                                using var ImgB = Bitmap.FromFile(Page + ".tl.png");
+
+                                if (!ImgA.AreImagesSimilar(ImgB))
+                                    break;
+                            }
+                            catch { }
+                        }
 
                         IPacket Translator = null;
 
