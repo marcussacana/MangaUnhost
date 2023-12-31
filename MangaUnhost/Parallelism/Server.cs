@@ -58,7 +58,8 @@ namespace MangaUnhost.Parallelism
                         Writer.Flush();
                         Stream.Flush();
                     }
-                } finally
+                }
+                finally
                 {
                     Packet.Dispose();
                 }

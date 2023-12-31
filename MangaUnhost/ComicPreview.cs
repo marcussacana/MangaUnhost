@@ -811,6 +811,7 @@ namespace MangaUnhost
                 var Count = Math.Max(Main.Config.TLConcurrency, 1);
                 Translators = new IPacket[Count];
                 TlSemaphore = new SemaphoreSlim(Translators.Length);
+                TlCheckSemaphore = new SemaphoreSlim(1);
             }
 
             var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
@@ -861,16 +862,13 @@ namespace MangaUnhost
         }
 
         static SemaphoreSlim TlSemaphore = null;
+        static SemaphoreSlim TlCheckSemaphore = null;
 
         private Action<int> TranslatePage(string SourceLang, string TargetLang, bool AllowSkip, string[] Pages, string[] ReadyPages, Action<int> OnPageReady)
         {
             return async (i) =>
             {
-                while (TlSemaphore.CurrentCount == 0)
-                    await Task.Delay(100);
-
-                TlSemaphore.Wait();
-
+                await TlSemaphore.WaitAsync();
                 try
                 {
                     for (int x = 0; x < 4; x++)
@@ -887,21 +885,24 @@ namespace MangaUnhost
                         //to skip images that is really translated already.
                         if (ReadyExists)
                         {
-                            lock (this)
+                            await TlCheckSemaphore.WaitAsync();
+                            try
                             {
-                                try
-                                {
-                                    using var ImgA = Bitmap.FromFile(Page);
-                                    using var ImgB = Bitmap.FromFile(Page + ".tl.png");
+                                using var ImgA = Bitmap.FromFile(Page);
+                                using var ImgB = Bitmap.FromFile(Page + ".tl.png");
 
-                                    if (!ImgA.AreImagesSimilar(ImgB))
-                                    {
-                                        if (!Main.Config.UseAForge && !ImgA.OpenCV_SSIM_AreImageSimilar(ImgB))
-                                            break;
-                                    }
+                                if (!ImgA.AreImagesSimilar(ImgB))
+                                {
+                                    if (!Main.Config.UseAForge && !ImgA.OpenCV_SSIM_AreImageSimilar(ImgB))
+                                        break;
                                 }
-                                catch { }
                             }
+                            catch { }
+                            finally
+                            {
+                                TlCheckSemaphore.Release();
+                            }
+                            
                         }
 
                         IPacket Translator = null;

@@ -313,6 +313,9 @@ namespace MangaUnhost {
             var rst = await Task.WhenAny(TCS.Task, Task.Delay(Timeout));
             if (rst is Task<bool> bTask)
             {
+                if (!bTask.Result)
+                    throw new IOException("Failed to read");
+
                 return bTask.Result ? readed : -1;
             }
 
