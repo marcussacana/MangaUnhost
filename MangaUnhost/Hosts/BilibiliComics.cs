@@ -101,6 +101,10 @@ namespace MangaUnhost.Hosts
                         continue;
                     }
 
+                    Browser.ShowDevTools();
+                    var view = new BrowserPopup(Browser, () => !Browser.GetCurrentUrl().Contains("bilibilicomics.com/account"));
+                    view.Show();
+
                     while (Browser.GetCurrentUrl().Contains("bilibilicomics.com/account"))
                     {
                         ThreadTools.Wait(5000, true);

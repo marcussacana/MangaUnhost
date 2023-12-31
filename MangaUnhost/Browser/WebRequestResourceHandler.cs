@@ -38,23 +38,23 @@ namespace MangaUnhost.Browser
                         httpWebRequest.Referer = request.ReferrerUrl;
 
                         var RawPostData = ParsePostData(request.PostData);
-                        var Request = new OnWebRequestEventArgs(httpWebRequest, headers, RawPostData);
-                        ;
-                        OnRequest?.Invoke(this, Request);
+                        var RequestMod = new OnWebRequestEventArgs(httpWebRequest, headers, RawPostData);
 
-                        if (RawPostData != null)
-                        {
-                            using var RequestStream = httpWebRequest.GetRequestStream();
-                            RequestStream.Write(RawPostData, 0, RawPostData.Length);
-                        }
+                        OnRequest?.Invoke(this, RequestMod);
 
-                        foreach (var Header in request.Headers.ToPair())
+                        foreach (var Header in headers.ToPair())
                         {
                             if (httpWebRequest.Headers.AllKeys.Contains(Header.Key))
                                 httpWebRequest.Headers.Remove(Header.Key);
                         }
 
-                        httpWebRequest.Headers.Add(request.Headers);
+                        httpWebRequest.Headers.Add(RequestMod.Headers);
+
+                        if (RawPostData != null)
+                        {
+                            using var RequestStream = await httpWebRequest.GetRequestStreamAsync();
+                            await RequestStream.WriteAsync(RawPostData, 0, RawPostData.Length);
+                        }
 
                         var httpWebResponse = await httpWebRequest.GetResponseAsync() as HttpWebResponse;
                         
@@ -92,7 +92,13 @@ namespace MangaUnhost.Browser
             var Response = new OnWebResponseEventArgs(httpWebResponse, httpWebRequest, new NameValueCollection(httpWebResponse.Headers), receiveStream);
             OnResponse?.Invoke(this, Response);
 
-            var contentType = new ContentTypeHeader(httpWebResponse.ContentType);
+            var contentType = new ContentTypeHeader("text/plain");
+            try
+            {
+                contentType = new ContentTypeHeader(httpWebResponse.ContentType);
+            }
+            catch { }
+
             var mimeType = contentType.MediaType;
             var charSet = contentType.CharSet;
             var statusCode = httpWebResponse.StatusCode;
@@ -121,6 +127,9 @@ namespace MangaUnhost.Browser
         {
             if (postData == null)
                 return null;
+
+            if (postData.Elements.Count == 0)
+                return new byte[0];
 
             if (postData.Elements.Count == 1)
             {
