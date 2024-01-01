@@ -470,6 +470,8 @@ namespace MangaUnhost.Hosts
                 var Token = TokenInfo.data.First();
 
                 Urls.Add($"{Token.url}?token={Token.token}");
+
+                Application.DoEvents();
             }
 
             return Urls.ToArray();
@@ -552,54 +554,43 @@ namespace MangaUnhost.Hosts
 
         public string Post(string URI, string Data, string ContentType = "application/json;charset=UTF-8", string Referer = "https://www.bilibilicomics.com/", string Authorization = null)
         {
-            bool Finished = false;
-            string rst = null;
-            new Thread(async () =>
+
+            while (!UrlTools.HttpRequestLocker.Wait(TimeSpan.FromMilliseconds(50)))
+                Application.DoEvents();
+
+            try
             {
-                try
+                var Request = WebRequest.CreateHttp(URI);
+                Request.Method = "POST";
+                Request.ContentType = ContentType;
+                Request.Referer = Referer;
+                Request.Timeout = 1000 * 30;
+
+                if (Authorization != null)
+                    Request.Headers[HttpRequestHeader.Authorization] = Authorization;
+
+                using (var DataStream = new MemoryStream(Encoding.UTF8.GetBytes(Data)))
+                using (var SendStream = Request.GetRequestStream())
                 {
-                    rst = await PostAsync(URI, Data, ContentType, Referer, Authorization);
+                    DataStream.CopyTo(SendStream);
                 }
-                finally
+
+                using (var ResponseData = new MemoryStream())
+                using (var Response = Request.GetResponse())
+                using (var ResponseStream = Response.GetResponseStream())
                 {
-                    Finished = true;
+                    ResponseStream.CopyTo(ResponseData);
+
+                    var FinalData = ResponseData.ToArray();
+                    return Encoding.UTF8.GetString(FinalData);
                 }
-            }).Start();
-
-            while (!Finished)
-            {
-                ThreadTools.Wait(100, true);
             }
-
-            return rst;
-        }
-        public async Task<string> PostAsync(string URI, string Data, string ContentType = "application/json;charset=UTF-8", string Referer = "https://www.bilibilicomics.com/", string Authorization = null)
-        {
-            var Request = WebRequest.CreateHttp(URI);
-            Request.Method = "POST";
-            Request.ContentType = ContentType;
-            Request.Referer = Referer;
-            Request.UserAgent = ProxyTools.UserAgent;
-
-            if (Authorization != null)
-               Request.Headers[HttpRequestHeader.Authorization] = Authorization;
-
-            using (var DataStream = new MemoryStream(Encoding.UTF8.GetBytes(Data)))
-            using (var SendStream = await Request.GetRequestStreamAsync())
+            finally
             {
-                await DataStream.CopyToAsync(SendStream);
-            }
-
-            var Response = await Request.GetResponseAsync();
-            using (var ResponseData = new MemoryStream())
-            using (var ResponseStream = Response.GetResponseStream())
-            {
-                await ResponseStream.CopyToAsync(ResponseData);
-
-                var FinalData = ResponseData.ToArray();
-                return Encoding.UTF8.GetString(FinalData);
+                UrlTools.HttpRequestLocker.Release();
             }
         }
+
         struct ComicInfoResponse
         {
             public int code;

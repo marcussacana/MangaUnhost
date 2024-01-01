@@ -76,6 +76,9 @@ namespace MangaUnhost
                 }
             }
 
+            ServicePointManager.MaxServicePoints = 100;
+            ServicePointManager.DefaultConnectionLimit = 100;
+
             if (Args?.Length > 0)
             {
                 foreach(var Arg in Args)

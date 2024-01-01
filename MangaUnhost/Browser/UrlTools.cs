@@ -10,6 +10,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -127,14 +128,20 @@ namespace MangaUnhost.Browser
 
         public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
         {
-            var Task = Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
+            byte[] Result = null;
 
-            Task.Start();
+            var Thread = new Thread(() =>
+            Result = AsyncContext.Run(async () => await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
 
-            while (Task.IsCompleted)
+            Thread.Start();
+
+            while (Thread.IsRunning())
                 ThreadTools.Wait(100, true);
 
-            return Task.Result;
+            if (Result == null)
+                throw new WebException();
+
+            return Result;
         }
 
         public static async Task<byte[]> TryDownloadAsync(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
@@ -163,12 +170,20 @@ namespace MangaUnhost.Browser
                         }
                         else
                         {
-                            using (WebResponse Response = Exception.Response)
-                            using (Stream ResponseData = Response.GetResponseStream())
-                            using (MemoryStream Stream = new MemoryStream())
+                            await HttpRequestLocker.WaitAsync();
+                            try
                             {
-                                ResponseData.CopyTo(Stream);
-                                return Stream.ToArray();
+                                using (WebResponse Response = Exception.Response)
+                                using (Stream ResponseData = Response.GetResponseStream())
+                                using (MemoryStream Stream = new MemoryStream())
+                                {
+                                    ResponseData.CopyTo(Stream);
+                                    return Stream.ToArray();
+                                }
+                            }
+                            finally
+                            {
+                                HttpRequestLocker.Release();
                             }
                         }
                     }
@@ -184,6 +199,7 @@ namespace MangaUnhost.Browser
             }
         }
 
+        public static SemaphoreSlim HttpRequestLocker = new SemaphoreSlim(10, 10);
         public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
             new Uri(Url).Download(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
         public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
@@ -239,12 +255,20 @@ namespace MangaUnhost.Browser
             if (Proxy != null)
                 Request.Proxy = new WebProxy(Proxy);
 
-            using (var Response = await Request.GetResponseAsync())
-            using (var RespData = Response.GetResponseStream())
-            using (var Output = new MemoryStream())
+            await HttpRequestLocker.WaitAsync();
+            try
             {
-                await RespData.CopyToAsync(Output);
-                return Output.ToArray();
+                using (var Response = await Request.GetResponseAsync())
+                using (var RespData = Response.GetResponseStream())
+                using (var Output = new MemoryStream())
+                {
+                    await RespData.CopyToAsync(Output);
+                    return Output.ToArray();
+                }
+            }
+            finally
+            {
+                HttpRequestLocker.Release();
             }
         }
 
@@ -301,29 +325,39 @@ namespace MangaUnhost.Browser
             if (Proxy != null)
                 Request.Proxy = new WebProxy(Proxy);
 
-            if (Data != null)
-            {
-                Request.ContentLength = Data.Length;
-                using (var UploadStream = Request.GetRequestStream())
-                using (var Input = new MemoryStream(Data))
-                {
-                    Input.CopyTo(UploadStream);
-                }
-            }
+            await HttpRequestLocker.WaitAsync();
 
             try
             {
-                using (var Response = await Request.GetResponseAsync())
-                using (var RespData = Response.GetResponseStream())
-                using (var Output = new MemoryStream())
+
+                if (Data != null)
                 {
-                    await RespData.CopyToAsync(Output);
-                    return Output.ToArray();
+                    Request.ContentLength = Data.Length;
+                    using (var UploadStream = Request.GetRequestStream())
+                    using (var Input = new MemoryStream(Data))
+                    {
+                        Input.CopyTo(UploadStream);
+                    }
+                }
+
+                try
+                {
+                    using (var Response = await Request.GetResponseAsync())
+                    using (var RespData = Response.GetResponseStream())
+                    using (var Output = new MemoryStream())
+                    {
+                        await RespData.CopyToAsync(Output);
+                        return Output.ToArray();
+                    }
+                }
+                catch
+                {
+                    return null;
                 }
             }
-            catch
+            finally
             {
-                return null;
+                HttpRequestLocker.Release();
             }
         }
 

@@ -5,18 +5,17 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web.Management;
-using System.Web.Security;
 using ContentTypeHeader = System.Net.Mime.ContentType;
 
 namespace MangaUnhost.Browser
 {
     public class WebRequestResourceHandler : ResourceHandler
     {
+        bool Locked = false;
+
+        List<IDisposable> Objects = new List<IDisposable>();
+
         public event EventHandler<OnWebRequestEventArgs> OnRequest;
         public event EventHandler<OnWebResponseEventArgs> OnResponse;
         public override CefReturnValue ProcessRequestAsync(IRequest request, ICallback callback)
@@ -36,6 +35,7 @@ namespace MangaUnhost.Browser
                         httpWebRequest.Accept = headers["Accept"];
                         httpWebRequest.Method = request.Method;
                         httpWebRequest.Referer = request.ReferrerUrl;
+                        httpWebRequest.Timeout = 1000 * 30;
 
                         var RawPostData = ParsePostData(request.PostData);
                         var RequestMod = new OnWebRequestEventArgs(httpWebRequest, headers, RawPostData);
@@ -50,17 +50,21 @@ namespace MangaUnhost.Browser
 
                         httpWebRequest.Headers.Add(RequestMod.Headers);
 
+                        await UrlTools.HttpRequestLocker.WaitAsync();
+
                         if (RawPostData != null)
                         {
                             using var RequestStream = await httpWebRequest.GetRequestStreamAsync();
                             await RequestStream.WriteAsync(RawPostData, 0, RawPostData.Length);
                         }
 
+                        //Can't be disposed because the browser will read the data after continue
                         var httpWebResponse = await httpWebRequest.GetResponseAsync() as HttpWebResponse;
                         
                         FinishResponse(httpWebResponse, httpWebRequest);
-
                         callback.Continue();
+
+                        Objects.Add(httpWebResponse);
                     }
                     catch (NotSupportedException ex)
                     {
@@ -68,11 +72,14 @@ namespace MangaUnhost.Browser
                     }
                     catch (WebException ex) {
                         var Response = ex.Response;
+
                         if (Response != null)
                         {
                             FinishResponse(Response as HttpWebResponse, httpWebRequest);
                             callback.Continue();
                         }
+
+                        Objects.Add(Response);
                     }
                     catch
                     {
@@ -104,6 +111,8 @@ namespace MangaUnhost.Browser
             var statusCode = httpWebResponse.StatusCode;
 
             var Stream = Response.ResponseData;
+
+            Objects.Add(Stream);
 
             ResponseLength = httpWebResponse.ContentLength >= 0 ? (long?)httpWebResponse.ContentLength : null;
             MimeType = mimeType;
@@ -142,6 +151,22 @@ namespace MangaUnhost.Browser
 
             //TODO: Support for post data with multiple elements
             throw new NotImplementedException();
+        }
+
+        bool Disposed = false;
+        public override void Dispose()
+        {
+            if (Disposed)
+                return;
+
+            Disposed = true;
+            foreach (var Obj in Objects)
+            {
+                Obj?.Dispose();
+            }
+
+            UrlTools.HttpRequestLocker.Release();
+            base.Dispose();
         }
     }
 

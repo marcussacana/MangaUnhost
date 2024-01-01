@@ -181,7 +181,7 @@ class GitHub {
 
             Request.UseDefaultCredentials = true;
             Request.Method = "GET";
-            WebResponse Response = Request.GetResponse();
+            using WebResponse Response = Request.GetResponse();
             byte[] FC = new byte[0];
             using (Stream Reader = Response.GetResponseStream()) {
                 byte[] Buffer = new byte[1024];

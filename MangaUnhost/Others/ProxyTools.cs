@@ -100,9 +100,9 @@ namespace MangaUnhost.Others
                 try
                 {
                     HttpWebRequest Request = WebRequest.Create("http://clients3.google.com/generate_204") as HttpWebRequest;
-                    Request.Timeout = 10000;
+                    Request.Timeout = 1000 * 10;
                     Request.Proxy = new WebProxy(Proxy);
-                    var Response = (HttpWebResponse)Request.GetResponse();
+                    using var Response = (HttpWebResponse)Request.GetResponse();
                     if (Response.StatusCode == HttpStatusCode.NoContent)
                         Result = true;
                 }

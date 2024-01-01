@@ -34,13 +34,13 @@ namespace MangaUnhost.Others
             Request.UserAgent = ProxyTools.UserAgent;
             Request.ServicePoint.Expect100Continue = false;
 
-            var POST = Request.GetRequestStream();
+            using var POST = Request.GetRequestStream();
             new MemoryStream(WAV).CopyTo(POST);
             POST.Flush();
             POST.Close();
 
-            var RESP = Request.GetResponse();
-            var GET = RESP.GetResponseStream();
+            using var RESP = Request.GetResponse();
+            using var GET = RESP.GetResponseStream();
 
             var Buffer = new MemoryStream();
             GET.CopyTo(Buffer);

@@ -33,7 +33,7 @@ namespace MangaUnhost.Decoders
 
             // Create request and receive response
             string postURL = "https://s12.aconvert.com/convert/convert-batch-win3.php";
-            HttpWebResponse webResponse = FormUpload.MultipartFormDataPost(postURL, "https://www.aconvert.com/", ProxyTools.UserAgent, postParameters);
+            using HttpWebResponse webResponse = FormUpload.MultipartFormDataPost(postURL, "https://www.aconvert.com/", ProxyTools.UserAgent, postParameters);
 
             // Process response
             StreamReader responseReader = new StreamReader(webResponse.GetResponseStream());
