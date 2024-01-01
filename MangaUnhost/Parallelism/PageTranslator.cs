@@ -1,19 +1,13 @@
-﻿using AForge.Math.Metrics;
-using CefSharp;
-using MangaUnhost.Browser;
+﻿using MangaUnhost.Browser;
 using MangaUnhost.Others;
-using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace MangaUnhost.Parallelism
 {
@@ -46,6 +40,8 @@ namespace MangaUnhost.Parallelism
 
             try
             {
+                WaitPing(Reader);
+
                 var Pages = Reader.ReadStringArray();
                 var SourceLanguage = Reader.ReadNullableString();
                 var TargetLanguage = Reader.ReadNullableString();
@@ -57,6 +53,29 @@ namespace MangaUnhost.Parallelism
                 Writer.Write(true);
                 Writer.Flush();
             }
+        }
+
+        private static void WaitPing(BinaryReader Reader)
+        {
+            bool? Failed = null;
+
+            new Thread(async () =>
+            {
+                var rst = await Reader.BaseStream.TimeoutReadAsync(new byte[1], 0, 1, TimeSpan.FromMinutes(2));
+
+                if (rst < 0)
+                    Failed = true;
+
+                Failed = false;
+            }).Start();
+
+            while (Failed == null)
+            {
+                Thread.Sleep(100);
+            }
+
+            if (Failed.Value)
+                throw new IOException("Unable to get the PIPE Ping");
         }
 
         private void TranslatePages(string[] Pages, string SourceLang, string TargetLang)
@@ -203,6 +222,8 @@ namespace MangaUnhost.Parallelism
             try
             {
                 var Writer = new BinaryWriter(PipeStream, Encoding.UTF8, true);
+
+                Writer.Write(true);//ping
 
                 await Writer.WriteStringArray((string[])Args[0]);//last chapter
                 await Writer.WriteNullableString((string)Args[1]);//source lang

@@ -25,7 +25,7 @@ namespace MangaUnhost.Parallelism
 
         public static void Connect(string arg)
         {
-            //MessageBox.Show("Debug it!");
+            MessageBox.Show("Debug it!");
 
             new Main();
             Program.UnlockHeaders();
