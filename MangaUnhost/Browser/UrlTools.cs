@@ -130,8 +130,8 @@ namespace MangaUnhost.Browser
         {
             byte[] Result = null;
 
-            var Thread = new Thread(() =>
-            Result = AsyncContext.Run(async () => await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
+            var Thread = new Thread(async () =>
+            Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie));
 
             Thread.Start();
 
@@ -159,6 +159,11 @@ namespace MangaUnhost.Browser
                 if (ex is WebException)
                 {
                     var Exception = (WebException)ex;
+                    if (Exception.Status == WebExceptionStatus.ConnectFailure)
+                    {
+                        return null;
+                    }
+
                     if (AcceptableErrors != null && AcceptableErrors.Contains(Exception.Status))
                     {
                         if (Exception.Status == WebExceptionStatus.ConnectionClosed)
@@ -233,7 +238,7 @@ namespace MangaUnhost.Browser
 
             Request.UseDefaultCredentials = true;
             Request.Method = "GET";
-            Request.Timeout = 1000 * 30;
+            Request.Timeout = Proxy == null ? 1000 * 5 : 1000 * 30;
 
             if (Referer != null)
                 Request.Referer = Referer;
