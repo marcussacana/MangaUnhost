@@ -322,10 +322,6 @@ namespace MangaUnhost {
             return -2;
         }
 
-        /// <summary>
-        /// Returns -1 if write operation failed with an exception,
-        /// Returns -2 if write operation failed with timeout
-        /// </summary>
         public static async Task TimeoutWriteAsync(this Stream strm, byte[] buffer, int offset, int count, TimeSpan Timeout)
         {
             TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();

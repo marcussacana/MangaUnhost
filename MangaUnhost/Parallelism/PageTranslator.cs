@@ -55,6 +55,84 @@ namespace MangaUnhost.Parallelism
             }
         }
 
+
+        async Task IPacket.Request(params object[] Args)
+        {
+            if (Disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (Args.Length != 3) throw new ArgumentException("Must be (1 string array + 2 string) argument list");
+
+            if (!PipeStream.IsConnected) throw new Exception("Pipe Connection Lost");
+
+            if (Busy) throw new Exception("Service Currently in a busy state");
+
+            try
+            {
+                var Writer = new BinaryWriter(PipeStream, Encoding.UTF8, true);
+
+                await SendPing(Writer);
+
+                await Writer.WriteStringArray((string[])Args[0]);//last chapter
+                await Writer.WriteNullableString((string)Args[1]);//source lang
+                await Writer.WriteNullableString((string)Args[2]);//target lang
+                Writer.Flush();
+
+                Busy = true;
+            }
+            catch
+            {
+                Busy = false;
+                PipeStream?.Disconnect();
+            }
+        }
+
+        public async Task<bool> WaitForEnd(Action<int, int> ProgressChanged)
+        {
+            if (Disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (!Busy)
+                throw new Exception("No task available to wait it.");
+
+            var Reader = new BinaryReader(PipeStream, Encoding.UTF8, true);
+            var buffer = new byte[1];
+            try
+            {
+                while (PipeStream.IsConnected)
+                {
+                    try
+                    {
+                        var readed = await PipeStream.TimeoutReadAsync(buffer, 0, buffer.Length, TimeSpan.FromSeconds(60 * 3));
+
+                        if (readed <= 0)
+                            break;
+
+                        if (buffer[0] != 0)
+                        {
+                            return true;
+                        }
+
+                        if (PipeStream.IsConnected)
+                        {
+                            var Current = Reader.ReadInt32();
+                            var Total = Reader.ReadInt32();
+                            ProgressChanged.Invoke(Current, Total);
+                        }
+                    }
+                    catch
+                    {
+                        break;
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                Busy = false;
+            }
+        }
         private static void WaitPing(BinaryReader Reader)
         {
             bool? Failed = null;
@@ -76,6 +154,11 @@ namespace MangaUnhost.Parallelism
 
             if (Failed.Value)
                 throw new IOException("Unable to get the PIPE Ping");
+        }
+
+        private static async Task SendPing(BinaryWriter Writer)
+        {
+            await Writer.BaseStream.TimeoutWriteAsync(new byte[] { 1 }, 0, 1, TimeSpan.FromMinutes(2));
         }
 
         private void TranslatePages(string[] Pages, string SourceLang, string TargetLang)
@@ -206,83 +289,6 @@ namespace MangaUnhost.Parallelism
             using MemoryStream FinalData = new MemoryStream();
             FinalImage.Save(FinalData, System.Drawing.Imaging.ImageFormat.Png);
             return FinalData.ToArray();
-        }
-
-        async Task IPacket.Request(params object[] Args)
-        {
-            if (Disposed)
-                throw new ObjectDisposedException(GetType().FullName);
-
-            if (Args.Length != 3) throw new ArgumentException("Must be (1 string array + 2 string) argument list");
-
-            if (!PipeStream.IsConnected) throw new Exception("Pipe Connection Lost");
-
-            if (Busy) throw new Exception("Service Currently in a busy state");
-
-            try
-            {
-                var Writer = new BinaryWriter(PipeStream, Encoding.UTF8, true);
-
-                Writer.Write(true);//ping
-
-                await Writer.WriteStringArray((string[])Args[0]);//last chapter
-                await Writer.WriteNullableString((string)Args[1]);//source lang
-                await Writer.WriteNullableString((string)Args[2]);//target lang
-                Writer.Flush();
-
-                Busy = true;
-            }
-            catch
-            {
-                Busy = false;
-                PipeStream?.Disconnect();
-            }
-        }
-
-        public async Task<bool> WaitForEnd(Action<int, int> ProgressChanged)
-        {
-            if (Disposed)
-                throw new ObjectDisposedException(GetType().FullName);
-
-            if (!Busy)
-                throw new Exception("No task available to wait it.");
-
-            var Reader = new BinaryReader(PipeStream, Encoding.UTF8, true);
-            var buffer = new byte[1];
-            try
-            {
-                while (PipeStream.IsConnected)
-                {
-                    try
-                    {
-                        var readed = await PipeStream.TimeoutReadAsync(buffer, 0, buffer.Length, TimeSpan.FromSeconds(60 * 3));
-
-                        if (readed <= 0)
-                            break;
-
-                        if (buffer[0] != 0)
-                        {
-                            return true;
-                        }
-
-                        if (PipeStream.IsConnected)
-                        {
-                            var Current = Reader.ReadInt32();
-                            var Total = Reader.ReadInt32();
-                            ProgressChanged.Invoke(Current, Total);
-                        }
-                    }
-                    catch
-                    {
-                        break;
-                    }
-                }
-
-                return false;
-            }
-            finally {
-                Busy = false;
-            }
         }
         public void Dispose()
         {
