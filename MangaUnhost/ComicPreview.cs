@@ -804,7 +804,7 @@ namespace MangaUnhost
             }));
         }
 
-        private async void TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter, Action OnFinish)
+        private async void TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter, Action OnFinish, int Retries = 3)
         {
             if (Translators == null)
             {
@@ -846,8 +846,22 @@ namespace MangaUnhost
                 await Task.Delay(100);
             }
 
-            if (Pages.Any(x => !File.Exists(x + ".tl.png"))) {
-                TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish);
+            var NewReadyPages = Pages.Where(x => File.Exists(x + ".tl.png")).ToArray();
+
+            if (NewReadyPages.Length != Pages.Length) {
+                
+                //If this loop interation was able to translate any page
+                //but still missing pages then dont decrease the retries.
+                if (NewReadyPages.Length != ReadyPages.Length)
+                    Retries++;
+
+                //Pages without text might never be successuflly translated
+                //causing a infinite loop without retries.
+                if (Retries > 0)
+                    TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
+                else
+                    OnFinish?.Invoke();
+
                 return;
             }
 

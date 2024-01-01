@@ -138,9 +138,6 @@ namespace MangaUnhost.Browser
             while (Thread.IsRunning())
                 ThreadTools.Wait(100, true);
 
-            if (Result == null)
-                throw new WebException();
-
             return Result;
         }
 
