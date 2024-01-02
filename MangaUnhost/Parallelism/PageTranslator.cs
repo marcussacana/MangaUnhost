@@ -13,11 +13,13 @@ namespace MangaUnhost.Parallelism
 {
     internal class PageTranslator : IPacket
     {
+        static List<IPacket> Instances = new List<IPacket>();
 
         ImageTranslator ImgTranslator = null;
 
         public PageTranslator()
         {
+            Instances.Add(this);
             //Each instance runs a CEF so...
             GC.AddMemoryPressure(1024 * 1024 * 100);
         }
@@ -47,6 +49,10 @@ namespace MangaUnhost.Parallelism
                 var TargetLanguage = Reader.ReadNullableString();
 
                 TranslatePages(Pages, SourceLanguage, TargetLanguage);
+            }
+            catch
+            {
+                Dispose();
             }
             finally
             {
@@ -289,6 +295,12 @@ namespace MangaUnhost.Parallelism
             using MemoryStream FinalData = new MemoryStream();
             FinalImage.Save(FinalData, System.Drawing.Imaging.ImageFormat.Png);
             return FinalData.ToArray();
+        }
+
+        public static void DisposeAll()
+        {
+            foreach (var Instance in Instances)
+                Instance.Dispose();
         }
         public void Dispose()
         {

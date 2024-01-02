@@ -61,6 +61,7 @@ namespace MangaUnhost.Parallelism
                 }
                 finally
                 {
+                    Stream.Dispose();
                     Packet.Dispose();
                 }
             }
@@ -73,11 +74,11 @@ namespace MangaUnhost.Parallelism
         }
 
         static Random Rand = new Random();
-        public static async Task Run(HandlerType Type, Action<IPacket> PacketHandler)
+        public static async Task<IPacket> Run(HandlerType Type)
         {
             string Name = $"{(int)Type}-{Rand.Next()}";
 
-            using var Stream = new NamedPipeServerStream(Name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            var Stream = new NamedPipeServerStream(Name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
             var Reader = new BinaryReader(Stream);
             var Writer = new BinaryWriter(Stream);
 
@@ -98,11 +99,7 @@ namespace MangaUnhost.Parallelism
             Handler.PipeStream = Stream;
             Handler.ProcessID = ProcessID;
 
-            PacketHandler?.Invoke(Handler);
-
-            while (Stream.IsConnected) {
-                await Task.Delay(100);
-            }
+            return Handler;
         }
     }
 }

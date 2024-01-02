@@ -860,8 +860,10 @@ namespace MangaUnhost
                 if (Retries > 0)
                     TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
                 else
+                {
+                    PageTranslator.DisposeAll();
                     OnFinish?.Invoke();
-
+                }
                 return;
             }
 
@@ -871,6 +873,8 @@ namespace MangaUnhost
 
             Main.Status = Language.IDLE;
             Main.SubStatus = "";
+
+            PageTranslator.DisposeAll();
 
             OnFinish?.Invoke();
         }
@@ -967,15 +971,7 @@ namespace MangaUnhost
             {
                 var Info = GetNullTranslators().First();
 
-                TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
-
-                _ = Server.Run(Server.HandlerType.PageTranslate, (Packet) =>
-                {
-                    Translator = Packet;
-                    TCS.SetResult(true);
-                });
-
-                await TCS.Task;
+                Translator = await Server.Run(Server.HandlerType.PageTranslate);
 
                 Translators[Info.Item2]?.Dispose();
                 Translators[Info.Item2] = Translator;
