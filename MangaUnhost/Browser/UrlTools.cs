@@ -128,14 +128,23 @@ namespace MangaUnhost.Browser
 
         public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
         {
+            bool Finished = false;
             byte[] Result = null;
 
-            var Thread = new Thread(async () =>
-            Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie));
+            var Thread = new Thread(async () => {
+                try
+                {
+                    Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+                }
+                finally
+                {
+                    Finished = true;
+                } 
+            });
 
             Thread.Start();
 
-            while (Thread.IsRunning())
+            while (!Finished)
                 ThreadTools.Wait(100, true);
 
             return Result;

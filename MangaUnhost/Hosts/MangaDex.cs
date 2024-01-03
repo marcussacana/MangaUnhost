@@ -129,7 +129,7 @@ namespace MangaUnhost.Hosts
         {
             if (LastLang != null && Avaliable.Contains(LastLang))
                 return LastLang;
-            return LastLang = AccountTools.PromptOption("Select a Language", Avaliable);
+            return LastLang = AccountTools.PromptOption("Select a Language", Avaliable.Distinct().Where(x=>!string.IsNullOrWhiteSpace(x)).ToArray());
         }
 
         public int GetChapterPageCount(int ID)
@@ -198,7 +198,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 4, 1)
+                Version = new Version(2, 4, 2)
             };
         }
 
