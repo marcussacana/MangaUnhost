@@ -51,96 +51,103 @@ namespace MangaUnhost.Browser
             var tmpPath = Path.ChangeExtension(Path.GetTempFileName(), "png");
             File.WriteAllBytes(tmpPath, Image);
 
-            /*            
-            Browser.ShowDevTools();
-
-            var test = new BrowserPopup(Browser, () => { return false; });
-            test.Show();
-            */
-            
-
-            //select image
-            TargetFile = tmpPath;
-
-            int waiting = 0;
-
-            string Bounds = null;
-            while (Bounds == null)
+            try
             {
-                if (waiting++ > 15)
-                    throw new Exception("Image Translation Failed");
+                /*            
+                Browser.ShowDevTools();
 
-                Bounds = Browser.EvaluateScriptUnsafe<string>("var target = XPATH(\"//input[@type='file' and contains(@accept, 'image')]/..\", false); " + Properties.Resources.targetGetBounds);
-                ThreadTools.Wait(1000, true);
-            }
-
-            InputTools.GetBoundsCoords(Bounds, out int X, out int Y, out int Width, out int Height);
-
-            var Target = new Point(X + (Width / 2), Y + (Height / 2));
-
-            var Rand = new Random();
-            var Move = CursorTools.CreateMove(Rand.Next(0, 50), Rand.Next(5, 60), Target.X, Target.Y, 10);
-            Browser.ExecuteMove(Move);
-            Browser.ExecuteClick(Target);
+                var test = new BrowserPopup(Browser, () => { return false; });
+                test.Show();
+                */
 
 
-            waiting = 0;
+                //select image
+                TargetFile = tmpPath;
 
-            while (IsLoading())
-            {
-                if (waiting++ > 15)
-                    throw new Exception("Image Translation Failed");
+                int waiting = 0;
 
-                ThreadTools.Wait(1000, true);
-            }
-
-            waiting = 0;
-
-            while (true)
-            {
-                if (hasFailed())
-                    throw new Exception("Image Translation Failed");
-
-                if (waiting++ > 15)
-                    throw new Exception("Image Translation Failed");
-
-                ThreadTools.Wait(1000, true);
-                var Url = Browser.EvaluateScriptUnsafe<string>("XPATH(\"(//img[starts-with(@src, 'blob:')])[last()]\", false).src");
-                
-                if (Url == null || !Url.StartsWith("blob:"))
-                    continue;
-
-                Browser.EvaluateScriptUnsafe<string>($"toDataURL('{Url}', function(dataUrl) {{ globalThis.currentImage = dataUrl; }})");
-                break;
-            }
-
-            waiting = 0;
-
-            string Data = null;
-
-            do
-            {
-                Data = Browser.EvaluateScriptUnsafe<string>("currentImage");
-
-
-                if (Data == null)
+                string Bounds = null;
+                while (Bounds == null)
                 {
-                    if (waiting++ > 5)
+                    if (waiting++ > 15)
+                        throw new Exception("Image Translation Failed");
+
+                    Bounds = Browser.EvaluateScriptUnsafe<string>("var target = XPATH(\"//input[@type='file' and contains(@accept, 'image')]/..\", false); " + Properties.Resources.targetGetBounds);
+                    ThreadTools.Wait(1000, true);
+                }
+
+                InputTools.GetBoundsCoords(Bounds, out int X, out int Y, out int Width, out int Height);
+
+                var Target = new Point(X + (Width / 2), Y + (Height / 2));
+
+                var Rand = new Random();
+                var Move = CursorTools.CreateMove(Rand.Next(0, 50), Rand.Next(5, 60), Target.X, Target.Y, 10);
+                Browser.ExecuteMove(Move);
+                Browser.ExecuteClick(Target);
+
+
+                waiting = 0;
+
+                while (IsLoading())
+                {
+                    if (waiting++ > 15)
                         throw new Exception("Image Translation Failed");
 
                     ThreadTools.Wait(1000, true);
-                    Data = "";
                 }
 
-            } while (!Data.StartsWith("data:"));
+                waiting = 0;
 
-            Data = Data.Substring(";base64,");
+                while (true)
+                {
+                    if (hasFailed())
+                        throw new Exception("Image Translation Failed");
 
-            var NewData = Convert.FromBase64String(Data);
+                    if (waiting++ > 15)
+                        throw new Exception("Image Translation Failed");
 
-            Reload();
+                    ThreadTools.Wait(1000, true);
+                    var Url = Browser.EvaluateScriptUnsafe<string>("XPATH(\"(//img[starts-with(@src, 'blob:')])[last()]\", false).src");
 
-            return NewData;
+                    if (Url == null || !Url.StartsWith("blob:"))
+                        continue;
+
+                    Browser.EvaluateScriptUnsafe<string>($"toDataURL('{Url}', function(dataUrl) {{ globalThis.currentImage = dataUrl; }})");
+                    break;
+                }
+
+                waiting = 0;
+
+                string Data = null;
+
+                do
+                {
+                    Data = Browser.EvaluateScriptUnsafe<string>("currentImage");
+
+
+                    if (Data == null)
+                    {
+                        if (waiting++ > 5)
+                            throw new Exception("Image Translation Failed");
+
+                        ThreadTools.Wait(1000, true);
+                        Data = "";
+                    }
+
+                } while (!Data.StartsWith("data:"));
+
+                Data = Data.Substring(";base64,");
+
+                var NewData = Convert.FromBase64String(Data);
+
+                Reload();
+
+                return NewData;
+            }
+            finally
+            {
+                File.Delete(tmpPath);
+            }
         }
 
         private bool hasFailed()
