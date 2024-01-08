@@ -181,6 +181,10 @@ namespace MangaUnhost.Browser
                     {
                         DefaultBrowser.hCaptchaSolve();
                         ThreadTools.Wait(1000, true);
+                    } 
+                    else if (!DefaultBrowser.cfCaptchaIsSolved())
+                    {
+                        DefaultBrowser.cfCaptchaSolve();
                     }
                     else
                     {

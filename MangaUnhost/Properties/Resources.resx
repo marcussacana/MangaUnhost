@@ -417,4 +417,15 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 &lt;/body&gt;
 &lt;/html&gt;</value>
   </data>
+  <data name="cfCaptchaGetMainFramePosition" xml:space="preserve">
+    <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("turnstile") &gt;= 0) return frames[i]; }
+var bounds = hcFrame().getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="cfCaptchaIsSolved" xml:space="preserve">
+    <value>if (document.getElementsByName('cf-turnstile-response').length == 0)
+    true;
+else
+    document.getElementsByName('cf-turnstile-response')[0].value != ''</value>
+  </data>
 </root>

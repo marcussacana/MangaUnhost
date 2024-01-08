@@ -71,6 +71,29 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var hcFrame = function() { var frames = document.getElementsByTagName(&quot;iframe&quot;); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf(&quot;turnstile&quot;) &gt;= 0) return frames[i]; }
+        ///var bounds = hcFrame().getBoundingClientRect();
+        ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
+        /// </summary>
+        internal static string cfCaptchaGetMainFramePosition {
+            get {
+                return ResourceManager.GetString("cfCaptchaGetMainFramePosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a if (document.getElementsByName(&apos;cf-turnstile-response&apos;).length == 0)
+        ///    true;
+        ///else
+        ///    document.getElementsByName(&apos;cf-turnstile-response&apos;)[0].value != &apos;&apos;.
+        /// </summary>
+        internal static string cfCaptchaIsSolved {
+            get {
+                return ResourceManager.GetString("cfCaptchaIsSolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a document.getElementById(&quot;cf-please-wait&quot;).style.display == &quot;none&quot;.
         /// </summary>
         internal static string cloudflareCaptchaReady {

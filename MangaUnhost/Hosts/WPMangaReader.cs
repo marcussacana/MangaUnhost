@@ -152,10 +152,10 @@ namespace MangaUnhost.Hosts
 
         Uri CurrentUrl;
 
-        CookieContainer _Cookies;
-        CloudflareData? CFData = null;
+        static CookieContainer _Cookies;
+        static CloudflareData? CFData = null;
 
-        CookieContainer Cookies
+        static CookieContainer Cookies
         {
             get
             {
@@ -177,7 +177,7 @@ namespace MangaUnhost.Hosts
             Cookies = new CookieContainer();
             CurrentUrl = Uri;
 
-            Document.LoadUrl(Uri, Cookies: Cookies);
+            Document.LoadUrl(Uri, CFData);
             if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())
             {
                 CFData = JSTools.BypassCloudflare(Uri.AbsoluteUri);

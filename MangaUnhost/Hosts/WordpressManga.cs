@@ -169,10 +169,10 @@ namespace MangaUnhost.Hosts
 
         Uri CurrentUrl;
 
-        CookieContainer _Cookies;
-        CloudflareData? CFData = null;
+        static CookieContainer _Cookies;
+        static CloudflareData? CFData = null;
 
-        CookieContainer Cookies { 
+        static CookieContainer Cookies { 
             get { 
                 if (CFData.HasValue)
                     return CFData?.Cookies; 

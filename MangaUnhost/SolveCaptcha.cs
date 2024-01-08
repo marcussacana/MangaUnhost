@@ -20,10 +20,11 @@ namespace MangaUnhost
         Rectangle VerifyRect;
 
         bool hCaptcha = false;
+        bool cfCaptcha = false;
         bool v3 = false;
 
         int Clicks = 0;
-        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false, bool hCaptcha = false, Action Submit = null)
+        public SolveCaptcha(ChromiumWebBrowser ChromiumBrowser, bool v3 = false, bool hCaptcha = false, bool cfCaptcha = false, Action Submit = null)
         {
             InitializeComponent();
 
@@ -32,6 +33,7 @@ namespace MangaUnhost
 
             this.v3 = v3;
             this.hCaptcha = hCaptcha;
+            this.cfCaptcha = cfCaptcha;
 
             Shown += (a, b) =>
             {
@@ -48,6 +50,8 @@ namespace MangaUnhost
         {
             if (hCaptcha)
                 return Browser.hCaptchaIsSolved();
+            if (cfCaptcha)
+                return Browser.cfCaptchaIsSolved();
             return Browser.ReCaptchaIsSolved(v3);
         }
 
@@ -55,20 +59,32 @@ namespace MangaUnhost
         {
             if (hCaptcha)
                 return Browser.hCaptchaIsFailed();
+            if (cfCaptcha)
+                return false;
             return Browser.ReCaptchaIsFailed();
         }
+
         void ResetCaptcha()
         {
             if (hCaptcha)
+            {
                 Browser.hCaptchaReset();
-            else
-                Browser.ReCaptchaReset();
+                return;
+            }
+            if (cfCaptcha)
+            {
+                Browser.Reload();
+                return;
+            }
+            Browser.ReCaptchaReset();
         }
 
         Rectangle GetCaptchaFrameRectangle()
         {
             if (hCaptcha)
                 return Browser.GethCaptchaChallengeRectangle();
+            if (cfCaptcha)
+                return new Rectangle(Point.Empty, ChromiumBrowser.Size);
             return Browser.ReCaptchaGetBFrameRectangle();
         }
 
@@ -76,6 +92,8 @@ namespace MangaUnhost
         {
             if (hCaptcha)
                 return Browser.GethCaptchaVerifyButtonRectangle();
+            if (cfCaptcha)
+                return Browser.GetcfCaptchaRectangle();
             return Browser.ReCaptchaGetVerifyButtonRectangle();
         }
 
