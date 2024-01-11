@@ -85,13 +85,25 @@ namespace MangaUnhost.Hosts
 
             var JSON = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
-            var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfo>(JSON);
+            
+            var ChInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfo>(JSON);
 
-            var Images = Info.book_temp.SelectMany(x => x.book_temp_caps)
-                .SelectMany(x => x.book_temp_cap_unit)
+            if (ChInfo.book_temp != null)
+            {
+                var Images = ChInfo.book_temp.SelectMany(x => x.book_temp_caps)
+                    .SelectMany(x => x.book_temp_cap_unit)
+                    .Select(x => $"https://objects.slimeread.com/{x.btcu_image}");
+
+                return Images.ToArray();
+            }
+
+            var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<BookTempCap>(JSON);
+
+            var Pages = Info.book_temp_cap_unit
                 .Select(x => $"https://objects.slimeread.com/{x.btcu_image}");
 
-            return Images.ToArray();
+            return Pages.ToArray();
+
         }
 
 
