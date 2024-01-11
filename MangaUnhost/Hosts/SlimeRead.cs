@@ -83,7 +83,7 @@ namespace MangaUnhost.Hosts
         {
             var Uri = $"https://ai3.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
 
-            var JSON = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent);
+            var JSON = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfo>(JSON);
 
@@ -108,7 +108,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0, 3)
+                Version = new Version(1, 0, 4)
             };
         }
 
