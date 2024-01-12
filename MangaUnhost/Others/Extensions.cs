@@ -322,7 +322,7 @@ namespace MangaUnhost {
                 return bTask.Result ? readed : -1;
             }
 
-            Thread.Abort();
+            //Thread.Abort();
 
             return -2;
         }
@@ -354,7 +354,7 @@ namespace MangaUnhost {
                 return;
             }
 
-            Thread.Abort();
+            //Thread.Abort();
 
             throw new IOException("Pipe not respoding.");
         }
