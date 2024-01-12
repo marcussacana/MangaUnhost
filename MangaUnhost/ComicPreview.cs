@@ -928,11 +928,15 @@ namespace MangaUnhost
                         bool OK = false;
                         try
                         {
+                            var ImgData = File.ReadAllBytes(Page);
+                            
+                            bool IsBig = PageTranslator.IsImageTooBig(ImgData, out int Delay);
+
                             Translator = await GetTranslator();
 
                             await Translator.Request(new string[] { Page }, SourceLang, TargetLang);
 
-                            OK = await Translator.WaitForEnd((i, total) => { 
+                            OK = await Translator.WaitForEnd(Delay, (i, total) => { 
                                 //Translator?.Dispose();
                             });
                         }

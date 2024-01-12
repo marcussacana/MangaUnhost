@@ -93,7 +93,7 @@ namespace MangaUnhost.Parallelism
             }
         }
 
-        public async Task<bool> WaitForEnd(Action<int, int> ProgressChanged)
+        public async Task<bool> WaitForEnd(int WaitLevel, Action<int, int> ProgressChanged)
         {
             if (Disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -109,7 +109,7 @@ namespace MangaUnhost.Parallelism
                 {
                     try
                     {
-                        var readed = await PipeStream.TimeoutReadAsync(buffer, 0, buffer.Length, TimeSpan.FromSeconds(60 * 3));
+                        var readed = await PipeStream.TimeoutReadAsync(buffer, 0, buffer.Length, TimeSpan.FromSeconds(60 * 3 * Math.Min(WaitLevel, 1)));
 
                         if (readed <= 0)
                             break;
@@ -219,15 +219,7 @@ namespace MangaUnhost.Parallelism
 
         private static byte[] AutoSplitAndTranslate(ImageTranslator ImgTranslator, byte[] ImgData, int TriesLeft = 0)
         {
-            bool TooBig = ImgData.Length >= 1024 * 1024 * 10;
-
-            if (!TooBig)
-            {
-                using MemoryStream ImgStream = new MemoryStream(ImgData);
-                using Bitmap img = Bitmap.FromStream(ImgStream) as Bitmap;
-                if (img.Width < img.Height / 3)
-                    TooBig = true;
-            }
+            bool TooBig = IsImageTooBig(ImgData, out _);
 
             if (TooBig)
             {
@@ -272,7 +264,7 @@ namespace MangaUnhost.Parallelism
             using MemoryStream OriData = new MemoryStream(ImgData);
             using Bitmap OriImage = Bitmap.FromStream(OriData) as Bitmap;
 
-            using Bitmap FinalImage = new Bitmap(OriImage.Width, OriImage.Height);            
+            using Bitmap FinalImage = new Bitmap(OriImage.Width, OriImage.Height);
             using Graphics graphics = Graphics.FromImage(FinalImage);
             {
                 using MemoryStream tmpData = new MemoryStream(NewData);
@@ -286,7 +278,7 @@ namespace MangaUnhost.Parallelism
                 if (TriesLeft > 0)
                 {
                     ImgTranslator.Reload();
-                    return AutoSplitAndTranslate(ImgTranslator, ImgData, TriesLeft - 1);    
+                    return AutoSplitAndTranslate(ImgTranslator, ImgData, TriesLeft - 1);
                 }
 
                 throw new Exception("Translated Image not Changed");
@@ -295,6 +287,28 @@ namespace MangaUnhost.Parallelism
             using MemoryStream FinalData = new MemoryStream();
             FinalImage.Save(FinalData, System.Drawing.Imaging.ImageFormat.Png);
             return FinalData.ToArray();
+        }
+
+        public static bool IsImageTooBig(byte[] ImgData, out int DelayTimes)
+        {
+            DelayTimes = 1;
+            bool TooBig = ImgData.Length >= 1024 * 1024 * 10;
+
+            if (!TooBig)
+            {
+                using MemoryStream ImgStream = new MemoryStream(ImgData);
+                using Bitmap img = Bitmap.FromStream(ImgStream) as Bitmap;
+
+                int Height = img.Height;
+                while (img.Width < Height / 3)
+                {
+                    Height /= 2;
+                    DelayTimes++;
+                    TooBig = true;
+                }
+            }
+
+            return TooBig;
         }
 
         public static void DisposeAll()

@@ -298,7 +298,8 @@ namespace MangaUnhost {
         {
             int readed = 0;
             TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
-            new Thread(() => {
+            var Thread = new Thread(() =>
+            {
                 try
                 {
                     readed = strm.Read(buffer, offset, count);
@@ -308,7 +309,9 @@ namespace MangaUnhost {
                 {
                     TCS.SetResult(false);
                 }
-            }).Start();
+            });
+
+            Thread.Start();
 
             var rst = await Task.WhenAny(TCS.Task, Task.Delay(Timeout));
             if (rst is Task<bool> bTask)
@@ -319,13 +322,16 @@ namespace MangaUnhost {
                 return bTask.Result ? readed : -1;
             }
 
+            Thread.Abort();
+
             return -2;
         }
 
         public static async Task TimeoutWriteAsync(this Stream strm, byte[] buffer, int offset, int count, TimeSpan Timeout)
         {
             TaskCompletionSource<bool> TCS = new TaskCompletionSource<bool>();
-            new Thread(() => {
+            var Thread = new Thread(() =>
+            {
                 try
                 {
                     strm.Write(buffer, offset, count);
@@ -335,7 +341,9 @@ namespace MangaUnhost {
                 {
                     TCS.SetResult(false);
                 }
-            }).Start();
+            });
+
+            Thread.Start();
 
             var rst = await Task.WhenAny(TCS.Task, Task.Delay(Timeout));
 
@@ -345,6 +353,8 @@ namespace MangaUnhost {
                     throw new IOException("Failed to write");
                 return;
             }
+
+            Thread.Abort();
 
             throw new IOException("Pipe not respoding.");
         }

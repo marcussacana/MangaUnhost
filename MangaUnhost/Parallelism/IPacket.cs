@@ -16,6 +16,6 @@ namespace MangaUnhost.Parallelism
 
         public Task Request(params object[] Args);
 
-        public Task<bool> WaitForEnd(Action<int, int> ProgressChanged);
+        public Task<bool> WaitForEnd(int WaitLevel, Action<int, int> ProgressChanged);
     }
 }
