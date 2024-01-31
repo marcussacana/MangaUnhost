@@ -1,6 +1,5 @@
 ﻿using CefSharp;
 using CefSharp.EventHandler;
-using CefSharp.Internals;
 using CefSharp.OffScreen;
 using MangaUnhost.Browser;
 using Nito.AsyncEx;
@@ -8,9 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,7 +18,8 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using ThreadState = System.Threading.ThreadState;
 
-namespace MangaUnhost {
+namespace MangaUnhost
+{
     public static class Extensions {
         public static CookieContainer ToContainer(this System.Net.Cookie Cookie) => new System.Net.Cookie[] { Cookie }.ToContainer();
         public static CookieContainer ToContainer(this System.Net.Cookie[] Cookies) {

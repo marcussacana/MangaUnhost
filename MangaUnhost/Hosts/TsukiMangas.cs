@@ -31,7 +31,7 @@ namespace MangaUnhost.Hosts
                 var PageURL = new Uri(new Uri($"https://{CurrentHost}"), $"{CurrentDir}{Page.TrimStart('/')}");
                 try
                 {
-                    Data = PageURL.Download(UserAgent: ProxyTools.UserAgent, Referer: "https://tsuki-mangas.com/");
+                    Data = PageURL.Download(CFData.Value, Referer: "https://tsuki-mangas.com/");
                     CheckImage(Decoder, Data);
                 }
                 catch
@@ -42,7 +42,7 @@ namespace MangaUnhost.Hosts
                         PageURL = new Uri(new Uri($"https://{CurrentHost}"), Page);
                         try
                         {
-                            Data = PageURL.Download(UserAgent: ProxyTools.UserAgent, Referer: "https://tsuki-mangas.com/");
+                            Data = PageURL.Download(CFData.Value, Referer: "https://tsuki-mangas.com/");
                             CheckImage(Decoder, Data);
                             CurrentDir = "/"; 
                             break;
@@ -52,7 +52,7 @@ namespace MangaUnhost.Hosts
                         PageURL = new Uri(new Uri($"https://{CurrentHost}"), $"/tsuki/{Page.TrimStart('/')}");
                         try
                         {
-                            Data = PageURL.Download(UserAgent: ProxyTools.UserAgent, Referer: "https://tsuki-mangas.com/");
+                            Data = PageURL.Download(CFData.Value, Referer: "https://tsuki-mangas.com/");
                             CheckImage(Decoder, Data);
                             CurrentDir = "/tsuki/";
                             break;
@@ -79,7 +79,7 @@ namespace MangaUnhost.Hosts
 
         private IEnumerable<string> GetChapterPages(int ID)
         {
-            var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapter/versions/{ID}").TryDownloadString(Referer: CurrentUrl.AbsoluteUri);
+            var JSON = new Uri($"https://tsuki-mangas.com/api/v3/chapter/versions/{ID}").TryDownloadString(CFData, Referer: CurrentUrl.AbsoluteUri, Headers: Headers);
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterDetails>(JSON);
 
             return Info.pages.Select(x => x.url).OrderByFilenameNumber();
@@ -90,7 +90,7 @@ namespace MangaUnhost.Hosts
             ChaptersInfo info = new ChaptersInfo() { lastPage = 1 };
             for (int i = 1; i <= info.lastPage; i++)
             {
-                var JSON = new Uri($"https://tsuki-mangas.com/api/v2/chapters?manga_id={MangaID}&order=desc&page={i}&filter=").TryDownloadString(UserAgent: ProxyTools.UserAgent, Referer: CurrentUrl.AbsoluteUri);
+                var JSON = new Uri($"https://tsuki-mangas.com/api/v3/chapters?manga_id={MangaID}&order=desc&page={i}&filter=").TryDownloadString(CFData, Referer: CurrentUrl.AbsoluteUri, Headers: Headers);
                 info = Newtonsoft.Json.JsonConvert.DeserializeObject<ChaptersInfo>(JSON);
                 foreach (var Chapter in info.data)
                 {
@@ -117,7 +117,7 @@ namespace MangaUnhost.Hosts
                 Name = "TsukiMangas",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0, 2)
+                Version = new Version(2, 0, 0)
             };
         }
 
@@ -132,6 +132,12 @@ namespace MangaUnhost.Hosts
             return Uri.PathAndQuery.Contains("/obra/") && !Uri.PathAndQuery.EndsWith("/obra/");
         }
 
+        static (string, string)[] Headers = new (string, string)[]
+        {
+            ("X-Requested", "HttpRequest")
+        };
+
+        static CloudflareData? CFData = null;
         string MangaID = null;
         Uri CurrentUrl = null;
         public ComicInfo LoadUri(Uri Uri)
@@ -140,11 +146,14 @@ namespace MangaUnhost.Hosts
 
             MangaID = Uri.PathAndQuery.Substring("/obra/", "/");
 
-            var JSON = new Uri($"https://tsuki-mangas.com/api/v2/mangas/{MangaID}").TryDownloadString(UserAgent: ProxyTools.UserAgent, Referer: Uri.AbsoluteUri);
+            if (CFData == null)
+                CFData = JSTools.BypassCloudflare("https://tsuki-mangas.com");
+
+            var JSON = new Uri($"https://tsuki-mangas.com/api/v3/mangas/{MangaID}").TryDownloadString(CFData, Referer: Uri.AbsoluteUri, Headers: Headers);
 
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<MangaInfo>(JSON);
 
-            var Cover = new Uri($"https://tsuki-mangas.com/img/imgs/{Info.poster}").TryDownload(UserAgent: ProxyTools.UserAgent, Referer: Uri.AbsoluteUri);
+            var Cover = new Uri($"https://tsuki-mangas.com/img/imgs/{Info.poster}").TryDownload(CFData, Referer: Uri.AbsoluteUri);
 
             return new ComicInfo()
             {

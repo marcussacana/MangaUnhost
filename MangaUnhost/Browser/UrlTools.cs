@@ -113,6 +113,9 @@ namespace MangaUnhost.Browser
 
             return null;
         }
+        public static string TryDownloadString(this Uri Url, CloudflareData? CFData = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
+            Encoding.UTF8.GetString(Url.TryDownload(CFData, Referer, Proxy, Accept, null, Headers) ?? new byte[0]);
+
         public static string TryDownloadString(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             Encoding.UTF8.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries) ?? new byte[0]);
 
@@ -134,7 +137,7 @@ namespace MangaUnhost.Browser
             var Thread = new Thread(async () => {
                 try
                 {
-                    Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+                    Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors: AcceptableErrors);
                 }
                 finally
                 {
@@ -211,6 +214,10 @@ namespace MangaUnhost.Browser
         }
 
         public static SemaphoreSlim HttpRequestLocker = new SemaphoreSlim(10, 10);
+        public static byte[] Download(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
+            new Uri(Url).Download(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies);
+        public static byte[] Download(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
+            Url.Download(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies);
         public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
             new Uri(Url).Download(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
         public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)

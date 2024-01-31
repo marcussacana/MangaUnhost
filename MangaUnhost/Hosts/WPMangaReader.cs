@@ -135,19 +135,19 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 1)
+                Version = new Version(2, 2)
             };
         }
 
         public bool IsValidPage(string HTML, Uri URL)
         {
-            return (HTML.Contains("/mangareader/") && HTML.Contains("\"main-info\"") ) || 
+            return (HTML.Contains("/mangareader/") && HTML.Contains("main-info") ) || 
                    (HTML.Contains("wp-manga-chapter") && HTML.Contains("tab-chapter-listing"));
         }
 
         public bool IsValidUri(Uri Uri)
         {
-            return false;
+            return Uri.AbsoluteUri.Contains("mangaschan.net/manga/");
         }
 
         Uri CurrentUrl;

@@ -171,14 +171,16 @@ namespace MangaUnhost
             {
                 try
                 {
-                    HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.AbsoluteUri, ProxyTools.UserAgent));
+                    HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.AbsoluteUri, ProxyTools.UserAgent, AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError } ));
                     if (HTML.IsCloudflareTriggered()) {
                         HTML = ComicUrl.AbsoluteUri.BypassCloudflare().HTML;
                     }
                     HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
 
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
             ComicHost = HostQuery.FirstOrDefault();
