@@ -105,7 +105,7 @@ namespace MangaUnhost.Hosts {
         }
         private HtmlDocument GetChapterHtml(int ID) {
             HtmlDocument Document = new HtmlDocument();
-            Document.LoadUrl(ChapterLinks[ID], CFData.Value);
+            CFData = Document.LoadUrl(ChapterLinks[ID], CFData);
             return Document;
         }
 

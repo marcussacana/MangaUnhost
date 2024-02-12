@@ -114,7 +114,7 @@ namespace MangaUnhost.Hosts
         {
             var Chapter = new HtmlDocument();
             
-            Chapter.LoadUrl(LinkMap[ID], UserAgent: CFData?.UserAgent, Cookies: Cookies, Referer: CurrentUrl.AbsoluteUri);
+            CFData = Chapter.LoadUrl(LinkMap[ID], CFData, Referer: CurrentUrl.AbsoluteUri);
 
             var ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'chapter_preloaded_images')]");
             if (ScriptNode != null)

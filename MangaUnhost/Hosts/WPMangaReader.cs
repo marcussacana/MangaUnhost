@@ -177,7 +177,7 @@ namespace MangaUnhost.Hosts
             Cookies = new CookieContainer();
             CurrentUrl = Uri;
 
-            Document.LoadUrl(Uri, CFData);
+            CFData = Document.LoadUrl(Uri, CFData);
             if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())
             {
                 CFData = JSTools.BypassCloudflare(Uri.AbsoluteUri);
@@ -222,7 +222,7 @@ namespace MangaUnhost.Hosts
             if (ImgUrl.StartsWith("//"))
                 ImgUrl = "http:" + ImgUrl;
 
-            Info.Cover = ImgUrl.TryDownload(CFData);
+            Info.Cover = ImgUrl.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri);
 
             Info.ContentType = ContentType.Comic;
 
