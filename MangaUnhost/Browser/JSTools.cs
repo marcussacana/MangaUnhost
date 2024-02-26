@@ -10,6 +10,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
@@ -143,7 +144,14 @@ namespace MangaUnhost.Browser
             
             Frame.WaitForLoad();
 
-            return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
+            try
+            {
+                return Frame.EvaluateScriptAsync(Script).GetAwaiter().GetResult().Result;
+            }
+            catch
+            {
+                return null;
+            }
         }
         public static object EvaluateScriptUnsafe(this IFrame Frame, string Script)
         {
@@ -170,8 +178,12 @@ namespace MangaUnhost.Browser
 
             if (Browser.IsCloudflareAskingCaptcha())
             {
-                while (Browser.IsCloudflareTriggered())
+                int Tries = 3;
+                while (Browser.IsCloudflareTriggered() && Tries > 0)
                 {
+                    if (Browser.GetCurrentUrl() != Url)
+                        DefaultBrowser.WaitForLoad(Url);
+
                     if (!DefaultBrowser.ReCaptchaIsSolved())
                     {
                         DefaultBrowser.ReCaptchaTrySolve(Main.Solver);
@@ -193,6 +205,7 @@ namespace MangaUnhost.Browser
                     }
                     ThreadTools.Wait(1000, true);
                     Browser.WaitForLoad();
+                    Tries--;
                 }
             }
 
@@ -247,6 +260,20 @@ namespace MangaUnhost.Browser
                     return Frame;
             }
             return null;
+        }
+        public static async Task SetInputFile(this ChromiumWebBrowser Browser, string ElementID, string InputFile) => await Browser.GetBrowser().SetInputFile(ElementID, InputFile);
+        public static async Task SetInputFile(this IBrowser Browser, string ElementID,  string InputFile)
+        {
+            using (var Client = Browser.GetDevToolsClient())
+            {
+                var Doc = await Client.DOM.GetDocumentAsync();
+                var Input = await Client.DOM.QuerySelectorAsync(Doc.Root.NodeId, $"#{ElementID}");
+                
+                if (Input.NodeId == 0)
+                    throw new NodeNotFoundException();
+
+                await Client.DOM.SetFileInputFilesAsync(new[] { InputFile }, Input.NodeId);
+            }
         }
 
         public static CloudflareData BypassCloudflare(this ChromiumWebBrowser Browser)

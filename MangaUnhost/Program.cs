@@ -62,6 +62,10 @@ namespace MangaUnhost
         [STAThread]
         static void Main(string[] Args)
         {
+#if DEBUG
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+#endif
+
             if (Debug)
                 Writer = File.CreateText(Path.Combine(Path.GetDirectoryName(CurrentAssembly), "Debug.log"));                
             
@@ -121,6 +125,11 @@ namespace MangaUnhost
 
             if (Debug)
                 Writer.Flush();
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            File.WriteAllText("MangaUnhost-FatalError.log", e.ExceptionObject.ToString());
         }
 
         private static void FinishUpdate()

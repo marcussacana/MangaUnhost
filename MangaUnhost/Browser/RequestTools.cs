@@ -106,37 +106,60 @@ namespace MangaUnhost.Browser
             if (!(Browser.RequestHandler is RequestEventHandler))
                 Browser.RequestHandler = new RequestEventHandler();
 
+
+            var UAHelper = MangaUnhost.Browser.UserAgent.Parse(UA);
+            var BrowserExt = UAHelper.Extensions.LastOrDefault(x => new string[] { "Edg", "Chrome", "OPR", "Firefox" }.Contains(x.Name));
+
+            if (BrowserExt == null)
+                BrowserExt = UAHelper.Extensions.LastOrDefault();
+
+            if (BrowserExt == null)
+                return;
+
+            var Name = BrowserExt.Name switch
+            {
+                "Edg" => "Microsoft Edge",
+                "Chrome" => "Google Chrome",
+                "OPR" => "Opera",
+                "Firefox" => "Firefox",
+                _ => BrowserExt.Name
+            };
+
+            var Platform = UAHelper.System.First((x) => x.ToLower().Contains("win") || x.ToLower().Contains("linux") || x.ToLower().Contains("android")).ToLower();
+            var PlatformName = "Windows";
+
+            var PlatformVer = "10.0";
+
+
+            if (Platform.Contains("win"))
+                PlatformName = "Windows";
+            if (Platform.Contains("linux"))
+                PlatformName = "Linux";
+            if (Platform.Contains("android"))
+                PlatformName = "Android";
+
+            var Version = BrowserExt.Version;
+            var ShortVersion = Version.Split('.').First();
+
             Browser.RegisterWebRequestHandlerEvents((sender, args) => {
-                var UAHelper = MangaUnhost.Browser.UserAgent.Parse(UA);
-                var BrowserExt = UAHelper.Extensions.LastOrDefault(x => new string[] { "Edg", "Chrome", "OPR" }.Contains(x.Name));
-                
-                if (BrowserExt == null)
-                    BrowserExt = UAHelper.Extensions.LastOrDefault();
-                
-                if (BrowserExt == null)
-                    return;
-
-                var Name = BrowserExt.Name switch {
-                    "Edg" => "Microsoft Edge",
-                    "Chrome" => "Google Chrome",
-                    "OPR" => "Opera",
-                    _ => BrowserExt.Name
-                };
-
-                var Version = BrowserExt.Version;
-                var ShortVersion = Version.Split('.').First();
-
-                args.Headers["Sec-Ch-Ua"] = $"\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"{ShortVersion}\", \"Microsoft Edge\";v=\"{ShortVersion}\"";
-                args.Headers["Sec-Ch-Ua-Full-Version-List"] = $"\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"{Version}\", \"Microsoft Edge\";v=\"{Version}\"";
+                args.Headers["Sec-Ch-Ua"] = $"\"Not_A Brand\";v=\"24\", \"Chromium\";v=\"{ShortVersion}\", \"{Name}\";v=\"{ShortVersion}\"";
+                args.Headers["Sec-Ch-Ua-Arch"] = Environment.Is64BitProcess ? "x64" : "x86";
+                args.Headers["Sec-Ch-Ua-Bitness"] = Environment.Is64BitOperatingSystem ? "64" : "32";
+                args.Headers["Sec-Ch-Ua-Full-Version-List"] = $"\"Not_A Brand\";v=\"24\", \"Chromium\";v=\"{Version}\", \"{Name}\";v=\"{Version}\"";
                 args.Headers["Sec-Ch-Ua-Full-Version"] = Version;
+                args.Headers["Sec-Ch-Ua-Mobile"] = "?0";
+                args.Headers["Sec-Ch-Ua-Model"] = "";
+                args.Headers["Sec-Ch-Ua-Platform"] = PlatformName;
+                args.Headers["Sec-Ch-Ua-Platform-Version"] = PlatformName == "Linux" ? "" : PlatformVer;
+                args.Headers["Sec-Ch-Ua-Wow64"] = (Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess ? "?1" : "?0");
             }, null);
 
-            Browser.EarlyInjection("Object.defineProperty(navigator, 'userAgentData', {value: {brands:[ { brand: 'Not_A Brand', version: '8' }, {brand: 'Chromium', version: '128'}, {brand: 'Microsoft Edge', version: '120'}], mobile: false, platform: 'Windows'}, configurable: false, writable: false,});");
+            Browser.EarlyInjection($"Object.defineProperty(navigator, 'userAgentData', {{value: {{brands:[ {{ brand: 'Not_A Brand', version: '24' }}, {{brand: 'Chromium', version: '{ShortVersion}'}}, {{brand: '{Name}', version: '{ShortVersion}'}}], mobile: false, platform: '{PlatformName}'}}, configurable: false, writable: false,}}); window.cefSharp = undefined; Object.freeze(window.cefSharp); window.CefSharp = undefined; Object.freeze(window.CefSharp); window.cefQuery = undefined; Object.freeze(window.cefQuery);");
         }
 
         public static void BypassGoogleCEFBlock(this ChromiumWebBrowser Browser)
         {
-            Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0");
+            Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0");
         }
 
         //public delegate void Func<in T>(T arg);

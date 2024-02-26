@@ -99,10 +99,14 @@ namespace MangaUnhost
 
         void ClickImNotRobot()
         {
-            if (hCaptcha)
-                Browser.hCaptchaClickImHuman(out _);
-            else
-                ChromiumBrowser.ReCaptchaClickImNotRobot(out _);
+            try
+            {
+                if (hCaptcha)
+                    Browser.hCaptchaClickImHuman(out _);
+                else
+                    ChromiumBrowser.ReCaptchaClickImNotRobot(out _);
+            }
+            catch { }
         }
         void Initialize()
         {

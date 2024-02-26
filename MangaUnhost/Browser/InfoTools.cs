@@ -25,14 +25,14 @@ namespace MangaUnhost.Browser
             return true;
         }
 
-        public static void WaitForLoad(this ChromiumWebBrowser Browser, string Url)
+        public static void WaitForLoad(this ChromiumWebBrowser Browser, string Url, int MaxSeconds = 60)
         {
             Browser.WaitInitialize();
             Browser.Load(Url);
-            Browser.GetBrowser().WaitForLoad();
+            Browser.GetBrowser().WaitForLoad(MaxSeconds);
         }
 
-        public static void WaitForLoad(this ChromiumWebBrowser Browser)
+        public static void WaitForLoad(this ChromiumWebBrowser Browser, int MaxSeconds = 60)
         {
             Browser.WaitInitialize();
             Browser.GetBrowser().WaitForLoad();

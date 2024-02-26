@@ -173,6 +173,8 @@ namespace MangaUnhost
                 UserAgent = ProxyTools.UserAgent
             };
 
+            //CefSettings.DisableGpuAcceleration();
+
             //CefSettings.CefCommandLineArgs.Add("disable-web-security");
             CefSettings.CefCommandLineArgs.Add("user-agent", ProxyTools.UserAgent);
 

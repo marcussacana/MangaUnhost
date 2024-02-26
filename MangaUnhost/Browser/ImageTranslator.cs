@@ -2,9 +2,12 @@
 using CefSharp.EventHandler;
 using CefSharp.OffScreen;
 using MangaUnhost.Others;
+using Nito.AsyncEx;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace MangaUnhost.Browser
 {
@@ -15,27 +18,14 @@ namespace MangaUnhost.Browser
         ChromiumWebBrowser Browser;
         public ImageTranslator(string SourceLang, string TargetLang)
         {
-            this.SourceLang = SourceLang;
-            this.TargetLang = TargetLang;
+            this.SourceLang = SourceLang.ToLowerInvariant();
+            this.TargetLang = TargetLang.ToLowerInvariant();
 
             Browser = new ChromiumWebBrowser();
-            Browser.DialogHandler = new DialogEventHandler();
-            ((DialogEventHandler)Browser.DialogHandler).FileDialog += ImageTranslator_FileDialog;
             Browser.WaitInitialize();
             Browser.SetUserAgent(ProxyTools.UserAgent);
+            //Browser.BypassGoogleCEFBlock();
             Reload(this.SourceLang, this.TargetLang);
-        }
-
-        string TargetFile = null;
-        private void ImageTranslator_FileDialog(object sender, FileDialogEventArgs e)
-        {
-            if (e.IsFolder || TargetFile == null || !File.Exists(TargetFile))
-                return;
-
-            e.Handled = true;
-            e.SelectedPath = TargetFile;
-
-            TargetFile = null;
         }
 
         public void Reload() => Reload(SourceLang, TargetLang);
@@ -46,6 +36,8 @@ namespace MangaUnhost.Browser
             Browser.EvaluateScriptUnsafe(Properties.Resources.toDataURL);
         }
 
+        private static bool DevVisible = false;
+
         public byte[] TranslateImage(byte[] Image)
         {
             var tmpPath = Path.ChangeExtension(Path.GetTempFileName(), "png");
@@ -53,40 +45,37 @@ namespace MangaUnhost.Browser
 
             try
             {
-                /*            
-                Browser.ShowDevTools();
-
-                var test = new BrowserPopup(Browser, () => { return false; });
-                test.Show();
-                */
-
-
-                //select image
-                TargetFile = tmpPath;
-
-                int waiting = 0;
-
-                string Bounds = null;
-                while (Bounds == null)
+#if DEBUG
+                /*if (!Debugger.IsAttached)
                 {
-                    if (waiting++ > 15)
-                        throw new Exception("Image Translation Failed");
+                    if (!DevVisible)
+                    {
+                        DevVisible = true;
+                        Debugger.Launch();
+                        Browser.ShowDevTools();
 
-                    Bounds = Browser.EvaluateScriptUnsafe<string>("var target = XPATH(\"//input[@type='file' and contains(@accept, 'image')]/..\", false); " + Properties.Resources.targetGetBounds);
-                    ThreadTools.Wait(1000, true);
+                        var test = new BrowserPopup(Browser, () => { return false; });
+                        test.Show();
+                    }
                 }
+                */
+#endif
 
-                InputTools.GetBoundsCoords(Bounds, out int X, out int Y, out int Width, out int Height);
-
-                var Target = new Point(X + (Width / 2), Y + (Height / 2));
 
                 var Rand = new Random();
-                var Move = CursorTools.CreateMove(Rand.Next(0, 50), Rand.Next(5, 60), Target.X, Target.Y, 10);
+                var Move = CursorTools.CreateMove(Rand.Next(0, 50), Rand.Next(5, 60), Rand.Next(0, 50), Rand.Next(5, 60), 10);
                 Browser.ExecuteMove(Move);
-                Browser.ExecuteClick(Target);
+                Browser.ExecuteClick(Move.Last().Location);
+
+                var ID = Browser.EvaluateScriptUnsafe<string>("XPATH('//input[contains(@accept, \\'image\\')]', false).id");
+
+                if (ID == null)
+                    throw new Exception("File Input Not Found");
+
+                AsyncContext.Run(() => Browser.SetInputFile(ID, tmpPath));
 
 
-                waiting = 0;
+                int waiting = 0;
 
                 while (IsLoading())
                 {

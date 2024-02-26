@@ -25,9 +25,9 @@ namespace MangaUnhost.Browser {
         public static void ExecuteClick(this IBrowser Browser, Point Position) => Browser.GetHost().ExecuteClick(Position);
 
         public static void ExecuteClick(this IBrowserHost Browser, Point Position) {
-            Browser.SendMouseClickEvent(new MouseEvent(Position.X, Position.Y, CefEventFlags.LeftMouseButton), MouseButtonType.Left, false, 1);
+            Browser.SendMouseClickEvent(Position.X, Position.Y, MouseButtonType.Left, false, 1, CefEventFlags.None);
             ThreadTools.Wait(random.Next(49, 101), true);
-            Browser.SendMouseClickEvent(new MouseEvent(Position.X, Position.Y, CefEventFlags.LeftMouseButton), MouseButtonType.Left, true, 1);
+            Browser.SendMouseClickEvent(Position.X, Position.Y, MouseButtonType.Left, true, 1, CefEventFlags.None);
         }
 
         public static void SendChar(this ChromiumWebBrowser Browser, char Char) => Browser.GetBrowserHost().SendChar(Char);

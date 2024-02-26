@@ -40,63 +40,67 @@ namespace MangaUnhost.Browser {
         /// <param name="OBrowser">The Browser Instance With the Captcha</param>
         public static void ReCaptchaTrySolve(this ChromiumWebBrowser OBrowser, CaptchaSolverType SolverType = CaptchaSolverType.SemiAuto)
         {
-            var Browser = OBrowser.GetBrowser();
-            Browser.WaitForLoad();
-            ThreadTools.Wait(1500, true);
-            if (SolverType != CaptchaSolverType.Manual)
+            try
             {
-                if (!Browser.ReCaptchaIsSolved())
+                var Browser = OBrowser.GetBrowser();
+                Browser.WaitForLoad();
+                ThreadTools.Wait(1500, true);
+                if (SolverType != CaptchaSolverType.Manual)
                 {
-                    Point Cursor = new Point(0, 0);
-
-                    do
+                    if (!Browser.ReCaptchaIsSolved())
                     {
-                        OBrowser.ReCaptchaClickImNotRobot(out Cursor);
-                        if (Browser.ReCaptchaIsSolved())
-                            return;
-                    } while (Browser.ReCaptchaGetBFramePosition().Y == BFrameHidden);
+                        Point Cursor = new Point(0, 0);
 
-
-                    for (int i = 0; i < 3 && !Browser.ReCaptchaIsSolved(); i++)
-                    {
-                        try
+                        do
                         {
-                            if (Browser.ReCaptchaIsFailed())
+                            OBrowser.ReCaptchaClickImNotRobot(out Cursor);
+                            if (Browser.ReCaptchaIsSolved())
+                                return;
+                        } while (Browser.ReCaptchaGetBFramePosition().Y == BFrameHidden);
+
+
+                        for (int i = 0; i < 3 && !Browser.ReCaptchaIsSolved(); i++)
+                        {
+                            try
                             {
-                                Browser.ReCaptchaReset();
-                                if (Browser.ReCaptchaIsSolved())
-                                    break;
+                                if (Browser.ReCaptchaIsFailed())
+                                {
+                                    Browser.ReCaptchaReset();
+                                    if (Browser.ReCaptchaIsSolved())
+                                        break;
+                                }
                             }
-                        }
-                        catch { }
-                        try
-                        {
-                            OBrowser.ReCaptchaClickAudioChallenge(Cursor, out Cursor);
-                            if (Browser.ReCaptchaIsFailed())
-                                continue;
-                            var Response = Browser.DecodeAudioChallenge();
-                            if (Response == null)
-                                continue;
-                            OBrowser.ReCaptchaSolveSound(Response, Cursor, out Cursor);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!Browser.ReCaptchaIsSolved())
-                                throw ex;
-                            else break;
+                            catch { }
+                            try
+                            {
+                                OBrowser.ReCaptchaClickAudioChallenge(Cursor, out Cursor);
+                                if (Browser.ReCaptchaIsFailed())
+                                    continue;
+                                var Response = Browser.DecodeAudioChallenge();
+                                if (Response == null)
+                                    continue;
+                                OBrowser.ReCaptchaSolveSound(Response, Cursor, out Cursor);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!Browser.ReCaptchaIsSolved())
+                                    throw ex;
+                                else break;
+                            }
                         }
                     }
                 }
+
+                if (Browser.ReCaptchaIsSolved())
+                    return;
+
+                do
+                {
+                    using (var Solver = new SolveCaptcha(OBrowser))
+                        Solver.ShowDialog();
+                } while (!Browser.ReCaptchaIsSolved());
             }
-
-            if (Browser.ReCaptchaIsSolved())
-                return;
-
-            do
-            {
-                using (var Solver = new SolveCaptcha(OBrowser))
-                    Solver.ShowDialog();
-            } while (!Browser.ReCaptchaIsSolved());
+            catch { }
         }
 
         /// <summary>
