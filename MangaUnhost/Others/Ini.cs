@@ -133,7 +133,7 @@ public class AdvancedIni {
                     Data = Ini.SetConfig(BlockName, Name.Split(';')[0] + $".{i}", Value[i].ToString(), Data);
                 }
             } else {
-                Data = Ini.SetConfig(BlockName, Name, Value.ToString(), Data);
+                Data = Ini.SetConfig(BlockName, Name, Value.ToString(CultureInfo.InvariantCulture), Data);
             }
         }
 
