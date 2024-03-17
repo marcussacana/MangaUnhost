@@ -33,7 +33,8 @@ namespace MangaUnhost.Hosts
 
             foreach (var Node in ChapDoc.SelectNodes("//div[contains(@class, 'img-capitulos')]//canvas[@class='blade']"))
             {
-                yield return null;
+                var URL = Node.GetAttributeValue("data-src", null);
+                yield return new Uri(CurrentUrl, URL).AbsoluteUri;
             }
         }
 
