@@ -274,7 +274,7 @@ namespace MangaUnhost
                         OpenChapter.DropDownItems.Add(ChapItem);
                     }
 
-                    Application.DoEvents();
+                    Extensions.SafeDoEvents();
                 }
 
                 if (Items.Count > 0)

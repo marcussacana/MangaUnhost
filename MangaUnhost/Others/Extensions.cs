@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.Windows.Forms;
 using ThreadState = System.Threading.ThreadState;
 
 namespace MangaUnhost
@@ -505,6 +506,24 @@ namespace MangaUnhost
             catch
             {
                 return src;
+            }
+        }
+
+        static int DoEventLevel = 0;
+        public static void SafeDoEvents()
+        {
+            if (DoEventLevel > 10)
+                return;
+
+            try
+            {
+                DoEventLevel++;
+                Application.DoEvents();
+            }
+            catch { }
+            finally
+            {
+                DoEventLevel--;
             }
         }
     }

@@ -18,7 +18,7 @@ namespace MangaUnhost.Others {
                 Thread.Sleep(Delay);
 
                 if (DoEvents && !Main.Instance.InvokeRequired)
-                    Application.DoEvents();
+                    Extensions.SafeDoEvents();
             }
 
             if (ForceTimeoutAt != null && DateTime.Now > ForceTimeoutAt)

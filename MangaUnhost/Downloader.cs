@@ -271,7 +271,7 @@ namespace MangaUnhost
                         if (Data == null) continue;
 
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
-                        Application.DoEvents();
+                        Extensions.SafeDoEvents();
 
                         bool IsWebP = Main.IsWebP(Data);
 
@@ -550,7 +550,7 @@ namespace MangaUnhost
                                     NewImg.SetPixel(x, y, Color.FromArgb(Pixel));
                                 }
                                 if (x % 5 == 0)
-                                    Application.DoEvents();
+                                    Extensions.SafeDoEvents();
                             }
 
                             Status = OriStatus;

@@ -117,7 +117,7 @@ namespace MangaUnhost
         }
         void Initialize()
         {
-            Application.DoEvents();
+            Extensions.SafeDoEvents();
             LoadingMode(true);
             Refresh.Enabled = true;
 

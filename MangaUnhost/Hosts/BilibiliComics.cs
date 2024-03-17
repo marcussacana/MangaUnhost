@@ -471,7 +471,7 @@ namespace MangaUnhost.Hosts
 
                 Urls.Add($"{Token.url}?token={Token.token}");
 
-                Application.DoEvents();
+                Extensions.SafeDoEvents();
             }
 
             return Urls.ToArray();
@@ -556,7 +556,7 @@ namespace MangaUnhost.Hosts
         {
 
             while (!UrlTools.HttpRequestLocker.Wait(TimeSpan.FromMilliseconds(50)))
-                Application.DoEvents();
+                Extensions.SafeDoEvents();
 
             try
             {

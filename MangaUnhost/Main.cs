@@ -48,7 +48,7 @@ namespace MangaUnhost
                 Instance.StatusBar.FirstLabelText = value;
 
                 if (!Instance.InvokeRequired)
-                    Application.DoEvents();
+                    Extensions.SafeDoEvents();
             }
         }
         public static string SubStatus
@@ -59,7 +59,7 @@ namespace MangaUnhost
                 Instance.StatusBar.SecondLabelText = value;
 
                 if (!Instance.InvokeRequired)
-                    Application.DoEvents();
+                    Extensions.SafeDoEvents();
             }
         }
         public static string ExtraStatus
@@ -70,7 +70,7 @@ namespace MangaUnhost
                 Instance.StatusBar.ThirdLabelText = value;
 
                 if (!Instance.InvokeRequired)
-                    Application.DoEvents();
+                    Extensions.SafeDoEvents();
             }
         }
         public static bool ThreeStatus
@@ -83,7 +83,7 @@ namespace MangaUnhost
                 try
                 {
                     if (!Instance.InvokeRequired)
-                        Application.DoEvents();
+                        Extensions.SafeDoEvents();
                 }
                 catch { }
             }
@@ -353,7 +353,7 @@ namespace MangaUnhost
 
             ThreadTools.Wait(3000, true);
             DbgPreview.Image = OBrowser.ScreenshotOrNull();
-            Application.DoEvents();
+            Extensions.SafeDoEvents();
 
 
             OBrowser.ReCaptchaTrySolve(CaptchaSolverType.Manual);
@@ -372,7 +372,7 @@ namespace MangaUnhost
 
             ThreadTools.Wait(3000, true);
             DbgPreview.Image = OBrowser.ScreenshotOrNull();
-            Application.DoEvents();
+            Extensions.SafeDoEvents();
 
 
             OBrowser.hCaptchaSolve();
@@ -391,7 +391,7 @@ namespace MangaUnhost
 
             ThreadTools.Wait(3000, true);
             DbgPreview.Image = OBrowser.ScreenshotOrNull();
-            Application.DoEvents();
+            Extensions.SafeDoEvents();
 
 
             var cfdata = OBrowser.BypassCloudflare();
@@ -402,11 +402,13 @@ namespace MangaUnhost
 
         private void dbgBrowser_Click(object sender, EventArgs e)
         {
-            var Browser = new ChromiumWebBrowser("https://www.google.com");
+            var Browser = new ChromiumWebBrowser("https://www.google.com");            
             Browser.BypassGoogleCEFBlock();
             Browser.Size = new Size(1280, 720);
 
             Browser.WaitInitialize();
+
+            Browser.ShowDevTools();
 
             BrowserPopup pop = new BrowserPopup(Browser, () => (Browser.EvaluateScript("globalThis.close") as string) == "1");
 
@@ -834,14 +836,14 @@ namespace MangaUnhost
                             LibraryContainer.Controls.Add(Preview);
                         }
                         catch { }
-                        Application.DoEvents();
+                        Extensions.SafeDoEvents();
                     }
                 }
                 else
                 {
                     foreach (var Comic in Previews.Skip(PageCount * Page).Take(Reaming < PageCount ? Reaming : PageCount)) { 
                         Try(() => LibraryContainer.Controls.Add(Comic));
-                        Application.DoEvents();
+                        Extensions.SafeDoEvents();
                     }
                 }
 
@@ -893,7 +895,7 @@ namespace MangaUnhost
                     await Exportion;
                 }
                 catch { }
-                Application.DoEvents();
+                Extensions.SafeDoEvents();
             }
             ThreeStatus = false;
             Status = CurrentLanguage.IDLE;

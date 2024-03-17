@@ -338,6 +338,10 @@ namespace MangaUnhost.Others
 
                 return distance < similarity;
             }
+            catch(Exception ex)
+            {
+                return true;
+            }
             finally
             {
                 image1?.Dispose();
