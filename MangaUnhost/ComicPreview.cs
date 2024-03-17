@@ -258,7 +258,7 @@ namespace MangaUnhost
                     }
                     ChapItem.DropDownItems.Add(Translate);
 
-                    if (Chapters.Length > 50)
+                    if (Chapters.Length > 40)
                     {
                         Items.Add(ChapItem);
 
