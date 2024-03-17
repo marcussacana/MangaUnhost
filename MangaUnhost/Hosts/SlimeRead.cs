@@ -67,9 +67,27 @@ namespace MangaUnhost.Hosts
         {
             //possible get json with this url as well
             //https://slimeread.com/_next/data/aoKuUaWGR_--cgEqsV76H/index.json
-            var Info = Document.SelectSingleNode("//script[@type='application/json']").InnerText;
+            var InfoData = Document.SelectSingleNode("//script[@type='application/json']").InnerText;
 
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<RootInfo>(Info);
+            var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<RootInfo>(InfoData);
+
+            if (Info.props.pageProps.book_info.book_infos.Count == 0)
+            {
+                var URL = "https://free.slimeread.com:8443/book/" + Info.props.pageProps.book_info.book_id;
+                InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+
+                var ChapInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<BookInfo>(InfoData);
+
+                Info.props = new Props()
+                {
+                    pageProps = new PageProps()
+                    {
+                        book_info = ChapInfo
+                    }
+                };
+            }
+
+            return Info;
         }
 
         public int GetChapterPageCount(int ID)
@@ -132,7 +150,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 0)
+                Version = new Version(2, 0, 1)
             };
         }
 
