@@ -863,7 +863,7 @@ namespace MangaUnhost
                 //Pages without text might never be successuflly translated
                 //causing a infinite loop without retries.
                 if (Retries > 0)
-                    return await TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
+                    await TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
                 else
                 {
                     PageTranslator.DisposeAll();
