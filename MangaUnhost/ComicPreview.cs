@@ -784,7 +784,7 @@ namespace MangaUnhost
 
                 var Finished = false;
 
-                TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapter, LastChapter, NextChapter, () => Finished = true);
+                AllowSkip = await TranslateChapter(SourceLang, TargetLang, AllowSkip, Chapter, LastChapter, NextChapter, () => Finished = true);
 
                 while (!Finished)
                 {
@@ -806,7 +806,7 @@ namespace MangaUnhost
             }));
         }
 
-        private async void TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter, Action OnFinish, int Retries = 3)
+        private async Task<bool> TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter, Action OnFinish, int Retries = 3)
         {
             if (Translators == null)
             {
@@ -823,6 +823,9 @@ namespace MangaUnhost
             var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
                 .Where(x => x.EndsWith(".tl.png"))
                 .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
+
+            if (ReadyPages.Length == 0)
+                AllowSkip = false;
 
             Main.Status = Language.Loading;
             Main.SubStatus = Path.GetFileName(Chapter.TrimEnd('/', '\\'));
@@ -851,7 +854,7 @@ namespace MangaUnhost
             var NewReadyPages = Pages.Where(x => File.Exists(x + ".tl.png")).ToArray();
 
             if (NewReadyPages.Length != Pages.Length) {
-                
+
                 //If this loop interation was able to translate any page
                 //but still missing pages then dont decrease the retries.
                 if (NewReadyPages.Length != ReadyPages.Length)
@@ -860,13 +863,13 @@ namespace MangaUnhost
                 //Pages without text might never be successuflly translated
                 //causing a infinite loop without retries.
                 if (Retries > 0)
-                    TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
+                    return await TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
                 else
                 {
                     PageTranslator.DisposeAll();
                     OnFinish?.Invoke();
                 }
-                return;
+                return AllowSkip;
             }
 
             ReadyPages = Pages.Select(x => x + ".tl.png").ToArray();
@@ -879,6 +882,7 @@ namespace MangaUnhost
             PageTranslator.DisposeAll();
 
             OnFinish?.Invoke();
+            return AllowSkip;
         }
 
         static SemaphoreSlim TlSemaphore = null;
