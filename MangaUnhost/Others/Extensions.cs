@@ -493,13 +493,14 @@ namespace MangaUnhost
                 }
             };
         }
+        public static IEnumerable<string> OrderByFilenameNumber(this IEnumerable<string> src) => src.OrderByFilenameNumber(x => x);
 
-        public static IEnumerable<string> OrderByFilenameNumber(this IEnumerable<string> src)
+        public static IEnumerable<T> OrderByFilenameNumber<T>(this IEnumerable<T> src, Func<T, string> On)
         {
             var Regex = new Regex("(\\d+)\\.(png|jpg|jpeg|bmp|tiff|gif|webp)", RegexOptions.IgnoreCase);
             try
             {
-                return src.OrderBy(x => int.Parse(Regex.Match(Path.GetFileName(x.Split('?').First())).Groups[1].Value)).ToArray();
+                return src.OrderBy(x => int.Parse(Regex.Match(Path.GetFileName(On(x).Split('?').First())).Groups[1].Value)).ToArray();
             }
             catch
             {

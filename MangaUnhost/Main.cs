@@ -168,7 +168,11 @@ namespace MangaUnhost
             var CefSettings = new CefSettings()
             {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath,
+#if DEBUG
+                LogSeverity = LogSeverity.Verbose,
+#else
                 LogSeverity = LogSeverity.Disable,
+#endif
                 WindowlessRenderingEnabled = true,
                 UserAgent = ProxyTools.UserAgent
             };
@@ -1052,6 +1056,23 @@ namespace MangaUnhost
                 SaveAsAutoRadio.Checked = true;
 
             }
+        }
+
+        ImageTranslator ImgTrans;
+        private void dbgTranslate_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fd = new OpenFileDialog();
+            fd.Filter = "Imaga files|*.png;*.jpg;*.bmp";
+
+            if (fd.ShowDialog() != DialogResult.OK)
+                return;
+
+            if (ImgTrans == null)
+                ImgTrans = new ImageTranslator("EN", "PT");
+
+            var Data = ImgTrans.TranslateImage(File.ReadAllBytes(fd.FileName));
+            File.WriteAllBytes(fd.FileName + ".tl.png", Data);
+            MessageBox.Show("done");
         }
     }
 }

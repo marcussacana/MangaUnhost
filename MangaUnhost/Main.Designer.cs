@@ -104,6 +104,7 @@
             this.lblCredits = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
             this.DebugTab = new System.Windows.Forms.TabPage();
+            this.dbgTranslate = new VSButton();
             this.dbgBrowser = new VSButton();
             this.dbgButtonC = new VSButton();
             this.dbgButtonB = new VSButton();
@@ -1252,6 +1253,7 @@
             // DebugTab
             // 
             this.DebugTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+            this.DebugTab.Controls.Add(this.dbgTranslate);
             this.DebugTab.Controls.Add(this.dbgBrowser);
             this.DebugTab.Controls.Add(this.dbgButtonC);
             this.DebugTab.Controls.Add(this.dbgButtonB);
@@ -1263,6 +1265,27 @@
             this.DebugTab.Size = new System.Drawing.Size(830, 443);
             this.DebugTab.TabIndex = 3;
             this.DebugTab.Text = "Debug";
+            // 
+            // dbgTranslate
+            // 
+            this.dbgTranslate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.dbgTranslate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.dbgTranslate.BaseColour = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.dbgTranslate.BorderColour = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(18)))));
+            this.dbgTranslate.FontColour = System.Drawing.Color.FromArgb(((int)(((byte)(153)))), ((int)(((byte)(153)))), ((int)(((byte)(153)))));
+            this.dbgTranslate.HoverColour = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(62)))));
+            this.dbgTranslate.ImageAlignment = VSButton.@__ImageAlignment.Left;
+            this.dbgTranslate.ImageChoice = null;
+            this.dbgTranslate.Location = new System.Drawing.Point(495, 35);
+            this.dbgTranslate.Name = "dbgTranslate";
+            this.dbgTranslate.ShowBorder = true;
+            this.dbgTranslate.ShowImage = false;
+            this.dbgTranslate.ShowText = true;
+            this.dbgTranslate.Size = new System.Drawing.Size(98, 23);
+            this.dbgTranslate.TabIndex = 5;
+            this.dbgTranslate.Text = "Dbg Translate";
+            this.dbgTranslate.TextAlignment = System.Drawing.StringAlignment.Center;
+            this.dbgTranslate.Click += new System.EventHandler(this.dbgTranslate_Click);
             // 
             // dbgBrowser
             // 
@@ -1499,6 +1522,7 @@
         private System.Windows.Forms.RadioButton APNGBypassEnaRadio;
         private System.Windows.Forms.Label label1;
         private VSButton dbgBrowser;
+        private VSButton dbgTranslate;
     }
 }
 

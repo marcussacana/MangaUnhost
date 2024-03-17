@@ -49,17 +49,15 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             var Info = GetComicInfo();
-            var BookChaps = Info.props.pageProps.book_info.book_temp;
+            var BookChaps = Info.props.pageProps.book_info.book_infos.First(x => x.book_info_content.type == "chapters").book_info_content.chapters;
             return BookChaps
-                .OrderByDescending(x => x.bt_id)
-                .SelectMany(x => x.book_temp_caps)
+                .OrderByFilenameNumber(x => x.volume == null ? x.chapter : x.volume + "." + x.chapter)
                 .Select(x => {
-                    var ID = ChapterMap.Count;
-                    int RealChapNum = (int)Math.Truncate(x.btc_cap);
-                    int ChapNum = RealChapNum + 1;
-                    float ChapPart = (float)Math.Round((x.btc_cap - ChapNum + 1) * 100f);
-                    ChapterMap[ID] = ChapPart == 0 ? $"{RealChapNum}" : $"{RealChapNum}.{ChapPart}".TrimEnd('0', '.');
-                    var Name = ChapPart == 0 ? $"{ChapNum}" : $"{ChapNum}.{ChapPart}".TrimEnd('0', '.');
+                var ID = ChapterMap.Count;
+
+                    ChapterMap[ID] = (int.Parse(x.chapter) - 1).ToString();
+
+                    string Name = x.chapter;
 
                     return new KeyValuePair<int, string>(ID, $"{Name}");
                  });
@@ -79,13 +77,15 @@ namespace MangaUnhost.Hosts
             return GetChapterPages(ID).Length;
         }
 
+         
+
         public string[] GetChapterPages(int ID)
         {
-            var Uri = $"https://ai3.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
+            string JSON = GetChapterInfoA(ID) ?? GetChapterInfoB(ID);
 
-            var JSON = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+            if (JSON == null)
+                throw new Exception();
 
-            
             var ChInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<ChapterInfo>(JSON);
 
             if (ChInfo.book_temp != null)
@@ -100,13 +100,25 @@ namespace MangaUnhost.Hosts
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<BookTempCap>(JSON);
 
             var Pages = Info.book_temp_cap_unit
+                .Where(x => !x.btcu_image.StartsWith("folders/"))//remove ad
                 .Select(x => $"https://objects.slimeread.com/{x.btcu_image}");
 
             return Pages.ToArray();
 
         }
 
+        private string GetChapterInfoA(int ID)
+        {
+            var Uri = $"https://dev.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
 
+            return Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+        }
+        private string GetChapterInfoB(int ID)
+        {
+            var Uri = $"https://ai3.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
+
+            return Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+        }
 
         public IDecoder GetDecoder()
         {
@@ -120,7 +132,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0, 4)
+                Version = new Version(2, 0)
             };
         }
 
@@ -182,7 +194,7 @@ namespace MangaUnhost.Hosts
             var Title = Info.props.pageProps.book_info.book_name_original ?? Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]//p[contains(@class, 'font-bold')]").InnerText;
             var Cover = Info.props.pageProps.book_info.book_image ?? Document.SelectSingleNode("//div[contains(@class, 'mt-4 sm:ml-4 sm:mt-0')]/../img").GetAttributeValueByAlias("src", "data-cfsrc") as string;
 
-            var CoverData = Cover.TryDownload(Cover);
+            var CoverData = Cover.TryDownload(Uri.AbsoluteUri, ProxyTools.UserAgent);
 
             return new ComicInfo()
             {
@@ -213,7 +225,7 @@ namespace MangaUnhost.Hosts
         public struct Scan
         {
             public string scan_name { get; set; }
-            public int scan_id { get; set; }
+            public long scan_id { get; set; }
         }
 
         public struct BtcCap
@@ -224,8 +236,8 @@ namespace MangaUnhost.Hosts
             public Scan scan { get; set; }
             public List<object> scans_parterners { get; set; }
 
-            public int btc_id { get; set; }
-            public int btc_scan_id { get; set; }
+            public long btc_id { get; set; }
+            public long btc_scan_id { get; set; }
             public List<BookTempCapUnit> book_temp_cap_unit { get; set; }
         }
 
@@ -262,8 +274,36 @@ namespace MangaUnhost.Hosts
             public Author author { get; set; }
             public List<Categories> book_categories { get; set; }
             public List<BookTemp> book_temp { get; set; }
-            public List<object> book_infos { get; set; }
+            public List<BookInfoInner> book_infos { get; set; }
             public List<Related> related { get; set; }
+        }
+
+        public struct BookInfoInner
+        {
+            public int book_info_id { get; set; }
+            public int book_info_book_id { get; set; }
+            public DateTime book_info_date_created { get; set; }
+            public DateTime book_info_date_updated { get; set; }
+
+            public BookInfoInnerContent book_info_content { get; set; }
+        }
+
+        public struct BookInfoInnerContent
+        {
+            public string type { get; set; }
+
+            public List<BookInfoInnerChapter> chapters { get; set; }
+        }
+
+        public struct BookInfoInnerChapter
+        {
+            public string id { get; set; }
+            public string name { get; set; }
+            public string volume { get; set; }
+            public string chapter { get; set; }
+
+            public string scanlator { get; set; }
+            public string externalUrl { get; set; }
         }
 
         public struct PageProps
@@ -310,8 +350,8 @@ namespace MangaUnhost.Hosts
 
         public struct BookTempCap
         {
-            public int btc_id { get; set; }
-            public int btc_scan_id { get; set; }
+            public long btc_id { get; set; }
+            public long btc_scan_id { get; set; }
             public Scan scan { get; set; }
             public List<BookTempCapUnit> book_temp_cap_unit { get; set; }
         }

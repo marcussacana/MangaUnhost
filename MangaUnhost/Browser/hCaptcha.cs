@@ -2,13 +2,7 @@
 using CefSharp.OffScreen;
 using MangaUnhost.Others;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace MangaUnhost.Browser
 {
@@ -60,6 +54,10 @@ namespace MangaUnhost.Browser
         public static Rectangle GethCaptchaRectangle(this IBrowser Browser)
         {
             var Result = Browser.EvaluateScript<string>(Properties.Resources.hCaptchaGetMainFramePosition);
+            
+            if (Result == null)
+                return default;
+            
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
@@ -71,6 +69,10 @@ namespace MangaUnhost.Browser
         public static Rectangle GethCaptchaChallengeRectangle(this IBrowser Browser)
         {
             var Result = Browser.EvaluateScript<string>(Properties.Resources.hCaptchaGetChallengeFramePosition);
+
+            if (Result == null)
+                return default;
+
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
@@ -82,6 +84,10 @@ namespace MangaUnhost.Browser
         public static Rectangle GethCaptchaVerifyButtonRectangle(this IBrowser Browser)
         {
             var Result = Browser.GetFrameByUrl("hcaptcha-challenge").EvaluateScript<string>(Properties.Resources.hCaptchaGetVerifyButtonPosition);
+
+            if (Result == null)
+                return default;
+
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);

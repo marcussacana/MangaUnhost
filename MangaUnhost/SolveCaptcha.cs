@@ -48,11 +48,18 @@ namespace MangaUnhost
 
         bool IsCaptchaSolved()
         {
-            if (hCaptcha)
-                return Browser.hCaptchaIsSolved();
-            if (cfCaptcha)
-                return Browser.cfCaptchaIsSolved();
-            return Browser.ReCaptchaIsSolved(v3);
+            try
+            {
+                if (hCaptcha)
+                    return Browser.hCaptchaIsSolved();
+                if (cfCaptcha)
+                    return Browser.cfCaptchaIsSolved();
+                return Browser.ReCaptchaIsSolved(v3);
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         bool IsCaptchaFailed()

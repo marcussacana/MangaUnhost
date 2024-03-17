@@ -23,9 +23,27 @@ namespace MangaUnhost.Browser
 
             Browser = new ChromiumWebBrowser();
             Browser.WaitInitialize();
+            Browser.RequestHandler = new RequestEventHandler();
+            ((RequestEventHandler)Browser.RequestHandler).OnResourceRequestEvent += ImageTranslator_OnResourceRequestEvent;
             Browser.SetUserAgent(ProxyTools.UserAgent);
             //Browser.BypassGoogleCEFBlock();
             Reload(this.SourceLang, this.TargetLang);
+        }
+
+        private void ImageTranslator_OnResourceRequestEvent(object sender, OnResourceRequestEventArgs e)
+        {
+            //I'm suspect of the log requests, so, let's block it
+            if (e.TargetUrl.Contains("/log?"))
+            {
+                e.ResourceRequestHandler = new ResourceRequestEventHandler();
+                ((ResourceRequestEventHandler)e.ResourceRequestHandler).OnBeforeResourceLoadEvent += ImageTranslator_OnBeforeResourceLoadEvent;
+            }
+        }
+
+        private void ImageTranslator_OnBeforeResourceLoadEvent(object sender, OnBeforeResourceLoadEventArgs e)
+        {
+            e.Request.Dispose();
+            e.ReturnValue = CefReturnValue.Cancel;
         }
 
         public void Reload() => Reload(SourceLang, TargetLang);
@@ -46,7 +64,7 @@ namespace MangaUnhost.Browser
             try
             {
 #if DEBUG
-                /*if (!Debugger.IsAttached)
+                if (true || !Debugger.IsAttached)
                 {
                     if (!DevVisible)
                     {
@@ -58,15 +76,8 @@ namespace MangaUnhost.Browser
                         test.Show();
                     }
                 }
-                */
+                
 #endif
-
-
-                var Rand = new Random();
-                var Move = CursorTools.CreateMove(Rand.Next(0, 50), Rand.Next(5, 60), Rand.Next(0, 50), Rand.Next(5, 60), 10);
-                Browser.ExecuteMove(Move);
-                Browser.ExecuteClick(Move.Last().Location);
-
                 var ID = Browser.EvaluateScriptUnsafe<string>("XPATH('//input[contains(@accept, \\'image\\')]', false).id");
 
                 if (ID == null)
