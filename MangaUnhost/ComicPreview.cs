@@ -19,6 +19,7 @@ using System.Diagnostics;
 using MangaUnhost.Parallelism;
 using System.Threading;
 using System.Globalization;
+using CefSharp.DevTools.Page;
 
 namespace MangaUnhost
 {
@@ -198,6 +199,8 @@ namespace MangaUnhost
             OpenChapter.DropDownItems.Clear();
             if (ChapsFound)
             {
+                List<ToolStripMenuItem> Items = new List<ToolStripMenuItem>();
+
                 var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
                 for (int i = 0; i < Chapters.Length; i++)
                 {
@@ -255,11 +258,46 @@ namespace MangaUnhost
                     }
                     ChapItem.DropDownItems.Add(Translate);
 
-                    OpenChapter.DropDownItems.Add(ChapItem);
+                    if (Chapters.Length > 50)
+                    {
+                        Items.Add(ChapItem);
+
+                        if (Items.Count >= 30)
+                        {
+                            ToolStripMenuItem Group = BuildItemGroup(Items);
+
+                            OpenChapter.DropDownItems.Add(Group);
+                        }
+                    }
+                    else
+                    {
+                        OpenChapter.DropDownItems.Add(ChapItem);
+                    }
+
                     Application.DoEvents();
                 }
+
+                if (Items.Count > 0)
+                {
+                    ToolStripMenuItem Group = BuildItemGroup(Items);
+
+                    OpenChapter.DropDownItems.Add(Group);
+                }
+
                 OpenChapter.Visible = true;
             }
+        }
+
+        private static ToolStripMenuItem BuildItemGroup(List<ToolStripMenuItem> Items)
+        {
+            var Begin = Items.First().Text;
+            var Last = Items.Last().Text;
+            var Group = new ToolStripMenuItem(Begin + " - " + Last);
+
+            Group.DropDownItems.AddRange(Items.ToArray());
+
+            Items.Clear();
+            return Group;
         }
 
         private double ForceNumber(string Str)
