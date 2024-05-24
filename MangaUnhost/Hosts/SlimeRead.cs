@@ -67,35 +67,40 @@ namespace MangaUnhost.Hosts
             //https://slimeread.com/_next/data/aoKuUaWGR_--cgEqsV76H/index.json
             var InfoData = Document.SelectSingleNode("//script[@type='application/json']").InnerText;
 
-            var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<RootInfo>(InfoData);
+            var Info = JsonConvert.DeserializeObject<RootInfo>(InfoData);
 
-            if (!Info.props.pageProps.book_info.book_infos.Any(x => x.book_info_content.type == "chapters"))
+            var BookInfos = Info.props.pageProps.book_info.book_infos;
+
+            if (BookInfos != null)
             {
-                var URL = "https://free.slimeread.com:8443/book/" + Info.props.pageProps.book_info.book_id;
-                InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
-                var ChapInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<BookInfo>(InfoData);
-
-                Info.props = new Props()
+                if (!BookInfos.Any(x => x.book_info_content.type == "chapters"))
                 {
-                    pageProps = new PageProps()
+                    var URL = "https://free.slimeread.com:8443/book/" + Info.props.pageProps.book_info.book_id;
+                    InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+
+                    var ChapInfo = JsonConvert.DeserializeObject<BookInfo>(InfoData);
+
+                    Info.props = new Props()
                     {
-                        book_info = ChapInfo
-                    }
-                };
-            }
+                        pageProps = new PageProps()
+                        {
+                            book_info = ChapInfo
+                        }
+                    };
+                }
 
-            if (!Info.props.pageProps.book_info.book_infos.Any(x => x.book_info_content.type == "chapters"))
-            {
-                var URL = "https://old.slimeread.com:8443/book_cap_units_all?manga_id=" + Info.props.pageProps.book_info.book_id;
-                InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+                if (!BookInfos.Any(x => x.book_info_content.type == "chapters"))
+                {
+                    var URL = "https://old.slimeread.com:8443/book_cap_units_all?manga_id=" + Info.props.pageProps.book_info.book_id;
+                    InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
-                if (!InfoData.TrimStart().StartsWith("["))
-                    InfoData = $"[{InfoData.Trim()}]";
+                    if (!InfoData.TrimStart().StartsWith("["))
+                        InfoData = $"[{InfoData.Trim()}]";
 
-                var ChapInfo = JsonConvert.DeserializeObject<BtcCap[]>(InfoData);
+                    var ChapInfo = JsonConvert.DeserializeObject<BtcCap[]>(InfoData);
 
-                var infos = new[] {
+                    var infos = new[] {
                     new BookInfoInner()
                     {
                         book_info_book_id = 0,
@@ -114,16 +119,17 @@ namespace MangaUnhost.Hosts
                     }
                 }.ToList();
 
-                var binfo = Info.props.pageProps.book_info;
-                binfo.book_infos = infos;
+                    var binfo = Info.props.pageProps.book_info;
+                    binfo.book_infos = infos;
 
-                var pProps = Info.props.pageProps;
-                pProps.book_info = binfo;
+                    var pProps = Info.props.pageProps;
+                    pProps.book_info = binfo;
 
-                var Props = Info.props;
-                Props.pageProps = pProps;
+                    var Props = Info.props;
+                    Props.pageProps = pProps;
 
-                Info.props = Props;
+                    Info.props = Props;
+                }
             }
 
             return Info;

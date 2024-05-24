@@ -6,8 +6,10 @@ using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MangaUnhost.Hosts
 {
@@ -73,7 +75,7 @@ namespace MangaUnhost.Hosts
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0, 0)
+                Version = new Version(2, 0, 0)
             };
         }
 
@@ -97,9 +99,29 @@ namespace MangaUnhost.Hosts
         public ComicInfo LoadUri(Uri Uri)
         {
             CurrentUrl = Uri;
-            Document = new HtmlDocument();
 
-            CFData = Document.LoadUrl(Uri, UserAgent: ProxyTools.UserAgent, Headers: RequiredHeaders);
+            Login();
+         
+            Document = new HtmlDocument();
+            CFData = Document.LoadUrl(Uri, UserAgent: ProxyTools.UserAgent, Headers: RequiredHeaders, Cookies: AuthCookies);
+
+
+            if (CFData != null)
+            {
+                foreach (var Cookie in AuthCookies.GetCookies())
+                {
+                    CFData.Value.Cookies.Add(Uri, Cookie);
+                }
+            } 
+            else
+            {
+                CFData = new CloudflareData()
+                {
+                    UserAgent = ProxyTools.UserAgent,
+                    Cookies = AuthCookies,
+                    HTML = Document.ToHTML(),
+                };
+            }
 
             var CoverURL = Document.SelectSingleNode("//img[@class='img-recen-add2']").GetAttributeValue("src", null);
 
@@ -115,6 +137,34 @@ namespace MangaUnhost.Hosts
                 Url = Uri,
                 ContentType = ContentType.Comic
             };
+        }
+
+        CookieContainer AuthCookies = null;
+        private void Login()
+        {
+            if (AuthCookies != null)
+                return;
+
+            AuthCookies = new CookieContainer();
+
+            var Homepage = new HtmlDocument();
+            Homepage.LoadUrl("https://blackoutcomics.com/", UserAgent: ProxyTools.UserAgent, Headers: RequiredHeaders, Cookies: AuthCookies);
+
+            var TokenNode = Homepage.SelectSingleNode("//form[contains(@action, 'login')]/input[@name='_token']");
+
+            var TokenValue = TokenNode.GetAttributeValue("value", "");
+
+            //Yeah, public just like that, you can fuck it if you feel like
+            //but this account has been made just for this then you will
+            //just lost your time as well.
+            const string FakeLogin = "junmaedashit@gmail.com";
+            const string FakePass = "5Tivk!QiuL_5hEb";
+
+            var FormData = Encoding.UTF8.GetBytes($"_token={HttpUtility.UrlEncode(TokenValue)}&email={HttpUtility.UrlEncode(FakeLogin)}&password={HttpUtility.UrlEncode(FakePass)}");
+
+            var Headers = RequiredHeaders.Concat(new[] { ("Content-Type", "application/x-www-form-urlencoded") }).ToArray();
+
+            UrlTools.Upload("https://blackoutcomics.com/blackout/login", FormData, "https://blackoutcomics.com/", ProxyTools.UserAgent, Headers: Headers, Cookie: AuthCookies);
         }
     }
 }

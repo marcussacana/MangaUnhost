@@ -1,7 +1,10 @@
-﻿using MangaUnhost;
+﻿using CefSharp.DevTools.Network;
+using MangaUnhost;
 using MangaUnhost.Others;
 using Nito.AsyncEx;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -196,6 +199,11 @@ namespace MangaUnhost.Browser
                                 using (Stream ResponseData = Response.GetResponseStream())
                                 using (MemoryStream Stream = new MemoryStream())
                                 {
+                                    foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
+                                    {
+                                        if (Cookie != null)
+                                            Cookie.Add(NewCookie);
+                                    }
                                     ResponseData.CopyTo(Stream);
                                     return Stream.ToArray();
                                 }
@@ -285,6 +293,12 @@ namespace MangaUnhost.Browser
                 using (var RespData = Response.GetResponseStream())
                 using (var Output = new MemoryStream())
                 {
+                    foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
+                    {
+                        if (Cookie != null)
+                            Cookie.Add(NewCookie);
+                    }
+
                     await RespData.CopyToAsync(Output);
                     return Output.ToArray();
                 }
@@ -369,12 +383,27 @@ namespace MangaUnhost.Browser
                     using (var RespData = Response.GetResponseStream())
                     using (var Output = new MemoryStream())
                     {
+                        foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
+                        {
+                            if (Cookie != null)
+                                Cookie.Add(NewCookie);
+                        }
+
                         await RespData.CopyToAsync(Output);
                         return Output.ToArray();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    if (ex is WebException wex)
+                    {
+                        var Response = wex.Response; 
+                        foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
+                        {
+                            if (Cookie != null)
+                                Cookie.Add(NewCookie);
+                        }
+                    }
                     return null;
                 }
             }
@@ -384,6 +413,22 @@ namespace MangaUnhost.Browser
             }
         }
 
+        public static System.Net.Cookie[] GetSetCookies(this WebHeaderCollection Headers, Uri Url)
+        {
+            var CookieContainer = new CookieContainer();
+            foreach (var HeaderKey in Headers.AllKeys)
+            {
+                if (HeaderKey.ToLowerInvariant() == "set-cookie")
+                {
+                    foreach (var HeaderValue in Headers.GetValues(HeaderKey))
+                    {
+                        CookieContainer.SetCookies(Url, HeaderValue);
+                    }
+                }
+            }
+
+            return CookieContainer.GetCookies();
+        }
         public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null)
         {
             TcpClient Tcp = new TcpClient(Url.Host, 443);

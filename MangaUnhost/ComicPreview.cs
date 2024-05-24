@@ -20,6 +20,7 @@ using MangaUnhost.Parallelism;
 using System.Threading;
 using System.Globalization;
 using CefSharp.DevTools.Page;
+using System.Diagnostics.Eventing.Reader;
 
 namespace MangaUnhost
 {
@@ -164,27 +165,43 @@ namespace MangaUnhost
             ComicMenuStrip.Opening += (sender, args) => JITContextMenu();
 
 
+            string HostName = null;
+
             ComicUrl = new Uri(Ini.GetConfig("InternetShortcut", "URL", UrlPath));
 
             var Hosts = Main.GetHostsInstances();
             var HostQuery = (from x in Hosts where x.IsValidUri(ComicUrl) select x);
             if (!HostQuery.Any())
             {
-                try
+                HostName = Ini.GetConfig("MangaUnhost", "Host", UrlPath, false);
+                if (!string.IsNullOrWhiteSpace(HostName))
                 {
-                    HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.AbsoluteUri, ProxyTools.UserAgent, AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError } ));
-                    if (HTML.IsCloudflareTriggered()) {
-                        HTML = ComicUrl.AbsoluteUri.BypassCloudflare().HTML;
-                    }
-                    HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
-
+                    HostQuery = (from x in Hosts where x.GetPluginInfo().Name == HostName select x);
                 }
-                catch
+
+                if (!HostQuery.Any())
                 {
+                    HostName = string.Empty;
+                    try
+                    {
+                        HTML = Encoding.UTF8.GetString(ComicUrl.TryDownload(ComicUrl.AbsoluteUri, ProxyTools.UserAgent, AcceptableErrors: new System.Net.WebExceptionStatus[] { System.Net.WebExceptionStatus.ProtocolError }));
+                        if (HTML.IsCloudflareTriggered())
+                        {
+                            HTML = ComicUrl.AbsoluteUri.BypassCloudflare().HTML;
+                        }
+                        HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
+
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 
             ComicHost = HostQuery.FirstOrDefault();
+
+            if (HostName != null && ComicHost != null)
+                Ini.SetConfig("MangaUnhost", "Host", ComicHost.GetPluginInfo().Name, UrlPath);
 
             Invoke(new MethodInvoker(() => {
                 if (!Main.Config.AutoLibUpCheck)
