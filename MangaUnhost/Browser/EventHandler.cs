@@ -37,6 +37,26 @@ namespace CefSharp.EventHandler
 
             return false;
         }
+
+        public bool OnFileDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, CefFileDialogMode mode, string title, string defaultFilePath, List<string> acceptFilters, IFileDialogCallback callback)
+        {
+            var Args = new FileDialogEventArgs(chromiumWebBrowser, browser, mode, acceptFilters);
+
+            FileDialog?.Invoke(this, Args);
+
+            if (Args.Handled)
+            {
+                if (Args.Cancel)
+                {
+                    callback.Cancel();
+                    return true;
+                }
+                callback.Continue(Args.SelectedPaths.ToList());
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public class LifeSpanEventHandler : LifeSpanHandler

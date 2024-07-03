@@ -166,6 +166,7 @@ namespace MangaUnhost
             }
 
             ReloadSettings();
+
             var CefSettings = new CefSettings()
             {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath,
@@ -175,6 +176,7 @@ namespace MangaUnhost
                 LogSeverity = LogSeverity.Disable,
 #endif
                 WindowlessRenderingEnabled = true,
+                ChromeRuntime = true,
                 UserAgent = ProxyTools.UserAgent
             };
 
@@ -183,8 +185,7 @@ namespace MangaUnhost
             //CefSettings.CefCommandLineArgs.Add("disable-web-security");
             CefSettings.CefCommandLineArgs.Add("user-agent", ProxyTools.UserAgent);
             CefSettings.CefCommandLineArgs.Add("isolate-origins", "https://accounts.google.com,https://chrome.google.com,https://chromewebstore.google.com,https://mail.google.com,https://www.google.com,https://google.com");
-
-            CefSettings.ChromeRuntime = true;
+            CefSettings.CefCommandLineArgs.Add("use-views");
 
             CefSettings.RegisterScheme(new CefCustomScheme()
             {
