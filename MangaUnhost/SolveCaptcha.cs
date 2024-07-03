@@ -35,6 +35,8 @@ namespace MangaUnhost
             this.hCaptcha = hCaptcha;
             this.cfCaptcha = cfCaptcha;
 
+            Browser.ShowDevTools();
+
             Shown += (a, b) =>
             {
                 if (IsCaptchaSolved())
@@ -164,6 +166,7 @@ namespace MangaUnhost
 
                 ScreenBox.Image = new Bitmap(FrameRect.Width, FrameRect.Height);
                 Graphics = Graphics.FromImage(ScreenBox.Image);
+                Graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                 Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
                 Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
                 Width += FrameRect.Width - ScreenBox.Width;

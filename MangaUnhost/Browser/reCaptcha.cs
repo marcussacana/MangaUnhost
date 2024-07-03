@@ -28,7 +28,7 @@ namespace MangaUnhost.Browser {
                 return false;
             }
 
-            var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaGetResponse).GetAwaiter().GetResult().Result;
+            var Result = (string)Browser.MainFrame.EvaluateScript(Properties.Resources.reCaptchaGetResponse);
             if (string.IsNullOrWhiteSpace(Result))
                 return false;
             return true;
@@ -220,7 +220,7 @@ namespace MangaUnhost.Browser {
             Random Random = new Random();            
 
             //Get Audio Challenge Button Pos
-            var Result = (string)BFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaGetSpeakPosition).GetAwaiter().GetResult().Result;
+            var Result = (string)BFrame.EvaluateScript(Properties.Resources.reCaptchaGetSpeakPosition);
             InputTools.GetBoundsCoords(Result, out int X, out int Y, out int Width, out int Height);
 
             Point AudioBntPos = new Point(X + Random.Next(5, Width - 5), Y + Random.Next(5, Height - 5));
@@ -267,7 +267,7 @@ namespace MangaUnhost.Browser {
             NewCursorPos = CursorPos;
 
             //Get Sound Reponse Textbox Position
-            var Result = (string)BFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaGetSoundResponsePosition).GetAwaiter().GetResult().Result;
+            var Result = (string)BFrame.EvaluateScript(Properties.Resources.reCaptchaGetSoundResponsePosition);
             if (Result == null)
                 return;
 
@@ -311,6 +311,7 @@ namespace MangaUnhost.Browser {
         }
 
         public static IFrame ReCaptchaGetBFrame(this IBrowser Browser) => Browser.GetFrameByUrl("/bframe?");
+        public static IFrame ReCaptchaGetAnchor(this IBrowser Browser) => Browser.GetFrameByUrl("/anchor?");
 
         public static Point ReCaptchaGetBFramePosition(this IBrowser Browser) {
             var Result = (string)Browser.MainFrame.EvaluateScriptAsync(Properties.Resources.reCaptchaIframeSearch + "\r\n" + Properties.Resources.reCaptchaGetBFramePosition).GetAwaiter().GetResult().Result;
@@ -328,7 +329,11 @@ namespace MangaUnhost.Browser {
         }
 
         public static Rectangle ReCaptchaGetVerifyButtonRectangle(this IBrowser Browser) {
-            var Result = (string)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetVerifyButtonPosition).GetAwaiter().GetResult().Result;
+            var Frame = Browser.ReCaptchaGetAnchor();
+
+            var Result = (string)Frame.EvaluateScript(Properties.Resources.reCaptchaGetVerifyButtonPosition);
+            if (Result == null)
+                Result = "{\"x\":13,\"y\":22.5,\"width\":28,\"height\":28}";
             InputTools.GetBoundsCoords(Result, out int X, out int Y, out int Width, out int Height);
 
             return new Rectangle(X, Y, Width, Height);
@@ -336,7 +341,7 @@ namespace MangaUnhost.Browser {
         }
 
         public static string ReCaptchaGetAudioUrl(this IBrowser Browser) {
-            var Result = (string)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaGetAudioUrl).GetAwaiter().GetResult().Result;
+            var Result = (string)Browser.ReCaptchaGetBFrame().EvaluateScript(Properties.Resources.reCaptchaGetAudioUrl);
             if (string.IsNullOrWhiteSpace(Result))
                 return null;
             return Result;
@@ -344,7 +349,7 @@ namespace MangaUnhost.Browser {
 
         public static bool ReCaptchaIsFailed(this IBrowser Browser)
         {
-            return (bool)Browser.ReCaptchaGetBFrame().EvaluateScriptAsync(Properties.Resources.reCaptchaIsFailed).GetAwaiter().GetResult().Result;
+            return (bool)Browser.ReCaptchaGetBFrame().EvaluateScript(Properties.Resources.reCaptchaIsFailed);
         }
 
         public static void ReCaptchaReset(this IBrowser Browser)

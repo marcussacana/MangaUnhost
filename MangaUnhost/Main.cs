@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using Microsoft.WindowsAPICodePack.Shell;
 using System.Threading.Tasks;
+using MangaUnhost.Properties;
 
 namespace MangaUnhost
 {
@@ -181,6 +182,9 @@ namespace MangaUnhost
 
             //CefSettings.CefCommandLineArgs.Add("disable-web-security");
             CefSettings.CefCommandLineArgs.Add("user-agent", ProxyTools.UserAgent);
+            CefSettings.CefCommandLineArgs.Add("isolate-origins", "https://accounts.google.com,https://chrome.google.com,https://chromewebstore.google.com,https://mail.google.com,https://www.google.com,https://google.com");
+
+            CefSettings.ChromeRuntime = true;
 
             CefSettings.RegisterScheme(new CefCustomScheme()
             {

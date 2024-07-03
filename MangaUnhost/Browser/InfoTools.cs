@@ -17,6 +17,11 @@ namespace MangaUnhost.Browser
                 if (Frame.Browser.IsLoading)
                     return true;
                 var Status = (string)Frame.EvaluateScriptAsync(Properties.Resources.GetDocumentStatus).GetAwaiter().GetResult().Result;
+                
+                //Bugfix
+                if (Status == null && !Frame.IsMain)
+                    return false;
+
                 if (Status?.Trim().ToLower() == "complete")
                     return false;
             }

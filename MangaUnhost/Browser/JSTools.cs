@@ -111,7 +111,7 @@ namespace MangaUnhost.Browser
         {
             foreach (var FrameID in Browser.GetFrameIdentifiers())
             {
-                var Frame = Browser.GetFrame(FrameID);
+                var Frame = Browser.GetFrameByIdentifier(FrameID);
                 if (Frame != null && Frame.IsValid)
                     yield return Frame;
             }
@@ -263,7 +263,7 @@ namespace MangaUnhost.Browser
         {
             foreach (var ID in Browser.GetFrameIdentifiers())
             {
-                var Frame = Browser.GetFrame(ID);
+                var Frame = Browser.GetFrameByIdentifier(ID);
                 if (Frame == null)
                     continue;
                 if (Frame.Url.Contains(UrlFragment))

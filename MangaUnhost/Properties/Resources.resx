@@ -177,7 +177,8 @@ var bounds = AudioBnt.getBoundingClientRect();
 JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
   </data>
   <data name="reCaptchaGetVerifyButtonPosition" xml:space="preserve">
-    <value>var VerifyBnt = document.getElementById('recaptcha-verify-button');
+    <value>var VerifyBnt = document.getElementById('recaptcha-anchor');
+
 var bounds = VerifyBnt.getBoundingClientRect();
 JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
   </data>

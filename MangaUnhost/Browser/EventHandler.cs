@@ -17,7 +17,8 @@ namespace CefSharp.EventHandler
     {
         public event EventHandler<FileDialogEventArgs> FileDialog;
 
-        public bool OnFileDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, CefFileDialogMode mode, string title, string defaultFilePath, List<string> acceptFilters, IFileDialogCallback callback)
+
+        public bool OnFileDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, CefFileDialogMode mode, string title, string defaultFilePath, IReadOnlyCollection<string> acceptFilters, IReadOnlyCollection<string> acceptExtensions, IReadOnlyCollection<string> acceptDescriptions, IFileDialogCallback callback)
         {
             var Args = new FileDialogEventArgs(chromiumWebBrowser, browser, mode, acceptFilters);
 
@@ -83,7 +84,7 @@ namespace CefSharp.EventHandler
         public event EventHandler<OnCertificateErrorEventArgs> OnCertificateErrorEvent;
         //public event EventHandler<OnPluginCrashedEventArgs> OnPluginCrashedEvent;
         public event EventHandler<GetAuthCredentialsEventArgs> GetAuthCredentialsEvent;
-        public event EventHandler<OnRenderProcessTerminatedEventArgs> OnRenderProcessTerminatedEvent;
+        //public event EventHandler<OnRenderProcessTerminatedEventArgs> OnRenderProcessTerminatedEvent;
         public event EventHandler<OnQuotaRequestEventArgs> OnQuotaRequestEvent;
         public event EventHandler<OnResourceRequestEventArgs> OnResourceRequestEvent;
         public event EventHandler<DocumentLoadedEventArgs> OnDocumentLoaded;
@@ -143,12 +144,12 @@ namespace CefSharp.EventHandler
             return args.ContinueAsync;
         }
 
-        protected override void OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
+        /*protected override void OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
             var args = new OnRenderProcessTerminatedEventArgs(browserControl, browser, status);
 
             OnRenderProcessTerminatedEvent?.Invoke(this, args);
         }
-
+        */
         protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool iNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
         {
             var args = new OnResourceRequestEventArgs(browserControl, browser, frame, request, iNavigation, isDownload, requestInitiator, disableDefaultHandling);

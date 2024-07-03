@@ -394,7 +394,8 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a var VerifyBnt = document.getElementById(&apos;recaptcha-verify-button&apos;);
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var VerifyBnt = document.getElementById(&apos;recaptcha-anchor&apos;);
+        ///
         ///var bounds = VerifyBnt.getBoundingClientRect();
         ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
         /// </summary>
