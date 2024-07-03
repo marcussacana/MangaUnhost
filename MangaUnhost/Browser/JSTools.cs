@@ -171,7 +171,7 @@ namespace MangaUnhost.Browser
             DefaultBrowser.Load(Url);
             Browser.WaitForLoad(10);
 
-#if DEBUG
+#if CF_ALL_CAPTCHAS
             Browser.ShowDevTools();
 #endif
 
