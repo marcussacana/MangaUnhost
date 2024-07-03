@@ -74,7 +74,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Browser\cfCaptcha.cs" />
+    <Compile Include="Browser\Turnstile.cs" />
     <Compile Include="Browser\hCaptcha.cs" />
     <Compile Include="Browser\ImageTranslator.cs" />
     <Compile Include="Browser\InputTools.cs" />

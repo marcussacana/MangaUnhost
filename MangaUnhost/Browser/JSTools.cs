@@ -171,10 +171,16 @@ namespace MangaUnhost.Browser
             DefaultBrowser.Load(Url);
             Browser.WaitForLoad(10);
 
+#if DEBUG
+            Browser.ShowDevTools();
+#endif
+
             while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha())
             {
                 ThreadTools.Wait(100, true);
             }
+
+            ThreadTools.Wait(20000, true);
 
             if (Browser.IsCloudflareAskingCaptcha())
             {
@@ -183,7 +189,7 @@ namespace MangaUnhost.Browser
                 {
                     if (Browser.GetCurrentUrl() != Url)
                         DefaultBrowser.WaitForLoad(Url);
-
+#if CF_ALL_CAPTCHAS
                     if (!DefaultBrowser.ReCaptchaIsSolved())
                     {
                         DefaultBrowser.ReCaptchaTrySolve(Main.Solver);
@@ -194,9 +200,11 @@ namespace MangaUnhost.Browser
                         DefaultBrowser.hCaptchaSolve();
                         ThreadTools.Wait(1000, true);
                     } 
-                    else if (!DefaultBrowser.cfCaptchaIsSolved())
+                    else 
+#endif
+                    if (!DefaultBrowser.TurnstileIsSolved())
                     {
-                        DefaultBrowser.cfCaptchaSolve();
+                        DefaultBrowser.TurnstileSolve();
                     }
                     else
                     {
@@ -247,7 +255,7 @@ namespace MangaUnhost.Browser
         public static bool IsCloudflareTriggered(this HtmlDocument Document) => Document.ToHTML().IsCloudflareTriggered();
         public static bool IsCloudflareAskingCaptcha(this HtmlDocument Document) => Document.ToHTML().IsCloudflareAskingCaptcha();
         public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Please Wait... | Cloudflare") || HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD") || HTML.Contains("Checking if the site connection is secure") || HTML.Contains("Just a moment...");
-        public static bool IsCloudflareAskingCaptcha(this string HTML) => HTML.Contains("why_captcha_headline") || HTML.Contains("captcha-prompt spacer");
+        public static bool IsCloudflareAskingCaptcha(this string HTML) => HTML.Contains("why_captcha_headline") || HTML.Contains("captcha-prompt spacer") || HTML.Contains("turnstile-wrapper");
         public static IFrame GetFrameByUrl(this ChromiumWebBrowser Browser, string UrlFragment) => Browser.GetBrowser().GetFrameByUrl(UrlFragment);
         public static IFrame GetFrameByUrl(this IBrowser Browser, string UrlFragment)
         {

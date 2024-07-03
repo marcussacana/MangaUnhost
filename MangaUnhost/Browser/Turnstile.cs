@@ -12,40 +12,40 @@ using System.Windows.Forms;
 
 namespace MangaUnhost.Browser
 {
-    public static class cfCaptcha
+    public static class Turnstile
     {
-        public static bool cfCaptchaIsSolved(this ChromiumWebBrowser Browser) => Browser.GetBrowser().cfCaptchaIsSolved();
-        public static bool cfCaptchaIsSolved(this IBrowser Browser)
+        public static bool TurnstileIsSolved(this ChromiumWebBrowser Browser) => Browser.GetBrowser().TurnstileIsSolved();
+        public static bool TurnstileIsSolved(this IBrowser Browser)
         {
             return Browser.EvaluateScript<bool>(Properties.Resources.cfCaptchaIsSolved);
         }
 
-        public static void cfCaptchaSolve(this ChromiumWebBrowser Browser)
+        public static void TurnstileSolve(this ChromiumWebBrowser Browser)
         {
-            if (Browser.cfCaptchaIsSolved())
+            if (Browser.TurnstileIsSolved())
                 return;
 
             ThreadTools.Wait(5000, true);
 
-            Browser.cfCaptchaClickImHuman(out _);
+            Browser.TurnstileClickImHuman(out _);
 
             ThreadTools.Wait(5000, true);
 
-            if (Browser.cfCaptchaIsSolved())
+            if (Browser.TurnstileIsSolved())
                 return;
 
             var Solver = new SolveCaptcha(Browser, cfCaptcha: true);
-            while (!Browser.cfCaptchaIsSolved())
+            while (!Browser.TurnstileIsSolved())
                 Solver.ShowDialog();
         }
 
-        public static void cfCaptchaClickImHuman(this ChromiumWebBrowser Browser, out Point Cursor) => Browser.GetBrowser().cfCaptchaClickImHuman(out Cursor);
+        public static void TurnstileClickImHuman(this ChromiumWebBrowser Browser, out Point Cursor) => Browser.GetBrowser().TurnstileClickImHuman(out Cursor);
 
-        public static void cfCaptchaClickImHuman(this IBrowser Browser, out Point Cursor)
+        public static void TurnstileClickImHuman(this IBrowser Browser, out Point Cursor)
         {
             var Rnd = new Random();
             var Begin = new Point(Rnd.Next(5, 25), Rnd.Next(5, 25));
-            var Target = Browser.GetcfCaptchaImHumanButtonPosition();
+            var Target = Browser.GetTurnstileImHumanButtonPosition();
             var Move = CursorTools.CreateMove(Begin, Target, MouseSpeed: 10);
             Browser.ExecuteMove(Move);
             ThreadTools.Wait(Rnd.Next(100, 150), true);
@@ -54,13 +54,13 @@ namespace MangaUnhost.Browser
             Cursor = Target;
         }
 
-        public static Point GetcfCaptchaImHumanButtonPosition(this IBrowser Browser)
+        public static Point GetTurnstileImHumanButtonPosition(this IBrowser Browser)
         {
-            var Rect = Browser.GetcfCaptchaRectangle();
+            var Rect = Browser.GetTurnstileRectangle();
             return new Point(Rect.X + 35, Rect.Y + 41);
         }
 
-        public static Rectangle GetcfCaptchaRectangle(this IBrowser Browser)
+        public static Rectangle GetTurnstileRectangle(this IBrowser Browser)
         {
             var Result = Browser.EvaluateScript<string>(Properties.Resources.cfCaptchaGetMainFramePosition);
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);

@@ -53,7 +53,7 @@ namespace MangaUnhost
                 if (hCaptcha)
                     return Browser.hCaptchaIsSolved();
                 if (cfCaptcha)
-                    return Browser.cfCaptchaIsSolved();
+                    return Browser.TurnstileIsSolved();
                 return Browser.ReCaptchaIsSolved(v3);
             }
             catch
@@ -100,7 +100,7 @@ namespace MangaUnhost
             if (hCaptcha)
                 return Browser.GethCaptchaVerifyButtonRectangle();
             if (cfCaptcha)
-                return Browser.GetcfCaptchaRectangle();
+                return Browser.GetTurnstileRectangle();
             return Browser.ReCaptchaGetVerifyButtonRectangle();
         }
 
@@ -110,6 +110,8 @@ namespace MangaUnhost
             {
                 if (hCaptcha)
                     Browser.hCaptchaClickImHuman(out _);
+                else if (cfCaptcha)
+                    Browser.TurnstileClickImHuman(out _);
                 else
                     ChromiumBrowser.ReCaptchaClickImNotRobot(out _);
             }
