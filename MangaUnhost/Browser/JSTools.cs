@@ -171,7 +171,7 @@ namespace MangaUnhost.Browser
             DefaultBrowser.Load(Url);
             Browser.WaitForLoad(10);
 
-#if CF_ALL_CAPTCHAS
+#if DEBUG
             Browser.ShowDevTools();
 #endif
 
@@ -180,7 +180,9 @@ namespace MangaUnhost.Browser
                 ThreadTools.Wait(100, true);
             }
 
+#if DEBUG
             ThreadTools.Wait(20000, true);
+#endif
 
             if (Browser.IsCloudflareAskingCaptcha())
             {
