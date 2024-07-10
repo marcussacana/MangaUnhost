@@ -220,7 +220,7 @@ namespace MangaUnhost.Hosts
             if (Cookies != null)
                 return;
 
-            ChromiumWebBrowser Browser = new ChromiumWebBrowser();
+            ChromiumWebBrowser Browser = new ChromiumWebBrowser("about:blank");
             Browser.WaitInitialize();
             Browser.Load(Manga.AbsoluteUri);
             Browser.WaitForLoad();

@@ -417,6 +417,15 @@ namespace MangaUnhost
             Environment.Exit(0);
         }
 
+        public static bool FirstInstance
+        {
+            get
+            {
+                var ProcName = Process.GetCurrentProcess().ProcessName;
+                return Process.GetProcessesByName(ProcName).Count() == 1;
+            }
+        }
+
         static Assembly LoadFromPlatformFolder(object sender, ResolveEventArgs args)
         {
             string folderPath = Path.GetDirectoryName(CurrentAssembly);

@@ -132,7 +132,7 @@ namespace MangaUnhost.Hosts {
             CurrentDomain = "https://" + Uri.Host;
 
             if (CFData == null) {
-                using (ChromiumWebBrowser Browser = new ChromiumWebBrowser()) {
+                using (ChromiumWebBrowser Browser = new ChromiumWebBrowser("about:blank")) {
                     Browser.WaitForLoad(Uri.AbsoluteUri);
                     do {
                         CFData = Browser.BypassCloudflare();

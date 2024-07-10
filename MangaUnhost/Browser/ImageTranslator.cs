@@ -21,7 +21,7 @@ namespace MangaUnhost.Browser
             this.SourceLang = SourceLang.ToLowerInvariant();
             this.TargetLang = TargetLang.ToLowerInvariant();
 
-            Browser = new ChromiumWebBrowser();
+            Browser = new ChromiumWebBrowser("about:blank");
             Browser.WaitInitialize();
             Browser.RequestHandler = new RequestEventHandler();
             ((RequestEventHandler)Browser.RequestHandler).OnResourceRequestEvent += ImageTranslator_OnResourceRequestEvent;

@@ -274,16 +274,20 @@ namespace MangaUnhost.Browser
         public static async Task SetInputFile(this ChromiumWebBrowser Browser, string ElementID, string InputFile) => await Browser.GetBrowser().SetInputFile(ElementID, InputFile);
         public static async Task SetInputFile(this IBrowser Browser, string ElementID,  string InputFile)
         {
-            using (var Client = Browser.GetDevToolsClient())
+            try
             {
-                var Doc = await Client.DOM.GetDocumentAsync();
-                var Input = await Client.DOM.QuerySelectorAsync(Doc.Root.NodeId, $"#{ElementID}");
-                
-                if (Input.NodeId == 0)
-                    throw new NodeNotFoundException();
+                using (var Client = Browser.GetDevToolsClient())
+                {
+                    var Doc = await Client.DOM.GetDocumentAsync();
+                    var Input = await Client.DOM.QuerySelectorAsync(Doc.Root.NodeId, $"#{ElementID}");
 
-                await Client.DOM.SetFileInputFilesAsync(new[] { InputFile }, Input.NodeId);
+                    if (Input.NodeId == 0)
+                        throw new NodeNotFoundException();
+
+                    await Client.DOM.SetFileInputFilesAsync(new[] { InputFile }, Input.NodeId);
+                }
             }
+            catch { }
         }
 
         public static CloudflareData BypassCloudflare(this ChromiumWebBrowser Browser)

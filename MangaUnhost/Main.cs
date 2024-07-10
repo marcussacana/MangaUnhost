@@ -113,6 +113,8 @@ namespace MangaUnhost
             }
         }
 
+        internal static string CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache", $"{(Program.FirstInstance ? 0 : new Random().Next(0, int.MaxValue))}");
+
         public static CaptchaSolverType Solver => Instance.Settings.AutoCaptcha ? CaptchaSolverType.SemiAuto : CaptchaSolverType.Manual;
 
         public static Main Instance = null;
@@ -167,6 +169,8 @@ namespace MangaUnhost
 
             ReloadSettings();
 
+            
+
             var CefSettings = new CefSettings()
             {
                 BrowserSubprocessPath = Program.BrowserSubprocessPath,
@@ -177,7 +181,8 @@ namespace MangaUnhost
 #endif
                 WindowlessRenderingEnabled = true,
                 ChromeRuntime = true,
-                UserAgent = ProxyTools.UserAgent
+                UserAgent = ProxyTools.UserAgent,
+                CachePath = CachePath
             };
 
             //CefSettings.DisableGpuAcceleration();
@@ -193,7 +198,8 @@ namespace MangaUnhost
                 SchemeHandlerFactory = new LocalSchemeFactory()
             });
 
-            Cef.Initialize(CefSettings, false, browserProcessHandler: null);
+            if (!Cef.Initialize(CefSettings, false, browserProcessHandler: null))
+                throw new Exception("Failed to Initialize CEFSharp");
         }
 
         private void MainShown(object sender, EventArgs e)
@@ -620,6 +626,16 @@ namespace MangaUnhost
                 AdvancedIni.FastSave(Settings, SettingsPath);
             }
             catch { }
+            
+            try
+            {
+                Cef.Shutdown();
+            }
+            catch { }
+
+            try {
+                Directory.Delete(CachePath, true);
+            } catch { }
 
             System.Diagnostics.Process.GetCurrentProcess().Kill();
         }

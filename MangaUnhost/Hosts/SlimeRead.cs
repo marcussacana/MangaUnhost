@@ -262,7 +262,7 @@ namespace MangaUnhost.Hosts
                     return;
             }
 
-            var CEF = new ChromiumWebBrowser();
+            var CEF = new ChromiumWebBrowser("about:blank");
 
             CEF.WaitInitialize();
             CEF.LoadUrl("https://slimeread.com/login");
