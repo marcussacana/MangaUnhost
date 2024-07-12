@@ -87,7 +87,14 @@ namespace MangaUnhost
         public static CefSharp.Cookie[] GetCookies(this IBrowser Browser) {
             try
             {
-                return AsyncContext.Run(async () => await Cef.GetGlobalCookieManager().VisitUrlCookiesAsync(Browser.MainFrame.Url, true)).ToArray();
+                //return AsyncContext.Run(async () => await Browser.GetHost().RequestContext.GetCookieManager(null).VisitAllCookiesAsync()).ToArray();
+                return AsyncContext.Run(async () =>
+                {
+                    var Callback = new TaskCompletionCallback();
+                    var CookieManager = Cef.GetGlobalCookieManager(Callback);
+                    await Callback.Task;
+                    return await CookieManager.VisitAllCookiesAsync(); 
+                }).ToArray();           
             }
             catch { return null;  }
         }
@@ -448,7 +455,7 @@ namespace MangaUnhost
             }
         }
 
-        public static void RegisterWebRequestHandlerEvents(this IWebBrowser Browser, EventHandler<OnWebRequestEventArgs> Request, EventHandler<OnWebResponseEventArgs> Response)
+        public static void RegisterWebRequestHandlerEvents(this IWebBrowser Browser, EventHandler<OnWebRequestEventArgs> Request, EventHandler<OnWebResponseEventArgs> Response, EventHandler<OnBeforeWebRequestEventArgs> OnBeforeRequest = null)
         {
             if (!(Browser.RequestHandler is RequestEventHandler))
                 Browser.RequestHandler = new RequestEventHandler();
@@ -457,12 +464,25 @@ namespace MangaUnhost
             {
                 if (!(args.ResourceRequestHandler is ResourceRequestEventHandler))
                     args.ResourceRequestHandler = new ResourceRequestEventHandler();
+                
+                ((ResourceRequestEventHandler)args.ResourceRequestHandler).OnGetCookieAccessFilterEvent += (sender, e) =>
+                {
+                    e.CookieAccessFilter = new AllowCookieAccessFilter();
+                };
 
                 ((ResourceRequestEventHandler)args.ResourceRequestHandler).OnGetResourceHandlerEvent += (sender, args) =>
                 {
                     bool IsHttpRequest = args.Request.Url.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
                     if (IsHttpRequest)
                     {
+                        if (OnBeforeRequest != null)
+                        {
+                            var Request = new OnBeforeWebRequestEventArgs(args.Request, args.Request.Headers, args.Request.PostData);
+                            OnBeforeRequest(Browser, Request);
+                            if (Request.DefaultHandler)
+                                return;
+                        }
+
                         if (!(args.ResourceHandler is WebRequestResourceHandler))
                             args.ResourceHandler = new WebRequestResourceHandler();
 
@@ -477,6 +497,11 @@ namespace MangaUnhost
 
             if (!(Browser.ResourceRequestHandlerFactory is ResourceRequestEventHandlerFactory))
                 Browser.ResourceRequestHandlerFactory = new ResourceRequestEventHandlerFactory();
+
+            ((ResourceRequestEventHandlerFactory)Browser.ResourceRequestHandlerFactory).OnGetCookieAccessFilterEvent += (sender, e) =>
+            {
+                e.CookieAccessFilter = new AllowCookieAccessFilter();
+            };
 
             ((ResourceRequestEventHandlerFactory)Browser.ResourceRequestHandlerFactory).OnGetResourceHandlerEvent += (sender, args) =>
             {

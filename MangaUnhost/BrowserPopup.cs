@@ -11,6 +11,7 @@ namespace MangaUnhost {
 
         Graphics Graphics;
         ChromiumWebBrowser ChromiumBrowser;
+        CefSharp.WinForms.ChromiumWebBrowser WinWebBrowser;
         IBrowserHost BrowserHost;
         Rectangle ViewRectangle;
 
@@ -22,7 +23,7 @@ namespace MangaUnhost {
 
             this.ChromiumBrowser = ChromiumBrowser;
             BrowserHost = ChromiumBrowser.GetBrowserHost();
-            ChromiumBrowser.GetBrowser().WaitForLoad();
+            ChromiumBrowser.GetBrowser().WaitForLoad(10);
 
             Verify = FinishVerify;
             ViewRectangle = new Rectangle(0, 0, ChromiumBrowser.Size.Width, ChromiumBrowser.Size.Height);
@@ -37,7 +38,7 @@ namespace MangaUnhost {
 
             this.ChromiumBrowser = ChromiumBrowser;
             BrowserHost = ChromiumBrowser.GetBrowserHost();
-            ChromiumBrowser.GetBrowser().WaitForLoad();
+            ChromiumBrowser.GetBrowser().WaitForLoad(10);
 
             Verify = FinishVerify;
             ViewRectangle = ViewArea;
@@ -46,11 +47,49 @@ namespace MangaUnhost {
                 Initialize();
             };
         }
-        void Initialize() {
-            Application.AddMessageFilter(this);
-            FormClosed += (s, e) => Application.RemoveMessageFilter(this);
 
-            UpdateRects();
+        public BrowserPopup(IWebBrowser Browser, Rectangle ViewArea, Func<bool> FinishVerify)
+        {
+            InitializeComponent();
+
+            if (Browser is ChromiumWebBrowser osWebBrowser)
+                ChromiumBrowser = osWebBrowser;
+
+            if (Browser is CefSharp.WinForms.ChromiumWebBrowser wfWebBrowser)
+            {
+                WinWebBrowser = wfWebBrowser;
+                WinWebBrowser.Dock = DockStyle.None;
+                WinWebBrowser.Location = new Point(-ViewArea.Location.X, -ViewArea.Location.Y + 39);
+                ThemeContainer.Controls.Add(WinWebBrowser);
+                WinWebBrowser.Size = ViewArea.Size;
+                Size = new Size(ViewArea.Width, ViewArea.Height + 39);
+            }
+
+            Browser.GetBrowser().WaitForLoad(10);
+            BrowserHost = Browser.GetBrowserHost();
+
+            Verify = FinishVerify;
+            ViewRectangle = ViewArea;
+
+            Shown += (a, b) => {
+                Initialize();
+            };
+        }
+        void Initialize() 
+        {
+            if (this.WinWebBrowser == null)
+            {
+                Application.AddMessageFilter(this);
+                FormClosed += (s, e) => Application.RemoveMessageFilter(this);
+
+                UpdateRects();
+            }
+            else
+            {
+                FormClosing += (s, e) => ThemeContainer.Controls.Remove(WinWebBrowser);
+                Controls.Remove(ScreenBox);
+                WinWebBrowser.BringToFront();
+            }
 
             Refresh.Enabled = true;
             StatusCheck.Enabled = true;
@@ -80,8 +119,13 @@ namespace MangaUnhost {
         }
 
         bool Frameskip = false;
-        private void RefreshTick(object sender, EventArgs e) {
+        private void RefreshTick(object sender, EventArgs e)
+        {
+            if (WinWebBrowser != null)
+                return;
+
             if (ScreenBox.Visible) {
+
                 using (var Screenshot = ChromiumBrowser.ScreenshotOrNull()) {
                     if (Screenshot == null)
                         return;
@@ -143,7 +187,7 @@ namespace MangaUnhost {
         }
 
         public void LoadingMode(bool Enabled) {
-            ScreenBox.Visible =    !Enabled;
+            ScreenBox.Visible =    !Enabled && WinWebBrowser == null;
             RadialProgBar.Visible = Enabled;
             Refresh.Interval = Enabled ? 30 : 35;
         }
@@ -165,6 +209,7 @@ namespace MangaUnhost {
         }
 
         bool Repeating = false;
+
         public bool PreFilterMessage(ref Message msg) {
             if (msg.Msg == WM_KEYDOWN || msg.Msg == WM_KEYUP || msg.Msg == WM_SYSKEYDOWN || msg.Msg == WM_SYSKEYUP)
                 Repeating = false;

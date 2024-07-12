@@ -113,7 +113,27 @@ namespace MangaUnhost
             }
         }
 
-        internal static string CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache", $"{(Program.FirstInstance ? 0 : new Random().Next(0, int.MaxValue))}");
+        private static string _CachePath = null;
+
+        internal static string CachePath { 
+            get
+            {
+                if (_CachePath != null)
+                    return _CachePath;
+
+                var Rnd = new Random();
+
+                do
+                {
+                    var InstanceID = $"{(Program.FirstInstance ? 0 : Rnd.Next(1, int.MaxValue))}";
+                    _CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cache", InstanceID);
+                    if (Program.FirstInstance)
+                        break;
+                } while (Directory.Exists(_CachePath));
+
+                return _CachePath;
+            } 
+        }
 
         public static CaptchaSolverType Solver => Instance.Settings.AutoCaptcha ? CaptchaSolverType.SemiAuto : CaptchaSolverType.Manual;
 
@@ -169,7 +189,12 @@ namespace MangaUnhost
 
             ReloadSettings();
 
-            
+            if (Program.FirstInstance)
+            {
+                try {
+                    Directory.Delete(Path.GetDirectoryName(CachePath), true);
+                } catch { }
+            }            
 
             var CefSettings = new CefSettings()
             {
@@ -182,7 +207,9 @@ namespace MangaUnhost
                 WindowlessRenderingEnabled = true,
                 ChromeRuntime = true,
                 UserAgent = ProxyTools.UserAgent,
-                CachePath = CachePath
+                CachePath = CachePath,
+               // CookieableSchemesExcludeDefaults = false,
+                PersistSessionCookies = true
             };
 
             //CefSettings.DisableGpuAcceleration();
@@ -191,6 +218,10 @@ namespace MangaUnhost
             CefSettings.CefCommandLineArgs.Add("user-agent", ProxyTools.UserAgent);
             CefSettings.CefCommandLineArgs.Add("isolate-origins", "https://accounts.google.com,https://chrome.google.com,https://chromewebstore.google.com,https://mail.google.com,https://www.google.com,https://google.com");
             CefSettings.CefCommandLineArgs.Add("use-views");
+#if DEBUG
+            //CefSettings.CefCommandLineArgs.Add("proxy-server", "http://localhost:8000");
+#endif
+            //CefSettings.CefCommandLineArgs.Add("disable-partitioned-cookies");
 
             CefSettings.RegisterScheme(new CefCustomScheme()
             {

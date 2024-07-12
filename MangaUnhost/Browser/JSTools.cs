@@ -9,6 +9,8 @@ using MangaUnhost.Others;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -120,6 +122,8 @@ namespace MangaUnhost.Browser
         public static void InjectXPATH(this IBrowser Browser) => Browser.EvaluateScriptUnsafe(Properties.Resources.XPATHScript);
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
         public static T EvaluateScriptUnsafe<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScriptUnsafe(Script);
+        public static T EvaluateScript<T>(this CefSharp.WinForms.ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);
+
         public static T EvaluateScript<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScript(Script);
         public static T EvaluateScriptUnsafe<T>(this IBrowser Browser, string Script) => (T)Browser.MainFrame.EvaluateScriptUnsafe(Script);
         public static void EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script, out T Result) => Result = (T)Browser.GetBrowser().EvaluateScript(Script);
@@ -163,67 +167,94 @@ namespace MangaUnhost.Browser
 
         public static CloudflareData BypassCloudflare(this string Url)
         {
+            using var WebBrowser = new CefSharp.WinForms.ChromiumWebBrowser("about:blank");
+            WebBrowser.CreateControl();
+            WebBrowser.WaitInitialize();
+            return WebBrowser.BypassCloudflare(Url);
+        }
+
+        public static CloudflareData BypassCloudflare(this IWebBrowser WebBrowser, string Url)
+        {
             var Status = Main.Status;
             Main.Status = Main.Language.BypassingCloudFlare;
 
-            var Browser = DefaultBrowser.GetBrowser();
-            DefaultBrowser.JsDialogHandler = new JsDialogHandler();
-            DefaultBrowser.Load(Url);
+            var OriRequestHandler = WebBrowser.RequestHandler;
+
+
+            var Container = new CookieContainer();
+
+            WebBrowser.RegisterWebRequestHandlerEvents(null, (sender, e) =>
+            {
+                var Cookies = e.Headers.GetValues("Set-Cookie");
+
+                if (Cookies == null)
+                    return;
+
+                foreach (var Cookie in Cookies)
+                {
+                    Container.SetCookies(e.WebRequest.RequestUri, Cookie);
+                }
+            }, (sender, e) =>
+            {
+                e.DefaultHandler = e.WebRequest.Url != Url;
+            });
+
+            WebBrowser.Load(Url);
+
+            var Browser = WebBrowser.GetBrowser();
             Browser.WaitForLoad(10);
 
-#if DEBUG
-            Browser.ShowDevTools();
-#endif
-
-            while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha())
+            while (Browser.IsCloudflareTriggered())
             {
-                ThreadTools.Wait(100, true);
-            }
-
-#if DEBUG
-            ThreadTools.Wait(20000, true);
-#endif
-
-            if (Browser.IsCloudflareAskingCaptcha())
-            {
-                int Tries = 3;
-                while (Browser.IsCloudflareTriggered() && Tries > 0)
+                while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha())
                 {
-                    if (Browser.GetCurrentUrl() != Url)
-                        DefaultBrowser.WaitForLoad(Url);
-#if CF_ALL_CAPTCHAS
-                    if (!DefaultBrowser.ReCaptchaIsSolved())
+                    ThreadTools.Wait(100, true);
+                }
+
+                if (Browser.IsCloudflareAskingCaptcha())
+                {
+                    int Tries = 3;
+                    while (Browser.IsCloudflareTriggered() && Tries > 0)
                     {
-                        DefaultBrowser.ReCaptchaTrySolve(Main.Solver);
-                        EvaluateScript(Properties.Resources.CloudFlareSubmitCaptcha);
-                    }
-                    else if (!DefaultBrowser.hCaptchaIsSolved())
-                    {
-                        DefaultBrowser.hCaptchaSolve();
+                        if (Browser.GetCurrentUrl() != Url)
+                            DefaultBrowser.WaitForLoad(Url);
+
+                        if (!Browser.TurnstileIsSolved() && Tries > 1)
+                        {
+                            Browser.TurnstileSolve();
+                        }
+                        else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser)
+                        {
+                            var MaxWait = 60;
+                            BrowserPopup popup = new BrowserPopup(WebBrowser, new Rectangle(0, 0, 1280, 720), () =>
+                            {
+                                if (Browser.IsCloudflareTriggered() && !Browser.TurnstileIsSolved() && MaxWait-- > 0)
+                                    return false;
+                                return true;
+                            });
+
+                            popup.ShowDialog();
+                            popup.Focus();
+                        }
+
                         ThreadTools.Wait(1000, true);
-                    } 
-                    else 
-#endif
-                    if (!DefaultBrowser.TurnstileIsSolved())
-                    {
-                        DefaultBrowser.TurnstileSolve();
+                        Browser.WaitForLoad(10);
+                        Tries--;
                     }
-                    else
-                    {
-                        var Popup = new BrowserPopup(DefaultBrowser, () => !DefaultBrowser.IsCloudflareTriggered());
-                        Popup.ShowDialog();
-                    }
-                    ThreadTools.Wait(1000, true);
-                    Browser.WaitForLoad();
-                    Tries--;
                 }
             }
 
-            Browser.WaitForLoad(10);
+            Browser.WaitForLoad(15);
             var HTML = Browser.GetHTML();
-            var Cookies = Browser.GetCookies().ToContainer();
+            var BrowserCookies = Browser.GetCookies();
 
-            DefaultBrowser.Load("about:blank");
+            foreach (var Cookie in BrowserCookies.ToContainer().GetCookies())
+                Container.Add(Cookie);
+
+
+            WebBrowser.RequestHandler = OriRequestHandler;
+
+            //WebBrowser.Load("about:blank");
 
             Main.Status = Status;
 
@@ -232,7 +263,7 @@ namespace MangaUnhost.Browser
 
             return new CloudflareData()
             {
-                Cookies = Cookies,
+                Cookies = Container,
                 UserAgent = Browser.GetUserAgent(),
                 HTML = HTML
             };
@@ -250,7 +281,7 @@ namespace MangaUnhost.Browser
         }
 
         public static string GetHTML(this IBrowser Browser) =>
-            AsyncContext.Run(async () => await Browser.MainFrame.GetSourceAsync());
+            AsyncContext.Run(async () => await Browser?.MainFrame?.GetSourceAsync());
         public static bool IsCloudflareTriggered(this IBrowser Browser) => Browser.GetHTML().IsCloudflareTriggered();
         public static bool IsCloudflareAskingCaptcha(this IBrowser Browser) => Browser.GetHTML().IsCloudflareAskingCaptcha();
 

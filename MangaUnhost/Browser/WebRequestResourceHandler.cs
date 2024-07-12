@@ -1,4 +1,5 @@
 ﻿using CefSharp;
+using CefSharp.DevTools.Debugger;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -12,7 +13,42 @@ namespace MangaUnhost.Browser
 {
     public class WebRequestResourceHandler : ResourceHandler
     {
-        bool Locked = false;
+
+        private class CallbackAwaiter : ICallback
+        {
+            private TaskCompletionSource<bool> TaskCompletionSource { get; set; }
+
+            public Task<bool> Task => TaskCompletionSource.Task;
+
+            private ICallback TargetCallback;
+
+            public CallbackAwaiter(ICallback Target)
+            {
+                TargetCallback = Target;
+                TaskCompletionSource = new TaskCompletionSource<bool>();
+            }
+
+            public bool IsDisposed { get; private set; }
+
+            public void Cancel()
+            {
+                TargetCallback.Cancel();
+                TaskCompletionSource.SetResult(false);
+            }
+
+            public void Continue()
+            {
+                TargetCallback.Continue();
+                TaskCompletionSource.SetResult(true);
+            }
+
+            public void Dispose()
+            {
+                TaskCompletionSource.Task?.Dispose();
+                TargetCallback?.Dispose();
+                IsDisposed = true;
+            }
+        }
 
         List<IDisposable> Objects = new List<IDisposable>();
 
@@ -31,6 +67,10 @@ namespace MangaUnhost.Browser
                         var headers = new NameValueCollection(request.Headers);
 
                         httpWebRequest = (HttpWebRequest)WebRequest.Create(request.Url);
+                        
+                        httpWebRequest.Headers.Remove("host");
+                        httpWebRequest.Headers["host"] = httpWebRequest.RequestUri.Host;
+                        
                         httpWebRequest.UserAgent = headers["User-Agent"];
                         httpWebRequest.Accept = headers["Accept"];
                         httpWebRequest.Method = request.Method;
@@ -68,7 +108,11 @@ namespace MangaUnhost.Browser
                     }
                     catch (NotSupportedException ex)
                     {
-                        DefaultHandler(request, callback);
+                        using (var awaiter = new CallbackAwaiter(callback))
+                        {
+                            if (DefaultHandler(request, awaiter) == CefReturnValue.ContinueAsync)
+                                await awaiter.Task;
+                        }
                     }
                     catch (WebException ex) {
                         var Response = ex.Response;
@@ -110,11 +154,27 @@ namespace MangaUnhost.Browser
             var charSet = contentType.CharSet;
             var statusCode = httpWebResponse.StatusCode;
 
-            var Stream = Response.ResponseData;
+            var Stream = Response.OverrideData ?? Response.ResponseData;
 
             Objects.Add(Stream);
 
-            ResponseLength = httpWebResponse.ContentLength >= 0 ? (long?)httpWebResponse.ContentLength : null;
+            if (Response.OverrideData == null)
+            {
+                if (httpWebResponse.ContentLength >= 0)
+                {
+                    ResponseLength = (long?)httpWebResponse.ContentLength;
+                }
+                else
+                {
+                    ResponseLength = null;
+                }
+            }
+            else
+            {
+                ResponseLength = Response.OverrideData.Length;
+                Objects.Add(Response.ResponseData);
+            }
+
             MimeType = mimeType;
             Charset = charSet ?? "UTF-8";
             StatusCode = (int)statusCode;
@@ -170,11 +230,31 @@ namespace MangaUnhost.Browser
         }
     }
 
+    public class OnBeforeWebRequestEventArgs : EventArgs
+    {
+        public IPostData PostData { get; set; }
+        public NameValueCollection Headers { get; }
+        public IRequest WebRequest { get; set; }
+
+        /// <summary>
+        /// When true allows the Request be processed by the CEF
+        /// If true the OnWebResponseEvent will not be triggered.
+        /// </summary>
+        public bool DefaultHandler { get; set; }
+
+        public OnBeforeWebRequestEventArgs(IRequest Request, NameValueCollection Headers, IPostData PostData)
+        {
+            this.PostData = PostData;
+            this.Headers = Headers;
+            this.WebRequest = Request;
+        }
+    }
     public class OnWebRequestEventArgs : EventArgs
     {
         public byte[] PostData { get; set; }
         public NameValueCollection Headers { get; }
         public HttpWebRequest WebRequest { get; set; }
+
         public OnWebRequestEventArgs(HttpWebRequest Request, NameValueCollection Headers, byte[] PostData) { 
             this.PostData = PostData;
             this.Headers = Headers;
@@ -189,6 +269,8 @@ namespace MangaUnhost.Browser
         public HttpWebRequest WebRequest { get; set; }
 
         public Stream ResponseData { get; private set; }
+
+        public Stream OverrideData { get; set; }
         public OnWebResponseEventArgs(HttpWebResponse Response, HttpWebRequest Request, NameValueCollection Headers, Stream ResponseData)
         {
             this.WebRequest = Request;

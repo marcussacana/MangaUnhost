@@ -17,26 +17,36 @@ namespace MangaUnhost.Browser
         public static bool TurnstileIsSolved(this ChromiumWebBrowser Browser) => Browser.GetBrowser().TurnstileIsSolved();
         public static bool TurnstileIsSolved(this IBrowser Browser)
         {
-            return Browser.EvaluateScript<bool>(Properties.Resources.cfCaptchaIsSolved);
+            try
+            {
+                return Browser.EvaluateScript<bool>(Properties.Resources.cfCaptchaIsSolved);
+            }
+            catch
+            {
+                return true;
+            }
         }
 
-        public static void TurnstileSolve(this ChromiumWebBrowser Browser)
+        public static bool TurnstileSolve(this IBrowser Browser)
         {
             if (Browser.TurnstileIsSolved())
-                return;
+                return true;
 
-            ThreadTools.Wait(5000, true);
+            ThreadTools.Wait(3000, true);
 
             Browser.TurnstileClickImHuman(out _);
 
             ThreadTools.Wait(5000, true);
 
             if (Browser.TurnstileIsSolved())
-                return;
+                return true;
 
+            return false;
+            /*
             var Solver = new SolveCaptcha(Browser, cfCaptcha: true);
             while (!Browser.TurnstileIsSolved())
                 Solver.ShowDialog();
+            */
         }
 
         public static void TurnstileClickImHuman(this ChromiumWebBrowser Browser, out Point Cursor) => Browser.GetBrowser().TurnstileClickImHuman(out Cursor);
@@ -63,6 +73,10 @@ namespace MangaUnhost.Browser
         public static Rectangle GetTurnstileRectangle(this IBrowser Browser)
         {
             var Result = Browser.EvaluateScript<string>(Properties.Resources.cfCaptchaGetMainFramePosition);
+            if (Result == null)
+            {
+                return new Rectangle(0, 0, 1280, 720);
+            }
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
