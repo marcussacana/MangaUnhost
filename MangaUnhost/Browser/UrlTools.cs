@@ -226,7 +226,7 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static SemaphoreSlim HttpRequestLocker = new SemaphoreSlim(10, 10);
+        public static SemaphoreSlim HttpRequestLocker = new SemaphoreSlim(20, 20);
         public static byte[] Download(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
             new Uri(Url).Download(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies);
         public static byte[] Download(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>

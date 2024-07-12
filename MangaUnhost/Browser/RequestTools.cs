@@ -157,9 +157,9 @@ namespace MangaUnhost.Browser
             Browser.EarlyInjection($"Object.defineProperty(navigator, 'userAgentData', {{value: {{brands:[ {{ brand: 'Not_A Brand', version: '24' }}, {{brand: 'Chromium', version: '{ShortVersion}'}}, {{brand: '{Name}', version: '{ShortVersion}'}}], mobile: false, platform: '{PlatformName}'}}, configurable: false, writable: false,}}); window.cefSharp = undefined; Object.freeze(window.cefSharp); window.CefSharp = undefined; Object.freeze(window.CefSharp); window.cefQuery = undefined; Object.freeze(window.cefQuery);");
         }
 
-        public static void BypassGoogleCEFBlock(this ChromiumWebBrowser Browser)
+        public static void BypassGoogleCEFBlock(this IWebBrowser Browser)
         {
-            Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0");
+            Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0");
         }
 
         //public delegate void Func<in T>(T arg);

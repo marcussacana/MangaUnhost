@@ -74,6 +74,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Browser\AllowCookieAccessFilter.cs" />
     <Compile Include="Browser\Turnstile.cs" />
     <Compile Include="Browser\hCaptcha.cs" />
     <Compile Include="Browser\ImageTranslator.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="Decoders\AvifDecoder.cs" />
     <Compile Include="Hosts\BilibiliComics.cs" />
     <Compile Include="Hosts\BlackoutComics.cs" />
+    <Compile Include="Hosts\ColaManga.cs" />
     <Compile Include="Hosts\Mangadex.cs" />
     <Compile Include="Hosts\BaoZimh.cs" />
     <Compile Include="Hosts\SlimeRead.cs" />

@@ -37,6 +37,13 @@ namespace MangaUnhost.Browser
             Browser.GetBrowser().WaitForLoad(MaxSeconds);
         }
 
+        public static void WaitForLoad(this CefSharp.WinForms.ChromiumWebBrowser Browser, string Url, int MaxSeconds = 60)
+        {
+            Browser.WaitInitialize();
+            Browser.Load(Url);
+            Browser.GetBrowser().WaitForLoad(MaxSeconds);
+        }
+
         public static void WaitForLoad(this ChromiumWebBrowser Browser, int MaxSeconds = 60)
         {
             Browser.WaitInitialize();
@@ -67,10 +74,14 @@ namespace MangaUnhost.Browser
 
         public static void WaitForLoad(this IBrowser Browser, int MaxSeconds = 60)
         {
-            ThreadTools.Wait(100);
-            DateTime Begin = DateTime.Now;
-            while (Browser.IsLoading() && (DateTime.Now-Begin).TotalSeconds < MaxSeconds)
-                ThreadTools.Wait(50, true);
+            try
+            {
+                ThreadTools.Wait(100);
+                DateTime Begin = DateTime.Now;
+                while (Browser.IsLoading() && (DateTime.Now - Begin).TotalSeconds < MaxSeconds)
+                    ThreadTools.Wait(50, true);
+            }
+            catch { }
         }
 
         public static void WaitForLoad(this IFrame Frame, int MaxSeconds = 60)
