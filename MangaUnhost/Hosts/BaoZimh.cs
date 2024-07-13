@@ -61,7 +61,11 @@ namespace MangaUnhost.Hosts
         public string[] GetChapterPages(int ID)
         {
             var ChapterURL = ChapterMap[ID];
+            return GetChapterPages(ChapterURL).ToArray();
+        }
 
+        private static List<string> GetChapterPages(string ChapterURL)
+        {
             var Doc = new HtmlDocument();
             Doc.LoadUrl(ChapterURL);
 
@@ -74,7 +78,15 @@ namespace MangaUnhost.Hosts
                 Pages.Add(Uri);
             }
 
-            return Pages.ToArray();
+            var NextPart = Doc.SelectSingleNode("//span[.='下一頁']/..");
+
+            if (NextPart != null)
+            {
+                var URL = NextPart.GetAttributeValue("href", null);
+                Pages.AddRange(GetChapterPages(URL));
+            }
+
+            return Pages;
         }
 
         public IDecoder GetDecoder()
@@ -89,7 +101,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 Author = "Marcussacana",
                 Name = "BaoZimh",
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
