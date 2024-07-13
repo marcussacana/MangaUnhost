@@ -249,8 +249,9 @@ namespace MangaUnhost
 
                         string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
                         File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
+
+                        return;
                     }
-                    return;
                 }
             }
 
