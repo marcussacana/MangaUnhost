@@ -90,7 +90,7 @@ namespace MangaUnhost.Browser
 
                 while (IsLoading())
                 {
-                    if (waiting++ > 15)
+                    if (waiting++ > 60)
                         throw new Exception("Image Translation Failed");
 
                     ThreadTools.Wait(1000, true);
