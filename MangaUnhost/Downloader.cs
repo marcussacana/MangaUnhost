@@ -278,7 +278,7 @@ namespace MangaUnhost
                     List<string> Pages = new List<string>();
                     foreach (var Data in Host.DownloadPages(ID).CatchExceptions())
                     {
-                        if (Data == null) continue;
+                        if (Data == null || Data.Length == 0) continue;
 
                         Status = string.Format(CurrentLanguage.Downloading, Pages.Count + 1, PageCount);
                         Extensions.SafeDoEvents();
