@@ -1014,9 +1014,27 @@ namespace MangaUnhost
 
                             await Translator.Request(new string[] { Page }, SourceLang, TargetLang);
 
-                            OK = await Translator.WaitForEnd(Delay, (i, total) => { 
+                            DateTime Begin = DateTime.Now;
+
+                            var awaiter = Translator.WaitForEnd(Delay, (i, total) => { 
                                 //Translator?.Dispose();
                             });
+
+                            if (AllowSkip)
+                            {
+                                while (!File.Exists(Page + ".tl.png"))
+                                {
+                                    if ((DateTime.Now - Begin).TotalSeconds > 60 * Math.Max(Delay, 1))
+                                        break;
+
+                                    if (awaiter.IsCompleted || awaiter.IsFaulted || awaiter.IsCanceled)
+                                        break;
+
+                                    await Task.Delay(1000);
+                                }
+                            }
+
+                            OK = await awaiter;
                         }
                         catch { }
                         finally
