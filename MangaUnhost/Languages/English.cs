@@ -127,6 +127,8 @@
         public string SelectASaveDir => "Select a directory to save";
         public string Refresh => "Refresh";
         public string CheckUpdates => "Check Updates";
+
+        public string IncludeNextChapters => "Include Next Chapters";
         public string Translate => "Translate";
         public string Translating => "Translating: {0}...";
 

@@ -121,6 +121,7 @@ namespace MangaUnhost
                         var TLItem = (ToolStripMenuItem)sender;
                         TranslateChapters(TLItem.Name, TLItem.Text, Skip);
                     };
+
                     SourceLang.DropDownItems.Add(TargetLang);
                 }
                 Translate.DropDownItems.Add(SourceLang);
@@ -269,6 +270,16 @@ namespace MangaUnhost
                                 var TLItem = (ToolStripMenuItem)sender;
                                 TranslateChapter(TLItem.Name, TLItem.Text, false, Chapter, LastChapter, NextChapter, null);
                             };
+
+                            var TranslateAhead = new ToolStripMenuItem(Language.IncludeNextChapters);
+                            TranslateAhead.Click += (sender, e) =>
+                            {
+                                var TLItem = ((ToolStripMenuItem)sender).GetCurrentParent();
+                                TranslateChapters(TLItem.Name, TLItem.Text, true, Chapter);
+                            };
+
+                            TargetLang.DropDownItems.Add(TranslateAhead);
+
                             SourceLang.DropDownItems.Add(TargetLang);
                         }
                         Translate.DropDownItems.Add(SourceLang);
@@ -826,7 +837,7 @@ namespace MangaUnhost
         }
 
         static IPacket[] Translators = null;
-        async void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip)
+        async void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip, string SkipUntil = null)
         {
             var Chapters = Directory.GetDirectories(ChapPath)
                 .OrderBy(x => ForceNumber(Path.GetFileName(x.TrimEnd('/', '\\')))).ToArray();
@@ -834,6 +845,12 @@ namespace MangaUnhost
             for (int i = 0; i < Chapters.Length; i++)
             {
                 string Chapter = Chapters[i];
+
+                if (SkipUntil != null && Chapter != SkipUntil)
+                    continue;
+                else
+                    SkipUntil = null;
+
                 string LastChapter = i == 0 ? null : Chapters[i - 1];
                 string NextChapter = i + 1 < Chapters.Length ? Chapters[i + 1] : null;
 
