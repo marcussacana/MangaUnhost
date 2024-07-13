@@ -237,10 +237,19 @@ namespace MangaUnhost
 
                 if (Settings.SkipDownloaded && Directory.Exists(AbsoluteChapterPath))
                 {
-                    var Pages = (from x in Directory.GetFiles(AbsoluteChapterPath).OrderByFilenameNumber() select Path.GetFileName(x)).ToArray();
-                    ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LastChapterPah, NextChapterPath, TitleDir, ChapterPath, Name);
-                    string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
-                    File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
+                    var Pages = (from x in Directory.GetFiles(AbsoluteChapterPath).Where(x => !x.Contains(".tl.")).OrderByFilenameNumber() select Path.GetFileName(x)).ToArray();
+                    var TlPages = (from x in Directory.GetFiles(AbsoluteChapterPath).Where(x => x.Contains(".tl.")).OrderByFilenameNumber() select Path.GetFileName(x)).ToArray();
+
+                    if (Pages.Length == PageCount)
+                    {
+                        if (TlPages.Length == 0)
+                            ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LastChapterPah, NextChapterPath, TitleDir, ChapterPath, Name);
+                        else
+                            ChapterTools.GenerateComicReaderWithTranslation(CurrentLanguage, Pages, TlPages, LastChapterPah, NextChapterPath, ChapterPath);
+
+                        string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
+                        File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
+                    }
                     return;
                 }
             }
