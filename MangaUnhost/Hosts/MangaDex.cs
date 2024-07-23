@@ -104,12 +104,7 @@ namespace MangaUnhost.Hosts
 
                 foreach (var Chapter in SubQuery)
                 {
-                    string Name;
-                    
-                    if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
-                        Name = $"Ch. {Chapter.Attributes.Chapter}".Trim('.');
-                    else
-                        Name = $"Vol. {Chapter.Attributes.Volume} Ch. {Chapter.Attributes.Chapter}".Trim('.', ' ');
+                    string Name = GetChapterName(Chapter);
 
                     if (Names.Contains(Name))
                         continue;
@@ -122,6 +117,17 @@ namespace MangaUnhost.Hosts
                     yield return new KeyValuePair<int, string>(ID, Name);
                 }
             }
+        }
+
+        private static string GetChapterName(ChapterData Chapter)
+        {
+            string Name;
+
+            if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
+                Name = $"Ch. {Chapter.Attributes.Chapter}".Trim('.');
+            else
+                Name = $"Vol. {Chapter.Attributes.Volume} Ch. {Chapter.Attributes.Chapter}".Trim('.', ' ');
+            return Name;
         }
 
         private static string LastLang = null;
@@ -198,7 +204,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 4, 2)
+                Version = new Version(2, 5)
             };
         }
 
@@ -228,9 +234,10 @@ namespace MangaUnhost.Hosts
 
             var CoverURI = $"https://uploads.mangadex.org/covers/{ComicID}/{CoverID}";
 
+            var TitleInfo = Info.Data.Attributes.Title;
             return new ComicInfo()
             {
-                Title = Info.Data.Attributes.Title.En ?? Info.Data.Attributes.Title.JaRo ?? Info.Data.Attributes.Title.Ja ?? Info.Data.Attributes.Title.Ko,
+                Title = TitleInfo.En ?? TitleInfo.JaRo ?? TitleInfo.Ja_Ro ?? TitleInfo.Ja ?? TitleInfo.Ko,
                 ContentType = ContentType.Comic,
                 Cover = CoverURI.TryDownload(UserAgent: ProxyTools.UserAgent),
                 Url = Uri
@@ -283,6 +290,8 @@ namespace MangaUnhost.Hosts
         public struct LocalizatedString
         {
             public string En { get; set; }
+            [JsonProperty("ja-ro")]
+            public string Ja_Ro { get; set; }
             public string JaRo { get; set; }
             public string Ja { get; set; }
             public string Ko { get; set; }
