@@ -99,16 +99,19 @@ namespace MangaUnhost.Hosts
                 BookInfos[i] = Entry;
             }
 
+            try
+            {
+                URL = $"{GetCurrentDomain(false)}book_cap_units_all?manga_id={BookId}";
+                InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
-            URL = $"{GetCurrentDomain(false)}book_cap_units_all?manga_id={BookId}";
-            InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+                if (!InfoData.TrimStart().StartsWith("["))
+                    InfoData = $"[{InfoData.Trim()}]";
 
-            if (!InfoData.TrimStart().StartsWith("["))
-                InfoData = $"[{InfoData.Trim()}]";
+                Info = GetInfo(InfoData, Info);
 
-            Info = GetInfo(InfoData, Info);
-
-            BookInfos = Info.props.pageProps.book_info.book_infos;
+                BookInfos = Info.props.pageProps.book_info.book_infos;
+            }
+            catch { }
 
             if (BookInfos == null || !BookInfos.Any(x => ((BookInfoInnerContent)x.book_info_content).type == "chapters"))
             {
