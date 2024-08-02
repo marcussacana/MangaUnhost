@@ -89,16 +89,6 @@ namespace MangaUnhost.Hosts
 
             List<BookInfoInner> BookInfos = Info.props.pageProps.book_info.book_infos;
 
-            for (var i = 0; i < BookInfos.Count; i++)
-            {
-                var Entry = BookInfos[i];
-                if (Entry.book_info_content is string json)
-                {
-                    Entry.book_info_content = JsonConvert.DeserializeObject<BookInfoInnerContent>(json);
-                }
-                BookInfos[i] = Entry;
-            }
-
             try
             {
                 URL = $"{GetCurrentDomain(false)}book_cap_units_all?manga_id={BookId}";
@@ -112,6 +102,16 @@ namespace MangaUnhost.Hosts
                 BookInfos = Info.props.pageProps.book_info.book_infos;
             }
             catch { }
+
+            for (var i = 0; i < BookInfos.Count; i++)
+            {
+                var Entry = BookInfos[i];
+                if (Entry.book_info_content is string json)
+                {
+                    Entry.book_info_content = JsonConvert.DeserializeObject<BookInfoInnerContent>(json);
+                }
+                BookInfos[i] = Entry;
+            }
 
             if (BookInfos == null || !BookInfos.Any(x => ((BookInfoInnerContent)x.book_info_content).type == "chapters"))
             {
