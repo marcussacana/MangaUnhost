@@ -194,7 +194,7 @@ namespace MangaUnhost.Hosts
                 var Data = ChapsUrl.Upload();
                 ChapterDocument = new HtmlDocument();
                 using (var Stream = new MemoryStream(Data))
-                    ChapterDocument.Load(Stream);
+                    ChapterDocument.Load(Stream, System.Text.Encoding.UTF8, true);
             }
             catch { }
 

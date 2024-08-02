@@ -51,87 +51,96 @@ namespace MangaUnhost.Hosts
                 .OrderByFilenameNumber(x => x.volume == null ? x.chapter : x.volume + "." + x.chapter)
                 .Reverse()
                 .Select(x => {
-                var ID = ChapterMap.Count;
+                    var ID = ChapterMap.Count;
 
                     ChapterMap[ID] = (int.Parse(x.chapter) - 1).ToString();
 
                     string Name = x.chapter;
 
                     return new KeyValuePair<int, string>(ID, $"{Name}");
-                 });
+                });
         }
 
         public RootInfo GetComicInfo()
         {
-            //possible get json with this url as well
-            //https://slimeread.com/_next/data/aoKuUaWGR_--cgEqsV76H/index.json
-            var InfoData = Document.SelectSingleNode("//script[@type='application/json']").InnerText;
 
-            var Info = JsonConvert.DeserializeObject<RootInfo>(InfoData);
+            var BuildInfo = Document.SelectSingleNode("//script[@type='application/json']").InnerText;
+            var buildId = DataTools.ReadJson(BuildInfo, "buildId");
 
-            var BookInfos = Info.props.pageProps.book_info.book_infos;
+            var URL = $"https://slimeread.com/_next/data/{buildId}{CurrentUrl.AbsolutePath}.json";
+            var ComicData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
-            if (BookInfos != null)
+            var BookId = CurrentUrl.PathAndQuery.Split('/')[2];
+
+            RootInfo Info = new RootInfo()
             {
+                props = JsonConvert.DeserializeObject<Props>(ComicData)
+            };
 
-                if (!BookInfos.Any(x => x.book_info_content.type == "chapters"))
+            string InfoData = null;
+
+            List<BookInfoInner> BookInfos = Info.props.pageProps.book_info.book_infos;
+
+            if (BookInfos == null || !BookInfos.Any(x => x.book_info_content.type == "chapters"))
+            {
+                URL = $"{GetCurrentDomain(false)}book_cap_units_all?manga_id={BookId}";
+                InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+
+                if (!InfoData.TrimStart().StartsWith("["))
+                    InfoData = $"[{InfoData.Trim()}]";
+
+                Info = GetInfo(InfoData, Info);
+
+                BookInfos = Info.props.pageProps.book_info.book_infos;
+
+                if (BookInfos == null || !BookInfos.Any(x => x.book_info_content.type == "chapters"))
                 {
-                    var URL = "https://free.slimeread.com:8443/book/" + Info.props.pageProps.book_info.book_id;
-                    InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
-
-                    var ChapInfo = JsonConvert.DeserializeObject<BookInfo>(InfoData);
-
-                    Info.props = new Props()
-                    {
-                        pageProps = new PageProps()
-                        {
-                            book_info = ChapInfo
-                        }
-                    };
-                }
-
-                if (!BookInfos.Any(x => x.book_info_content.type == "chapters"))
-                {
-                    var URL = "https://old.slimeread.com:8443/book_cap_units_all?manga_id=" + Info.props.pageProps.book_info.book_id;
+                    URL = $"{GetCurrentDomain(true)}book_cap_units_all?manga_id={BookId}";
                     InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
                     if (!InfoData.TrimStart().StartsWith("["))
                         InfoData = $"[{InfoData.Trim()}]";
 
-                    var ChapInfo = JsonConvert.DeserializeObject<BtcCap[]>(InfoData);
-
-                    var infos = new[] {
-                    new BookInfoInner()
-                    {
-                        book_info_book_id = 0,
-                        book_info_content = new BookInfoInnerContent()
-                        {
-                            type = "chapters",
-                            chapters = ChapInfo.Select(x =>
-                            {
-                                return new BookInfoInnerChapter()
-                                {
-                                    chapter = x.btc_cap.ToString(),
-                                    id = x.btc_id.ToString()
-                                };
-                            }).ToList()
-                        }
-                    }
-                }.ToList();
-
-                    var binfo = Info.props.pageProps.book_info;
-                    binfo.book_infos = infos;
-
-                    var pProps = Info.props.pageProps;
-                    pProps.book_info = binfo;
-
-                    var Props = Info.props;
-                    Props.pageProps = pProps;
-
-                    Info.props = Props;
+                    Info = GetInfo(InfoData, Info);
                 }
             }
 
+            return Info;
+        }
+
+        private static RootInfo GetInfo(string InfoData, RootInfo Info)
+        {
+            var ChapInfo = JsonConvert.DeserializeObject<BtcCap[]>(InfoData);
+
+            var infos = new[] {
+                        new BookInfoInner()
+                        {
+                            book_info_book_id = 0,
+                            book_info_content = new BookInfoInnerContent()
+                            {
+                                type = "chapters",
+                                chapters = ChapInfo.Select(x =>
+                                {
+                                    return new BookInfoInnerChapter()
+                                    {
+                                        chapter = x.btc_cap.ToString(),
+                                        id = x.btc_id.ToString()
+                                    };
+                                }).ToList()
+                            }
+                        }
+                    }.ToList();
+
+            var binfo = Info.props.pageProps.book_info;
+            binfo.book_infos = infos;
+
+            var pProps = Info.props.pageProps;
+            pProps.book_info = binfo;
+
+            var Props = Info.props;
+            Props.pageProps = pProps;
+
+            Info.props = Props;
             return Info;
         }
 
@@ -144,7 +153,7 @@ namespace MangaUnhost.Hosts
 
         public string[] GetChapterPages(int ID)
         {
-            string JSON = GetChapterInfoA(ID) ?? GetChapterInfoB(ID) ?? GetChapterInfoC(ID);
+            string JSON = GetChapterInfoA(ID) ?? GetChapterInfoB(ID);
 
             if (JSON == null)
                 throw new Exception();
@@ -172,7 +181,7 @@ namespace MangaUnhost.Hosts
 
         private string GetChapterInfoA(int ID)
         {
-            var Uri = $"https://dev.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
+            var Uri = $"{GetCurrentDomain(false)}book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
 
             var Rst = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
@@ -183,18 +192,7 @@ namespace MangaUnhost.Hosts
         }
         private string GetChapterInfoB(int ID)
         {
-            var Uri = $"https://ai3.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={ChapterMap[ID]}";// &token={Token}";
-
-            var Rst = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
-
-            if (string.IsNullOrWhiteSpace(Rst.Trim(' ', '\t', '\r', '\n', '{', '}')))
-                return null;
-
-            return Rst;
-        }
-        private string GetChapterInfoC(int ID)
-        {
-            var Uri = $"https://staging.slimeread.com:8443/book_cap_units?manga_id={MangaID}&cap={(int.Parse(ChapterMap[ID]) + 1)}";// &token={Token}";
+            var Uri = $"{GetCurrentDomain(false)}book_cap_units?manga_id={MangaID}&cap={(int.Parse(ChapterMap[ID]) + 1)}";// &token={Token}";
 
             var InfoData = Uri.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
@@ -233,7 +231,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 1)
+                Version = new Version(3, 0)
             };
         }
 
@@ -276,6 +274,36 @@ namespace MangaUnhost.Hosts
             Ini.SetConfig("SlimeRead", "Token", Token, Main.SettingsPath);
 
             EnsureLogin();
+        }
+
+        private string GetCurrentDomain(bool IgnoreCache)
+        {
+            if (!IgnoreCache && Ini.GetConfigStatus("SlimeRead", "ApiChapter", Main.SettingsPath) == Ini.ConfigStatus.Ok)
+                return Ini.GetConfig("SlimeRead", "ApiChapter", Main.SettingsPath);
+
+            using (var Browser = new ChromiumWebBrowser(CurrentUrl.AbsoluteUri))
+            {
+                string Domain = null;
+                Browser.WaitInitialize();
+
+                Browser.RegisterWebRequestHandlerEvents((sender, args) => {
+                    if (!args.WebRequest.RequestUri.AbsoluteUri.Contains("book_cap_units_all"))
+                        return;
+                    Domain = args.WebRequest.RequestUri.AbsoluteUri.Substring(null, "book_cap_units_all");
+                }, null);
+
+                Browser.WaitForLoad();
+
+                DateTime BeginWait = DateTime.Now;
+                while (Domain == null && (DateTime.Now - BeginWait).TotalSeconds < 10)
+                {
+                    ThreadTools.Wait(1000, true);
+                }
+
+                Ini.SetConfig("SlimeRead", "ApiChapter", Domain, Main.SettingsPath);
+
+                return Domain;
+            }
         }
 
         string MangaID;

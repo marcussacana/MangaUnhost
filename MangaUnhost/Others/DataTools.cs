@@ -585,5 +585,38 @@ namespace MangaUnhost.Others
             return img.Clone(new Rectangle(0, 0, img.Width, img.Height),
                 System.Drawing.Imaging.PixelFormat.Format24bppRgb);
         }
+
+        public static void SaveToCache(this CloudflareData? Data, string CacheName) => Data.Value.SaveToCache(CacheName);
+        public static void SaveToCache(this CloudflareData Data, string CacheName)
+        {
+            var UA = Data.UserAgent;
+
+            var Cookies = Data.Cookies.GetCookies().Select(x => $"{x.Name};{x.Value};{x.Domain}");
+
+            var CookieList = string.Join("§", Cookies);
+
+
+            Ini.SetConfig(CacheName, "CFUA", UA, Main.SettingsPath);
+            Ini.SetConfig(CacheName, "CFCL", CookieList, Main.SettingsPath);
+        }
+
+        public static void LoadFromCache(this ref CloudflareData? Data, string CacheName)
+        {
+            if (Ini.GetConfigStatus(CacheName, "CFUA", Main.SettingsPath) != Ini.ConfigStatus.Ok || Ini.GetConfigStatus(CacheName, "CFCL", Main.SettingsPath) != Ini.ConfigStatus.Ok)
+                return;
+            try
+            {
+                Data = new CloudflareData()
+                {
+                    UserAgent = Ini.GetConfig(CacheName, "CFUA", Main.SettingsPath),
+                    Cookies = Ini.GetConfig(CacheName, "CFCL", Main.SettingsPath)
+                        .Split('§')
+                        .Select(x => new System.Net.Cookie(x.Split(';')[0], x.Split(';')[1], "/", x.Split(';')[2]))
+                        .ToArray()
+                        .ToContainer()
+                };
+            }
+            catch { }
+        }
     }
 }

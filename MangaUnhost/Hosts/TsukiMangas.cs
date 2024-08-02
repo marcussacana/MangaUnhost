@@ -117,7 +117,7 @@ namespace MangaUnhost.Hosts
                 Name = "TsukiMangas",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 0, 0)
+                Version = new Version(2, 0, 1)
             };
         }
 
@@ -146,10 +146,19 @@ namespace MangaUnhost.Hosts
 
             MangaID = Uri.PathAndQuery.Substring("/obra/", "/");
 
-            if (CFData == null)
-                CFData = JSTools.BypassCloudflare("https://tsuki-mangas.com");
+            var ApiUri = new Uri($"https://tsuki-mangas.com/api/v3/mangas/{MangaID}");
 
-            var JSON = new Uri($"https://tsuki-mangas.com/api/v3/mangas/{MangaID}").TryDownloadString(CFData, Referer: Uri.AbsoluteUri, Headers: Headers);
+            if (CFData == null)
+            {
+                CFData.LoadFromCache("TsukiMangas");
+
+                if (string.IsNullOrEmpty(ApiUri.TryDownloadString(CFData, Referer: Uri.AbsoluteUri, Headers: Headers)))
+                {
+                    CFData = JSTools.BypassCloudflare("https://tsuki-mangas.com");
+                    CFData.SaveToCache("TsukiMangas");
+                }
+            }
+            var JSON = ApiUri.TryDownloadString(CFData, Referer: Uri.AbsoluteUri, Headers: Headers);
 
             var Info = Newtonsoft.Json.JsonConvert.DeserializeObject<MangaInfo>(JSON);
 

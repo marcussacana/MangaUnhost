@@ -133,8 +133,6 @@
     </Compile>
     <Compile Include="Hosts\Batoto.cs" />
     <Compile Include="Hosts\HeavenManga.cs" />
-    <Compile Include="Hosts\HipercooL.cs" />
-    <Compile Include="Hosts\HQHentai.cs" />
     <Compile Include="Hosts\LHScan.cs" />
     <Compile Include="Hosts\MangaHasu.cs" />
     <Compile Include="Hosts\MangaHere.cs" />

@@ -1,15 +1,9 @@
 ﻿using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
-using MangaUnhost.Others;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MangaUnhost.Hosts
 {
