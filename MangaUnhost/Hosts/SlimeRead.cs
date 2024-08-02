@@ -46,7 +46,9 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             var Info = GetComicInfo();
-            var BookChaps = Info.props.pageProps.book_info.book_infos.First(x => x.book_info_content.type == "chapters").book_info_content.chapters;
+            var BookChaps = ((BookInfoInnerContent)Info.props.pageProps.book_info.book_infos
+                .First(x => ((BookInfoInnerContent)x.book_info_content).type == "chapters")
+                .book_info_content).chapters;
             return BookChaps
                 .OrderByFilenameNumber(x => x.volume == null ? x.chapter : x.volume + "." + x.chapter)
                 .Reverse()
@@ -70,39 +72,53 @@ namespace MangaUnhost.Hosts
             var URL = $"https://slimeread.com/_next/data/{buildId}{CurrentUrl.AbsolutePath}.json";
             var ComicData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
+
             var BookId = CurrentUrl.PathAndQuery.Split('/')[2];
 
-            RootInfo Info = new RootInfo()
-            {
-                props = JsonConvert.DeserializeObject<Props>(ComicData)
-            };
+            RootInfo Info;
+
+            if (ComicData == null)
+                Info = new RootInfo()
+                {
+                    props = JsonConvert.DeserializeObject<Props>(ComicData)
+                };
+            else
+                Info = JsonConvert.DeserializeObject<RootInfo>(BuildInfo);
 
             string InfoData = null;
 
             List<BookInfoInner> BookInfos = Info.props.pageProps.book_info.book_infos;
 
-            if (BookInfos == null || !BookInfos.Any(x => x.book_info_content.type == "chapters"))
+            for (var i = 0; i < BookInfos.Count; i++)
             {
-                URL = $"{GetCurrentDomain(false)}book_cap_units_all?manga_id={BookId}";
+                var Entry = BookInfos[i];
+                if (Entry.book_info_content is string json)
+                {
+                    Entry.book_info_content = JsonConvert.DeserializeObject<BookInfoInnerContent>(json);
+                }
+                BookInfos[i] = Entry;
+            }
+
+
+            URL = $"{GetCurrentDomain(false)}book_cap_units_all?manga_id={BookId}";
+            InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
+
+            if (!InfoData.TrimStart().StartsWith("["))
+                InfoData = $"[{InfoData.Trim()}]";
+
+            Info = GetInfo(InfoData, Info);
+
+            BookInfos = Info.props.pageProps.book_info.book_infos;
+
+            if (BookInfos == null || !BookInfos.Any(x => ((BookInfoInnerContent)x.book_info_content).type == "chapters"))
+            {
+                URL = $"{GetCurrentDomain(true)}book_cap_units_all?manga_id={BookId}";
                 InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
 
                 if (!InfoData.TrimStart().StartsWith("["))
                     InfoData = $"[{InfoData.Trim()}]";
 
                 Info = GetInfo(InfoData, Info);
-
-                BookInfos = Info.props.pageProps.book_info.book_infos;
-
-                if (BookInfos == null || !BookInfos.Any(x => x.book_info_content.type == "chapters"))
-                {
-                    URL = $"{GetCurrentDomain(true)}book_cap_units_all?manga_id={BookId}";
-                    InfoData = URL.TryDownloadString(Referer: "https://slimeread.com", UserAgent: ProxyTools.UserAgent).Trim(' ', '\t', '[', ']');
-
-                    if (!InfoData.TrimStart().StartsWith("["))
-                        InfoData = $"[{InfoData.Trim()}]";
-
-                    Info = GetInfo(InfoData, Info);
-                }
             }
 
             return Info;
@@ -231,7 +247,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(3, 0)
+                Version = new Version(3, 1)
             };
         }
 
@@ -414,7 +430,7 @@ namespace MangaUnhost.Hosts
             public DateTime book_info_date_created { get; set; }
             public DateTime book_info_date_updated { get; set; }
 
-            public BookInfoInnerContent book_info_content { get; set; }
+            public object book_info_content { get; set; } //BookInfoInnerContent but may be serialized
         }
 
         public struct BookInfoInnerContent
