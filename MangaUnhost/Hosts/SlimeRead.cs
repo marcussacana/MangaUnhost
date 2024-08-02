@@ -101,7 +101,9 @@ namespace MangaUnhost.Hosts
 
                 BookInfos = Info.props.pageProps.book_info.book_infos;
             }
-            catch { }
+            catch {
+                BookInfos = new List<BookInfoInner>();
+            }
 
             for (var i = 0; i < BookInfos.Count; i++)
             {
@@ -109,6 +111,11 @@ namespace MangaUnhost.Hosts
                 if (Entry.book_info_content is string json)
                 {
                     Entry.book_info_content = JsonConvert.DeserializeObject<BookInfoInnerContent>(json);
+                }
+                else
+                {
+                    var Serialized = JsonConvert.SerializeObject(Entry.book_info_content);
+                    Entry.book_info_content = JsonConvert.DeserializeObject<BookInfoInnerContent>(Serialized);
                 }
                 BookInfos[i] = Entry;
             }
@@ -250,7 +257,7 @@ namespace MangaUnhost.Hosts
                 Name = "SmileRead",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(3, 1)
+                Version = new Version(3, 1, 1)
             };
         }
 
