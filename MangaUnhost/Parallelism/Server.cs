@@ -25,6 +25,8 @@ namespace MangaUnhost.Parallelism
 
         public static void Connect(string arg)
         {
+            Program.RandSeed = arg.GetHashCode() ^ new Random().Next();
+
             new Main();
             Program.UnlockHeaders();
 

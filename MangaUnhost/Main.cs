@@ -121,7 +121,7 @@ namespace MangaUnhost
                 if (_CachePath != null)
                     return _CachePath;
 
-                var Rnd = new Random();
+                var Rnd = Program.RandSeed.HasValue ? new Random(Program.RandSeed.Value) : new Random();
 
                 do
                 {

@@ -435,6 +435,8 @@ namespace MangaUnhost
             return assembly;
         }
 
+        internal static int? RandSeed = null;
+
 
         #region Non-Windows Support
 
