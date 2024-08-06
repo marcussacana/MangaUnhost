@@ -61,15 +61,15 @@ namespace MangaUnhost.Browser
             Browser.WaitInitialize();
             Browser.GetBrowser().WaitForLoad();
         }
-        public static void WaitInitialize(this ChromiumWebBrowser Browser)
+
+        public static void WaitInitialize(this IWebBrowser Browser, int MaxSeconds = 30)
         {
-            while (!Browser.IsBrowserInitialized)
+            DateTime Begin = DateTime.Now;
+            while (!Browser.IsBrowserInitialized && (DateTime.Now - Begin).TotalSeconds < MaxSeconds)
                 ThreadTools.Wait(5, true);
-        }
-        public static void WaitInitialize(this CefSharp.WinForms.ChromiumWebBrowser Browser)
-        {
-            while (!Browser.IsBrowserInitialized)
-                ThreadTools.Wait(5, true);
+
+            if (!Browser.IsBrowserInitialized)
+                throw new Exception("Failed to Initialize the CEF Instance");
         }
 
         public static void WaitForLoad(this IBrowser Browser, int MaxSeconds = 60)
