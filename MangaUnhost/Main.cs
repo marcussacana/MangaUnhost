@@ -15,6 +15,7 @@ using System.Text;
 using Microsoft.WindowsAPICodePack.Shell;
 using System.Threading.Tasks;
 using MangaUnhost.Properties;
+using CefSharp.DevTools.Page;
 
 namespace MangaUnhost
 {
@@ -191,9 +192,19 @@ namespace MangaUnhost
 
             if (Program.FirstInstance)
             {
-                try {
-                    Directory.Delete(Path.GetDirectoryName(CachePath), true);
-                } catch { }
+                new Thread(() =>
+                {
+                    var CacheRoot = Path.GetDirectoryName(CachePath);
+                    var Caches = Directory.GetDirectories(CacheRoot);
+
+                    foreach (var Cache in Caches) {
+                        
+                        if (Cache == CacheRoot)
+                            continue;
+
+                        Try(() => Directory.Delete(Cache, true));
+                    }
+                }).Start();
             }            
 
             var CefSettings = new CefSettings()
