@@ -80,6 +80,8 @@ namespace MangaUnhost.Others
 
             string Cutted = JSON.Substring(Pos, JSON.Length - Pos).TrimStart(' ', '\n', '\r');
             char[] Close = Cutted.StartsWith("\"") ? new char[] { '"' } : new char[] { ',', '}' };
+            if (Cutted.StartsWith($"{Close.First()}{Close.First()}"))
+                return "";
             Cutted = Cutted.TrimStart('"');
             string Data = string.Empty;
             foreach (char c in Cutted)
