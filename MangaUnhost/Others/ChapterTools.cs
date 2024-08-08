@@ -109,7 +109,7 @@ namespace MangaUnhost.Others {
 
                 bool Last = i + 1 >= Pages.Length;
                 string Page = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i])}";
-                string TlPage = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, TLPages[i])}";
+                string TlPage = $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, i < TLPages.Length ? TLPages[i] : Pages[i])}";
 
                 if (Last && i != 0)
                 {
