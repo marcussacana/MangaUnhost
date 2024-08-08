@@ -117,9 +117,10 @@ namespace MangaUnhost.Others {
                 }
                 else
                 {
-                    string NextPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[i + 1])}";
-                    string NextTlPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, TLPages[i + 1])}";
-                    Content += string.Format(Properties.Resources.ComicTlReaderPageBase, i == 0 ? Page.ToLiteral() : null, i, i + 1, NextPage.ToLiteral(), i == 0 ? TlPage.ToLiteral() : null, NextTlPage.ToLiteral());
+                    var Next = i + 1;
+                    string NextPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Pages[Next])}";
+                    string NextTlPage = Last ? "" : $".{Path.AltDirectorySeparatorChar}{Path.Combine(ChapterPath, Next < TLPages.Length ? TLPages[Next] : Pages[Next])}";
+                    Content += string.Format(Properties.Resources.ComicTlReaderPageBase, i == 0 ? Page.ToLiteral() : null, i, Next, NextPage.ToLiteral(), i == 0 ? TlPage.ToLiteral() : null, NextTlPage.ToLiteral());
                 }
             }
 
