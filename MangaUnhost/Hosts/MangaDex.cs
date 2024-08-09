@@ -80,27 +80,34 @@ namespace MangaUnhost.Hosts
 
             var TargetLang = SelectLanguage(Langs.ToArray());
 
-            var Query = Info.Where(x => x.Type == "chapter" && x.Attributes.TranslatedLanguage == TargetLang)
-                    .OrderByDescending(x =>
-                    {
-                        var Vol = x.Attributes.Volume?.Trim().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-                        if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
-                            Vol = "99999";
+            var AllChapters = Info
+                .Where(x => x.Type == "chapter" && x.Attributes.TranslatedLanguage == TargetLang)
+                .GroupBy(x => (x.Attributes.Volume??"") + x.Attributes.Chapter)
+                .Select(x=>x.First());
 
-                        return float.Parse(Vol);
-                    })
+            var Query = AllChapters
+                    .OrderByDescending(GetVolume)
                     .GroupBy(x => x.Attributes.Volume);
+            
+
+            if (Query.Count() > 1)
+            {
+                if (Info.Any(x => x.Attributes.Volume == null))
+                {
+                    var Chapters = AllChapters
+                        .Select(x => x.Attributes.Chapter)
+                        .OrderBy(x => x);
+                    if (Chapters.Count() == Chapters.Distinct().Count())
+                    {
+                        Query = AllChapters.GroupBy(x => "");
+                    }
+                }
+            }
 
             List<string> Names = new List<string>();
             foreach (var Volume in Query)
             {
-                var SubQuery = Volume.OrderByDescending(x => {
-                    var Vol = x.Attributes.Chapter?.Trim().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-                    if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
-                        Vol = "99999";
-
-                    return float.Parse(Vol);
-                });
+                var SubQuery = Volume.OrderByDescending(GetChapter);
 
                 foreach (var Chapter in SubQuery)
                 {
@@ -117,6 +124,24 @@ namespace MangaUnhost.Hosts
                     yield return new KeyValuePair<int, string>(ID, Name);
                 }
             }
+        }
+
+        private float GetChapter(ChapterData x)
+        {
+            var Vol = x.Attributes.Chapter?.Trim().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+            if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
+                Vol = "99999";
+
+            return float.Parse(Vol);
+        }
+
+        private float GetVolume(ChapterData x)
+        {
+                var Vol = x.Attributes.Volume?.Trim().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+                if (string.IsNullOrWhiteSpace(Vol) || !float.TryParse(Vol, out _))
+                    Vol = "99999";
+
+                return float.Parse(Vol);
         }
 
         private static string GetChapterName(ChapterData Chapter)
@@ -204,7 +229,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 5)
+                Version = new Version(2, 6)
             };
         }
 
