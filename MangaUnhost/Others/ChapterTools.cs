@@ -161,7 +161,15 @@ namespace MangaUnhost.Others {
                 }
             }
             GetChapterPath(Language, CurrentLanguage, ComicDir, ChapterName, out string ChapterPath, false);
-            New += "\r\n" + string.Format(Properties.Resources.ComicReaderIndexChapterBase, $".{Path.AltDirectorySeparatorChar}{ChapterPath}.html", HttpUtility.HtmlEncode(string.Format(CurrentLanguage.ChapterName, ChapterName))) + "\r\n";
+
+            var EscapedName = HttpUtility.HtmlEncode(string.Format(CurrentLanguage.ChapterName, ChapterName));
+            var NewEntry = string.Format(Properties.Resources.ComicReaderIndexChapterBase, $".{Path.AltDirectorySeparatorChar}{ChapterPath}.html", EscapedName);
+            
+            if (!New.Contains(NewEntry))
+            {
+                New += "\r\n" + NewEntry + "\r\n";
+            }
+            
             New += "      </div>\r\n   </body>\r\n</html>";
 
             File.WriteAllText(IndexPath, New, Encoding.UTF8);

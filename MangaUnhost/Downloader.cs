@@ -243,11 +243,16 @@ namespace MangaUnhost
 
                     if (Pages.Length == PageCount)
                     {
-                        if (TlPages.Length == 0)
-                            ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LastChapterPah, AbsoluteNextChapterPath, TitleDir, AbsoluteChapterPath, Name);
-                        else
-                            ChapterTools.GenerateComicReaderWithTranslation(CurrentLanguage, Pages, TlPages, LastChapterPah, AbsoluteNextChapterPath, AbsoluteChapterPath);
 
+                        if (Settings.ReaderGenerator)
+                        {
+                            if (TlPages.Length == 0)
+                                ChapterTools.GenerateComicReader(CurrentLanguage, Pages, LastChapterPah, AbsoluteNextChapterPath, TitleDir, AbsoluteChapterPath, Name);
+                            else
+                                ChapterTools.GenerateComicReaderWithTranslation(CurrentLanguage, Pages, TlPages, LastChapterPah, AbsoluteNextChapterPath, AbsoluteChapterPath);
+
+                            ChapterTools.GenerateReaderIndex(Languages, CurrentLanguage, Info, TitleDir, Name, Host.GetDecoder());
+                        }
                         string OnlineData = string.Format(Properties.Resources.UrlFile, Info.Url.AbsoluteUri);
                         File.WriteAllText(Path.Combine(TitleDir, "Online.url"), OnlineData);
 
