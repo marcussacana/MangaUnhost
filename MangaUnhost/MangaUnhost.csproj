@@ -97,7 +97,6 @@
       <DependentUpon>ComicPage.cs</DependentUpon>
     </Compile>
     <Compile Include="Decoders\AvifDecoder.cs" />
-    <Compile Include="Hosts\BilibiliComics.cs" />
     <Compile Include="Hosts\BlackoutComics.cs" />
     <Compile Include="Hosts\Manga4Life.cs" />
     <Compile Include="Hosts\Mangadex.cs" />

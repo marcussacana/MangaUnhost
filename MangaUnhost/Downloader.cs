@@ -222,7 +222,7 @@ namespace MangaUnhost
                 ChapterTools.GetChapterPath(Languages, CurrentLanguage, TitleDir, NName, out NextChapterPath, false);
 
             string AbsoluteChapterPath = Path.Combine(TitleDir, ChapterPath);
-            string AbsoluteNextChapterPath = Path.Combine(TitleDir, NextChapterPath);
+            string AbsoluteNextChapterPath = NextChapterPath == null ? null : Path.Combine(TitleDir, NextChapterPath);
 
             if (Settings.SkipDownloaded && File.Exists(AbsoluteChapterPath.TrimEnd('\\', '/') + ".html"))
                 return;
