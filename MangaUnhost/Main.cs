@@ -16,6 +16,7 @@ using Microsoft.WindowsAPICodePack.Shell;
 using System.Threading.Tasks;
 using MangaUnhost.Properties;
 using CefSharp.DevTools.Page;
+using System.Runtime.InteropServices;
 
 namespace MangaUnhost
 {
@@ -25,7 +26,7 @@ namespace MangaUnhost
         Thread CrawlerThread = null;
         Thread PostProcessThread = null;
 
-        Settings Settings = new Settings();
+        public Settings Settings = new Settings();
 
         public IHost[] Hosts { get; private set; } = GetHostsInstances();
 
@@ -1139,5 +1140,17 @@ namespace MangaUnhost
             File.WriteAllBytes(fd.FileName + ".tl.png", Data);
             MessageBox.Show("done");
         }
-    }
+
+		private void btnSetupComparsion_Click(object sender, EventArgs e)
+		{
+            using TestDetection adjust = new TestDetection();
+            adjust.ShowDialog();
+		}
+
+        public void SetTextDectionSettings(bool Aforge, double Sensitivity)
+        {
+            Settings.ComparsionFactor = Sensitivity;
+            Settings.UseAForge = Aforge;
+        }
+	}
 }

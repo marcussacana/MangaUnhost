@@ -292,14 +292,21 @@ namespace MangaUnhost.Others
 
         public static bool AreImagesSimilar(this Image ImgA, Image ImgB)
         {
-            var ComparsionFactor = Math.Max(Main.Config.ComparsionFactor, 0.003);
+            if (Main.Config.UseAForge)
+			{
+				return ImgA.AForge_AreImagesSimilar(ImgB, 1 - Main.Config.ComparsionFactor);
+            }
 
-            return Main.Config.UseAForge ?
-                ImgA.AForge_AreImagesSimilar(ImgB, 1 - ComparsionFactor) :
-                ImgA.OpenCV_AreImagesSimilar(ImgB, ComparsionFactor);
+            var ComparsionFactor = Math.Max(Math.Min(1, Main.Config.ComparsionFactor), 0);
+            return ImgA.OpenCV_AreImagesSimilar(ImgB, ComparsionFactor);
         }
 
-        public static bool OpenCV_AreImagesSimilar(this Image ImgA, Image ImgB, double similarity = 0.039)
+        public static bool OpenCV_AreImagesSimilarCustom(this Image ImgA, Image ImgB, double CustomValue)
+        {
+            var ComparsionFactor = Math.Max(Math.Min(1, CustomValue), 0);
+			return ImgA.OpenCV_AreImagesSimilar(ImgB, ComparsionFactor);
+        }
+        public static bool OpenCV_AreImagesSimilar(this Image ImgA, Image ImgB, double similarity)
         {
             if (similarity > 1)
                 throw new ArgumentOutOfRangeException(nameof(similarity));

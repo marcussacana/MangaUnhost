@@ -78,9 +78,9 @@ namespace MangaUnhost.Browser
                 }
                 
 #endif
-                var ID = Browser.EvaluateScriptUnsafe<string>("XPATH('//input[contains(@accept, \\'image\\')]', false).id");
+                var ID = Browser.EvaluateScriptUnsafe<string>("XPATH('//input[contains(@accept, \\'image\\')]', false).id = 'imagePicker'");
 
-                if (ID == null)
+                if (string.IsNullOrEmpty(ID))
                     throw new Exception("File Input Not Found");
 
                 AsyncContext.Run(() => Browser.SetInputFile(ID, tmpPath));

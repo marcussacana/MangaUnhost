@@ -63,6 +63,26 @@ namespace MangaUnhost.Properties {
         /// <summary>
         ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _014 {
+            get {
+                object obj = ResourceManager.GetObject("014", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap _014_jpg_tl {
+            get {
+                object obj = ResourceManager.GetObject("014.jpg.tl", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Book {
             get {
                 object obj = ResourceManager.GetObject("Book", resourceCulture);

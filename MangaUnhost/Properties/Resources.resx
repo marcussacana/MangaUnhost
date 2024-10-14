@@ -117,54 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Book" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Book.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ComicReaderHtmlBase" xml:space="preserve">
-    <value>&lt;DOCTYPE HTML&gt;
-&lt;html&gt;
-   &lt;head&gt;
-      &lt;meta charset="utf-8"&gt;
-      &lt;title&gt;{0} - HTML Reader&lt;/title&gt;
-      &lt;style&gt;body{{background-color: #000000;}}&lt;/style&gt;
-   &lt;/head&gt;
-   &lt;body&gt;
-      &lt;div align="center"&gt;
-{1}
-      &lt;/div&gt;
-   &lt;/body&gt;
-&lt;/html&gt;</value>
-  </data>
-  <data name="ComicReaderLastPageBase" xml:space="preserve">
-    <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;&lt;br/&gt;</value>
-  </data>
-  <data name="ComicReaderPageBase" xml:space="preserve">
-    <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;&lt;br/&gt;
+  <data name="ComicTlReaderPageBase" xml:space="preserve">
+    <value>	&lt;div class="container"&gt;
+	        &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;
+		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
+			&lt;img src="{4}" id="ovl{1}" onload="ovl{2}.src = '{5}'" onerror="ovl{2}.src = '{5}'"/&gt;
+		&lt;/div&gt;
+	&lt;/div&gt;
 </value>
-  </data>
-  <data name="ComicReaderNextChapterBase" xml:space="preserve">
-    <value>         &lt;a id="next" href="{0}" style="color: #FFF;"&gt;{1}&lt;/a&gt;</value>
   </data>
   <data name="GetDocumentStatus" xml:space="preserve">
     <value>document.readyState;</value>
-  </data>
-  <data name="GetUserAgent" xml:space="preserve">
-    <value>navigator.userAgent;</value>
-  </data>
-  <data name="reCaptchaGetAnchorPosition" xml:space="preserve">
-    <value>var bounds = anchor.getBoundingClientRect();
-JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="reCaptchaGetAudioUrl" xml:space="preserve">
-    <value>document.getElementsByClassName("rc-audiochallenge-tdownload-link")[0].href;</value>
-  </data>
-  <data name="reCaptchaGetBFramePosition" xml:space="preserve">
-    <value>var bounds = bframe.getBoundingClientRect();
-JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="reCaptchaGetResponse" xml:space="preserve">
-    <value>grecaptcha.getResponse();</value>
   </data>
   <data name="reCaptchaGetSoundResponsePosition" xml:space="preserve">
     <value>var AudioResp = document.getElementById('audio-response');
@@ -176,110 +139,10 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 var bounds = AudioBnt.getBoundingClientRect();
 JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
   </data>
-  <data name="reCaptchaGetVerifyButtonPosition" xml:space="preserve">
-    <value>var VerifyBnt = document.getElementById('recaptcha-anchor');
-
-var bounds = VerifyBnt.getBoundingClientRect();
-JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="reCaptchaIframeSearch" xml:space="preserve">
-    <value>var iframes = document.getElementsByTagName("iframe");
-var anchor = null;
-var bframe = null;
-for (var i = 0; i &lt; iframes.length; i++){
-	var frame = iframes[i];
-	if (frame.src.indexOf("/anchor?") &gt; 0)
-		anchor = frame;
-	if (frame.src.indexOf("/bframe?") &gt; 0)
-		bframe = frame;
-}
-anchor.scrollIntoView();</value>
-  </data>
-  <data name="reCaptchaIsFailed" xml:space="preserve">
-    <value>document.getElementsByClassName('rc-doscaptcha-body-text').length != 0</value>
-  </data>
-  <data name="reCaptchaReset" xml:space="preserve">
-    <value>grecaptcha.reset();</value>
-  </data>
-  <data name="ComicReaderIndexBase" xml:space="preserve">
-    <value>&lt;DOCTYPE HTML&gt;
-&lt;html&gt;
-   &lt;meta charset="utf-8"&gt;
-   &lt;head&gt;
-      &lt;title&gt;{0}&lt;/title&gt;
-      &lt;style&gt;body{{background-color: #000000;}}&lt;/style&gt;
-   &lt;/head&gt;
-   &lt;body&gt;
-      &lt;div align="center"&gt;
-         &lt;img src="{1}" style="max-width:100%;"/&gt;&lt;br/&gt;
-</value>
-  </data>
-  <data name="ComicReaderIndexChapterBase" xml:space="preserve">
-    <value>         &lt;a href="{0}" style="color: #FFF;"&gt;{1}&lt;/a&gt;&lt;/br&gt;</value>
-  </data>
-  <data name="CloudFlareSubmitCaptcha" xml:space="preserve">
-    <value>document.getElementById('recaptcha_submit').click();</value>
-  </data>
-  <data name="UrlFile" xml:space="preserve">
-    <value>[{{000214A0-0000-0000-C000-000000000046}}]
-Prop3=19,2
-[InternetShortcut]
-IDList=
-URL={0}</value>
-  </data>
-  <data name="hCaptchaGetMainFramePosition" xml:space="preserve">
-    <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("hcaptcha-checkbox") &gt;= 0) return frames[i]; }
-var bounds = hcFrame().getBoundingClientRect();
-JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="hCaptchaIsSolved" xml:space="preserve">
-    <value>typeof(hcaptcha) == "undefined" || hcaptcha.getResponse() != ""</value>
-  </data>
-  <data name="cloudflareCaptchaReady" xml:space="preserve">
-    <value>document.getElementById("cf-please-wait").style.display == "none"</value>
-  </data>
   <data name="hCaptchaGetChallengeFramePosition" xml:space="preserve">
     <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("hcaptcha-challenge") &gt;= 0) return frames[i]; }
 var bounds = hcFrame().getBoundingClientRect();
 JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="hCaptchaGetVerifyButtonPosition" xml:space="preserve">
-    <value>var bounds = document.getElementsByClassName("button-submit")[0].getBoundingClientRect()
-JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="hCaptchaIsFailed" xml:space="preserve">
-    <value>document.getElementsByClassName("display-error")[0].style.opacity != "0"</value>
-  </data>
-  <data name="hCaptchaReset" xml:space="preserve">
-    <value>hcaptcha.reset();</value>
-  </data>
-  <data name="targetGetBounds" xml:space="preserve">
-    <value>var bounds = target.getBoundingClientRect();
-JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
-  </data>
-  <data name="toDataURL" xml:space="preserve">
-    <value>function toDataURL(e,n){var o=new XMLHttpRequest;o.onload=function(){var e=new FileReader;e.onloadend=function(){n(e.result)},e.readAsDataURL(o.response)},o.open("GET",e),o.responseType="blob",o.send()}</value>
-  </data>
-  <data name="XPATHScript" xml:space="preserve">
-    <value>function XPATH(X, A) { if (A === true) { var Results = []; var Query = document.evaluate(X, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (var i = 0, length = Query.snapshotLength; i &lt; length; ++i) Results.push(Query.snapshotItem(i)); return Results; } return document.evaluate(X, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }</value>
-  </data>
-  <data name="ComicTlReaderLastPageBase" xml:space="preserve">
-    <value>	&lt;div class="container"&gt;
-	        &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;
-		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
-			&lt;img src="{2}" id="ovl{1}"/&gt;
-		&lt;/div&gt;
-	&lt;/div&gt;
-</value>
-  </data>
-  <data name="ComicTlReaderPageBase" xml:space="preserve">
-    <value>	&lt;div class="container"&gt;
-	        &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;
-		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
-			&lt;img src="{4}" id="ovl{1}" onload="ovl{2}.src = '{5}'" onerror="ovl{2}.src = '{5}'"/&gt;
-		&lt;/div&gt;
-	&lt;/div&gt;
-</value>
   </data>
   <data name="ComicTlReaderHtmlBase" xml:space="preserve">
     <value>&lt;!DOCTYPE html&gt;
@@ -418,9 +281,91 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
 &lt;/body&gt;
 &lt;/html&gt;</value>
   </data>
+  <data name="UrlFile" xml:space="preserve">
+    <value>[{{000214A0-0000-0000-C000-000000000046}}]
+Prop3=19,2
+[InternetShortcut]
+IDList=
+URL={0}</value>
+  </data>
+  <data name="GetUserAgent" xml:space="preserve">
+    <value>navigator.userAgent;</value>
+  </data>
+  <data name="ComicReaderNextChapterBase" xml:space="preserve">
+    <value>         &lt;a id="next" href="{0}" style="color: #FFF;"&gt;{1}&lt;/a&gt;</value>
+  </data>
+  <data name="ComicReaderPageBase" xml:space="preserve">
+    <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}" onload="img{2}.src = '{3}'" onerror="img{2}.src = '{3}'"/&gt;&lt;br/&gt;
+</value>
+  </data>
   <data name="cfCaptchaGetMainFramePosition" xml:space="preserve">
     <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("turnstile") &gt;= 0) return frames[i]; }
 var bounds = hcFrame().getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="reCaptchaGetVerifyButtonPosition" xml:space="preserve">
+    <value>var VerifyBnt = document.getElementById('recaptcha-anchor');
+
+var bounds = VerifyBnt.getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="reCaptchaIsFailed" xml:space="preserve">
+    <value>document.getElementsByClassName('rc-doscaptcha-body-text').length != 0</value>
+  </data>
+  <data name="ComicReaderIndexChapterBase" xml:space="preserve">
+    <value>         &lt;a href="{0}" style="color: #FFF;"&gt;{1}&lt;/a&gt;&lt;/br&gt;</value>
+  </data>
+  <data name="ComicReaderHtmlBase" xml:space="preserve">
+    <value>&lt;DOCTYPE HTML&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;title&gt;{0} - HTML Reader&lt;/title&gt;
+      &lt;style&gt;body{{background-color: #000000;}}&lt;/style&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;div align="center"&gt;
+{1}
+      &lt;/div&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</value>
+  </data>
+  <data name="hCaptchaIsSolved" xml:space="preserve">
+    <value>typeof(hcaptcha) == "undefined" || hcaptcha.getResponse() != ""</value>
+  </data>
+  <data name="ComicReaderIndexBase" xml:space="preserve">
+    <value>&lt;DOCTYPE HTML&gt;
+&lt;html&gt;
+   &lt;meta charset="utf-8"&gt;
+   &lt;head&gt;
+      &lt;title&gt;{0}&lt;/title&gt;
+      &lt;style&gt;body{{background-color: #000000;}}&lt;/style&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;div align="center"&gt;
+         &lt;img src="{1}" style="max-width:100%;"/&gt;&lt;br/&gt;
+</value>
+  </data>
+  <data name="hCaptchaGetMainFramePosition" xml:space="preserve">
+    <value>var hcFrame = function() { var frames = document.getElementsByTagName("iframe"); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf("hcaptcha-checkbox") &gt;= 0) return frames[i]; }
+var bounds = hcFrame().getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="toDataURL" xml:space="preserve">
+    <value>function toDataURL(e,n){var o=new XMLHttpRequest;o.onload=function(){var e=new FileReader;e.onloadend=function(){n(e.result)},e.readAsDataURL(o.response)},o.open("GET",e),o.responseType="blob",o.send()}</value>
+  </data>
+  <data name="reCaptchaGetAudioUrl" xml:space="preserve">
+    <value>document.getElementsByClassName("rc-audiochallenge-tdownload-link")[0].href;</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="014" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\014.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Book" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Book.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="reCaptchaGetAnchorPosition" xml:space="preserve">
+    <value>var bounds = anchor.getBoundingClientRect();
 JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
   </data>
   <data name="cfCaptchaIsSolved" xml:space="preserve">
@@ -428,5 +373,66 @@ JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.h
     true;
 else
     document.getElementsByName('cf-turnstile-response')[0].value != ''</value>
+  </data>
+  <data name="ComicReaderLastPageBase" xml:space="preserve">
+    <value>         &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;&lt;br/&gt;</value>
+  </data>
+  <data name="CloudFlareSubmitCaptcha" xml:space="preserve">
+    <value>document.getElementById('recaptcha_submit').click();</value>
+  </data>
+  <data name="reCaptchaReset" xml:space="preserve">
+    <value>grecaptcha.reset();</value>
+  </data>
+  <data name="reCaptchaGetBFramePosition" xml:space="preserve">
+    <value>var bounds = bframe.getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="reCaptchaGetResponse" xml:space="preserve">
+    <value>grecaptcha.getResponse();</value>
+  </data>
+  <data name="targetGetBounds" xml:space="preserve">
+    <value>var bounds = target.getBoundingClientRect();
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="ComicTlReaderLastPageBase" xml:space="preserve">
+    <value>	&lt;div class="container"&gt;
+	        &lt;img src="{0}" style="max-width:100%;" id="img{1}"/&gt;
+		&lt;div class="overlay" style="clip-path: circle(0px at 0% 0%);"&gt;
+			&lt;img src="{2}" id="ovl{1}"/&gt;
+		&lt;/div&gt;
+	&lt;/div&gt;
+</value>
+  </data>
+  <data name="hCaptchaReset" xml:space="preserve">
+    <value>hcaptcha.reset();</value>
+  </data>
+  <data name="hCaptchaIsFailed" xml:space="preserve">
+    <value>document.getElementsByClassName("display-error")[0].style.opacity != "0"</value>
+  </data>
+  <data name="cloudflareCaptchaReady" xml:space="preserve">
+    <value>document.getElementById("cf-please-wait").style.display == "none"</value>
+  </data>
+  <data name="hCaptchaGetVerifyButtonPosition" xml:space="preserve">
+    <value>var bounds = document.getElementsByClassName("button-submit")[0].getBoundingClientRect()
+JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });</value>
+  </data>
+  <data name="reCaptchaIframeSearch" xml:space="preserve">
+    <value>var iframes = document.getElementsByTagName("iframe");
+var anchor = null;
+var bframe = null;
+for (var i = 0; i &lt; iframes.length; i++){
+	var frame = iframes[i];
+	if (frame.src.indexOf("/anchor?") &gt; 0)
+		anchor = frame;
+	if (frame.src.indexOf("/bframe?") &gt; 0)
+		bframe = frame;
+}
+anchor.scrollIntoView();</value>
+  </data>
+  <data name="XPATHScript" xml:space="preserve">
+    <value>function XPATH(X, A) { if (A === true) { var Results = []; var Query = document.evaluate(X, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (var i = 0, length = Query.snapshotLength; i &lt; length; ++i) Results.push(Query.snapshotItem(i)); return Results; } return document.evaluate(X, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }</value>
+  </data>
+  <data name="014.jpg.tl" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\014.jpg.tl.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
