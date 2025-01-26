@@ -314,7 +314,7 @@ namespace MangaUnhost.Parallelism
         public static void DisposeAll()
         {
             foreach (var Instance in Instances)
-                Instance.Dispose();
+                Instance?.Dispose();
         }
         public void Dispose()
         {

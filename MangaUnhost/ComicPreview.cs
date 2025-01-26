@@ -878,89 +878,109 @@ namespace MangaUnhost
             }));
         }
 
+
+        static new Dictionary<string, int> FailTlMap = new Dictionary<string, int>();
+
         private async Task<bool> TranslateChapter(string SourceLang, string TargetLang, bool AllowSkip, string Chapter, string LastChapter, string NextChapter, Action OnFinish, int Retries = 3)
         {
-            if (Translators == null)
-            {
-                var Count = Math.Max(Main.Config.TLConcurrency, 1);
-                Translators = new IPacket[Count];
-                TlSemaphore = new SemaphoreSlim(Translators.Length);
-                TlCheckSemaphore = new SemaphoreSlim(1);
-            }
-
-            var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
-                                .Where(x => !x.EndsWith(".tl.png"))
-                                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
-
-            var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
-                .Where(x => x.EndsWith(".tl.png"))
-                .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
-
-            if (ReadyPages.Length == 0)
-                AllowSkip = false;
-
-            Main.Status = Language.Loading;
-            Main.SubStatus = Path.GetFileName(Chapter.TrimEnd('/', '\\'));
-
-            int Translated = 0;
-
-            Parallel.For(0, Pages.Length, new ParallelOptions()
-            {
-                MaxDegreeOfParallelism = Translators.Length
-            }, TranslatePage(SourceLang, TargetLang, AllowSkip, Pages, ReadyPages, (i) => Translated++));
-
-            int LastProgressCheck = 0;
-            DateTime LastChanged = DateTime.Now;
-
-            while (Translated != Pages.Length && (DateTime.Now - LastChanged).TotalMinutes < 5)
-            {
-                if (LastProgressCheck != Translated)
+            var OriStatus = Main.Status;
+            try { 
+                if (Translators == null)
                 {
-                    LastProgressCheck = Translated;
-                    LastChanged = DateTime.Now;
-                    Main.Status = string.Format(Language.Translating, $"({Translated}/{Pages.Length})");
+                    var Count = Math.Max(Main.Config.TLConcurrency, 1);
+                    Translators = new IPacket[Count];
+                    TlSemaphore = new SemaphoreSlim(Translators.Length);
+                    TlCheckSemaphore = new SemaphoreSlim(1);
                 }
-                await Task.Delay(100);
-            }
 
-            var NewReadyPages = Pages.Where(x => File.Exists(x + ".tl.png")).ToArray();
+                var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                                    .Where(x => !x.EndsWith(".tl.png"))
+                                    .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
 
-            if (NewReadyPages.Length != Pages.Length) {
+                var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                    .Where(x => x.EndsWith(".tl.png"))
+                    .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
 
-                //If this loop interation was able to translate any page
-                //but still missing pages then dont decrease the retries.
-                if (NewReadyPages.Length != ReadyPages.Length)
-                    Retries++;
+                if (ReadyPages.Length == 0)
+                    AllowSkip = false;
 
-                //Pages without text might never be successuflly translated
-                //causing a infinite loop without retries.
-                if (Retries > 0)
-                    await TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
-                else
+                Main.Status = Language.Loading;
+                Main.SubStatus = Path.GetFileName(Chapter.TrimEnd('/', '\\'));
+
+                int Translated = 0;
+                int Failed = 0;
+
+                Parallel.For(0, Pages.Length, new ParallelOptions()
                 {
-                    PageTranslator.DisposeAll();
-                    OnFinish?.Invoke();
+                    MaxDegreeOfParallelism = Translators.Length
+                }, TranslatePage(SourceLang, TargetLang, AllowSkip, Pages, ReadyPages, (i) => Translated++, (i) => { 
+                    if (!FailTlMap.ContainsKey(Pages[i]))
+                        FailTlMap[Pages[i]] = 0;
+                    FailTlMap[Pages[i]]++;
+                    Failed++;
+                }));
+
+                int LastProgressCheck = 0;
+                DateTime LastChanged = DateTime.Now;
+
+                while (Translated + Failed < Pages.Length && (DateTime.Now - LastChanged).TotalMinutes < 3)
+                {
+                    if (LastProgressCheck != Translated)
+                    {
+                        LastProgressCheck = Translated;
+                        LastChanged = DateTime.Now;
+                        Main.Status = string.Format(Language.Translating, $"({Translated}/{Pages.Length})");
+                    }
+                    await Task.Delay(100);
                 }
+
+                var NewReadyPages = Pages.Where(x => File.Exists(x + ".tl.png")).ToArray();
+
+                if (NewReadyPages.Length != Pages.Length) {
+
+                    //If this loop interation was able to translate any page
+                    //but still missing pages then dont decrease the retries.
+                    if (NewReadyPages.Length != ReadyPages.Length)
+                        Retries++;
+
+                    var MissingPages = Pages.Except(NewReadyPages).ToArray();
+                    var TranslatableMissingPages = MissingPages.Where(x => !FailTlMap.ContainsKey(x) || FailTlMap[x] < 3).ToArray();
+
+                    if (TranslatableMissingPages.Any())
+                    {
+                        PageTranslator.DisposeAll();
+
+                        //Pages without text might never be successuflly translated
+                        //causing a infinite loop without retries.
+                        if (Retries > 0)
+                            await TranslateChapter(SourceLang, TargetLang, true, Chapter, LastChapter, NextChapter, OnFinish, Retries - 1);
+                        else
+                            OnFinish?.Invoke();
+
+                        return AllowSkip;
+                    }   
+                }
+
+                ReadyPages = Pages.Select(x => x + ".tl.png").ToArray();
+
+                ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, ReadyPages, LastChapter, NextChapter, Chapter);
+
+                PageTranslator.DisposeAll();
+
+                OnFinish?.Invoke();
                 return AllowSkip;
             }
-
-            ReadyPages = Pages.Select(x => x + ".tl.png").ToArray();
-
-            ChapterTools.GenerateComicReaderWithTranslation(Language, Pages, ReadyPages, LastChapter, NextChapter, Chapter);
-
-            Main.Status = Language.IDLE;
-            Main.SubStatus = "";
-
-            PageTranslator.DisposeAll();
-
-            OnFinish?.Invoke();
-            return AllowSkip;
+            finally
+            {
+                Main.Status = OriStatus;
+                Main.SubStatus = string.Empty;
+            }
         }
 
         static SemaphoreSlim TlSemaphore = null;
         static SemaphoreSlim TlCheckSemaphore = null;
 
-        private Action<int> TranslatePage(string SourceLang, string TargetLang, bool AllowSkip, string[] Pages, string[] ReadyPages, Action<int> OnPageReady)
+        private Action<int> TranslatePage(string SourceLang, string TargetLang, bool AllowSkip, string[] Pages, string[] ReadyPages, Action<int> OnPageReady, Action<int> OnPageFailed)
         {
             return async (i) =>
             {
@@ -1057,7 +1077,10 @@ namespace MangaUnhost
 
                     lock (this)
                     {
-                        OnPageReady?.Invoke(i);
+                        if (File.Exists(Pages[i] + ".tl.png"))
+                            OnPageReady?.Invoke(i);
+                        else 
+                            OnPageFailed?.Invoke(i);
                     }
                 }
 

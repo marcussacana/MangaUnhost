@@ -195,18 +195,23 @@ namespace MangaUnhost
             {
                 new Thread(() =>
                 {
-                    var CacheRoot = Path.GetDirectoryName(CachePath);
-                    var Caches = Directory.GetDirectories(CacheRoot);
+                    try
+                    {
+                        var CacheRoot = Path.GetDirectoryName(CachePath);
+                        var Caches = Directory.GetDirectories(CacheRoot);
 
-                    foreach (var Cache in Caches) {
-                        
-                        if (Cache == CacheRoot)
-                            continue;
+                        foreach (var Cache in Caches)
+                        {
 
-                        Try(() => Directory.Delete(Cache, true));
+                            if (Cache == CacheRoot)
+                                continue;
+
+                            Try(() => Directory.Delete(Cache, true));
+                        }
                     }
+                    catch { }
                 }).Start();
-            }            
+            }        
 
             var CefSettings = new CefSettings()
             {
