@@ -219,44 +219,65 @@ namespace MangaUnhost.Parallelism
 
         private static byte[] AutoSplitAndTranslate(ImageTranslator ImgTranslator, byte[] ImgData, int TriesLeft = 0)
         {
-            bool TooBig = IsImageTooBig(ImgData, out _);
+            bool TooBig = IsImageTooBig(ImgData, out int Delay);
 
             if (TooBig)
             {
-                byte[] NewDataA, NewDataB;
+                byte[] NewDataA = null, NewDataB = null;
 
                 using MemoryStream ImgStream = new MemoryStream(ImgData);
                 using Bitmap FullImage = Bitmap.FromStream(ImgStream) as Bitmap;
                 {
-                    using MemoryStream PartAData = new MemoryStream();
-                    using MemoryStream PartBData = new MemoryStream();
+                    //Delay quando 1 significa que o tamanho do arquivo é > 10MB
+                    if (Delay == 1 && FullImage.Height >= FullImage.Width * 2.5f) 
                     {
-                        using Bitmap PartA = FullImage.Clone(new Rectangle(0, 0, FullImage.Width, FullImage.Height / 2), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-                        using Bitmap PartB = FullImage.Clone(new Rectangle(0, FullImage.Height / 2, FullImage.Width, FullImage.Height / 2), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                        using (var tmp = new MemoryStream())
+                        {
+                            FullImage.Save(tmp, System.Drawing.Imaging.ImageFormat.Jpeg);
+                            ImgData = tmp.ToArray();
 
-                        PartA.Save(PartAData, System.Drawing.Imaging.ImageFormat.Png);
-                        PartB.Save(PartBData, System.Drawing.Imaging.ImageFormat.Png);
+                            if (IsImageTooBig(ImgData, out _))
+                            {
+                                ImgData = null;
+                            }
+                        }
                     }
+                    
+                    if (ImgData == null)
+                    { 
+                        using MemoryStream PartAData = new MemoryStream();
+                        using MemoryStream PartBData = new MemoryStream();
+                        {
+                            using Bitmap PartA = FullImage.Clone(new Rectangle(0, 0, FullImage.Width, FullImage.Height / 2), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                            using Bitmap PartB = FullImage.Clone(new Rectangle(0, FullImage.Height / 2, FullImage.Width, FullImage.Height / 2), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+                            PartA.Save(PartAData, System.Drawing.Imaging.ImageFormat.Png);
+                            PartB.Save(PartBData, System.Drawing.Imaging.ImageFormat.Png);
+                        }
 
 
-                    NewDataA = AutoSplitAndTranslate(ImgTranslator, PartAData.ToArray(), TriesLeft);
-                    NewDataB = AutoSplitAndTranslate(ImgTranslator, PartBData.ToArray(), TriesLeft);
+                        NewDataA = AutoSplitAndTranslate(ImgTranslator, PartAData.ToArray(), TriesLeft);
+                        NewDataB = AutoSplitAndTranslate(ImgTranslator, PartBData.ToArray(), TriesLeft);
+                    }
                 }
 
-                using MemoryStream NewPartAData = new MemoryStream(NewDataA);
-                using Bitmap NewPartA = Bitmap.FromStream(NewPartAData) as Bitmap;
-                using MemoryStream NewPartBData = new MemoryStream(NewDataB);
-                using Bitmap NewPartB = Bitmap.FromStream(NewPartBData) as Bitmap;
+                if (NewDataA != null && NewDataB != null)
+                {
+                    using MemoryStream NewPartAData = new MemoryStream(NewDataA);
+                    using Bitmap NewPartA = Bitmap.FromStream(NewPartAData) as Bitmap;
+                    using MemoryStream NewPartBData = new MemoryStream(NewDataB);
+                    using Bitmap NewPartB = Bitmap.FromStream(NewPartBData) as Bitmap;
 
-                using Graphics Render = Graphics.FromImage(FullImage);
-                Render.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                Render.DrawImage(NewPartA, 0, 0, FullImage.Width, FullImage.Height / 2);
-                Render.DrawImage(NewPartB, 0, FullImage.Height / 2, FullImage.Width, FullImage.Height / 2);
-                Render.Flush();
+                    using Graphics Render = Graphics.FromImage(FullImage);
+                    Render.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    Render.DrawImage(NewPartA, 0, 0, FullImage.Width, FullImage.Height / 2);
+                    Render.DrawImage(NewPartB, 0, FullImage.Height / 2, FullImage.Width, FullImage.Height / 2);
+                    Render.Flush();
 
-                using MemoryStream NewImage = new MemoryStream();
-                FullImage.Save(NewImage, System.Drawing.Imaging.ImageFormat.Png);
-                return NewImage.ToArray();
+                    using MemoryStream NewImage = new MemoryStream();
+                    FullImage.Save(NewImage, System.Drawing.Imaging.ImageFormat.Png);
+                    return NewImage.ToArray();
+                }
             }
 
             var NewData = ImgTranslator.TranslateImage(ImgData);

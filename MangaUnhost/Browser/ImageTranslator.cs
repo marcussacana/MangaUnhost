@@ -63,7 +63,7 @@ namespace MangaUnhost.Browser
 
             try
             {
-#if DEBUG
+#if DEBUG && FALSE
                 if (true || !Debugger.IsAttached)
                 {
                     if (!DevVisible)
@@ -103,7 +103,7 @@ namespace MangaUnhost.Browser
                     if (hasFailed())
                         throw new Exception("Image Translation Failed");
 
-                    if (waiting++ > 15)
+                    if (waiting++ > 30)
                         throw new Exception("Image Translation Failed");
 
                     ThreadTools.Wait(1000, true);
