@@ -82,7 +82,7 @@ namespace MangaUnhost.Hosts
 
             var AllChapters = Info
                 .Where(x => x.Type == "chapter" && x.Attributes.TranslatedLanguage == TargetLang)
-                .GroupBy(x => (x.Attributes.Volume??"") + x.Attributes.Chapter)
+                .GroupBy(x => (x.Attributes.Volume??"") + "." + x.Attributes.Chapter)
                 .Select(x=>x.First());
 
             var Query = AllChapters
@@ -229,7 +229,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 6)
+                Version = new Version(2, 7)
             };
         }
 

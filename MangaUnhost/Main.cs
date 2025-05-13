@@ -994,6 +994,16 @@ namespace MangaUnhost
         List<string> ProcessedLinks;
         StringBuilder ListString;
 
+        private static bool Retry(Action Action, int tries = 5)
+        {
+            while(tries-- > 0)
+            {
+                if (Try(Action))
+                    return true;
+            }
+            return false;
+        }
+
         private static bool Try(Action Action)
         {
             try

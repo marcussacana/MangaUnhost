@@ -231,7 +231,7 @@ namespace MangaUnhost
 
             if (Info.ContentType == ContentType.Comic)
             {
-                PageCount = Host.GetChapterPageCount(ID);
+                Retry(() => PageCount = Host.GetChapterPageCount(ID));
 
                 if (Directory.Exists(AbsoluteChapterPath) && Directory.GetFiles(AbsoluteChapterPath, "*").Length < PageCount)
                     Directory.Delete(AbsoluteChapterPath, true);
