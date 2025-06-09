@@ -206,7 +206,8 @@ namespace MangaUnhost.Browser
 
             while (Browser.IsCloudflareTriggered())
             {
-                while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha())
+                int maxWait = 100;
+                while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha() && maxWait-- > 0)
                 {
                     ThreadTools.Wait(100, true);
                 }
@@ -221,6 +222,12 @@ namespace MangaUnhost.Browser
 
                         if (!Browser.TurnstileIsSolved() && Tries > 1)
                         {
+                            if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser) {
+                                winWebBrowser.Size = new Size(1280, 720);
+                            } else if (WebBrowser is CefSharp.OffScreen.ChromiumWebBrowser offWebBrowser)
+                            {
+                                offWebBrowser.Size = new Size(1280, 720);
+                            }
                             Browser.TurnstileSolve();
                         }
                         else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser)

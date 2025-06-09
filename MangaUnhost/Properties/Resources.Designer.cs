@@ -91,7 +91,7 @@ namespace MangaUnhost.Properties {
         }
         
         /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a var hcFrame = function() { var frames = document.getElementsByTagName(&quot;iframe&quot;); for (var i = 0; i &lt; frames.length; i++) if (frames[i].src.indexOf(&quot;turnstile&quot;) &gt;= 0) return frames[i]; }
+        ///   Consulta uma cadeia de caracteres localizada semelhante a var hcFrame = function() { return document.getElementsByName(&apos;cf-turnstile-response&apos;)[0].parentElement; }
         ///var bounds = hcFrame().getBoundingClientRect();
         ///JSON.stringify({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });.
         /// </summary>

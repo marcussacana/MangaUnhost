@@ -60,6 +60,8 @@ namespace MangaUnhost.Browser
             Browser.ExecuteMove(Move);
             ThreadTools.Wait(Rnd.Next(100, 150), true);
             Browser.ExecuteClick(Target);
+            ThreadTools.Wait(Rnd.Next(100, 150), true);
+            Browser.ExecuteClick(Target);
             ThreadTools.Wait(Rnd.Next(500, 650), true);
             Cursor = Target;
         }
@@ -67,7 +69,7 @@ namespace MangaUnhost.Browser
         public static Point GetTurnstileImHumanButtonPosition(this IBrowser Browser)
         {
             var Rect = Browser.GetTurnstileRectangle();
-            return new Point(Rect.X + 35, Rect.Y + 41);
+            return new Point(Rect.X + 35, Rect.Y + (Rect.Height/2));
         }
 
         public static Rectangle GetTurnstileRectangle(this IBrowser Browser)
@@ -77,6 +79,7 @@ namespace MangaUnhost.Browser
             {
                 return new Rectangle(0, 0, 1280, 720);
             }
+
             int X = int.Parse(DataTools.ReadJson(Result, "x").Split('.', ',')[0]);
             int Y = int.Parse(DataTools.ReadJson(Result, "y").Split('.', ',')[0]);
             int Width = int.Parse(DataTools.ReadJson(Result, "width").Split('.', ',')[0]);
