@@ -190,8 +190,14 @@ namespace MangaUnhost
                         {
                             HTML = ComicUrl.AbsoluteUri.BypassCloudflare().HTML;
                         }
-                        HostQuery = (from x in Hosts where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) select x);
 
+                        HostQuery = (from x in Hosts 
+                                     where x.GetPluginInfo().GenericPlugin && x.IsValidPage(HTML, ComicUrl) 
+                                     && Try(() => { 
+                                            x.LoadUri(ComicUrl); 
+                                            return x.EnumChapters().ToList(); 
+                                        })?.Count > 0
+                                     select x);
                     }
                     catch
                     {
@@ -209,6 +215,18 @@ namespace MangaUnhost
                     lblNewChapters.Text = string.Empty;
             }));
             Initialized = true;
+        }
+
+        private T Try<T>(Func<T> Action) where T : class
+        {
+            try
+            {
+                return Action.Invoke();
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public void JITContextMenu()
