@@ -39,7 +39,7 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             int ID = LinkMap.Count;
-            foreach (var Chap in Document.SelectNodes("//div[@id='chapterlist']//a") ?? ChapterDocument?.SelectNodes("//li[contains(@class, 'wp-manga-chapter')]/a"))
+            foreach (var Chap in Document.SelectNodes("//div[@id='chapterlist' or contains(@class, 'listing-chapters_wrap')]//a") ?? ChapterDocument?.SelectNodes("//li[contains(@class, 'wp-manga-chapter')]/a"))
             {
                 var ChapNumInfo = Chap.ChildNodes.Where(x => x.HasClass("chapternum"));
                 string Name = HttpUtility.HtmlDecode((ChapNumInfo.Any() ? ChapNumInfo.First().InnerHtml : Chap.InnerText).ToLowerInvariant().Trim());
@@ -56,6 +56,9 @@ namespace MangaUnhost.Hosts
 
                 if (Name.StartsWith("capítulo"))
                     Name = Name.Substring("capítulo").Trim(' ', '\t', '.');
+
+                if (Name.StartsWith("capitulo"))
+                    Name = Name.Substring("capitulo").Trim(' ', '\t', '.');
 
                 if (Name.StartsWith("cap"))
                     Name = Name.Substring("cap").Trim(' ', '\t', '.');
@@ -135,7 +138,7 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 2, 1)
+                Version = new Version(2, 3, 0)
             };
         }
 
