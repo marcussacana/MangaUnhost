@@ -222,7 +222,6 @@ namespace MangaUnhost
                 LogSeverity = LogSeverity.Disable,
 #endif
                 WindowlessRenderingEnabled = true,
-                ChromeRuntime = true,
                 UserAgent = ProxyTools.UserAgent,
                 CachePath = CachePath,
                // CookieableSchemesExcludeDefaults = false,
