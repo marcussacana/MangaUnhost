@@ -32,6 +32,14 @@ namespace MangaUnhost.Hosts {
             }
         }
 
+        string LastLang = null;
+        private string SelectLanguage(string[] Avaliable)
+        {
+            if (LastLang != null && Avaliable.Contains(LastLang))
+                return LastLang;
+            return LastLang = AccountTools.PromptOption("Select a Language", Avaliable.Distinct().Where(x => !string.IsNullOrWhiteSpace(x)).ToArray());
+        }
+
         public IEnumerable<KeyValuePair<int, string>> EnumChapters() {
             int ID = ChapterLinks.Count;
 
@@ -52,6 +60,42 @@ namespace MangaUnhost.Hosts {
 
                 if (Nodes == null || Nodes.Count <= 0)
                     Nodes = SafeDoc.SelectNodes("//div[@class=\"chapter-list\"]//a");
+
+                if (Nodes == null || Nodes.Count <= 0)
+                {
+                    var MangaId = SafeDoc.SelectSingleNode("//div[@id=\"main\"]").GetAttributeValue("data-id", null);
+
+                    var RequestApi = new Uri($"https://{new Uri(CurrentUrl).Host}/ajax/manga/list-chapter-volume?id={MangaId}");
+
+                    var Data = RequestApi.TryDownloadString(CFData);
+
+                    if (Data != null)
+                    {
+                        SafeDoc.LoadHtml(Data);
+
+                        var Languages = SafeDoc.SelectNodes("//a[@class=\"dropdown-item lang-item\"]").Select(x => (x.GetAttributeValue("data-code", null), x.GetDirectInnerText().Split('(').First().Trim()));
+
+                        string LangCode = null;
+
+                        if (Languages != null)
+                        {
+                            var Lang = SelectLanguage(Languages.Select(x=>x.Item2).ToArray());
+
+                            LangCode = Languages.FirstOrDefault(x => x.Item2 == Lang).Item1;
+                        }
+
+
+                        if (LangCode != null)
+                        {
+                            Nodes = SafeDoc.SelectNodes($"//div[@id=\"list-chapter-{LangCode}\"]//a");
+                        }
+                        else
+                        {
+
+                            Nodes = SafeDoc.SelectNodes($"//a");
+                        }
+                    }
+                }
             }
 
             foreach (var Node in Nodes) {
@@ -95,13 +139,34 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count <= 0) {
                 Nodes = Page.DocumentNode.SelectNodes("//*[contains(@class, \"chapter-content-inner\")]/p");
 
-                return Nodes.First().InnerText.Split(',');
+                if (Nodes != null)
+                {
+                    return Nodes.First().InnerText.Split(',');
+                }
+            }
+            
+            if (Nodes == null || Nodes.Count <= 0)
+            {
+                var ChapId = Page.SelectSingleNode("//div[@id=\"reading\"]").GetAttributeValue("data-reading-id", null);
+
+                var RequestApi = new Uri($"https://{new Uri(CurrentUrl).Host}/ajax/manga/images?id={ChapId}&type=chap");
+
+                var Data = RequestApi.TryDownloadString(CFData);
+
+                if (Data != null)
+                {
+                    Page.LoadHtml(Data);
+
+                    Nodes = Page.DocumentNode.SelectNodes("//*[@data-url]");
+                }
             }
 
             var PageList = Nodes.Where(x => x.GetAttributeValue("height", "") != "1");
 
             foreach (var Node in PageList)
-                Pages.Add(Node.GetAttributeValue("src", null) ?? Node.GetAttributeValue("data-src", ""));
+                Pages.Add(Node.GetAttributeValue("src", null) ??
+                    Node.GetAttributeValue("data-src", null) ??
+                    Node.GetAttributeValue("data-url", ""));
 
             return Pages.ToArray();
         }
@@ -123,14 +188,13 @@ namespace MangaUnhost.Hosts {
                 SupportComic = true,
                 GenericPlugin = true,
                 SupportNovel = false,
-                Version = new Version(1, 7)
+                Version = new Version(2, 0)
             };
         }
 
         public bool IsValidUri(Uri Uri) {
             string[] AllowedDomains = new string[] { "mangakakalot", "manganelo", "truyenmoi" };
-            return (from x in AllowedDomains where Uri.Host.ToLower().Contains(x) select x).Count() > 0
-                && (Uri.AbsolutePath.ToLower().Contains("/manga/") || Uri.AbsolutePath.ToLower().Contains("/doc"));
+            return (from x in AllowedDomains where Uri.Host.ToLower().Contains(x) select x).Count() > 0;
         }
 
         public ComicInfo LoadUri(Uri Uri) {
@@ -144,13 +208,15 @@ namespace MangaUnhost.Hosts {
                           Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h2") ??
                           Document.SelectSingleNode("//div[@class=\"story-info-right\"]/h1")  ??
                           Document.SelectSingleNode("//h1[@class=\"title-manga\"]")           ??
-                          Document.SelectSingleNode("//h2[@class=\"title-manga\"]")).InnerText;
+                          Document.SelectSingleNode("//h2[@class=\"title-manga\"]")           ??
+                          Document.SelectSingleNode("//div[@class=\"detail-box\"]//h3[@class=\"manga-name\"]")).InnerText;
 
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
             string CoverUrl = (Document.SelectSingleNode("//div[@class=\"manga-info-pic\"]/img")          ??
                                Document.SelectSingleNode("//span[@class=\"info-image\"]/img")             ??
-                               Document.SelectSingleNode("//div[@class=\"media-left cover-detail\"]/img")).GetAttributeValue("src", string.Empty);
+                               Document.SelectSingleNode("//div[@class=\"media-left cover-detail\"]/img") ??
+                               Document.SelectSingleNode("//div[@class=\"detail-box\"]//img[@class=\"manga-poster-img\"]")).GetAttributeValue("src", string.Empty);
 
             Info.Cover = CoverUrl.EnsureAbsoluteUrl(Uri).TryDownload();
 
