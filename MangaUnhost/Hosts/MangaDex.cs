@@ -83,7 +83,7 @@ namespace MangaUnhost.Hosts
             var AllChapters = Info
                 .Where(x => x.Type == "chapter" && x.Attributes.TranslatedLanguage == TargetLang)
                 .GroupBy(x => (x.Attributes.Volume??"") + "." + x.Attributes.Chapter)
-                .Select(x=>x.First());
+                .Select(x => x.OrderByDescending(x=>x.Attributes.Pages).First());
 
             var Query = AllChapters
                     .OrderByDescending(GetVolume)
@@ -99,7 +99,7 @@ namespace MangaUnhost.Hosts
                         .OrderBy(x => x);
                     if (Chapters.Count() == Chapters.Distinct().Count())
                     {
-                        Query = AllChapters.GroupBy(x => "");
+                        Query = AllChapters.OrderByDescending(GetChapter).GroupBy(x => "");
                     }
                 }
             }
@@ -107,7 +107,7 @@ namespace MangaUnhost.Hosts
             List<string> Names = new List<string>();
             foreach (var Volume in Query)
             {
-                var SubQuery = Volume.OrderByDescending(GetChapter);
+                var SubQuery = Volume.OrderByDescending(x => x.Attributes.Pages).OrderByDescending(GetChapter);
 
                 foreach (var Chapter in SubQuery)
                 {
