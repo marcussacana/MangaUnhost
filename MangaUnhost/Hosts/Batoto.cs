@@ -59,32 +59,25 @@ namespace MangaUnhost.Hosts {
             List<string> Pages = new List<string>();
 
             foreach (var Node in Page.DocumentNode.SelectNodes("//script[contains(., 'images')]")) {
-                if (Node.InnerHtml.Contains("var images") || Node.InnerHtml.Contains("const images"))
+                if (Node.InnerHtml.Contains("var images") || Node.InnerHtml.Contains("const images") || Node.InnerHtml.Contains("const img"))
                 {
+                    var VarName = Node.InnerHtml.Substring("const ", "= [");
+                    VarName = VarName.Substring(VarName.LastIndexOf("const"));
+                    VarName = VarName.Substring(" ").Trim();
                     //Did you think use encryption will give us work/lazy? ha! >_<
                     var JS = CryptJS + "\n\n";
                     JS += Node.InnerHtml + "\n\n";
-                    JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8); var imgs = []; for (var i = 0; i < images.length; i++) imgs.push(JSON.parse(URL) + images[i]); imgs";
-                    var Rst = JSTools.EvaluateScript<List<object>>(JS, true);
-
-                    if (Rst == null)
-                        continue;
-
-                    var Images = (from x in Rst select (string)x).ToArray();
-                    foreach (var Image in Images)
+                    
+                    if (Node.InnerHtml.Contains("server"))
                     {
-                        if (Image.StartsWith("//"))
-                            Pages.Add("https:" + Image);
-                        else
-                            Pages.Add(Image);
+                        JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8);\n";
+                    } 
+                    else
+                    {
+                        JS += "var URL = \"\\\"\\\"\";";
                     }
-                }
-                if (Node.InnerHtml.Contains("imgHttpLis"))
-                {
-                    //Lol, more of the same?
-                    var JS = CryptJS + "\n\n";
-                    JS += Node.InnerHtml + "\n\n";
-                    JS += "var Queries = JSON.parse(CryptoJS.AES.decrypt(batoWord, batoPass).toString(CryptoJS.enc.Utf8)); var imgs = []; for (var i = 0; i < imgHttpLis.length; i++) imgs.push(imgHttpLis[i] + '?' + Queries[i]); imgs";
+                    JS += $"var imgs = []; for (var i = 0; i < {VarName}.length; i++) imgs.push(JSON.parse(URL) + {VarName}[i]); imgs";
+
                     var Rst = JSTools.EvaluateScript<List<object>>(JS, true);
 
                     if (Rst == null)
@@ -119,7 +112,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 2)
+                Version = new Version(2, 3)
             };
         }
 
