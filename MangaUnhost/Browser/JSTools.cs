@@ -182,7 +182,7 @@ namespace MangaUnhost.Browser
 
 
             var Container = new CookieContainer();
-
+            
             WebBrowser.RegisterWebRequestHandlerEvents(null, (sender, e) =>
             {
                 var Cookies = e.Headers.GetValues("Set-Cookie");
@@ -198,6 +198,16 @@ namespace MangaUnhost.Browser
             {
                 e.DefaultHandler = e.WebRequest.Url != Url;
             });
+            
+
+            if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser)
+            {
+                winWebBrowser.Size = new Size(1280, 720);
+            }
+            else if (WebBrowser is CefSharp.OffScreen.ChromiumWebBrowser offWebBrowser)
+            {
+                offWebBrowser.Size = new Size(1280, 720);
+            }
 
             WebBrowser.Load(Url);
 
@@ -222,15 +232,9 @@ namespace MangaUnhost.Browser
 
                         if (!Browser.TurnstileIsSolved() && Tries > 1)
                         {
-                            if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser) {
-                                winWebBrowser.Size = new Size(1280, 720);
-                            } else if (WebBrowser is CefSharp.OffScreen.ChromiumWebBrowser offWebBrowser)
-                            {
-                                offWebBrowser.Size = new Size(1280, 720);
-                            }
                             Browser.TurnstileSolve();
                         }
-                        else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser)
+                        else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser)
                         {
                             var MaxWait = 60;
                             BrowserPopup popup = new BrowserPopup(WebBrowser, new Rectangle(0, 0, 1280, 720), () =>
@@ -244,14 +248,14 @@ namespace MangaUnhost.Browser
                                 {
 
                                 }
-                                return true;
+                                return false;
                             });
 
                             popup.ShowDialog();
                             popup.Focus();
                         }
 
-                        ThreadTools.Wait(1000, true);
+                        ThreadTools.Wait(3000, true);
                         Browser.WaitForLoad(10);
                         Tries--;
                     }

@@ -1,22 +1,23 @@
-﻿using AForge.Imaging.Filters;
-using AForge.Imaging;
+﻿using AForge.Imaging;
+using AForge.Imaging.Filters;
+using CefSharp;
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using Emgu.CV.Util;
 using HtmlAgilityPack;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Image = System.Drawing.Image;
-using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.Structure;
-using System.Runtime.InteropServices;
-using Emgu.CV.Util;
-using CefSharp;
 
 namespace MangaUnhost.Others
 {
@@ -136,6 +137,69 @@ namespace MangaUnhost.Others
             return ResultName;
         }
 
+        public static double ForceNumber(string Str)
+        {
+            Str = Path.GetFileName(Str.ToLower().Replace("ch", "."));
+            string Numbers = string.Empty;
+            foreach (var Char in Str)
+            {
+                if (Char == '.' || Char == ',' || Char == 'v' || Char == 'V')
+                    Numbers += '.';
+
+                if (!char.IsNumber(Char))
+                    continue;
+
+                Numbers += Char;
+            }
+
+            Numbers = Numbers.Trim('.', ',').Replace(",", ".");
+
+            var Reversed = Numbers.Reverse().ToArray();
+
+            Numbers = "";
+            var Multiplier = "";
+            bool InVol = false;
+            foreach (var Char in Reversed)
+            {
+                if (Char == '.' && Numbers.Contains('.'))
+                {
+                    InVol = true;
+                    continue;
+                }
+
+                if (InVol)
+                    Multiplier = Char + Multiplier;
+                else
+                    Numbers = Char + Numbers;
+            }
+
+            Numbers = Numbers.Trim('.', ',');
+            Multiplier = Multiplier.Trim('.', ',');
+
+            try
+            {
+                var NumA = double.Parse(Numbers, NumberFormatInfo.InvariantInfo);
+                if (double.TryParse(Multiplier, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo, out double NumB))
+                    return NumA * NumB;
+
+                return NumA;
+            }
+            catch
+            {
+                Str = Str.Replace(Main.Language.ChapterName.Replace("{0}", "").Trim(), "").Trim();
+
+                //basically alphabetical order in an unusual way
+                var Factor = 0.0;
+
+                foreach (var c in Str.Reverse())
+                {
+                    Factor += c;
+                    Factor /= 100;
+                }
+
+                return Factor;
+            }
+        }
         static public Key ReverseMatch<Key, Value>(this Dictionary<Key, Value> Dictionary, Value ValueToSearch)
         {
             if (!Dictionary.ContainsValue(ValueToSearch))

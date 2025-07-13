@@ -104,7 +104,7 @@ namespace MangaUnhost
             InitializePreview();
         }
 
-        readonly string[] Langs = new string[] { "EN", "JA", "zh-CN", "RU", "FR", "IT", "ES", "PT" };
+        readonly string[] Langs = new string[] { "EN", "JA", "zh-CN", "RU", "ID", "FR", "IT", "ES", "PT" };
 
         void SetupLanguagePairs() {
             foreach (var SL in new string[] { "AUTO" }.Concat(Langs)) {
@@ -237,7 +237,7 @@ namespace MangaUnhost
             {
                 List<ToolStripMenuItem> Items = new List<ToolStripMenuItem>();
 
-                var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
+                var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => DataTools.ForceNumber(x)).ToArray();
                 for (int i = 0; i < Chapters.Length; i++)
                 {
                     var ID = i;
@@ -346,69 +346,6 @@ namespace MangaUnhost
             return Group;
         }
 
-        private double ForceNumber(string Str)
-        {
-            Str = Path.GetFileName(Str.ToLower().Replace("ch", "."));
-            string Numbers = string.Empty;
-            foreach (var Char in Str)
-            {
-                if (Char == '.' || Char == ',' || Char == 'v' || Char == 'V')
-                    Numbers += '.';
-
-                if (!char.IsNumber(Char))
-                    continue;
-
-                Numbers += Char;
-            }
-
-            Numbers = Numbers.Trim('.', ',').Replace(",", ".");
-
-            var Reversed = Numbers.Reverse().ToArray();
-
-            Numbers = "";
-            var Multiplier = "";
-            bool InVol = false;
-            foreach (var Char in Reversed)
-            {
-                if (Char == '.' && Numbers.Contains('.'))
-                {
-                    InVol = true;
-                    continue;
-                }
-
-                if (InVol)
-                    Multiplier = Char + Multiplier;
-                else
-                    Numbers = Char + Numbers;
-            }
-
-            Numbers = Numbers.Trim('.', ',');
-            Multiplier = Multiplier.Trim('.', ',');
-
-            try
-            {
-                var NumA = double.Parse(Numbers, NumberFormatInfo.InvariantInfo);
-                if (double.TryParse(Multiplier, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo, out double NumB))
-                    return NumA * NumB;
-
-                return NumA;
-            }
-            catch
-            {
-                Str = Str.Replace(Language.ChapterName.Replace("{0}", "").Trim(), "").Trim();
-
-                //basically alphabetical order in an unusual way
-                var Factor = 0.0;
-
-                foreach (var c in Str.Reverse())
-                {
-                    Factor += c;
-                    Factor /= 100;
-                }
-
-                return Factor;
-            }
-        }
 
         public async void GetComicInfo(bool UseCache)
         {
@@ -789,7 +726,7 @@ namespace MangaUnhost
 
         private void ConvertChapters(string Format)
         {
-            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => ForceNumber(x)).ToArray();
+            var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => DataTools.ForceNumber(x)).ToArray();
             for (int i = 0; i < Chapters.Length; i++)
             {
                 string LastChapter = null;
@@ -837,11 +774,11 @@ namespace MangaUnhost
 
             var Pages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x))
                 .Where(x => !x.EndsWith(".tl" + Path.GetExtension(x)))
-                .OrderBy(x => ForceNumber(x)).ToArray();
+                .OrderBy(x => DataTools.ForceNumber(x)).ToArray();
 
             var TlPages = (from x in Directory.GetFiles(Chapter) select Path.GetFileName(x))
                 .Where(x => x.EndsWith(".tl" + Path.GetExtension(x)))
-                .OrderBy(x => ForceNumber(x)).ToArray();
+                .OrderBy(x => DataTools.ForceNumber(x)).ToArray();
 
             if (TlPages.Length == 0)
             {
@@ -858,7 +795,7 @@ namespace MangaUnhost
         async void TranslateChapters(string SourceLang, string TargetLang, bool AllowSkip, string SkipUntil = null)
         {
             var Chapters = Directory.GetDirectories(ChapPath)
-                .OrderBy(x => ForceNumber(Path.GetFileName(x.TrimEnd('/', '\\')))).ToArray();
+                .OrderBy(x => DataTools.ForceNumber(Path.GetFileName(x.TrimEnd('/', '\\')))).ToArray();
 
             for (int i = 0; i < Chapters.Length; i++)
             {
