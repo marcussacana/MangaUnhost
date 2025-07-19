@@ -121,6 +121,7 @@ namespace MangaUnhost.Browser
                 HTML = HTML
             };
         }
+
         public static string TryDownloadString(this Uri Url, CloudflareData? CFData = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             Encoding.UTF8.GetString(Url.TryDownload(CFData, Referer, Proxy, Accept, null, Headers) ?? new byte[0]);
 
