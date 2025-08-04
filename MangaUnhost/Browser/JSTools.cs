@@ -52,7 +52,15 @@ namespace MangaUnhost.Browser
         {
             DefaultBrowser.GetBrowser().WaitForLoad();
 
-            return DefaultBrowser.EvaluateScript<T>(Script);
+            return Cast<T>(DefaultBrowser.EvaluateScript<object>(Script));
+        }
+
+        private static T Cast<T>(object data)
+        {
+            if (typeof(T) == typeof(string[])) {
+                return (T)(object)((List<object>)data).Cast<string>().ToArray();
+            }
+            return (T)data;
         }
 
         public static object EvaluateScript(string Script, bool Reload)
@@ -68,7 +76,7 @@ namespace MangaUnhost.Browser
             var Rst = EvaluateScript<T>(Script);
             if (Reload)
                 EvaluateScript("location.reload()");
-            return Rst;
+            return Cast<T>(Rst);
         }
 
         public static void EarlyInjection(this IWebBrowser Browser, string Javascript, JavascriptInjectionFilter.Locations Location = JavascriptInjectionFilter.Locations.HEAD)

@@ -8,6 +8,10 @@ namespace MangaUnhost.Decoders {
             {
                 Data = Main.DecodeWebP(Data);
             }
+            if (Main.IsAvif(Data))
+            {
+                Data = Main.DecodeAvif(Data);
+            }
             MemoryStream Stream = new MemoryStream(Data);
             return Image.FromStream(Stream) as Bitmap;
         }

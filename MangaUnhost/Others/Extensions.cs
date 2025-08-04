@@ -153,6 +153,8 @@ namespace MangaUnhost
         
         public static HtmlAgilityPack.HtmlNodeCollection SelectNodes(this HtmlAgilityPack.HtmlDocument Document, string XPath) => Document.DocumentNode.SelectNodes(XPath);
         public static HtmlAgilityPack.HtmlNode SelectSingleNode(this HtmlAgilityPack.HtmlDocument Document, string XPath) => Document.DocumentNode.SelectSingleNode(XPath);
+
+        public static HtmlAgilityPack.HtmlNode SelectSingleParent(this HtmlAgilityPack.HtmlNode node, string XPATH) => node.SelectSingleNode(node.XPath + XPATH);
         public static IEnumerable<HtmlAgilityPack.HtmlNode> Descendants(this HtmlAgilityPack.HtmlDocument Document, string name) => Document.DocumentNode.Descendants(name);
         public static string Between(this string String, char Begin, char End, int IndexA = 0, int IndexB = 0) => String.Split(Begin)[IndexA + 1].Split(End)[IndexB];
 

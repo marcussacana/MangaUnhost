@@ -235,7 +235,7 @@ class GitHub {
     }
 
     public void BypassSLL() {
-        ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00000FF0;
+        ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00003FF0;
         ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
     }
 }

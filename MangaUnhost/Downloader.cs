@@ -290,6 +290,7 @@ namespace MangaUnhost
                         Extensions.SafeDoEvents();
 
                         bool IsWebP = Main.IsWebP(Data);
+                        bool isAvif = Main.IsAvif(Data);
 
                         try
                         {
@@ -332,7 +333,7 @@ namespace MangaUnhost
                                 ThreadTools.Wait(1000, true);
                             }
 #else
-                            string PageName = $"{Pages.Count:D3}.{(IsWebP ? "webp" : "png")}";
+                            string PageName = $"{Pages.Count:D3}.{(IsWebP ? "webp" : (isAvif ? "avif" : "png"))}";
                             string PagePath = Path.Combine(TitleDir, ChapterPath, PageName);
                             
                             Page OutPage = new Page();
@@ -525,6 +526,16 @@ namespace MangaUnhost
             var Signature = BitConverter.ToUInt32(Data, 8);
             return Data.Length > 12 && (Signature == 0x50424557 || Signature == 0x46464952);
         }
+
+        public static bool IsAvif(byte[] Data)
+        {
+            if (Data == null)
+                return false;
+
+            var Signature = BitConverter.ToUInt32(Data, 16);
+            return Data.Length > 12 && (Signature == 0x66697661);
+        }
+
         public static byte[] DecodeWebP(byte[] Data) {
             using (var Image = Dynamicweb.WebP.Decoder.Decode(Data))
             using (MemoryStream Buffer = new MemoryStream())
@@ -532,6 +543,52 @@ namespace MangaUnhost
                 Image.Save(Buffer, ImageFormat.Png);
                 return Buffer.ToArray();
             }
+        }
+
+        public static byte[] DecodeAvif(byte[] Data)
+        {
+            CefSharp.OffScreen.ChromiumWebBrowser Browser = JSTools.DefaultBrowser;
+            var browser = JSTools.DefaultBrowser;
+            browser.LoadUrl("about:blank");
+            browser.WaitForLoad();
+
+
+            string base64 = Convert.ToBase64String(Data);
+            string dataUrl = "data:image/avif;base64," + base64;
+
+            // Script para desenhar a imagem e retornar o PNG como Base64
+            string js = $@"
+                            (async () => {{
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                document.body.appendChild(canvas);
+
+                                const response = await fetch('{dataUrl}');
+                                const blob = await response.blob();
+                                const bitmap = await createImageBitmap(blob);
+
+                                canvas.width = bitmap.width;
+                                canvas.height = bitmap.height;
+                                ctx.drawImage(bitmap, 0, 0);
+
+                                return await new Promise(resolve => {{
+                                    canvas.toBlob(blob => {{
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                                        reader.readAsDataURL(blob);
+                                    }}, 'image/png');
+                                }});
+                            }})()
+                        ";
+
+
+            var result = browser.EvaluateScriptAsync(js).ConfigureAwait(false).GetAwaiter().GetResult();
+            if (result.Success && result.Result is string base64Png)
+            {
+                return Convert.FromBase64String(base64Png);
+            }
+
+            return null;
         }
 
         /* Apose.Imaging (Paid shit)
