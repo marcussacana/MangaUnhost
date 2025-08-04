@@ -345,6 +345,9 @@ namespace MangaUnhost
                                 if (IsWebP)
                                     ModData = DecodeWebP(Data);
 
+                                if (isAvif)
+                                    ModData = DecodeAvif(Data);
+
                                 using (MemoryStream Buffer = new MemoryStream())
                                 using (Bitmap Result = Decoder.Decode(ModData ?? Data))
                                 {
