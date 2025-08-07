@@ -564,6 +564,7 @@ namespace MangaUnhost
                             (async () => {{
                                 const canvas = document.createElement('canvas');
                                 const ctx = canvas.getContext('2d');
+                                ctx.imageSmoothingEnabled = false;
                                 document.body.appendChild(canvas);
 
                                 const response = await fetch('{dataUrl}');
