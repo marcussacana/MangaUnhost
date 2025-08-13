@@ -132,9 +132,9 @@ namespace MangaUnhost.Browser
             Encoding.UTF8.GetString(new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries) ?? new byte[0]);
 
         public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
         public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
         public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
             new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
 
