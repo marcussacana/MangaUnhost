@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using CefSharp.DevTools.DOM;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
@@ -59,7 +60,23 @@ namespace MangaUnhost.Hosts {
                     Nodes = SafeDoc.SelectNodes("//a[@class=\"chapter-name text-nowrap\"]");
 
                 if (Nodes == null || Nodes.Count <= 0)
-                    Nodes = SafeDoc.SelectNodes("//div[@class=\"chapter-list\"]//a");
+                    Nodes = SafeDoc.SelectNodes("//*[@class=\"chapter-list\"]//a");
+
+                var allUrl = new Uri(new Uri(CurrentUrl), "./all-chapters");
+
+                try { 
+                    var tmpDoc = new HtmlDocument();
+                    CFData = tmpDoc.LoadUrl(allUrl, CFData);
+
+                    var allChaps = tmpDoc.SelectNodes("//*[@class=\"chapter-list\"]//a");
+                    if (allChaps != null && allChaps.Count > 0)
+                        Nodes = allChaps;
+                }
+                catch {
+
+                }
+
+
 
                 if (Nodes == null || Nodes.Count <= 0)
                 {
@@ -98,14 +115,18 @@ namespace MangaUnhost.Hosts {
                 }
             }
 
-            foreach (var Node in Nodes) {
+            foreach (var Node in Nodes)
+            {
+                if (Node.SelectSingleParent("/*[@class='chapter-update']") is HtmlNode child && child != null)
+                    child.Remove();
+
                 string Name = HttpUtility.HtmlDecode(Node.InnerText).ToLower();
                 string Link = Node.GetAttributeValue("href", string.Empty);
 
                 if (!Name.ToLower().Contains("chapter")) {
                     if (Link.ToLower().Contains("chapter"))
                         Name = Link.Substring("chapter");
-                    Name = (from x in Name.Split(' ', '-', '_') where double.TryParse(x, out _) select x).First();
+                    Name = string.Join(".", from x in Name.Split(' ', '-', '_') where double.TryParse(x, out _) select x);
                 } else
                     Name = Name.Substring("chapter").Trim();
 
@@ -135,6 +156,9 @@ namespace MangaUnhost.Hosts {
 
             if (Nodes == null || Nodes.Count <= 0)
                 Nodes = Page.DocumentNode.SelectNodes("//*[@class=\"container-chapter-reader\"]/img");
+
+            if (Nodes == null || Nodes.Count <= 0)
+                Nodes = Page.DocumentNode.SelectNodes("//*[@id=\"chapter-reader\"]/img");
 
             if (Nodes == null || Nodes.Count <= 0) {
                 Nodes = Page.DocumentNode.SelectNodes("//*[contains(@class, \"chapter-content-inner\")]/p");
@@ -188,7 +212,7 @@ namespace MangaUnhost.Hosts {
                 SupportComic = true,
                 GenericPlugin = true,
                 SupportNovel = false,
-                Version = new Version(2, 0)
+                Version = new Version(2, 1)
             };
         }
 
@@ -207,16 +231,22 @@ namespace MangaUnhost.Hosts {
             Info.Title = (Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h1") ??
                           Document.SelectSingleNode("//ul[@class=\"manga-info-text\"]/li/h2") ??
                           Document.SelectSingleNode("//div[@class=\"story-info-right\"]/h1")  ??
-                          Document.SelectSingleNode("//h1[@class=\"title-manga\"]")           ??
-                          Document.SelectSingleNode("//h2[@class=\"title-manga\"]")           ??
-                          Document.SelectSingleNode("//div[@class=\"detail-box\"]//h3[@class=\"manga-name\"]")).InnerText;
+                          Document.SelectSingleNode("//h1[@class=\"title-manga\"]") ??
+                          Document.SelectSingleNode("//h2[@class=\"title-manga\"]") ??
+                          Document.SelectSingleNode("//h1[contains(@class, \"novel-title\")]") ??
+                          Document.SelectSingleNode("//h2contains(@class, \"novel-title\")]") ??
+                          Document.SelectSingleNode("//div[@class=\"detail-box\"]//h3[@class=\"manga-name\"]")).InnerText.Trim();
 
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
-            string CoverUrl = (Document.SelectSingleNode("//div[@class=\"manga-info-pic\"]/img")          ??
-                               Document.SelectSingleNode("//span[@class=\"info-image\"]/img")             ??
+            var coverNode = (Document.SelectSingleNode("//div[@class=\"manga-info-pic\"]/img") ??
+                               Document.SelectSingleNode("//span[@class=\"info-image\"]/img") ??
+                               Document.SelectSingleNode("//figure[@class=\"cover\"]/img") ??
                                Document.SelectSingleNode("//div[@class=\"media-left cover-detail\"]/img") ??
-                               Document.SelectSingleNode("//div[@class=\"detail-box\"]//img[@class=\"manga-poster-img\"]")).GetAttributeValue("src", string.Empty);
+                               Document.SelectSingleNode("//div[@class=\"detail-box\"]//img[@class=\"manga-poster-img\"]"));
+
+            string CoverUrl = coverNode.GetAttributeValue("data-src", null) ??
+                                coverNode.GetAttributeValue("src", string.Empty);
 
             Info.Cover = CoverUrl.EnsureAbsoluteUrl(Uri).TryDownload();
 
