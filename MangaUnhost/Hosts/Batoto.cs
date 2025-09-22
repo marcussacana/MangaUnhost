@@ -51,6 +51,8 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count() <= 0)
                 Nodes = Document.SelectNodes("//div[contains(@class, 'episode-list')]//a[contains(@class, 'chapt')]");
             if (Nodes == null || Nodes.Count() <= 0)
+                Nodes = Document.SelectNodes("//a[contains(@class, 'chapt')]");
+            if (Nodes == null || Nodes.Count() <= 0)
                 Nodes = Document.SelectNodes("//div[contains(@class, 'scrollable-panel')]//div[contains(@class, 'space-x-1')]//a");
 
 
@@ -190,7 +192,9 @@ namespace MangaUnhost.Hosts {
 
             Info.Title = Document.Descendants("title").First().InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title.Substring(0, Info.Title.LastIndexOf("Manga")).Trim());
-            Info.Title = Info.Title.Substring(0, Info.Title.ToLower().IndexOf("- read")).Trim();
+
+            if (Info.Title.ToLower().Contains("- read"))
+                Info.Title = Info.Title.Substring(0, Info.Title.ToLower().IndexOf("- read")).Trim();
 
             var coverNode = 
                 Document.SelectSingleNode("//div[@class=\"row detail-set\"]//img") ??
