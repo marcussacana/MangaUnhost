@@ -67,7 +67,7 @@ namespace MangaUnhost.Hosts {
 
                 var ChapterUri = Node.GetAttributeValue("href", string.Empty).EnsureAbsoluteUrl(CurrentDomain);
 
-                if (!ChapterUri.Contains("/title/") && !ChapterUri.Contains("/series/"))
+                if (!ChapterUri.Contains("/title/") && !ChapterUri.Contains("/series/") && !ChapterUri.Contains("/chapter/"))
                     continue;
 
                 ChapterNames[ID] = DataTools.GetRawName(Name);
