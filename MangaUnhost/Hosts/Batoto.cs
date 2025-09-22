@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using System.Security.Cryptography;
+using MangaUnhost.Decoders;
 
 namespace MangaUnhost.Hosts {
     class Batoto : IHost {
@@ -24,7 +25,22 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                yield return Download(new Uri(PageUrl));
+                byte[] data = new byte[0];
+
+                int retries = 5;
+                while (retries-- > 0)
+                {
+                    try
+                    {
+                        data = Download(new Uri(PageUrl));
+                        break;
+                    }
+                    catch
+                    {
+                        ThreadTools.Wait(5000);
+                    }
+                }
+                yield return data;
             }
         }
 
@@ -34,17 +50,26 @@ namespace MangaUnhost.Hosts {
             var Nodes = Document.SelectNodes("//div[@class='mt-4 chapter-list']//a[@class='chapt']");
             if (Nodes == null || Nodes.Count() <= 0)
                 Nodes = Document.SelectNodes("//div[contains(@class, 'episode-list')]//a[contains(@class, 'chapt')]");
+            if (Nodes == null || Nodes.Count() <= 0)
+                Nodes = Document.SelectNodes("//div[contains(@class, 'scrollable-panel')]//div[contains(@class, 'space-x-1')]//a");
+
 
             foreach (var Node in Nodes) {
-                string Name = HttpUtility.HtmlDecode(Node.SelectSingleNode(Node.XPath + "/b").InnerText);
+                var nameNode = Node.SelectSingleNode(Node.XPath + "/b") ?? Node;
+                string Name = HttpUtility.HtmlDecode(Node.InnerText);
 
                 Name = Name.ToLower().Replace("chapter", "").Replace("ch.", "").Replace("vol.", "").Trim().Replace("  ", ".").Replace(" ", ".");
 
                 if (Name.Contains("[deleted]") || Name.Contains("[delete]") || Name == "d")
                     continue;
 
+                var ChapterUri = Node.GetAttributeValue("href", string.Empty).EnsureAbsoluteUrl(CurrentDomain);
+
+                if (!ChapterUri.Contains("/title/") && !ChapterUri.Contains("/series/"))
+                    continue;
+
                 ChapterNames[ID] = DataTools.GetRawName(Name);
-                ChapterLinks[ID] = Node.GetAttributeValue("href", string.Empty).EnsureAbsoluteUrl(CurrentDomain);
+                ChapterLinks[ID] = ChapterUri;
 
                 yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
             }
@@ -58,7 +83,8 @@ namespace MangaUnhost.Hosts {
             var Page = GetChapterHtml(ID);
             List<string> Pages = new List<string>();
 
-            foreach (var Node in Page.DocumentNode.SelectNodes("//script[contains(., 'images')]")) {
+            foreach (var Node in Page.DocumentNode.SelectNodes("//script[contains(., 'images')]"))
+            {
                 if (Node.InnerHtml.Contains("var images") || Node.InnerHtml.Contains("const images") || Node.InnerHtml.Contains("const img"))
                 {
                     var VarName = Node.InnerHtml.Substring("const ", "= [");
@@ -67,11 +93,11 @@ namespace MangaUnhost.Hosts {
                     //Did you think use encryption will give us work/lazy? ha! >_<
                     var JS = CryptJS + "\n\n";
                     JS += Node.InnerHtml + "\n\n";
-                    
+
                     if (Node.InnerHtml.Contains("server"))
                     {
                         JS += "var URL = CryptoJS.AES.decrypt(server, batojs).toString(CryptoJS.enc.Utf8);\n";
-                    } 
+                    }
                     else
                     {
                         JS += "var URL = \"\\\"\\\"\";";
@@ -91,6 +117,30 @@ namespace MangaUnhost.Hosts {
                         else
                             Pages.Add(Image);
                     }
+                }
+                if (Node.GetAttributeValue("type", "").Contains("json"))
+                {
+                    var JSON = HttpUtility.HtmlDecode(Node.InnerHtml);
+
+                    var Urls = new List<string>();
+
+                    for (int i = 0; i < JSON.Length; i++)
+                    {
+                        var Pos = JSON.IndexOf("\"https:", i);
+                        if (Pos <= 0)
+                            break;
+
+                        i = Pos;
+
+                        var Url = JSON.Substring(i + 1, JSON.IndexOf("\"", i + 1) - i - 1);
+                        Urls.Add(Url);
+                    }
+
+                    var Imgs = Urls.Where(x => x.ToLower().EndsWith(".webp") ||
+                    x.ToLower().EndsWith(".jpg") ||
+                    x.ToLower().EndsWith(".png")).ToArray();
+
+                    Pages.AddRange(Imgs);
                 }
             }
 
@@ -112,13 +162,13 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 3)
+                Version = new Version(2, 4)
             };
         }
 
         public bool IsValidUri(Uri Uri) {
-            return (Uri.Host.ToLower().Contains("bato.to") || Uri.Host.ToLower().Contains("mangawindow.net"))
-                && Uri.AbsolutePath.ToLower().Contains("/series/");
+            return (Uri.Host.ToLower().Contains("bato") || Uri.Host.ToLower().Contains(".to") || Uri.Host.ToLower().Contains("mangawindow.net"))
+                && (Uri.AbsolutePath.ToLower().Contains("/series/") || Uri.AbsolutePath.ToLower().Contains("/title/"));
         }
 
         public ComicInfo LoadUri(Uri Uri) {
@@ -140,10 +190,15 @@ namespace MangaUnhost.Hosts {
 
             Info.Title = Document.Descendants("title").First().InnerText;
             Info.Title = HttpUtility.HtmlDecode(Info.Title.Substring(0, Info.Title.LastIndexOf("Manga")).Trim());
+            Info.Title = Info.Title.Substring(0, Info.Title.ToLower().IndexOf("- read")).Trim();
 
-            string URL = HttpUtility.HtmlDecode(Document
-                .SelectSingleNode("//div[@class=\"row detail-set\"]//img")
-                .GetAttributeValue("src", string.Empty));
+            var coverNode = 
+                Document.SelectSingleNode("//div[@class=\"row detail-set\"]//img") ??
+                Document.SelectSingleNode("//main//div/img");
+
+            var coverUrl = HttpUtility.HtmlDecode(coverNode.GetAttributeValue("src", string.Empty));
+
+            string URL = new Uri(Uri, coverUrl).AbsoluteUri;
 
             if (URL.StartsWith("//"))
                 URL = "https:" + URL;
@@ -159,7 +214,10 @@ namespace MangaUnhost.Hosts {
             return URL.TryDownload(CFData, Referer: CurrentDomain, UserAgent: ProxyTools.UserAgent);
         }
         public byte[] Download(Uri URL) {
-            return URL.TryDownload(CFData, Referer: CurrentDomain, UserAgent: ProxyTools.UserAgent) ?? throw new Exception("Failed to Download");
+            return URL.TryDownload(CFData, Referer: CurrentDomain, UserAgent: ProxyTools.UserAgent, Headers: new (string Key, string Value)[]
+            {
+                ("Origin", CurrentDomain)
+            }) ?? throw new Exception("Failed to Download");
         }
 
         public bool IsValidPage(string HTML, Uri URL) => false;
