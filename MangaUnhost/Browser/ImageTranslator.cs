@@ -259,7 +259,7 @@ namespace MangaUnhost.Browser
             p.StartInfo.FileName = exePath;
             p.Start();
 
-            int tries = 20;
+            int tries = 30;
             while (!IsServerRunning() && tries-- > 0)
                 Thread.Sleep(1000);
         }
