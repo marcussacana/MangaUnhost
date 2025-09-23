@@ -19,29 +19,11 @@ namespace MangaUnhost
 {
     static class Program
     {
-        static string _PyPath = null;
-        public static string PythonPath
-        {
-            get
-            {
-                if (_PyPath != null)
-                    return _PyPath;
 
-                var Def = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs\\Python\\Python39\\Python.exe");
-                if (File.Exists(Def))
-                    return _PyPath = Def;
-
-                Def = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "py.exe");
-                if (File.Exists(Def))
-                    return _PyPath = Def;
-
-                return "C:\\Python39\\Python.exe";
-            }
-        }
-        public static string MTLPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MTL", "translate_single.py");
+        public static string MTLPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MTL", "server", "run.bat");
         
         static bool? _MTLAvailable = null;
-        public static bool MTLAvailable => _MTLAvailable ??= File.Exists(MTLPath) && File.Exists(PythonPath);
+        public static bool MTLAvailable => _MTLAvailable ??= File.Exists(MTLPath);
 
         public static TextWriter Writer = null;
         public static bool Debug = Debugger.IsAttached || File.Exists("DEBUG");

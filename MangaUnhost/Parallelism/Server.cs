@@ -27,7 +27,10 @@ namespace MangaUnhost.Parallelism
         {
             Program.RandSeed = arg.GetHashCode() ^ new Random().Next();
 
+            Main.IsBackgroundProcess = true;
+
             new Main();
+
             Program.UnlockHeaders();
 
             try

@@ -137,6 +137,8 @@ namespace MangaUnhost
             } 
         }
 
+        public static bool IsBackgroundProcess = false;
+
         public static CaptchaSolverType Solver => Instance.Settings.AutoCaptcha ? CaptchaSolverType.SemiAuto : CaptchaSolverType.Manual;
 
         public static Main Instance = null;
@@ -281,8 +283,12 @@ namespace MangaUnhost
             return (T)Activator.CreateInstance(Interface.GetType());
         }
 
+
         private void MainTimerTick(object sender, EventArgs e)
         {
+            if (IsBackgroundProcess)
+                return;
+
             CheckClipboard();
         }
 

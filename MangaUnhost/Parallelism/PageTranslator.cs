@@ -174,7 +174,7 @@ namespace MangaUnhost.Parallelism
             for (int i = 0; i < Pages.Length; i++)
             {
                 var Page = Pages[i];
-                var NewPage = Path.Combine(Path.GetDirectoryName(Program.MTLAvailable ? Program.MTLPath : Page), Path.GetFileName(Page));
+                var NewPage = Path.Combine(Path.GetDirectoryName(Page), Path.GetFileName(Page));
                 var TlPage = NewPage + ".tl.png";
 
                 bool TmpInNewDir = new FileInfo(NewPage).FullName != new FileInfo(Page).FullName;
