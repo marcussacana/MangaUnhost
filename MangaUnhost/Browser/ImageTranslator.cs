@@ -69,8 +69,6 @@ namespace MangaUnhost.Browser
 
         public byte[] TranslateImage(byte[] Image)
         {
-            System.Diagnostics.Debugger.Launch();
-
             if (Program.MTLAvailable)
                 return LocalTranslateImage(Image);
 
