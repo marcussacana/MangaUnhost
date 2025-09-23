@@ -17,7 +17,7 @@ namespace MangaUnhost.Browser
 {
     internal class ImageTranslator : IDisposable
     {
-        public const int LOCAL_PORT = 8021;
+        public int LOCAL_PORT = 8021;
         string SourceLang, TargetLang;
 
         ChromiumWebBrowser Browser;
@@ -26,7 +26,14 @@ namespace MangaUnhost.Browser
             this.SourceLang = SourceLang.ToLowerInvariant();
             this.TargetLang = TargetLang.ToLowerInvariant();
 
-            if (!Program.MTLAvailable)
+            if (Program.MTLAvailable)
+            {
+                LOCAL_PORT = 8000 + new Random().Next(999);
+                while (IsServerRunning()) {
+                    LOCAL_PORT += 3;
+                }
+            }
+            else
             {
                 Browser = new ChromiumWebBrowser("about:blank");
                 Browser.WaitInitialize();
@@ -176,7 +183,7 @@ namespace MangaUnhost.Browser
                         Alignment = "auto",
                         Direction = "auto",
                         DisableFontBorder = false,
-                        FontSizeMinimum = -1,
+                        FontSizeMinimum = 14,
                         FontSizeOffset = 0,
                         GimpFont = "Sans-serif",
                         Lowercase = false,
@@ -241,10 +248,16 @@ namespace MangaUnhost.Browser
 
             StartServer();
 
-            return UrlTools.Upload($"http://127.0.0.1:{LOCAL_PORT}/translate/image", Encoding.UTF8.GetBytes(request));
+            try { 
+                return UrlTools.Upload($"http://127.0.0.1:{LOCAL_PORT}/translate/image", Encoding.UTF8.GetBytes(request));
+            } 
+            catch { 
+                Thread.Sleep(1000);
+                throw;
+            }
         }
 
-        public static void StartServer()
+        public void StartServer()
         {
             if (IsServerRunning())
                 return;
@@ -257,6 +270,7 @@ namespace MangaUnhost.Browser
             var p = new Process();
             p.StartInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
             p.StartInfo.FileName = exePath;
+            p.StartInfo.Arguments = $"--port {LOCAL_PORT}";
             p.Start();
 
             int tries = 30;
@@ -264,7 +278,7 @@ namespace MangaUnhost.Browser
                 Thread.Sleep(1000);
         }
 
-        public static bool IsServerRunning()
+        public bool IsServerRunning()
         {
             try
             {

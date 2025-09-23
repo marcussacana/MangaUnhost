@@ -845,7 +845,7 @@ namespace MangaUnhost
                     var Count = Math.Max(Main.Config.TLConcurrency, 1);
                     
                     if (Program.MTLAvailable)
-                        Count = 1;
+                        Count = Count/2;
 
                     Translators = new IPacket[Count];
                     TlSemaphore = new SemaphoreSlim(Translators.Length);
