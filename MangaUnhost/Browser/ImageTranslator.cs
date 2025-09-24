@@ -6,10 +6,14 @@ using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System;
 using System.Buffers.Text;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -17,7 +21,7 @@ namespace MangaUnhost.Browser
 {
     internal class ImageTranslator : IDisposable
     {
-        public int LOCAL_PORT = 8021;
+        public static int LOCAL_PORT { get; private set; } = 8021;
         string SourceLang, TargetLang;
 
         ChromiumWebBrowser Browser;
@@ -26,15 +30,7 @@ namespace MangaUnhost.Browser
             this.SourceLang = SourceLang.ToLowerInvariant();
             this.TargetLang = TargetLang.ToLowerInvariant();
 
-            if (Program.MTLAvailable)
-            {
-                LOCAL_PORT = 8000 + new Random().Next(999);
-                while (IsServerRunning()) {
-                    LOCAL_PORT += 3;
-                }
-            }
-            else
-            {
+            if (!Program.MTLAvailable) {
                 Browser = new ChromiumWebBrowser("about:blank");
                 Browser.WaitInitialize();
                 Browser.RequestHandler = new RequestEventHandler();
@@ -43,6 +39,16 @@ namespace MangaUnhost.Browser
                 //Browser.BypassGoogleCEFBlock();
                 Reload(this.SourceLang, this.TargetLang);
             }
+        }
+
+        public static int FindPort()
+        {
+            LOCAL_PORT = 8000 + new Random().Next(999);
+            while (IsServerRunning())
+            {
+                LOCAL_PORT += 3;
+            }
+            return LOCAL_PORT;
         }
 
         private void ImageTranslator_OnResourceRequestEvent(object sender, OnResourceRequestEventArgs e)
@@ -74,10 +80,10 @@ namespace MangaUnhost.Browser
 
         private static bool DevVisible = false;
 
-        public byte[] TranslateImage(byte[] Image)
+        public byte[] TranslateImage(byte[] Image, bool CompatibleMode)
         {
             if (Program.MTLAvailable)
-                return LocalTranslateImage(Image);
+                return LocalTranslateImage(Image, CompatibleMode);
 
             var tmpPath = Path.ChangeExtension(Path.GetTempFileName(), "png");
             File.WriteAllBytes(tmpPath, Image);
@@ -171,7 +177,7 @@ namespace MangaUnhost.Browser
             }
         }
 
-        private byte[] LocalTranslateImage(byte[] image)
+        private byte[] LocalTranslateImage(byte[] image, bool Compatible)
         {
             var root = new Root()
             {
@@ -187,7 +193,7 @@ namespace MangaUnhost.Browser
                         FontSizeOffset = 0,
                         GimpFont = "Sans-serif",
                         Lowercase = false,
-                        NoHyphenation = false,
+                        NoHyphenation = true,
                         Renderer = "default",
                         Rtl = true,
                         Uppercase = false
@@ -205,7 +211,7 @@ namespace MangaUnhost.Browser
                         PostCheckRepetitionThreshold = 20,
                         PostCheckTargetLangThreshold = 0.5,
                         TargetLang = MapLang(TargetLang),
-                        TranslatorName = "m2m100_big"
+                        TranslatorName = Compatible ? "m2m100_big" : "custom_openai"
                     },
                     Detector = new Detector()
                     {
@@ -215,7 +221,7 @@ namespace MangaUnhost.Browser
                         DetInvert = false,
                         DetRotate = false,
                         DetectionSize = 2048,
-                        DetectorName = "paddle",
+                        DetectorName = Compatible ? "paddle" : "ctd",
                         TextThreshold = 0.5,
                         UnclipRatio = 2.3
                     },
@@ -248,29 +254,35 @@ namespace MangaUnhost.Browser
 
             StartServer();
 
-            try { 
+            try {
                 return UrlTools.Upload($"http://127.0.0.1:{LOCAL_PORT}/translate/image", Encoding.UTF8.GetBytes(request));
-            } 
-            catch { 
+            }
+            catch {
                 Thread.Sleep(1000);
                 throw;
             }
         }
 
-        public void StartServer()
+        private static Process p = null;
+        public static void StartServer()
         {
             if (IsServerRunning())
                 return;
 
             var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MTL", "server", "run.bat");
 
-            if (!File.Exists(exePath)) 
+            if (!File.Exists(exePath))
                 throw new FileNotFoundException("MTL Startup Script Not Found");
 
-            var p = new Process();
+            if (p != null && !p.HasExited)
+                closeServer();
+
+            p = new Process();
             p.StartInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
             p.StartInfo.FileName = exePath;
             p.StartInfo.Arguments = $"--port {LOCAL_PORT}";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
             p.Start();
 
             int tries = 30;
@@ -278,16 +290,112 @@ namespace MangaUnhost.Browser
                 Thread.Sleep(1000);
         }
 
-        public bool IsServerRunning()
+        public static bool IsServerRunning()
         {
             try
             {
                 var response = UrlTools.Download($"http://127.0.0.1:{LOCAL_PORT}/manual");
                 return Encoding.UTF8.GetString(response).Contains("Translation");
             }
-            catch { 
+            catch {
                 return false;
             }
+        }
+
+        public static int GetSocketsForProcess(int port)
+        {
+            const int ERROR_INSUFFICIENT_BUFFER = 0x7A;
+
+            var size = 0;
+            var result = GetTcpTable2(IntPtr.Zero, ref size, false);
+            if (result != ERROR_INSUFFICIENT_BUFFER)
+                throw new System.ComponentModel.Win32Exception(result);
+
+            var ptr = IntPtr.Zero;
+            try
+            {
+                ptr = Marshal.AllocHGlobal(size);
+                result = GetTcpTable2(ptr, ref size, false);
+                if (result != 0)
+                    throw new System.ComponentModel.Win32Exception(result);
+
+                var list = new List<IPEndPoint>();
+                var count = Marshal.ReadInt32(ptr);
+                var curPtr = ptr + Marshal.SizeOf<MIB_TCPTABLE>();
+                var length = Marshal.SizeOf<MIB_TCPROW2>();
+                for (var i = 0; i < count; i++)
+                {
+                    var row = Marshal.PtrToStructure<MIB_TCPROW2>(curPtr);
+                    if ((row.localPort1 << 8 | row.localPort2) == port)
+                        return row.dwOwningPid;
+                    curPtr += length;
+                }
+                return -1;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
+        }
+
+        [DllImport("Iphlpapi.dll", ExactSpelling = true)]
+        static extern int GetTcpTable2(
+          IntPtr TcpTable,
+          ref int SizePointer,
+          bool Order
+        );
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct MIB_TCPTABLE
+        {
+            public int dwNumEntries;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct MIB_TCPROW2
+        {
+            public MIB_TCP_STATE dwState;
+            public int dwLocalAddr;
+            public byte localPort1;
+            public byte localPort2;
+            // Ports are only 16 bit values (in network WORD order, 3,4,1,2).
+            // There are reports where the high order bytes have garbage in them.
+            public byte ignoreLocalPort3;
+            public byte ignoreLocalPort4;
+            public int dwRemoteAddr;
+            public byte remotePort1;
+            public byte remotePort2;
+            // Ports are only 16 bit values (in network WORD order, 3,4,1,2).
+            // There are reports where the high order bytes have garbage in them.
+            public byte ignoreremotePort3;
+            public byte ignoreremotePort4;
+            public int dwOwningPid;
+            public TCP_CONNECTION_OFFLOAD_STATE dwOffloadState;
+        }
+
+        public enum MIB_TCP_STATE
+        {
+            Closed = 1,
+            Listen,
+            SynSent,
+            SynRcvd,
+            Established,
+            FinWait1,
+            FinWait2,
+            CloseWait,
+            Closing,
+            LastAck,
+            TimeWait,
+            DeleteTcb
+        }
+
+        enum TCP_CONNECTION_OFFLOAD_STATE
+        {
+            TcpConnectionOffloadStateInHost,
+            TcpConnectionOffloadStateOffloading,
+            TcpConnectionOffloadStateOffloaded,
+            TcpConnectionOffloadStateUploading,
+            TcpConnectionOffloadStateMax
         }
 
 
@@ -336,7 +444,20 @@ namespace MangaUnhost.Browser
 
         public void Dispose()
         {
+            closeServer();
             Browser.Dispose();
+        }
+
+        private static void closeServer()
+        {
+            try { 
+                int pid = GetSocketsForProcess(LOCAL_PORT);
+                if (pid >= 0)
+                    Process.GetProcessById(pid).Kill();
+            }
+            catch
+            {
+            }
         }
 
 

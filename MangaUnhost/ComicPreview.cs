@@ -21,6 +21,7 @@ using System.Threading;
 using System.Globalization;
 using CefSharp.DevTools.Page;
 using System.Diagnostics.Eventing.Reader;
+using MangaUnhost.Decoders;
 
 namespace MangaUnhost
 {
@@ -542,6 +543,8 @@ namespace MangaUnhost
             if (!Directory.Exists(ChapOutDir))
                 Directory.CreateDirectory(ChapOutDir);
 
+            var decoder = new CommonImage();
+
             for (int i = 0; i < Pages.Length; i++)
             {
                 Main.Status = string.Format(ProgressMessage ?? Main.Language.Exporting, i, Pages.Length);
@@ -551,7 +554,8 @@ namespace MangaUnhost
                 var OutPage = Path.Combine(ChapOutDir, Path.GetFileNameWithoutExtension(Page) + "." + Format);
                 Retry(() =>
                 {
-                    using (Image Original = Image.FromFile(Page))
+                    var data = File.ReadAllBytes(Page);
+                    using (Image Original = decoder.Decode(data))
                     {
                         ImageFormat OutFormat = DataTools.GetImageFormat(Format);
                         if (OutFormat.Guid == ImageFormat.Jpeg.Guid)
@@ -755,6 +759,9 @@ namespace MangaUnhost
             if (!Directory.Exists(Path.GetDirectoryName(TmpChapter)))
                 Directory.CreateDirectory(Path.GetDirectoryName(TmpChapter));
 
+            if (Directory.Exists(TmpChapter))
+                Directory.Delete(TmpChapter, true);
+
             Directory.Move(Chapter, TmpChapter);
             bool OK = Retry(() => ExportChapter(TmpChapter, ChapPath, Format, Language, true, Language.Converting));
 
@@ -845,7 +852,7 @@ namespace MangaUnhost
                     var Count = Math.Max(Main.Config.TLConcurrency, 1);
                     
                     if (Program.MTLAvailable)
-                        Count = Count/2;
+                        Count = Math.Max(Count /2, 1);
 
                     Translators = new IPacket[Count];
                     TlSemaphore = new SemaphoreSlim(Translators.Length);
@@ -902,8 +909,10 @@ namespace MangaUnhost
                     if (NewReadyPages.Length != ReadyPages.Length)
                         Retries++;
 
+                    int pageRetries = Program.MTLAvailable ? 2 : 3;
+
                     var MissingPages = Pages.Except(NewReadyPages).ToArray();
-                    var TranslatableMissingPages = MissingPages.Where(x => !FailTlMap.ContainsKey(x) || FailTlMap[x] < 3).ToArray();
+                    var TranslatableMissingPages = MissingPages.Where(x => !FailTlMap.ContainsKey(x) || FailTlMap[x] < pageRetries).ToArray();
 
                     if (TranslatableMissingPages.Any())
                     {
@@ -946,7 +955,7 @@ namespace MangaUnhost
                 await TlSemaphore.WaitAsync();
                 try
                 {
-                    for (int x = 0; x < 4; x++)
+                    for (int x = 0; x < (Program.MTLAvailable ? 1 : 4); x++)
                     {
                         var Page = Pages[i];
 

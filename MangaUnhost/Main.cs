@@ -1156,7 +1156,7 @@ namespace MangaUnhost
             if (ImgTrans == null)
                 ImgTrans = new ImageTranslator("EN", "PT");
 
-            var Data = ImgTrans.TranslateImage(File.ReadAllBytes(fd.FileName));
+            var Data = ImgTrans.TranslateImage(File.ReadAllBytes(fd.FileName).ToArray(), false);
             File.WriteAllBytes(fd.FileName + ".tl.png", Data);
             MessageBox.Show("done");
         }

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using MangaUnhost.Browser;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -49,6 +51,12 @@ namespace MangaUnhost.Parallelism
 
                 Writer.Write((int)Type);
                 Writer.Write(Process.GetCurrentProcess().Id);
+
+                if (Program.MTLAvailable)
+                {
+                    Writer.Write(ImageTranslator.FindPort());
+                }
+
                 Writer.Flush();
 
                 Packet = Packets[Type]();
@@ -101,6 +109,11 @@ namespace MangaUnhost.Parallelism
 
             Handler.PipeStream = Stream;
             Handler.ProcessID = ProcessID;
+
+            if (Program.MTLAvailable)
+            {
+                Handler.Port = Reader.ReadInt32();
+            }
 
             return Handler;
         }

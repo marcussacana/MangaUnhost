@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +34,7 @@ namespace MangaUnhost.Parallelism
 
         public bool Disposed { get; private set; }
         public NamedPipeServerStream PipeStream { get; set; }
+        public int Port { get; set; }
 
         private NamedPipeClientStream PipeClientStream;
 
@@ -192,6 +194,8 @@ namespace MangaUnhost.Parallelism
                     try
                     {
                         var NewData = AutoSplitAndTranslate(ImgTranslator, ImgData, x);
+                        if (NewData == null || NewData.Length == 0)
+                            throw new Exception("Translated Image is null");
                         File.WriteAllBytes(TlPage, NewData);
                         break;
                     }
@@ -280,7 +284,7 @@ namespace MangaUnhost.Parallelism
                 }
             }
 
-            var NewData = ImgTranslator.TranslateImage(ImgData);
+            var NewData = ImgTranslator.TranslateImage(ImgData, TriesLeft <= 0);
 
             using MemoryStream OriData = new MemoryStream(ImgData);
             using Bitmap OriImage = Bitmap.FromStream(OriData) as Bitmap;
@@ -354,6 +358,9 @@ namespace MangaUnhost.Parallelism
             {
                 if (ProcessID != 0)
                     System.Diagnostics.Process.GetProcessById(ProcessID).Kill();
+
+                if (Port != 0)
+                    System.Diagnostics.Process.GetProcessById(ImageTranslator.GetSocketsForProcess(Port)).Kill();
             }
             catch { }
         }
