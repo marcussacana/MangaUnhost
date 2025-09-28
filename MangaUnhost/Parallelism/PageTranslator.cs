@@ -361,7 +361,9 @@ namespace MangaUnhost.Parallelism
             {
                 if (ProcessID != 0)
                     System.Diagnostics.Process.GetProcessById(ProcessID).Kill();
-
+            }
+            catch { }
+            try {
                 if (Port != 0)
                 {
                     while (true)
