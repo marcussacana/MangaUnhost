@@ -1,8 +1,11 @@
-﻿using MangaUnhost.Browser;
+﻿using CefSharp.DevTools.Debugger;
+using Emgu.CV.Dpm;
+using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
@@ -360,7 +363,22 @@ namespace MangaUnhost.Parallelism
                     System.Diagnostics.Process.GetProcessById(ProcessID).Kill();
 
                 if (Port != 0)
-                    System.Diagnostics.Process.GetProcessById(ImageTranslator.GetSocketsForProcess(Port)).Kill();
+                {
+                    while (true)
+                    {
+                        var pid = ImageTranslator.FindProcessByCmdLine($"--port {Port}");
+                        if (pid < 0)
+                            break;
+                        try
+                        {
+                            System.Diagnostics.Process.GetProcessById(pid).Kill();
+                        }
+                        catch
+                        {
+                            break;
+                        }
+                    }
+                }
             }
             catch { }
         }

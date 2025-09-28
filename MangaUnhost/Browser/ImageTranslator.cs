@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -211,7 +212,7 @@ namespace MangaUnhost.Browser
                         PostCheckRepetitionThreshold = 20,
                         PostCheckTargetLangThreshold = 0.5,
                         TargetLang = MapLang(TargetLang),
-                        TranslatorName = Compatible ? "m2m100_big" : "custom_openai"
+                        TranslatorName = "custom_openai"
                     },
                     Detector = new Detector()
                     {
@@ -242,7 +243,7 @@ namespace MangaUnhost.Browser
                         IgnoreBubble = 0,
                         MinTextLength = 0,
                         OcrName = "48px",
-                        UseMocrMerge = false
+                        UseMocrMerge = true
                     },
                     ForceSimpleSort = false,
                     KernelSize = 3,
@@ -302,102 +303,35 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static int GetSocketsForProcess(int port)
+        public static int FindProcessByCmdLine(string CmdLine)
         {
-            const int ERROR_INSUFFICIENT_BUFFER = 0x7A;
-
-            var size = 0;
-            var result = GetTcpTable2(IntPtr.Zero, ref size, false);
-            if (result != ERROR_INSUFFICIENT_BUFFER)
-                throw new System.ComponentModel.Win32Exception(result);
-
-            var ptr = IntPtr.Zero;
-            try
+            foreach (var process in Process.GetProcessesByName("python").Concat(Process.GetProcessesByName("cmd")))
             {
-                ptr = Marshal.AllocHGlobal(size);
-                result = GetTcpTable2(ptr, ref size, false);
-                if (result != 0)
-                    throw new System.ComponentModel.Win32Exception(result);
-
-                var list = new List<IPEndPoint>();
-                var count = Marshal.ReadInt32(ptr);
-                var curPtr = ptr + Marshal.SizeOf<MIB_TCPTABLE>();
-                var length = Marshal.SizeOf<MIB_TCPROW2>();
-                for (var i = 0; i < count; i++)
+                try
                 {
-                    var row = Marshal.PtrToStructure<MIB_TCPROW2>(curPtr);
-                    if ((row.localPort1 << 8 | row.localPort2) == port)
-                        return row.dwOwningPid;
-                    curPtr += length;
+                    string query = $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}";
+
+                    using (var searcher = new ManagementObjectSearcher(query))
+                    using (var results = searcher.Get())
+                    {
+                        foreach (ManagementObject obj in results)
+                        {
+                            string cmdline = obj["CommandLine"] as string;
+
+                            if (cmdline != null && cmdline.IndexOf(CmdLine, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                            {
+                                return process.Id;
+                            }
+                        }
+                    }
                 }
-                return -1;
+                catch
+                {
+                }
             }
-            finally
-            {
-                Marshal.FreeHGlobal(ptr);
-            }
+
+            return -1;
         }
-
-        [DllImport("Iphlpapi.dll", ExactSpelling = true)]
-        static extern int GetTcpTable2(
-          IntPtr TcpTable,
-          ref int SizePointer,
-          bool Order
-        );
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct MIB_TCPTABLE
-        {
-            public int dwNumEntries;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct MIB_TCPROW2
-        {
-            public MIB_TCP_STATE dwState;
-            public int dwLocalAddr;
-            public byte localPort1;
-            public byte localPort2;
-            // Ports are only 16 bit values (in network WORD order, 3,4,1,2).
-            // There are reports where the high order bytes have garbage in them.
-            public byte ignoreLocalPort3;
-            public byte ignoreLocalPort4;
-            public int dwRemoteAddr;
-            public byte remotePort1;
-            public byte remotePort2;
-            // Ports are only 16 bit values (in network WORD order, 3,4,1,2).
-            // There are reports where the high order bytes have garbage in them.
-            public byte ignoreremotePort3;
-            public byte ignoreremotePort4;
-            public int dwOwningPid;
-            public TCP_CONNECTION_OFFLOAD_STATE dwOffloadState;
-        }
-
-        public enum MIB_TCP_STATE
-        {
-            Closed = 1,
-            Listen,
-            SynSent,
-            SynRcvd,
-            Established,
-            FinWait1,
-            FinWait2,
-            CloseWait,
-            Closing,
-            LastAck,
-            TimeWait,
-            DeleteTcb
-        }
-
-        enum TCP_CONNECTION_OFFLOAD_STATE
-        {
-            TcpConnectionOffloadStateInHost,
-            TcpConnectionOffloadStateOffloading,
-            TcpConnectionOffloadStateOffloaded,
-            TcpConnectionOffloadStateUploading,
-            TcpConnectionOffloadStateMax
-        }
-
 
         public static string MapLang(string lang)
         {
@@ -450,10 +384,30 @@ namespace MangaUnhost.Browser
 
         private static void closeServer()
         {
-            try { 
-                int pid = GetSocketsForProcess(LOCAL_PORT);
-                if (pid >= 0)
-                    Process.GetProcessById(pid).Kill();
+            try
+            {
+                while (true)
+                {
+                    int pid = FindProcessByCmdLine($"--port {LOCAL_PORT}");
+                    if (pid >= 0)
+                        Process.GetProcessById(pid).Kill();
+                    else
+                        break;
+                }
+            }
+            catch
+            {
+            }
+            try
+            {
+                while (true)
+                {
+                    int pid = FindProcessByCmdLine($"--port {(LOCAL_PORT + 1)}");
+                    if (pid >= 0)
+                        Process.GetProcessById(pid).Kill();
+                    else
+                        break;
+                }
             }
             catch
             {
