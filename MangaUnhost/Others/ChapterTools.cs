@@ -217,7 +217,7 @@ namespace MangaUnhost.Others {
                     var Diff = DiffCheck(MDirs[i], MDir);
                     Diffs[i] = Diff;
 
-                    if (Diff > 0.5) {
+                    if (Diff > 0.8) {
 
                         //Search For Next New Folder Name or if this one is already Downloaded in any possible New Folder
                         string NDir = CurrentDir;
