@@ -315,7 +315,7 @@ namespace MangaUnhost.Browser
                     {
                         string query = $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}";
 
-                        using (var searcher = new ManagementObjectSearcher(query) { Options = new EnumerationOptions() { Timeout = TimeSpan.FromSeconds(5) } })
+                        using (var searcher = new ManagementObjectSearcher(query) { Options = new EnumerationOptions() { Timeout = TimeSpan.FromSeconds(1) } })
                         using (var results = searcher.Get())
                         {
                             foreach (ManagementObject obj in results)
@@ -339,7 +339,7 @@ namespace MangaUnhost.Browser
 
             try
             {
-                thread.Join(TimeSpan.FromSeconds(5));
+                thread.Join(TimeSpan.FromSeconds(1));
                 thread.Abort();
             } 
             catch { }
