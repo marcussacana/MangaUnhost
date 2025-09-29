@@ -400,8 +400,9 @@ namespace MangaUnhost.Parallelism
                         try
                         {
                             int pid = ImageTranslator.GetSocketsForProcess(Port);
-                            if (pid >= 0)
-                                System.Diagnostics.Process.GetProcessById(pid).Kill();
+                            if (pid < 0)
+                                break;
+                            System.Diagnostics.Process.GetProcessById(pid).Kill();
                         }
                         catch
                         {
