@@ -343,6 +343,19 @@ namespace MangaUnhost.Parallelism
         {
             foreach (var Instance in Instances)
                 Instance?.Dispose();
+
+            if (Program.MTLAvailable)
+            {
+                foreach (var proc in System.Diagnostics.Process.GetProcessesByName("python"))
+                {
+                    try
+                    {
+                        proc.Kill();
+                    }
+                    catch { }
+                }
+            }
+
         }
         public void Dispose()
         {
@@ -378,6 +391,20 @@ namespace MangaUnhost.Parallelism
                         catch
                         {
                             break;
+                        }
+                    }
+
+
+                    while (true)
+                    {
+                        try
+                        {
+                            int pid = ImageTranslator.GetSocketsForProcess(Port);
+                            if (pid >= 0)
+                                System.Diagnostics.Process.GetProcessById(pid).Kill();
+                        }
+                        catch
+                        {
                         }
                     }
                 }
