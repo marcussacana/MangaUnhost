@@ -138,7 +138,7 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 3, 0)
+                Version = new Version(2, 4, 0)
             };
         }
 
@@ -190,20 +190,15 @@ namespace MangaUnhost.Hosts
             if (!CurrentUrl.AbsoluteUri.EndsWith("/"))
                 CurrentUrl = new Uri(CurrentUrl.AbsoluteUri + "/");
 
-            var ChapsUrl = new Uri(CurrentUrl.AbsoluteUri + "ajax/chapters/");
 
-            try
-            {
-                var Data = ChapsUrl.Upload();
-                ChapterDocument = new HtmlDocument();
-                using (var Stream = new MemoryStream(Data))
-                    ChapterDocument.Load(Stream, System.Text.Encoding.UTF8, true);
-            }
-            catch { }
+
+            if (!TryGetChapterData(new Uri(CurrentUrl.AbsoluteUri + "ajax/chapters/")))
+                TryGetChapterData(new Uri(CurrentUrl.AbsoluteUri.Replace("/comics/", "/manga/") + "ajax/chapters/"));
 
             ComicInfo Info = new ComicInfo();
             Info.Title = HttpUtility.HtmlDecode((Document.SelectSingleNode("//*[(self::h1 or self::h2 or self::h3) and @class='entry-title']") ??
-                                                 Document.SelectSingleNode("//div[@id='manga-title']/*[(self::h1 or self::h2 or self::h3)]")).InnerText.Trim());
+                                                 Document.SelectSingleNode("//div[@id='manga-title']/*[(self::h1 or self::h2 or self::h3)]") ??
+                                                 Document.SelectSingleNode("//div[@class='post-title']/h1")).InnerText.Trim());
 
             var ImgNode = Document.SelectSingleNode("//div[@class='thumb']/img") ??
                           Document.SelectSingleNode("//div[@class='summary_image']//img");
@@ -230,6 +225,27 @@ namespace MangaUnhost.Hosts
             Info.ContentType = ContentType.Comic;
 
             return Info;
+        }
+
+        private bool TryGetChapterData(Uri ChapsUrl)
+        {
+            try
+            {
+                byte[] Data;
+                if (CFData == null)
+                    Data = ChapsUrl.Upload(UserAgent: ProxyTools.UserAgent, Referer: CurrentUrl.AbsoluteUri);
+                else
+                    Data = ChapsUrl.Upload(CFData, null, Referer: CurrentUrl.AbsoluteUri);
+
+                ChapterDocument = new HtmlDocument();
+                using (var Stream = new MemoryStream(Data))
+                    ChapterDocument.Load(Stream, System.Text.Encoding.UTF8, true);
+
+                return true;
+            }
+            catch {
+                return false;
+            }
         }
     }
 }

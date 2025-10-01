@@ -310,6 +310,10 @@ namespace MangaUnhost.Browser
             }
         }
 
+        public static byte[] Upload(this string Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
+            new Uri(Url).Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies);
+        public static byte[] Upload(this Uri Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
+            Url.Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies);
         public static byte[] Upload(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
             new Uri(Url).Upload(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie);
         public static byte[] Upload(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
@@ -398,11 +402,14 @@ namespace MangaUnhost.Browser
                 {
                     if (ex is WebException wex)
                     {
-                        var Response = wex.Response; 
-                        foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
-                        {
-                            if (Cookie != null)
-                                Cookie.Add(NewCookie);
+                        var Response = wex.Response;
+                        if (Response != null)
+                        { 
+                            foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
+                            {
+                                if (Cookie != null)
+                                    Cookie.Add(NewCookie);
+                            }
                         }
                     }
                     return null;
