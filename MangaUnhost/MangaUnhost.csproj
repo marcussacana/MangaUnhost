@@ -141,7 +141,6 @@
     <Compile Include="Hosts\LHScan.cs" />
     <Compile Include="Hosts\MangaHasu.cs" />
     <Compile Include="Hosts\MangaHere.cs" />
-    <Compile Include="Hosts\MangaLivre.cs" />
     <Compile Include="Hosts\MangaNelo.cs" />
     <Compile Include="Hosts\NHentai.cs" />
     <Compile Include="Hosts\Tsumino.cs" />

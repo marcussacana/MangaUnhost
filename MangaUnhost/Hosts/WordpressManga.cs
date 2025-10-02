@@ -59,6 +59,9 @@ namespace MangaUnhost.Hosts
                 }
             }
 
+            if (Nodes == null || Nodes.Count == 0)
+                Nodes = Document.SelectNodes("//div[@class='chapter-details']/a");
+
             foreach (var Node in ReverseChapters ? Nodes.Reverse() : Nodes)
             {
                 string URL = Node.GetAttributeValue("href", "");
@@ -72,6 +75,10 @@ namespace MangaUnhost.Hosts
                     Prefix = "Vol. " + Name.Substring(null, " ") + " Ch. ";
                     Name = Name.Substring(" ").Trim(GeneralTrim);
                 }
+
+                if (Name.Contains(":"))
+                    Name = Name.Substring(null, ":").Trim(GeneralTrim);
+
 
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim(GeneralTrim);
@@ -125,12 +132,12 @@ namespace MangaUnhost.Hosts
             }
 
             string[] Links = (from x in Chapter
-                              .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img")
+                              .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img|//img[@class='chapter-image']")
                               select (x.GetAttributeValue("data-src", null) ??
                                       x.GetAttributeValue("src", null) ??
                                       x.GetAttributeValue("data-cfsrc", "")).Trim()).Distinct().ToArray();
 
-            return Links;
+            return Links.Where(x=>x.StartsWith("http")).ToArray();
         }
 
         public IDecoder GetDecoder()
@@ -147,7 +154,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 4, 2)
+                Version = new Version(2, 5, 0)
             };
         }
 
@@ -157,7 +164,8 @@ namespace MangaUnhost.Hosts
                    (Uri.Host.ToLower().Contains("manga47.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
                    (Uri.Host.ToLower().Contains("manga68.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
                    (Uri.Host.ToLower().Contains("mangatx.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/"));
+                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/")) ||
+                   (Uri.Host.ToLower().Contains("mangalivre.blog") && Uri.AbsolutePath.ToLower().Contains("manga/"));
         }
         public bool IsValidPage(string HTML, Uri URL)
         {
@@ -199,7 +207,7 @@ namespace MangaUnhost.Hosts
             }
 
             ComicInfo Info = new ComicInfo();
-            var TitleNode = Document.SelectSingleNode("//div[@class='post-title']/*[self::h3 or self::h2 or self::h1]");
+            var TitleNode = Document.SelectSingleNode("//div[@class='post-title' or @class='manga-info']/*[self::h3 or self::h2 or self::h1]");
             try { TitleNode.RemoveChild(TitleNode.ChildNodes.Where(x => x.Name == "span").Single()); } catch { }
             Info.Title = TitleNode.InnerText.Trim();
 
@@ -207,7 +215,7 @@ namespace MangaUnhost.Hosts
                 Info.Title = Info.Title.Substring(3);
             Info.Title = HttpUtility.HtmlDecode(Info.Title).Trim();
 
-            var ImgNode = Document.SelectSingleNode("//div[@class='summary_image']//img");
+            var ImgNode = Document.SelectSingleNode("//div[@class='summary_image' or @class='manga-cover']//img");
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", "");
 
