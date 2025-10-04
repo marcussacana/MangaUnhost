@@ -62,6 +62,8 @@ namespace MangaUnhost.Hosts
             if (Nodes == null || Nodes.Count == 0)
                 Nodes = Document.SelectNodes("//div[@class='chapter-details']/a");
 
+            string lastName = null;
+
             foreach (var Node in ReverseChapters ? Nodes.Reverse() : Nodes)
             {
                 string URL = Node.GetAttributeValue("href", "");
@@ -106,7 +108,12 @@ namespace MangaUnhost.Hosts
 
                 Name = Prefix + DataTools.GetRawName(Name);
 
-                LinkMap[ID] = URL;
+                if (lastName == Name)
+                    LinkMap[--ID] = $"{URL}|{LinkMap[ID]}";
+                else
+                    LinkMap[ID] = URL;
+
+                lastName = Name;
 
                 yield return new KeyValuePair<int, string>(ID++, Name);
             }
@@ -117,27 +124,66 @@ namespace MangaUnhost.Hosts
             return GetPageLinks(ID).Length;
         }
 
+        public int LastSuccess = -1;
         private string[] GetPageLinks(int ID)
         {
-            var Chapter = new HtmlDocument();
-            
-            CFData = Chapter.LoadUrl(LinkMap[ID], CFData, Referer: CurrentUrl.AbsoluteUri);
 
-            var ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'chapter_preloaded_images')]");
-            if (ScriptNode != null)
+            List<string> AllLinks = new List<string>();
+            foreach (var link in LinkMap[ID].Split('|'))
             {
-                var Script = ScriptNode.InnerText + "\r\nchapter_preloaded_images;";
-                var Rst = (List<object>)JSTools.DefaultBrowser.EvaluateScript(Script);
-                return Rst.Cast<string>().ToArray();
+                var Chapter = new HtmlDocument();
+
+                int retry = 12;
+                while (Chapter.DocumentNode.InnerText == string.Empty && retry-- > 0)
+                {
+                    switch (retry == 11 ? LastSuccess : retry) {
+                        case 10:
+                        case 9:
+                            CFData = Chapter.LoadUrl(link, CFData, Referer: CurrentUrl.Host);
+                            break;
+                        case 8:
+                        case 7:
+                            CFData = Chapter.LoadUrl(link, Referer: CurrentUrl.Host, UserAgent: ProxyTools.UserAgent);
+                            break;
+                        case 6:
+                        case 5:
+                            Chapter.LoadUrl(link, UserAgent: ProxyTools.UserAgent);
+                            break;
+                        case 4:
+                        case 3:
+                            Chapter.LoadUrl(link);
+                            break;
+                        case 2:
+                        case 1:
+                            JSTools.DefaultBrowser.WaitForLoad(link);
+                            Chapter.LoadHtml(JSTools.DefaultBrowser.GetDocument().ToHTML());
+                            break;
+                    }
+                    ThreadTools.Wait(100);
+                }
+
+                LastSuccess = retry;
+
+                var ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'chapter_preloaded_images')]");
+                if (ScriptNode != null)
+                {
+                    var Script = ScriptNode.InnerText + "\r\nchapter_preloaded_images;";
+                    var Rst = (List<object>)JSTools.DefaultBrowser.EvaluateScript(Script);
+                    AllLinks.AddRange(Rst.Cast<string>().Where(x => x.StartsWith("http")));
+                    continue;
+                }
+
+                string[] Links = (from x in Chapter
+                                  .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img|//img[@class='chapter-image']")
+                                  select (x.GetAttributeValue("data-src", null) ??
+                                          x.GetAttributeValue("src", null) ??
+                                          x.GetAttributeValue("data-cfsrc", "")).Trim()).Distinct().ToArray();
+
+
+                AllLinks.AddRange(Links.Where(x => x.StartsWith("http")));
             }
 
-            string[] Links = (from x in Chapter
-                              .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img|//img[@class='chapter-image']")
-                              select (x.GetAttributeValue("data-src", null) ??
-                                      x.GetAttributeValue("src", null) ??
-                                      x.GetAttributeValue("data-cfsrc", "")).Trim()).Distinct().ToArray();
-
-            return Links.Where(x=>x.StartsWith("http")).ToArray();
+            return AllLinks.ToArray();
         }
 
         public IDecoder GetDecoder()
@@ -154,7 +200,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 5, 0)
+                Version = new Version(2, 5, 1)
             };
         }
 
