@@ -197,7 +197,7 @@ namespace MangaUnhost.Hosts
 
             List<ChapterData> Chaps = new List<ChapterData>();
 
-            var QueryURI = $"https://api.mangadex.org/manga/{ComicID}/feed?limit=500&offset=";
+            var QueryURI = $"https://api.mangadex.org/manga/{ComicID}/feed?limit=500&contentRating[0]=safe&contentRating[1]=suggestive&contentRating[2]=erotica&contentRating[3]=pornographic&offset=";
 
             int Offset = 0;
 
@@ -229,7 +229,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 7)
+                Version = new Version(2, 8)
             };
         }
 
