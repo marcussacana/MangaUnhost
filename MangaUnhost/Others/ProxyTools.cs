@@ -17,6 +17,7 @@ namespace MangaUnhost.Others
         const int PROXIES = 4;//Big values = more slow but more safe, small values = more fast, but less safe
         static string[] ProxList = new string[PROXIES + 1];
         static int pid = 0;
+        static int tries = 0;
         internal static string Proxy
         {
             get
@@ -43,7 +44,8 @@ namespace MangaUnhost.Others
         internal static void RefreshProxy()
         {
             ProxList = new string[PROXIES + 1];
-            string[] Proxies = FreeProxy();
+            string[] Proxies = tries++ % 2 == 0 ? FreeProxy() : ProxyScrape();
+            Proxies = Proxies.Skip(new Random().Next(Math.Max(Proxies.Length - PROXIES, 0))).ToArray();
             for (int i = 0, x = 0; i < PROXIES; i++)
             {
                 Proxies[i] = Proxies[i].ToLower().Replace("http://", "").Replace("https://", "");
@@ -58,37 +60,24 @@ namespace MangaUnhost.Others
             ProxList[0] = null;
         }
 
-        internal const string UserAgent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/28.0 Chrome/130.0.0.0 Mobile Safari/537.36";
+        internal const string UserAgent = "Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.44 Mobile Safari/537.36";
 
-        const string GimmeProxyAPI = "http://gimmeproxy.com/api/getProxy?get=true&post=true&cookies=true&supportsHttps=true&protocol=http&minSpeed=60";
+        const string ProxyScrapeAPI = "https://api.proxyscrape.com/v4/free-proxy-list/get?request=displayproxies&protocol=http&timeout=3000&limit=100";
         const string PubProxyAPI = "http://pubproxy.com/api/proxy?google=true&post=true&limit=10&format=txt&speed=20&type=http";
-        const string ProxyListApi = "https://www.proxy-list.download/api/v0/get?l=en&t=http";
+        const string ProxyListApi = "https://www.proxy-list.download/api/v1/get?type=http";
         internal static string[] FreeProxy()
         {
-            var Json = new WebClient().DownloadString(ProxyListApi);
-            var Obj = new JavaScriptSerializer().DeserializeObject(Json);
-            Obj = ((object[])Obj).First();
-            var Resp = (Dictionary<string, object>)Obj;
-            var Listas = (from x in (object[])Resp["LISTA"] select (Dictionary<string, object>)x);
-            return (from x in Listas select $"{x["IP"]}:{x["PORT"]}").ToArray();
+            var Data = new WebClient().DownloadString(ProxyListApi);
+
+            return Data.Split('\n', '\r').Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
         }
 
 
-        internal static string GimmeProxy()
+        internal static string[] ProxyScrape()
         {
-            string Reply = string.Empty;
-            string Proxy = null;
-            while (Reply == string.Empty)
-            {
-                string Response = new WebClient().DownloadString(GimmeProxyAPI).Replace(@" ", "");
-                Proxy = ReadJson(Response, "curl");
-                if (string.IsNullOrWhiteSpace(Proxy))
-                    return FreeProxy().First();
+            string Data = new WebClient().DownloadString(ProxyScrapeAPI).Replace(@" ", "");
 
-                if (ValidateProxy(Proxy))
-                    break;
-            }
-            return Proxy;
+            return Data.Split('\n', '\r').Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
         }
 
         internal static bool ValidateProxy(string Proxy)

@@ -189,13 +189,11 @@ namespace MangaUnhost
             if (!File.Exists(BrowserSubprocessPath))
                 Outdated = true;
 
-            var TargetVer = new Version(131, 0, 100, 0);
+            var TargetVer = new Version(140, 1, 140, 0);
 
             if (!Outdated)
             {
                 var VerStr = FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion;
-                //if (new Version(VerStr) != new Version(75, 1, 143, 0))
-                //if (new Version(VerStr) != new Version(79, 1, 360, 0))
                 if (new Version(VerStr) != TargetVer)
                 {
                     Outdated = true;

@@ -190,6 +190,8 @@ namespace MangaUnhost.Browser
 
 
             var Container = new CookieContainer();
+
+            int skipNum = 0;
             
             WebBrowser.RegisterWebRequestHandlerEvents(null, (sender, e) =>
             {
@@ -205,6 +207,11 @@ namespace MangaUnhost.Browser
             }, (sender, e) =>
             {
                 e.DefaultHandler = e.WebRequest.Url != Url;
+                /*if (!e.DefaultHandler && skipNum == 0) { 
+                    e.DefaultHandler = true;
+                    skipNum++;
+                }
+                */
             });
             
 
@@ -217,6 +224,7 @@ namespace MangaUnhost.Browser
                 offWebBrowser.Size = new Size(1280, 720);
             }
 
+            int Proxies = 0;
             WebBrowser.Load(Url);
 
             var Browser = WebBrowser.GetBrowser();
@@ -228,6 +236,11 @@ namespace MangaUnhost.Browser
                 while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha() && maxWait-- > 0)
                 {
                     ThreadTools.Wait(100, true);
+                }
+
+                if (Browser.GetHTML().Contains("Please enable cookies."))
+                {
+                    throw new Exception("Banned IP on Cloudflare");
                 }
 
                 if (Browser.IsCloudflareAskingCaptcha())
