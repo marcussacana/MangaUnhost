@@ -1,4 +1,5 @@
-﻿using MangaUnhost.Browser;
+﻿using HtmlAgilityPack;
+using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,9 @@ namespace MangaUnhost.Hosts
             int ID = LinkMap.Count;
             foreach (var Chap in Document.SelectNodes("//div[@id='chapterlist' or contains(@class, 'listing-chapters_wrap')]//a") ?? ChapterDocument?.SelectNodes("//li[contains(@class, 'wp-manga-chapter')]/a"))
             {
+                if (Chap.SelectSingleParent("//*[@class='chapterdate']") is HtmlNode n && n != null)
+                    n.Remove();
+                    
                 var ChapNumInfo = Chap.ChildNodes.Where(x => x.HasClass("chapternum"));
                 string Name = HttpUtility.HtmlDecode((ChapNumInfo.Any() ? ChapNumInfo.First().InnerHtml : Chap.InnerText).ToLowerInvariant().Trim());
                 string URL = Chap.GetAttributeValue("href", "");
@@ -138,7 +142,7 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 4, 0)
+                Version = new Version(2, 4, 1)
             };
         }
 
