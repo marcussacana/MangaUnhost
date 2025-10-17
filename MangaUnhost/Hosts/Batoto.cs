@@ -33,6 +33,7 @@ namespace MangaUnhost.Hosts {
                     try
                     {
                         data = Download(new Uri(PageUrl));
+                        ThreadTools.Wait(100);
                         break;
                     }
                     catch
