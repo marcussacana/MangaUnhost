@@ -229,7 +229,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(2, 8)
+                Version = new Version(3, 0)
             };
         }
 
@@ -260,9 +260,16 @@ namespace MangaUnhost.Hosts
             var CoverURI = $"https://uploads.mangadex.org/covers/{ComicID}/{CoverID}";
 
             var TitleInfo = Info.Data.Attributes.Title;
+            string AltTitle = null;
+
+            if (Info.Data.Attributes.AltTitles != null && Info.Data.Attributes.AltTitles.Any()) {
+                AltTitle = Info.Data.Attributes.AltTitles.OrderByDescending(x => x.En).ThenBy(x => x.JaRo).ThenBy(x => x.Ja).ThenBy(x => x.Ko)
+                .SelectMany(x => new[] { x.En, x.JaRo, x.Ja, x.Ko }).Where(x => !string.IsNullOrWhiteSpace(x)).First();
+            }
+
             return new ComicInfo()
             {
-                Title = TitleInfo.En ?? TitleInfo.JaRo ?? TitleInfo.Ja_Ro ?? TitleInfo.Ja ?? TitleInfo.Ko,
+                Title = TitleInfo.En ?? TitleInfo.JaRo ?? TitleInfo.Ja_Ro ?? AltTitle ?? TitleInfo.Ja ?? TitleInfo.Ko,
                 ContentType = ContentType.Comic,
                 Cover = CoverURI.TryDownload(UserAgent: ProxyTools.UserAgent),
                 Url = Uri
