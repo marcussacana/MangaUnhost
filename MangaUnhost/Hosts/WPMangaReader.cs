@@ -119,6 +119,8 @@ namespace MangaUnhost.Hosts
                     if (string.IsNullOrWhiteSpace(ImgUrl))
                         ImgUrl = Page.GetAttributeValue("data-cfsrc", "");
 
+                    ImgUrl = ImgUrl.Trim();
+
                     if (ImgUrl.StartsWith("//"))
                         ImgUrl = "http:" + ImgUrl;
 
@@ -142,7 +144,7 @@ namespace MangaUnhost.Hosts
                 GenericPlugin = true,
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 4, 1)
+                Version = new Version(2, 4, 2)
             };
         }
 
