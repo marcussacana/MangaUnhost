@@ -55,13 +55,18 @@ namespace MangaUnhost.Hosts {
                 Nodes = Document.SelectNodes("//a[contains(@class, 'chapt')]");
             if (Nodes == null || Nodes.Count() <= 0)
                 Nodes = Document.SelectNodes("//div[contains(@class, 'scrollable-panel')]//div[contains(@class, 'space-x-1')]//a");
+            if (Nodes == null || Nodes.Count() <= 0)
+                Nodes = Document.SelectNodes("//div[@data-name='chapter-list']//a[contains(@href, 'title') or contains(@href, 'series')]");
 
 
             foreach (var Node in Nodes) {
                 var nameNode = Node.SelectSingleNode(Node.XPath + "/b") ?? Node;
                 string Name = HttpUtility.HtmlDecode(Node.InnerText);
 
-                Name = Name.ToLower().Replace("chapter", "").Replace("ch.", "").Replace("vol.", "").Trim().Replace("  ", ".").Replace(" ", ".");
+                var baseName = Name.Replace("chapter", "").Replace("ch.", "").Replace("vol.", "").Trim();
+
+                Name = Name.ToLower().Replace("chapter", "").Replace("ch.", "").Replace("vol.", "")
+                    .Trim().Replace("  ", ".").Replace(" ", ".").Replace("[end]", "").Replace("(end)", "").Trim('.', ',');
 
                 if (Name.Contains("[deleted]") || Name.Contains("[delete]") || Name == "d")
                     continue;
@@ -70,6 +75,11 @@ namespace MangaUnhost.Hosts {
 
                 if (!ChapterUri.Contains("/title/") && !ChapterUri.Contains("/series/") && !ChapterUri.Contains("/chapter/"))
                     continue;
+
+                Name = DataTools.GetRawName(Name);
+
+                if (!double.TryParse(Name, out _))
+                    Name = baseName;
 
                 ChapterNames[ID] = DataTools.GetRawName(Name);
                 ChapterLinks[ID] = ChapterUri;
@@ -165,7 +175,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 4)
+                Version = new Version(2, 5)
             };
         }
 
