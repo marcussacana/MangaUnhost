@@ -10,6 +10,7 @@ using System.Text;
 using System.Web;
 using System.Security.Cryptography;
 using MangaUnhost.Decoders;
+using System.Runtime.InteropServices;
 
 namespace MangaUnhost.Hosts {
     class Batoto : IHost {
@@ -58,6 +59,7 @@ namespace MangaUnhost.Hosts {
             if (Nodes == null || Nodes.Count() <= 0)
                 Nodes = Document.SelectNodes("//div[@data-name='chapter-list']//a[contains(@href, 'title') or contains(@href, 'series')]");
 
+            var entries = new List<KeyValuePair<int, string>>();
 
             foreach (var Node in Nodes) {
                 var nameNode = Node.SelectSingleNode(Node.XPath + "/b") ?? Node;
@@ -84,8 +86,22 @@ namespace MangaUnhost.Hosts {
                 ChapterNames[ID] = DataTools.GetRawName(Name);
                 ChapterLinks[ID] = ChapterUri;
 
-                yield return new KeyValuePair<int, string>(ID, ChapterNames[ID++]);
+                entries.Add(new KeyValuePair<int, string>(ID, ChapterNames[ID++]));
             }
+
+            var order = entries.Where(x => double.TryParse(x.Value, out _)).OrderByDescending(x => double.Parse(x.Value));
+            var missing = entries.Where(x => !double.TryParse(x.Value, out _));
+
+            if (!missing.Any())
+                return order;
+
+            if (!order.Any())
+                return missing;
+
+            if (missing.Max(x=>x.Key) < order.Min(x=>x.Key))
+                return missing.Concat(order);
+            else
+                return order.Concat(missing);
         }
 
         public int GetChapterPageCount(int ID) {
@@ -175,7 +191,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 5)
+                Version = new Version(2, 6)
             };
         }
 

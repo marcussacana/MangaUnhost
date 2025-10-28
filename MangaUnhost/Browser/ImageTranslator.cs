@@ -248,7 +248,7 @@ namespace MangaUnhost.Browser
                     {
                         InpainterName = "lama_large",
                         InpaintingPrecision = "bf16",
-                        InpaintingSize = Math.Max(2048, nearestSize)
+                        InpaintingSize = Math.Min(2048, nearestSize)
                     },
                     Ocr = new Ocr()
                     {
