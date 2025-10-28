@@ -312,17 +312,17 @@ namespace MangaUnhost.Browser
 
         public static byte[] Upload(this string Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
             new Uri(Url).Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies);
-        public static byte[] Upload(this Uri Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
-            Url.Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies);
-        public static byte[] Upload(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
-            new Uri(Url).Upload(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie);
-        public static byte[] Upload(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
+        public static byte[] Upload(this Uri Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, int timeout = 30) =>
+            Url.Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies, timeout);
+        public static byte[] Upload(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30) =>
+            new Uri(Url).Upload(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout);
+        public static byte[] Upload(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30)
         {
             byte[] Result = null;
 
             var Thread = new System.Threading.Thread(() =>
             Result = AsyncContext.Run(async () =>
-            await Url.UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
+            await Url.UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout)));
 
             Thread.Start();
 
@@ -334,9 +334,9 @@ namespace MangaUnhost.Browser
 
             return Result;
         }
-        public static async Task<byte[]> UploadAsync(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
-            await new Uri(Url).UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie);
-        public static async Task<byte[]> UploadAsync(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
+        public static async Task<byte[]> UploadAsync(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30) =>
+            await new Uri(Url).UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout);
+        public static async Task<byte[]> UploadAsync(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30)
         {
             HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(Url);
 
@@ -350,7 +350,7 @@ namespace MangaUnhost.Browser
 
             Request.UseDefaultCredentials = true;
             Request.Method = "POST";
-            Request.Timeout = 1000 * 30;
+            Request.Timeout = 1000 * timeout;
 
             if (Referer != null)
                 Request.Referer = Referer;

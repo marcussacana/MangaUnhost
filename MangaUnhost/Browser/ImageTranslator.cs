@@ -268,7 +268,7 @@ namespace MangaUnhost.Browser
             StartServer();
 
             try {
-                return UrlTools.Upload($"http://127.0.0.1:{LOCAL_PORT}/translate/image", Encoding.UTF8.GetBytes(request));
+                return UrlTools.Upload($"http://127.0.0.1:{LOCAL_PORT}/translate/image", Encoding.UTF8.GetBytes(request), timeout: 60 * 15);
             }
             catch {
                 Thread.Sleep(1000);
