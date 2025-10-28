@@ -337,7 +337,7 @@ namespace MangaUnhost.Parallelism
             }
 
             if (Program.MTLAvailable)
-                DelayTimes *= 2;
+                DelayTimes *= 3;
 
             return TooBig;
         }
