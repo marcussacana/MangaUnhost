@@ -17,6 +17,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms.VisualStyles;
 
 namespace MangaUnhost.Browser
 {
@@ -180,6 +181,17 @@ namespace MangaUnhost.Browser
 
         private byte[] LocalTranslateImage(byte[] image, bool Compatible)
         {
+            Size res;
+            using (var ms = new MemoryStream(image))
+            using (var tmp = Bitmap.FromStream(ms)) { 
+                res = tmp.Size;
+            }
+
+            var Size = Math.Max(res.Width, res.Height);
+
+            var nearestSize = new int[] { 1024, 1536, 2048, 2560 }
+                .OrderBy(x=> Math.Abs(Size - x)).First();
+
             var root = new Root()
             {
                 Image = $"data:image/png;base64,{Convert.ToBase64String(image)}",
@@ -216,13 +228,13 @@ namespace MangaUnhost.Browser
                     },
                     Detector = new Detector()
                     {
-                        BoxThreshold = 0.7,
+                        BoxThreshold = 0.75,
                         DetAutoRotate = false,
                         DetGammaCorrect = false,
                         DetInvert = false,
                         DetRotate = false,
-                        DetectionSize = 2048,
-                        DetectorName = Compatible ? "paddle" : "ctd",
+                        DetectionSize = nearestSize,
+                        DetectorName = Compatible ? "ctd" : "paddle",
                         TextThreshold = 0.5,
                         UnclipRatio = 2.3
                     },
@@ -236,18 +248,18 @@ namespace MangaUnhost.Browser
                     {
                         InpainterName = "lama_large",
                         InpaintingPrecision = "bf16",
-                        InpaintingSize = 2048
+                        InpaintingSize = nearestSize
                     },
                     Ocr = new Ocr()
                     {
-                        IgnoreBubble = 0,
+                        IgnoreBubble = Compatible ? 10 : 5,
                         MinTextLength = 0,
                         OcrName = "48px",
                         UseMocrMerge = true
                     },
                     ForceSimpleSort = false,
                     KernelSize = 3,
-                    MaskDilationOffset = 20
+                    MaskDilationOffset = Compatible ? 10 : 30
                 }
             };
 

@@ -852,18 +852,18 @@ namespace MangaUnhost
                     var Count = Math.Max(Main.Config.TLConcurrency, 1);
                     
                     if (Program.MTLAvailable)
-                        Count = Math.Max(Count /2, 1);
+                        Count = Math.Max(Count/2, 1);
 
                     Translators = new IPacket[Count];
                     TlSemaphore = new SemaphoreSlim(Translators.Length);
                     TlCheckSemaphore = new SemaphoreSlim(1);
                 }
 
-                var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp", ".webp")
                                     .Where(x => !x.EndsWith(".tl.png"))
                                     .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
 
-                var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp")
+                var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp", ".webp")
                     .Where(x => x.EndsWith(".tl.png"))
                     .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
 
@@ -959,7 +959,7 @@ namespace MangaUnhost
                     {
                         var Page = Pages[i];
 
-                        var ReadyExists = ReadyPages.Contains(Page + ".tl.png");
+                        var ReadyExists = ReadyPages.Contains(Page + ".tl.png") || ReadyPages.Contains(Page + ".tl.jpg");
                         if (ReadyExists && AllowSkip)
                             break;
 
@@ -995,6 +995,15 @@ namespace MangaUnhost
                         try
                         {
                             var ImgData = File.ReadAllBytes(Page);
+
+                            if (Page.ToLower().EndsWith(".webp"))
+                            {
+                                using var data = new CommonImage().Decode(ImgData);
+                                using var ms = new MemoryStream();
+                                data.Save(ms, ImageFormat.Png);
+                                ImgData = ms.ToArray();
+                                File.WriteAllBytes(Page, ImgData);
+                            }
                             
                             bool IsBig = PageTranslator.IsImageTooBig(ImgData, out int Delay);
 

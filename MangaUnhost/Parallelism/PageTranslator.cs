@@ -320,7 +320,7 @@ namespace MangaUnhost.Parallelism
         public static bool IsImageTooBig(byte[] ImgData, out int DelayTimes)
         {
             DelayTimes = 1;
-            bool TooBig = ImgData.Length >= 1024 * 1024 * 10;
+            bool TooBig = ImgData.Length >= 1024 * 1024 * (Program.MTLAvailable ? 30 : 10);
 
             if (!TooBig)
             {
