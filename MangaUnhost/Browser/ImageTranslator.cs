@@ -234,7 +234,7 @@ namespace MangaUnhost.Browser
                         DetInvert = false,
                         DetRotate = false,
                         DetectionSize = nearestSize,
-                        DetectorName = Compatible ? "ctd" : "paddle",
+                        DetectorName = Compatible ? "paddle" : "ctd",
                         TextThreshold = 0.5,
                         UnclipRatio = 2.3
                     },
@@ -248,7 +248,7 @@ namespace MangaUnhost.Browser
                     {
                         InpainterName = "lama_large",
                         InpaintingPrecision = "bf16",
-                        InpaintingSize = Math.Max(2048, nearestSize),
+                        InpaintingSize = Math.Max(2048, nearestSize)
                     },
                     Ocr = new Ocr()
                     {
