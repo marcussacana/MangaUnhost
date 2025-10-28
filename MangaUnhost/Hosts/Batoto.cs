@@ -112,7 +112,14 @@ namespace MangaUnhost.Hosts {
             var Page = GetChapterHtml(ID);
             List<string> Pages = new List<string>();
 
-            foreach (var Node in Page.DocumentNode.SelectNodes("//script[contains(., 'images')]"))
+            var targets = Page.DocumentNode.SelectNodes("//script[contains(., 'images')]");
+
+            if (targets == null || !targets.Any())
+            {
+                targets = Page.DocumentNode.SelectNodes("//*[contains(@props, 'pageOpts')]");
+            }
+
+            foreach (var Node in targets)
             {
                 if (Node.InnerHtml.Contains("var images") || Node.InnerHtml.Contains("const images") || Node.InnerHtml.Contains("const img"))
                 {
@@ -147,9 +154,17 @@ namespace MangaUnhost.Hosts {
                             Pages.Add(Image);
                     }
                 }
-                if (Node.GetAttributeValue("type", "").Contains("json"))
+                if (Node.GetAttributeValue("type", "").Contains("json") || Node.GetAttributeValue("props", "").Contains("pageOpts"))
                 {
-                    var JSON = HttpUtility.HtmlDecode(Node.InnerHtml);
+                    var src = Node.InnerHtml;
+
+                    if (!string.IsNullOrWhiteSpace(Node.GetAttributeValue("props", null)))
+                    {
+                        if (Node.GetAttributeValue("props", "").Contains("pageOpts"))
+                            src = Node.GetAttributeValue("props", null);
+                    }
+
+                    var JSON = HttpUtility.HtmlDecode(src);
 
                     var Urls = new List<string>();
 
@@ -161,7 +176,7 @@ namespace MangaUnhost.Hosts {
 
                         i = Pos;
 
-                        var Url = JSON.Substring(i + 1, JSON.IndexOf("\"", i + 1) - i - 1);
+                        var Url = JSON.Substring(i + 1, JSON.IndexOf("\"", i + 1) - i - 1).Trim('\\', '"');
                         Urls.Add(Url);
                     }
 
@@ -191,7 +206,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(2, 6)
+                Version = new Version(2, 6, 1)
             };
         }
 
