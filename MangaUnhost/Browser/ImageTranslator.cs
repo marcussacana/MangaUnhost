@@ -228,7 +228,7 @@ namespace MangaUnhost.Browser
                     },
                     Detector = new Detector()
                     {
-                        BoxThreshold = 0.75,
+                        BoxThreshold = 0.7,
                         DetAutoRotate = false,
                         DetGammaCorrect = false,
                         DetInvert = false,
@@ -247,19 +247,19 @@ namespace MangaUnhost.Browser
                     Inpainter = new Inpainter()
                     {
                         InpainterName = "lama_large",
-                        InpaintingPrecision = "bf16",
+                        InpaintingPrecision = "fp16",
                         InpaintingSize = nearestSize
                     },
                     Ocr = new Ocr()
                     {
-                        IgnoreBubble = Compatible ? 10 : 5,
+                        IgnoreBubble = 0,
                         MinTextLength = 0,
                         OcrName = "48px",
                         UseMocrMerge = true
                     },
                     ForceSimpleSort = false,
                     KernelSize = 3,
-                    MaskDilationOffset = Size > 2560 ? 128 : 30
+                    MaskDilationOffset = Size > 2560 ? 128 : 10
                 }
             };
 
