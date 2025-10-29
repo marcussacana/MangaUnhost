@@ -189,7 +189,7 @@ namespace MangaUnhost.Browser
 
             var Size = Math.Max(res.Width, res.Height);
 
-            var nearestSize = new int[] { 1024, 1536, 2048, 2560 }
+            var nearestSize = new int[] { 1024, 1536, 2048, 2560, 3584 }
                 .OrderBy(x=> Math.Abs(Size - x)).First();
 
             var root = new Root()
@@ -248,7 +248,7 @@ namespace MangaUnhost.Browser
                     {
                         InpainterName = "lama_large",
                         InpaintingPrecision = "bf16",
-                        InpaintingSize = Math.Min(2048, nearestSize)
+                        InpaintingSize = nearestSize
                     },
                     Ocr = new Ocr()
                     {
@@ -259,7 +259,7 @@ namespace MangaUnhost.Browser
                     },
                     ForceSimpleSort = false,
                     KernelSize = 3,
-                    MaskDilationOffset = Compatible ? 20 : 30
+                    MaskDilationOffset = Size > 2560 ? 128 : 30
                 }
             };
 

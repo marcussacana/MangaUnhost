@@ -889,7 +889,7 @@ namespace MangaUnhost
                 int LastProgressCheck = 0;
                 DateTime LastChanged = DateTime.Now;
 
-                while (Translated + Failed < Pages.Length && (DateTime.Now - LastChanged).TotalMinutes < (Program.MTLAvailable ? 15 : 5))
+                while (Translated + Failed < Pages.Length && (DateTime.Now - LastChanged).TotalMinutes < (Program.MTLAvailable ? 10 : 5))
                 {
                     if (LastProgressCheck != Translated)
                     {
