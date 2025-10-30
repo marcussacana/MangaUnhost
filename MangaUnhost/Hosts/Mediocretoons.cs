@@ -29,7 +29,7 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             return currentBookInfo.capitulos
-                .Select(x => new KeyValuePair<int, string>(x.id, x.numero)).Reverse();
+                .Select(x => new KeyValuePair<int, string>(x.id, x.numero));
         }
 
         public int GetChapterPageCount(int ID)
