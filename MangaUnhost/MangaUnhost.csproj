@@ -100,6 +100,7 @@
     <Compile Include="Decoders\AvifDecoder.cs" />
     <Compile Include="Hosts\BlackoutComics.cs" />
     <Compile Include="Hosts\DragonScan.cs" />
+    <Compile Include="Hosts\HentaiNexus.cs" />
     <Compile Include="Hosts\Mangago.cs" />
     <Compile Include="Hosts\Mediocretoons.cs" />
     <Compile Include="Hosts\Taiyo.cs" />
