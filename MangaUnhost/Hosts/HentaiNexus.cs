@@ -41,7 +41,7 @@ namespace MangaUnhost.Hosts {
             foreach (var Node in Document.SelectNodes("//div[contains(@class, 'is-one-fifth-desktop')]//a")) {
                 var doc = new HtmlDocument();
                 doc.LoadUrl(new Uri(new Uri(CurrentUrl), Node.GetAttributeValue("href", "")));
-                var node = Document.SelectSingleNode("//script[contains(., 'initReader(')]");
+                var node = doc.SelectSingleNode("//script[contains(., 'initReader(')]");
 
                 if (node == null)
                     continue;
