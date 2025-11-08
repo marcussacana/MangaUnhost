@@ -859,12 +859,12 @@ namespace MangaUnhost
                     TlCheckSemaphore = new SemaphoreSlim(1);
                 }
 
-                var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp", ".webp")
-                                    .Where(x => !x.EndsWith(".tl.png"))
+                var Pages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp", "*.webp")
+                                    .Where(x => !x.Contains(".tl."))
                                     .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
 
-                var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp", ".webp")
-                    .Where(x => x.EndsWith(".tl.png"))
+                var ReadyPages = ListFiles(Chapter, "*.png", "*.jpg", "*.gif", "*.jpeg", "*.bmp", "*.webp")
+                    .Where(x => x.Contains(".tl."))
                     .OrderBy(x => int.TryParse(Path.GetFileNameWithoutExtension(x), out int val) ? val : 0).ToArray();
 
                 if (ReadyPages.Length == 0)
@@ -900,7 +900,7 @@ namespace MangaUnhost
                     await Task.Delay(100);
                 }
 
-                var NewReadyPages = Pages.Where(x => File.Exists(x + ".tl.png")).ToArray();
+                var NewReadyPages = ListFiles(Chapter, "*.tl.*");
 
                 if (NewReadyPages.Length != Pages.Length) {
 
