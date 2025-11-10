@@ -22,7 +22,7 @@ namespace MangaUnhost.Hosts
         {
             foreach (var page in GetChapterPages(ID))
             {
-                yield return page.TryDownload(CFData, $"https://mediocretoons.com/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
+                yield return page.TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
             }
         }
 
@@ -39,9 +39,9 @@ namespace MangaUnhost.Hosts
 
         private string[] GetChapterPages(int ID)
         {
-            var apiData = DownloadString($"https://api.mediocretoons.com/capitulos/{ID}");
+            var apiData = DownloadString($"https://api.{CurrentHost}/capitulos/{ID}");
             var chapterData = JsonConvert.DeserializeObject<ChapterData>(apiData);
-            return chapterData.paginas.Select(x => $"https://storage.mediocretoons.com/obras/{currentBook}/capitulos/{chapterData.numero}/{x.src}").ToArray();
+            return chapterData.paginas.Select(x => $"https://{CDN}/obras/{currentBook}/capitulos/{chapterData.numero}/{x.src}").ToArray();
         }
 
         public IDecoder GetDecoder()
@@ -58,7 +58,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mediocretoons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
@@ -69,26 +69,46 @@ namespace MangaUnhost.Hosts
 
         public bool IsValidUri(Uri Uri)
         {
-            return Uri.Host.Contains("mediocretoons.com") && Uri.PathAndQuery.Contains("obra/");
+            return Uri.Host.Contains("mediocretoons") && Uri.PathAndQuery.Contains("obra/");
         }
 
         private string currentBook = string.Empty;
         private BookInfo currentBookInfo;
         private CloudflareData? CFData = null;
+        private string CurrentHost;
+        private string CDN;
         public ComicInfo LoadUri(Uri Uri)
         {
             currentBook = Uri.LocalPath.Split('/')[2];
 
-            CFData = new HtmlDocument().LoadUrl("https://mediocretoons.com/obra/" + currentBook);
+            var doc = new HtmlDocument();
 
-            var apiData = DownloadString($"https://api.mediocretoons.com/obras/{currentBook}");
+            CFData = doc.LoadUrl($"https://{Uri.Host}/obra/" + currentBook);
+
+            CDN = $"storage.{Uri.Host}";
+
+            var indexNode = doc.SelectSingleNode("//script[contains(@src, '/index-')]");
+
+            if (indexNode != null) { 
+                var scriptUrl = new Uri(Uri, indexNode.GetAttributeValue("src", null));
+                var scriptData = DownloadString(scriptUrl.AbsoluteUri);
+
+                if (scriptData?.Contains("CDN_URL") ?? false){ 
+                    CDN = scriptData.Substring("CDN_URL:\"", "\",").Substring("://");
+                }
+            }
+
+
+            var apiData = DownloadString($"https://api.{Uri.Host}/obras/{currentBook}");
 
             currentBookInfo = JsonConvert.DeserializeObject<BookInfo>(apiData);
+
+            CurrentHost = Uri.Host;
 
             return new ComicInfo()
             {
                 ContentType = ContentType.Comic,
-                Cover = $"https://storage.mediocretoons.com/obras/{currentBook}/{currentBookInfo.imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers),
+                Cover = $"https://{CDN}/obras/{currentBook}/{currentBookInfo.imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers),
                 Title = currentBookInfo.nome,
                 Url = Uri,
             };
@@ -96,12 +116,12 @@ namespace MangaUnhost.Hosts
 
         private (string Key, string Value)[] Headers => new (string Key, string Value)[]
         {
-            ("Origin", "https://mediocretoons.com")
+            ("Origin", $"https://{CurrentHost}")
         };
 
         private string DownloadString(string url)
         {
-            return new Uri(url).TryDownloadString(CFData, "https://mediocretoons.com/", Headers: Headers);
+            return new Uri(url).TryDownloadString(CFData, $"https://{CurrentHost}/", Headers: Headers);
         }
 
         private struct ChapterData {
