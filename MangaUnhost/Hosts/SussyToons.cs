@@ -27,6 +27,7 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             return currentBookInfo.capitulos
+                .OrderByDescending(x => Convert.ToDecimal(x.cap_numero.Replace(',', '.')))
                 .Select(x => new KeyValuePair<int, string>(x.cap_id, x.cap_numero));
         }
 
@@ -49,8 +50,20 @@ namespace MangaUnhost.Hosts
                 apiData = DownloadString($"{API}/capitulos/{ID}");
             }
 
-            var chapterData = JsonConvert.DeserializeObject<APIResult<ChapterData>>(apiData).resultado;
-            return chapterData.cap_paginas.Select(x => $"https://{CDN}/scans/{ScanId}/obras/{currentBook}/capitulos/{chapterData.cap_numero}/{x.src}").ToArray();
+            ChapterData chapterData;
+            if (apiData.Contains("resultado"))
+                chapterData = JsonConvert.DeserializeObject<APIResult<ChapterData>>(apiData).resultado;
+            else
+                chapterData = JsonConvert.DeserializeObject<ChapterData>(apiData);
+
+            if (CDNRoot != null)
+            {
+                return chapterData.cap_paginas.Select(x => $"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}").ToArray();
+            }
+            else
+            {
+                return chapterData.cap_paginas.Select(x => $"https://{CDN}/scans/{ScanId}/obras/{currentBook}/capitulos/{chapterData.cap_numero}/{x.src}").ToArray();
+            }
         }
 
         public IDecoder GetDecoder()
@@ -67,7 +80,7 @@ namespace MangaUnhost.Hosts
                 Name = "SussyToons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                Version = new Version(1, 2)
             };
         }
 
@@ -76,6 +89,11 @@ namespace MangaUnhost.Hosts
             var doc = new HtmlDocument();
             doc.LoadHtml(HTML);
 
+            return GetInfo(URL, doc);
+        }
+
+        private bool GetInfo(Uri URL, HtmlDocument doc)
+        {
             var indexNode = doc.SelectSingleNode("//script[contains(@src, '/index-')]");
 
             if (indexNode != null)
@@ -83,13 +101,24 @@ namespace MangaUnhost.Hosts
                 var scriptUrl = new Uri(URL, indexNode.GetAttributeValue("src", null));
                 var scriptData = DownloadString(scriptUrl.AbsoluteUri);
 
-                if (scriptData?.Contains("https://cdn") ?? false)
+                if (scriptData.Contains("https://cdn"))
                 {
                     CDN = scriptData.Substring(scriptData.IndexOf("https://cdn")).Substring("://", "\",");
                 }
-                if (scriptData?.Contains("https://api.") ?? false)
+                if (scriptData.Contains("https://api."))
                 {
                     API = scriptData.Substring(scriptData.IndexOf("https://api.")).Substring("", "\",");
+                }
+
+                if (API == null && scriptData.Contains("=\"https://api"))
+                {
+                    API = scriptData.Substring(scriptData.IndexOf("=\"https://api") + 2).Substring("", "\"");
+                }
+
+                if (scriptData.Contains("manga_\")?r="))
+                {
+                    CDNRoot = scriptData.Substring("manga_\")?r=", "$");
+                    CDNRoot = CDNRoot.Trim('(', '`', ')', '\'', '\"');
                 }
 
                 if (apiPrefix == null)
@@ -122,7 +151,8 @@ namespace MangaUnhost.Hosts
                         }
                     }
 
-
+                    if (CDN != null && API != null)
+                        return true;
                 }
             }
 
@@ -141,6 +171,7 @@ namespace MangaUnhost.Hosts
         private string CDN;
         private string API;
         private string ScanId;
+        private string CDNRoot;
         public ComicInfo LoadUri(Uri Uri)
         {
             currentBook = Uri.LocalPath.Split('/')[2];
@@ -150,79 +181,45 @@ namespace MangaUnhost.Hosts
             CFData = doc.LoadUrl($"https://{Uri.Host}/obra/" + currentBook);
 
             CDN = $"storage.{Uri.Host}";
-            API = $"https://api.{Uri.Host}";
             CurrentHost = Uri.Host;
 
-            var indexNode = doc.SelectSingleNode("//script[contains(@src, '/index-')]");
+            GetInfo(Uri, doc);
 
-            if (indexNode != null) {
-                var scriptUrl = new Uri(Uri, indexNode.GetAttributeValue("src", null));
-                var scriptData = DownloadString(scriptUrl.AbsoluteUri);
-
-                if (scriptData?.Contains("https://cdn") ?? false) {
-                    CDN = scriptData.Substring(scriptData.IndexOf("https://cdn")).Substring("://", "\",");
-                }
-                if (scriptData?.Contains("https://api.") ?? false)
-                {
-                    API = scriptData.Substring(scriptData.IndexOf("https://api.")).Substring("", "\",");
-                }
-
-                if (apiPrefix == null)
-                {
-                    var assets = scriptData.Substring("=[\"", "]").Split(',').Select(x=>x.Trim(' ', '"', '\''));
-
-                    if (assets != null)
-                    {
-                        foreach (var asset in assets)
-                        {
-                            if (!asset.Contains("Page-"))
-                                continue;
-
-                            scriptUrl = new Uri(new Uri($"https://{CurrentHost}"), asset);
-                            scriptData = DownloadString(scriptUrl.AbsoluteUri);
-
-
-                            //await T.get(`c9812736812/${o}`)).data.resultado
-                            try
-                            {
-                                if (scriptData?.Contains(").data.resultado") ?? false)
-                                {
-                                    apiPrefix = scriptData.Substring(0, scriptData.IndexOf(").data.resultado"));
-                                    apiPrefix = apiPrefix.Substring(apiPrefix.LastIndexOf("(") + 1);
-                                    apiPrefix = apiPrefix.Substring("", "$").Split('/').First().Trim('(', '`', ')', '\'', '\"');
-                                    break;
-                                }
-                            }
-                            catch { }
-                        }
-                    }
-
-
-                }
-            }
+            API ??= $"https://api.{Uri.Host}";
 
             var apiInfo = DownloadString($"{API}/scan-info");
 
-            if (apiInfo != null)
+            if (!string.IsNullOrWhiteSpace(apiInfo))
             {
                 var scanInfo = JsonConvert.DeserializeObject<APIResult<ScanInfo>>(apiInfo);
                 if (scanInfo.success)
                 {
                     ScanId = scanInfo.resultado.scan_id.ToString();
                 }
+            } 
+            else
+            {
+                apiInfo = DownloadString($"{API}/minha-scan");
+                var scanInfo = JsonConvert.DeserializeObject<ScanInfo>(apiInfo);
+                ScanId = scanInfo.scan_id.ToString();
             }
 
             var apiData = DownloadString($"{API}/obras/{currentBook}");
 
-            currentBookInfo = JsonConvert.DeserializeObject<APIResult<BookInfo>>(apiData).resultado;
+            if (apiData.Contains("resultado"))
+                currentBookInfo = JsonConvert.DeserializeObject<APIResult<BookInfo>>(apiData).resultado;
+            else
+                currentBookInfo = JsonConvert.DeserializeObject<BookInfo>(apiData);
 
             return new ComicInfo()
-            {
-                ContentType = ContentType.Comic,
-                Cover = $"https://{CDN}/scans/{ScanId}/obras/{currentBook}/{currentBookInfo.obr_imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers),
+                {
+                    ContentType = ContentType.Comic,
+                    Cover = currentBookInfo.obr_imagem.Contains("/") ?
+                    $"https://{CDN}/{currentBookInfo.obr_imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers) :
+                    $"https://{CDN}/scans/{ScanId}/obras/{currentBook}/{currentBookInfo.obr_imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers),
                 Title = currentBookInfo.obr_nome,
-                Url = Uri,
-            };
+                    Url = Uri,
+                };
         }
 
         private (string Key, string Value)[] Headers => new (string Key, string Value)[]

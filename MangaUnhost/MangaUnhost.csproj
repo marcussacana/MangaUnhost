@@ -109,7 +109,6 @@
     <Compile Include="Hosts\Mangadex.cs" />
     <Compile Include="Hosts\BaoZimh.cs" />
     <Compile Include="Hosts\ManhwaHentai.cs" />
-    <Compile Include="Hosts\TsukiMangas.cs" />
     <Compile Include="Hosts\Tsukondu.cs" />
     <Compile Include="Hosts\Weloma.cs" />
     <Compile Include="Hosts\WPMangaReader.cs" />
