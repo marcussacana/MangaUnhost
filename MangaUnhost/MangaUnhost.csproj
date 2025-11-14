@@ -102,6 +102,7 @@
     <Compile Include="Hosts\DragonScan.cs" />
     <Compile Include="Hosts\HentaiNexus.cs" />
     <Compile Include="Hosts\Mangago.cs" />
+    <Compile Include="Hosts\SussyToons.cs" />
     <Compile Include="Hosts\Mediocretoons.cs" />
     <Compile Include="Hosts\Taiyo.cs" />
     <Compile Include="Hosts\Manga4Life.cs" />
