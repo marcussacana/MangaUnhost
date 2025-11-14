@@ -18,9 +18,12 @@ namespace MangaUnhost.Hosts
 
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
-            foreach (var page in GetChapterPages(ID))
+            var pagesA = GetChapterPages(ID, false);
+            var pagesB = GetChapterPages(ID, true);
+            for (var i = 0; i < pagesA.Length; i++)
             {
-                yield return page.TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
+                yield return pagesA[i].TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers) ??
+                    pagesB[i].TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
             }
         }
 
@@ -33,11 +36,11 @@ namespace MangaUnhost.Hosts
 
         public int GetChapterPageCount(int ID)
         {
-            return GetChapterPages(ID).Length;
+            return GetChapterPages(ID, false).Length;
         }
 
         private string apiPrefix = null;
-        private string[] GetChapterPages(int ID)
+        private string[] GetChapterPages(int ID, bool AltType)
         {
 
             string apiData;
@@ -56,13 +59,13 @@ namespace MangaUnhost.Hosts
             else
                 chapterData = JsonConvert.DeserializeObject<ChapterData>(apiData);
 
-            if (CDNRoot != null)
+            if (AltType)
             {
                 return chapterData.cap_paginas.Select(x => $"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}").ToArray();
             }
             else
             {
-                return chapterData.cap_paginas.Select(x => $"https://{CDN}/scans/{ScanId}/obras/{currentBook}/capitulos/{chapterData.cap_numero}/{x.src}").ToArray();
+                return chapterData.cap_paginas.Select(x => $"https://{CDN}/scans/{ScanId}/obras/{currentBookInfo.obr_id}/capitulos/{chapterData.cap_numero}/{x.src}").ToArray();
             }
         }
 
@@ -80,7 +83,7 @@ namespace MangaUnhost.Hosts
                 Name = "SussyToons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
@@ -216,8 +219,8 @@ namespace MangaUnhost.Hosts
                     ContentType = ContentType.Comic,
                     Cover = currentBookInfo.obr_imagem.Contains("/") ?
                     $"https://{CDN}/{currentBookInfo.obr_imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers) :
-                    $"https://{CDN}/scans/{ScanId}/obras/{currentBook}/{currentBookInfo.obr_imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers),
-                Title = currentBookInfo.obr_nome,
+                    $"https://{CDN}/scans/{ScanId}/obras/{currentBookInfo.obr_id}/{currentBookInfo.obr_imagem}".TryDownload(CFData, Uri.AbsoluteUri, Headers: Headers),
+                    Title = currentBookInfo.obr_nome,
                     Url = Uri,
                 };
         }
