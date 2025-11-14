@@ -59,7 +59,7 @@ namespace MangaUnhost.Hosts
             else
                 chapterData = JsonConvert.DeserializeObject<ChapterData>(apiData);
 
-            if (AltType)
+            if (AltType && CDNRoot != null)
             {
                 return chapterData.cap_paginas.Select(x => $"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}").ToArray();
             }
