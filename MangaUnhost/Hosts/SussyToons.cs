@@ -30,7 +30,7 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             return currentBookInfo.capitulos
-                .OrderByDescending(x => Convert.ToDecimal(x.cap_numero.Replace(',', '.')))
+                .OrderByDescending(x => double.Parse(x.cap_numero.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture))
                 .Select(x => new KeyValuePair<int, string>(x.cap_id, x.cap_numero));
         }
 
@@ -61,7 +61,7 @@ namespace MangaUnhost.Hosts
 
             if (AltType && CDNRoot != null)
             {
-                return chapterData.cap_paginas.Select(x => $"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}").ToArray();
+                return chapterData.cap_paginas.Select(x => x.path == null ? $"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}" : $"https://{CDN}/{x.path.Trim('/')}/{x.src.Trim('/')}").ToArray();
             }
             else
             {
@@ -250,6 +250,7 @@ namespace MangaUnhost.Hosts
         private struct ChapterPage
         {
             public string src;
+            public string path;
         }
 
         private struct APIResult<T> where T : struct
