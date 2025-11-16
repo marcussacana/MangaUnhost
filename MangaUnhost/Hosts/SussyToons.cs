@@ -53,11 +53,12 @@ namespace MangaUnhost.Hosts
                 apiData = DownloadString($"{API}/capitulos/{ID}");
             }
 
-            ChapterData chapterData;
-            if (apiData.Contains("resultado"))
-                chapterData = JsonConvert.DeserializeObject<APIResult<ChapterData>>(apiData).resultado;
-            else
+            ChapterData chapterData = JsonConvert.DeserializeObject<APIResult<ChapterData>>(apiData).resultado;
+            if (chapterData.cap_id == 0)
                 chapterData = JsonConvert.DeserializeObject<ChapterData>(apiData);
+
+            
+
 
             if (AltType && CDNRoot != null)
             {
@@ -83,7 +84,7 @@ namespace MangaUnhost.Hosts
                 Name = "SussyToons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 3)
+                Version = new Version(1, 4)
             };
         }
 
@@ -101,6 +102,8 @@ namespace MangaUnhost.Hosts
 
             if (indexNode != null)
             {
+                CurrentHost = URL.Host;
+
                 var scriptUrl = new Uri(URL, indexNode.GetAttributeValue("src", null));
                 var scriptData = DownloadString(scriptUrl.AbsoluteUri);
 
@@ -192,6 +195,26 @@ namespace MangaUnhost.Hosts
 
             var apiInfo = DownloadString($"{API}/scan-info");
 
+            /* Scan-Id inicial, Ou é o hostname ou 1 se for o site principal
+             qhe = () => new URLSearchParams(window.location.search).get('scan_id'),
+            Ghe = () => {
+                var n;
+                const e = qhe();
+                if (e) return e;
+                if (Po === 'development') return '1';
+                const t = typeof window < 'u' ? (n = window == null ? void 0 : window.location) == null ? void 0 : n.hostname : '';
+                return t != null &&
+                t.includes('sussytoons.wtf') ? '1' : t ||
+                '1'
+            },
+             */
+
+            if (string.IsNullOrWhiteSpace(apiInfo) && API.Contains("sussytoons.wtf"))
+            {
+                ScanId = "1";
+                apiInfo = DownloadString($"{API}/scan-info");
+            }
+
             if (!string.IsNullOrWhiteSpace(apiInfo))
             {
                 var scanInfo = JsonConvert.DeserializeObject<APIResult<ScanInfo>>(apiInfo);
@@ -201,17 +224,21 @@ namespace MangaUnhost.Hosts
                 }
             } 
             else
-            {
+            { 
                 apiInfo = DownloadString($"{API}/minha-scan");
-                var scanInfo = JsonConvert.DeserializeObject<ScanInfo>(apiInfo);
-                ScanId = scanInfo.scan_id.ToString();
+
+                if (!string.IsNullOrWhiteSpace(apiInfo))
+                {
+                    var scanInfo = JsonConvert.DeserializeObject<ScanInfo>(apiInfo);
+                    ScanId = scanInfo.scan_id.ToString();
+                }
             }
 
             var apiData = DownloadString($"{API}/obras/{currentBook}");
 
-            if (apiData.Contains("resultado"))
-                currentBookInfo = JsonConvert.DeserializeObject<APIResult<BookInfo>>(apiData).resultado;
-            else
+            currentBookInfo = JsonConvert.DeserializeObject<APIResult<BookInfo>>(apiData).resultado;
+            
+            if (currentBookInfo.obr_nome == null)
                 currentBookInfo = JsonConvert.DeserializeObject<BookInfo>(apiData);
 
             return new ComicInfo()
@@ -228,7 +255,7 @@ namespace MangaUnhost.Hosts
         private (string Key, string Value)[] Headers => new (string Key, string Value)[]
         {
             ("Origin", $"https://{CurrentHost}"),
-            ("scan-id", $"{CurrentHost}")
+            ("scan-id", $"{ScanId??CurrentHost}")
         };
 
         private string DownloadString(string url)
