@@ -177,6 +177,7 @@ namespace MangaUnhost.Hosts
         private string CDN;
         private string API;
         private string ScanId;
+        private string ScanIdApi;
         private string CDNRoot;
         public ComicInfo LoadUri(Uri Uri)
         {
@@ -211,8 +212,12 @@ namespace MangaUnhost.Hosts
 
             if (string.IsNullOrWhiteSpace(apiInfo) && API.Contains("sussytoons.wtf"))
             {
-                ScanId = "1";
+                ScanIdApi = "1";
                 apiInfo = DownloadString($"{API}/scan-info");
+                if (string.IsNullOrWhiteSpace(apiInfo))
+                {
+                    ScanIdApi = null;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(apiInfo))
@@ -224,7 +229,7 @@ namespace MangaUnhost.Hosts
                 }
             } 
             else
-            { 
+            {
                 apiInfo = DownloadString($"{API}/minha-scan");
 
                 if (!string.IsNullOrWhiteSpace(apiInfo))
@@ -255,7 +260,7 @@ namespace MangaUnhost.Hosts
         private (string Key, string Value)[] Headers => new (string Key, string Value)[]
         {
             ("Origin", $"https://{CurrentHost}"),
-            ("scan-id", $"{ScanId??CurrentHost}")
+            ("scan-id", $"{ScanIdApi??CurrentHost}")
         };
 
         private string DownloadString(string url)
