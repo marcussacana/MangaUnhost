@@ -18,12 +18,31 @@ namespace MangaUnhost.Hosts
 
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
-            var pagesA = GetChapterPages(ID, false);
-            var pagesB = GetChapterPages(ID, true);
-            for (var i = 0; i < pagesA.Length; i++)
+            var pagesA = GetChapterPages(ID, 0);
+            var pagesB = GetChapterPages(ID, 1);
+            var pagesC = GetChapterPages(ID, 2);
+
+            string[] pages = null;
+
+            var testA = pagesA.First().TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
+            var testB = pagesB.First().TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
+            var testC = pagesC.First().TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
+
+            if (testA != null)
+                pages = pagesA;
+
+            if (testB != null)
+                pages = pagesB;
+
+            if (testC != null)
+                pages = pagesC;
+
+            if (pages == null)
+                throw new Exception("Failed to find the page url");
+
+            for (var i = 0; i < pages.Length; i++)
             {
-                yield return pagesA[i].TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers) ??
-                    pagesB[i].TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
+                yield return pages[i].TryDownload(CFData, $"https://{CurrentHost}/obra/{currentBook}/capitulo/{ID}", Headers: Headers);
             }
         }
 
@@ -36,11 +55,11 @@ namespace MangaUnhost.Hosts
 
         public int GetChapterPageCount(int ID)
         {
-            return GetChapterPages(ID, false).Length;
+            return GetChapterPages(ID, 0).Length;
         }
 
         private string apiPrefix = null;
-        private string[] GetChapterPages(int ID, bool AltType)
+        private string[] GetChapterPages(int ID, int Type)
         {
 
             string apiData;
@@ -60,9 +79,13 @@ namespace MangaUnhost.Hosts
             
 
 
-            if (AltType && CDNRoot != null)
+            if (Type == 1 && CDNRoot != null)
             {
                 return chapterData.cap_paginas.Select(x => x.path == null ? $"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}" : $"https://{CDN}/{x.path.Trim('/')}/{x.src.Trim('/')}").ToArray();
+            }
+            else if (Type == 2 && CDNRoot != null)
+            {
+                return chapterData.cap_paginas.Select(x=>$"https://{CDN}/{CDNRoot.Trim('/')}/{x.src.Trim('/')}").ToArray();
             }
             else
             {
@@ -84,7 +107,7 @@ namespace MangaUnhost.Hosts
                 Name = "SussyToons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 4, 5)
+                Version = new Version(1, 4, 6)
             };
         }
 
@@ -126,10 +149,11 @@ namespace MangaUnhost.Hosts
                     API = scriptData.Substring(scriptData.IndexOf("=\"https://api") + 2).Substring("", "\"");
                 }
 
-                if (scriptData.Contains("manga_\")?r="))
+                //:t.startsWith("uploads/")?c=`wp-content/${t}`:t.startsWith("manga_")?c=`wp-content/uploads/WP-manga/data/${t}`:t.
+                if (scriptData.Contains("manga_\")?"))
                 {
-                    CDNRoot = scriptData.Substring("manga_\")?r=", "$");
-                    CDNRoot = CDNRoot.Trim('(', '`', ')', '\'', '\"');
+                    CDNRoot = scriptData.Substring("manga_\")?", "$");
+                    CDNRoot = CDNRoot.Substring("=").Trim('(', '`', ')', '\'', '\"');
                 }
 
                 if (apiPrefix == null)
