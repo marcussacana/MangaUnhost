@@ -122,23 +122,23 @@ namespace MangaUnhost.Browser
             };
         }
 
-        public static string TryDownloadString(this Uri Url, CloudflareData? CFData = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            Encoding.UTF8.GetString(Url.TryDownload(CFData, Referer, Proxy, Accept, null, Headers) ?? new byte[0]);
+        public static string TryDownloadString(this Uri Url, CloudflareData? CFData = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
+            Encoding.UTF8.GetString(Url.TryDownload(CFData, Referer, Proxy, Accept, null, Headers, AcceptableErrors, Retries, TimeoutSecs) ?? new byte[0]);
 
-        public static string TryDownloadString(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            Encoding.UTF8.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries) ?? new byte[0]);
+        public static string TryDownloadString(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
+            Encoding.UTF8.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs) ?? new byte[0]);
 
-        public static string TryDownloadString(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            Encoding.UTF8.GetString(new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries) ?? new byte[0]);
+        public static string TryDownloadString(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
+            Encoding.UTF8.GetString(new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs) ?? new byte[0]);
 
-        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
-        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries);
-        public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
+        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, int TimeoutSecs = 120) =>
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries, TimeoutSecs);
+        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, int TimeoutSecs = 120) =>
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries, TimeoutSecs);
+        public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
+            new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs);
 
-        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
+        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120)
         {
             bool Finished = false;
             byte[] Result = null;
@@ -156,8 +156,14 @@ namespace MangaUnhost.Browser
 
             Thread.Start();
 
-            while (!Finished)
+            var waitBegin = DateTime.Now;
+            while (!Finished && ((DateTime.Now - waitBegin).TotalSeconds < TimeoutSecs))
                 ThreadTools.Wait(100, true);
+
+            if (!Finished) {
+                Thread.Abort();
+                return null;
+            }
 
             return Result;
         }

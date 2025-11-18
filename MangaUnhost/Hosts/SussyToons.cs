@@ -84,7 +84,7 @@ namespace MangaUnhost.Hosts
                 Name = "SussyToons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 4)
+                Version = new Version(1, 4, 5)
             };
         }
 
@@ -114,6 +114,11 @@ namespace MangaUnhost.Hosts
                 if (scriptData.Contains("https://api."))
                 {
                     API = scriptData.Substring(scriptData.IndexOf("https://api.")).Substring("", "\",");
+                }
+
+                if (API == null && scriptData.Contains("\"https://api2"))
+                {
+                    API = scriptData.Substring(scriptData.IndexOf("\"https://api2") + 1).Substring("", "\"");
                 }
 
                 if (API == null && scriptData.Contains("=\"https://api"))
@@ -194,7 +199,7 @@ namespace MangaUnhost.Hosts
 
             API ??= $"https://api.{Uri.Host}";
 
-            var apiInfo = DownloadString($"{API}/scan-info");
+            var apiInfo = DownloadString($"{API}/scan-info", 10);
 
             /* Scan-Id inicial, Ou é o hostname ou 1 se for o site principal
              qhe = () => new URLSearchParams(window.location.search).get('scan_id'),
@@ -213,7 +218,7 @@ namespace MangaUnhost.Hosts
             if (string.IsNullOrWhiteSpace(apiInfo) && API.Contains("sussytoons.wtf"))
             {
                 ScanIdApi = "1";
-                apiInfo = DownloadString($"{API}/scan-info");
+                apiInfo = DownloadString($"{API}/scan-info", 10);
                 if (string.IsNullOrWhiteSpace(apiInfo))
                 {
                     ScanIdApi = null;
@@ -263,14 +268,14 @@ namespace MangaUnhost.Hosts
             ("scan-id", $"{ScanIdApi??CurrentHost}")
         };
 
-        private string DownloadString(string url)
+        private string DownloadString(string url, int TimeoutSecs = 120)
         {
             CFData = new CloudflareData() {
                 Cookies = CFData?.Cookies,
                 UserAgent = CFData?.UserAgent ?? ProxyTools.UserAgent,
                 HTML = CFData?.HTML
             };
-            return new Uri(url).TryDownloadString(CFData, $"https://{CurrentHost}/", Headers: Headers);
+            return new Uri(url).TryDownloadString(CFData, $"https://{CurrentHost}/", Headers: Headers, TimeoutSecs: TimeoutSecs);
         }
 
         private struct ChapterData {
