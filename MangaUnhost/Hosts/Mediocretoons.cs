@@ -39,7 +39,7 @@ namespace MangaUnhost.Hosts
 
         private string[] GetChapterPages(int ID)
         {
-            var apiData = DownloadString($"https://api.{CurrentHost}/capitulos/{ID}");
+            var apiData = DownloadString($"{API}/capitulos/{ID}");
             var chapterData = JsonConvert.DeserializeObject<ChapterData>(apiData);
             return chapterData.paginas.Select(x => $"https://{CDN}/obras/{currentBook}/capitulos/{chapterData.numero}/{x.src}").ToArray();
         }
@@ -58,7 +58,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mediocretoons",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 1)
+                Version = new Version(1, 2)
             };
         }
 
@@ -77,6 +77,7 @@ namespace MangaUnhost.Hosts
         private CloudflareData? CFData = null;
         private string CurrentHost;
         private string CDN;
+        private string API;
         public ComicInfo LoadUri(Uri Uri)
         {
             currentBook = Uri.LocalPath.Split('/')[2];
@@ -98,8 +99,15 @@ namespace MangaUnhost.Hosts
                 }
             }
 
+            API = $"https://api.{Uri.Host}";
 
-            var apiData = DownloadString($"https://api.{Uri.Host}/obras/{currentBook}");
+            var apiData = DownloadString($"{API}/obras/{currentBook}");
+
+            if (string.IsNullOrWhiteSpace(apiData)){
+
+                API = $"https://api.{Uri.Host.Replace(".com", ".site")}";
+                apiData = DownloadString($"{API}/obras/{currentBook}");
+            }
 
             currentBookInfo = JsonConvert.DeserializeObject<BookInfo>(apiData);
 
