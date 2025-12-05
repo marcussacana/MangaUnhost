@@ -206,12 +206,7 @@ namespace MangaUnhost.Hosts
 
         public bool IsValidUri(Uri Uri)
         {
-            return (Uri.Host.ToLower().Contains("isekaiscan.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("manga47.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("manga68.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("mangatx.com") && Uri.AbsolutePath.ToLower().Contains("manga/")) ||
-                   (Uri.Host.ToLower().Contains("toonily.com") && Uri.AbsolutePath.ToLower().Contains("webtoon/")) ||
-                   (Uri.Host.ToLower().Contains("mangalivre.blog") && Uri.AbsolutePath.ToLower().Contains("manga/"));
+            return (Uri.Host.ToLower().Contains("mangalivre.blog") && Uri.AbsolutePath.ToLower().Contains("manga/"));
         }
         public bool IsValidPage(string HTML, Uri URL)
         {
