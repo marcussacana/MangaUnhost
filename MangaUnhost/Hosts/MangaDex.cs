@@ -104,6 +104,8 @@ namespace MangaUnhost.Hosts
                 }
             }
 
+            bool NoVolumes = Query.Count() == 1 && Query.First().Key is null;
+
             List<string> Names = new List<string>();
             foreach (var Volume in Query)
             {
@@ -111,7 +113,7 @@ namespace MangaUnhost.Hosts
 
                 foreach (var Chapter in SubQuery)
                 {
-                    string Name = GetChapterName(Chapter);
+                    string Name = GetChapterName(Chapter, NoVolumes);
 
                     if (Names.Contains(Name))
                         continue;
@@ -144,11 +146,13 @@ namespace MangaUnhost.Hosts
                 return float.Parse(Vol);
         }
 
-        private static string GetChapterName(ChapterData Chapter)
+        private static string GetChapterName(ChapterData Chapter, bool NoVolumes)
         {
             string Name;
 
-            if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
+            if (NoVolumes)
+                Name = Chapter.Attributes.Chapter.Trim('.');
+            else if (string.IsNullOrWhiteSpace(Chapter.Attributes.Volume))
                 Name = $"Ch. {Chapter.Attributes.Chapter}".Trim('.');
             else
                 Name = $"Vol. {Chapter.Attributes.Volume} Ch. {Chapter.Attributes.Chapter}".Trim('.', ' ');
@@ -229,7 +233,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(3, 0)
+                Version = new Version(3, 1)
             };
         }
 
