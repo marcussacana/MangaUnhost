@@ -48,7 +48,7 @@ namespace MangaUnhost.Hosts
             browser.WaitForLoad(chapMap[id]);
             while (true) {
                 try { 
-                    ThreadTools.Wait(6000);
+                    ThreadTools.Wait(6000, true);
                     var doc = browser.GetDocument();
 
                     var pages = new List<string>();
@@ -74,7 +74,7 @@ namespace MangaUnhost.Hosts
             var readBase = currentUrl.AbsoluteUri.Replace("/obra/", "/ler/").TrimEnd('/') + "/";
 
             browser.WaitForLoad(readBase + "1");
-            ThreadTools.Wait(5000);
+            ThreadTools.Wait(5000, true);
 
             while (true)
             {
@@ -82,12 +82,12 @@ namespace MangaUnhost.Hosts
                 {
                     var pos = browser.GetBounds("//button[contains(@id, 'radix-«r5»')]");
                     browser.ExecuteClick(pos);
-                    ThreadTools.Wait(500);
+                    ThreadTools.Wait(500, true);
                     break;
                 }
                 catch
                 {
-                    ThreadTools.Wait(1000);
+                    ThreadTools.Wait(1000, true);
                 }
             }
 
@@ -142,15 +142,22 @@ namespace MangaUnhost.Hosts
         }
 
         Uri currentUrl;
-        ChromiumWebBrowser browser;
+        static ChromiumWebBrowser browser;
+
         public ComicInfo LoadUri(Uri Uri)
         {
             currentUrl = Uri;
 
-            browser = new ChromiumWebBrowser(Uri.AbsoluteUri);
-            browser.Size = new System.Drawing.Size(1280, 720);
-            browser.WaitForLoad();
-            ThreadTools.Wait(3000);
+            if (browser == null)
+            {
+                browser = new ChromiumWebBrowser(Uri.AbsoluteUri);
+                browser.Size = new System.Drawing.Size(1280, 720);
+                browser.WaitForLoad();
+            }
+            else
+                browser.WaitForLoad(Uri.AbsoluteUri);
+
+            ThreadTools.Wait(3000, true);
             //browser.ShowDevTools();
             Login();
 
@@ -177,7 +184,7 @@ namespace MangaUnhost.Hosts
                     };
                 }
                 catch (Exception ex){ 
-                    ThreadTools.Wait(1000);
+                    ThreadTools.Wait(1000, true);
                 }
             }
 
@@ -215,7 +222,7 @@ namespace MangaUnhost.Hosts
                     throw new Exception("Login failed");
                 }
                 catch { 
-                    ThreadTools.Wait(5000);
+                    ThreadTools.Wait(5000, true);
                 }
             }
         }
