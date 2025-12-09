@@ -20,6 +20,7 @@ namespace MangaUnhost.Browser {
                 ThreadTools.Wait(Step.Delay, true);
             }
         }
+        public static void ExecuteClick(this ChromiumWebBrowser Browser, Rectangle Area) => Browser.GetBrowserHost().ExecuteClick(new Point(Area.X + (Area.Width / 2), Area.Y + (Area.Height / 2)));
         public static void ExecuteClick(this ChromiumWebBrowser Browser, Point Position) => Browser.GetBrowserHost().ExecuteClick(Position);
 
         public static void ExecuteClick(this IBrowser Browser, Point Position) => Browser.GetHost().ExecuteClick(Position);

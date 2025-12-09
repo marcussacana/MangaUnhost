@@ -126,6 +126,26 @@ namespace MangaUnhost.Browser
                     yield return Frame;
             }
         }
+        public static string CreateTargetSelectorFromXPATH(this string XPATH, bool includeVar = false)
+        {
+            if (includeVar)
+                return $"var target = XPATH(\"{XPATH.Replace("\\", "\\\\").Replace("'", "\'")}\", false);";
+            else
+
+                return $"XPATH(\"{XPATH.Replace("\\", "\\\\").Replace("'", "\'")}\", false)";
+        }
+        public static Rectangle GetBounds(this ChromiumWebBrowser Browser, string XPATH) => Browser.GetBrowser().GetBounds(XPATH);
+
+        public static Rectangle GetBounds(this IBrowser browser, string XPATH)
+        {
+            browser.InjectXPATH();
+            var script = CreateTargetSelectorFromXPATH(XPATH, true) + Properties.Resources.targetGetBounds;
+            string rst = browser.EvaluateScript<string>(script);
+
+
+            InputTools.GetBoundsCoords(rst, out int x, out int y, out int width, out int height);
+            return new Rectangle(x, y, width, height);
+        }
         public static void InjectXPATH(this ChromiumWebBrowser Browser) => Browser.GetBrowser().InjectXPATH();
         public static void InjectXPATH(this IBrowser Browser) => Browser.EvaluateScriptUnsafe(Properties.Resources.XPATHScript);
         public static T EvaluateScript<T>(this ChromiumWebBrowser Browser, string Script) => (T)Browser.GetBrowser().EvaluateScript(Script);

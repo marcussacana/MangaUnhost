@@ -40,14 +40,26 @@ namespace MangaUnhost.Hosts
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
             int ID = LinkMap.Count;
-            foreach (var Chap in Document.SelectNodes("//div[@id='chapterlist' or contains(@class, 'listing-chapters_wrap')]//a") ?? ChapterDocument?.SelectNodes("//li[contains(@class, 'wp-manga-chapter')]/a"))
+
+            var chapNodes = Document.SelectNodes("//div[@id='chapterlist' or contains(@class, 'listing-chapters_wrap')]//a") ?? 
+                            ChapterDocument?.SelectNodes("//li[contains(@class, 'wp-manga-chapter')]/a") ??
+                            Document.SelectNodes("//div[@class='bigcover']/../../..//div[contains(@class, 'scrollbar')]//a");
+
+            foreach (var curChap in chapNodes)
             {
+                var Chap = curChap;
+
                 if (Chap.SelectSingleParent("//*[@class='chapterdate']") is HtmlNode n && n != null)
                     n.Remove();
                     
                 var ChapNumInfo = Chap.ChildNodes.Where(x => x.HasClass("chapternum"));
+
+                string URL = new Uri(new Uri($"https://{CurrentUrl.Host}"), Chap.GetAttributeValue("href", "")).AbsoluteUri;
+
+                if (!ChapNumInfo.Any() && Chap.ChildNodes.Where(x =>x.InnerText.ToLower().Contains("chapter")).Count() == 1)
+                    Chap = Chap.ChildNodes.Where(x => x.InnerText.ToLower().Contains("chapter")).Single();
+
                 string Name = HttpUtility.HtmlDecode((ChapNumInfo.Any() ? ChapNumInfo.First().InnerHtml : Chap.InnerText).ToLowerInvariant().Trim());
-                string URL = Chap.GetAttributeValue("href", "");
 
                 if (Name.StartsWith("chapter"))
                     Name = Name.Substring("chapter").Trim();
@@ -151,7 +163,8 @@ namespace MangaUnhost.Hosts
         public bool IsValidPage(string HTML, Uri URL)
         {
             return (HTML.Contains("/mangareader/") && HTML.Contains("main-info") ) || 
-                   (HTML.Contains("wp-manga-chapter") && HTML.Contains("tab-chapter-listing"));
+                   (HTML.Contains("wp-manga-chapter") && HTML.Contains("tab-chapter-listing") || 
+                   (HTML.Contains("Chapter <!-- -->") && HTML.Contains("self.__next_f")));
         }
 
         public bool IsValidUri(Uri Uri)
@@ -204,10 +217,12 @@ namespace MangaUnhost.Hosts
             ComicInfo Info = new ComicInfo();
             Info.Title = HttpUtility.HtmlDecode((Document.SelectSingleNode("//*[(self::h1 or self::h2 or self::h3) and @class='entry-title']") ??
                                                  Document.SelectSingleNode("//div[@id='manga-title']/*[(self::h1 or self::h2 or self::h3)]") ??
-                                                 Document.SelectSingleNode("//div[@class='post-title']/h1")).InnerText.Trim());
+                                                 Document.SelectSingleNode("//div[@class='post-title']/h1") ??
+                                                 Document.SelectSingleNode("//div[@class='bigcover']/..//*[@class='text-xl font-bold']")).InnerText.Trim());
 
             var ImgNode = Document.SelectSingleNode("//div[@class='thumb']/img") ??
-                          Document.SelectSingleNode("//div[@class='summary_image']//img");
+                          Document.SelectSingleNode("//div[@class='summary_image']//img") ??
+                          Document.SelectSingleNode("//div[@class='bigcover']/..//*[@alt='poster']");
 
             var ImgUrl = ImgNode.GetAttributeValue("data-lazy-srcset", null) ??
                          ImgNode.GetAttributeValue("src", "");
