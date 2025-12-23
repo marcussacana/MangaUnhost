@@ -240,7 +240,7 @@ namespace MangaUnhost.Hosts
             CurrentUrl = Uri;
             ReverseChapters = Uri.Host.ToLower().Contains("manga47.com");
 
-            Document.LoadUrl(Uri, Cookies: Cookies);
+            CFData = Document.LoadUrl(Uri, Cookies: Cookies);
             if (string.IsNullOrWhiteSpace(Document.ToHTML()) || Document.IsCloudflareTriggered())
             {
                 CFData = JSTools.BypassCloudflare(Uri.AbsoluteUri);
@@ -283,7 +283,7 @@ namespace MangaUnhost.Hosts
 
         private byte[] TryDownload(string Url)
         {
-            return Url.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri, UserAgent: ProxyTools.UserAgent);
+            return Url.TryDownload(CFData, Referer: CurrentUrl.AbsoluteUri, UserAgent: CFData?.UserAgent??ProxyTools.UserAgent);
         }
     }
 }
