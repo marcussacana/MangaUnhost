@@ -128,7 +128,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 1)
+                Version = new Version(1, 2)
             };
         }
 
@@ -205,7 +205,11 @@ namespace MangaUnhost.Hosts
 
             var doc = browser.GetDocument();
             if (doc.SelectSingleNode("//*[@for='email']") == null)
+            {
+                browser.WaitForLoad($"https://yomu.com.br{HttpUtility.UrlDecode(retUrl)}");
+                ThreadTools.Wait(3000, true);
                 return;
+            }
 
             while (true)
             {
