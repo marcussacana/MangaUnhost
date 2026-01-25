@@ -194,8 +194,15 @@ namespace MangaUnhost.Hosts
 
         public void Login()
         {
-            var retUrl = browser.GetCurrentUrl().Substring("redirect=");
+            var retUrl = browser.GetCurrentUrl();
+
+            if (retUrl.Contains("redirect="))
+                retUrl = retUrl.Substring("redirect=");
+            else
+                retUrl = HttpUtility.UrlEncode("/" + retUrl.Substring("//").Substring("/"));
+
             browser.WaitForLoad("https://yomu.com.br/auth/login?callbackUrl=" + retUrl);
+
             var doc = browser.GetDocument();
             if (doc.SelectSingleNode("//*[@for='email']") == null)
                 return;
