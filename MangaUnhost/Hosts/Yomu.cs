@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using System.Threading;
+using System.Web;
 
 namespace MangaUnhost.Hosts
 {
@@ -127,7 +128,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
@@ -193,6 +194,8 @@ namespace MangaUnhost.Hosts
 
         public void Login()
         {
+            var retUrl = browser.GetCurrentUrl().Substring("redirect=");
+            browser.WaitForLoad("https://yomu.com.br/auth/login?callbackUrl=" + retUrl);
             var doc = browser.GetDocument();
             if (doc.SelectSingleNode("//*[@for='email']") == null)
                 return;
