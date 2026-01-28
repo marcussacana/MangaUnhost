@@ -101,6 +101,7 @@
     <Compile Include="Hosts\BlackoutComics.cs" />
     <Compile Include="Hosts\DragonScan.cs" />
     <Compile Include="Hosts\HentaiNexus.cs" />
+    <Compile Include="Hosts\Lycantoons.cs" />
     <Compile Include="Hosts\Mangago.cs" />
     <Compile Include="Hosts\SussyToons.cs" />
     <Compile Include="Hosts\Mediocretoons.cs" />
