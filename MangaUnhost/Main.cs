@@ -680,6 +680,13 @@ namespace MangaUnhost
             }
             catch { }
             
+            new Thread(() =>
+            {
+                Thread.Sleep(3000);
+
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            }).Start();
+
             try
             {
                 Cef.Shutdown();
