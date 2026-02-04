@@ -81,7 +81,7 @@ namespace MangaUnhost.Hosts
                 if (html.StartsWith("'"))
                     Close = '\'';
 
-                var url = html.Substring(0, html.IndexOf(Close, 1));
+                var url = html.Substring(0, html.IndexOf(Close, 1)).Trim(Close);
                 pages.Add(url);
 
             }
