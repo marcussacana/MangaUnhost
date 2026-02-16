@@ -266,13 +266,13 @@
       <Version>2.2.5</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.Common">
-      <Version>140.1.140</Version>
+      <Version>144.0.120</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.OffScreen">
-      <Version>140.1.140</Version>
+      <Version>144.0.120</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.WinForms">
-      <Version>140.1.140</Version>
+      <Version>144.0.120</Version>
     </PackageReference>
     <PackageReference Include="DotNetZip">
       <Version>1.16.0</Version>
