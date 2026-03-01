@@ -53,7 +53,7 @@ namespace MangaUnhost.Hosts
                     var doc = browser.GetDocument();
 
                     var pages = new List<string>();
-                    foreach (var page in doc.SelectNodes("//*[contains(@class, 'chapter-reading-page')]//img"))
+                    foreach (var page in doc.SelectNodes("//div[contains(@class, 'min-h-[300px]')]/img"))
                     {
                         var urlPath = page.GetAttributeValue("src", null);
                         pages.Add(new Uri(new Uri($"https://yomu.com.br"), urlPath).AbsoluteUri);
@@ -81,7 +81,7 @@ namespace MangaUnhost.Hosts
             {
                 try
                 {
-                    var pos = browser.GetBounds("//button[contains(@id, 'radix-«r5»')]");
+                    var pos = browser.GetBounds("//button[contains(@title, 'Lista de Capítulos')]");
                     browser.ExecuteClick(pos);
                     ThreadTools.Wait(500, true);
                     break;
@@ -94,13 +94,14 @@ namespace MangaUnhost.Hosts
 
 
             var doc = browser.GetDocument();
-            var chaplist = doc.SelectNodes("//*[contains(@class, 'text-xs text-muted-foreground')]");
+            var chaplist = doc.SelectNodes("//div[@class='p-2 space-y-1']/a");
 
             entries = new Dictionary<string, string>();
             foreach (var chapter in chaplist)
             {
-                if (!int.TryParse(chapter.InnerText, out _)) continue;
-                entries.Add(chapter.InnerText, readBase + chapter.InnerText);
+                var href = chapter.GetAttributeValue("href", null);
+                var chap = href.TrimEnd('/').Split('/').Last();
+                entries.Add(chap, new Uri(currentUrl, href).AbsoluteUri);
             }
 
             return entries;
@@ -128,7 +129,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 2)
+                Version = new Version(1, 3)
             };
         }
 
@@ -169,11 +170,21 @@ namespace MangaUnhost.Hosts
                 {
                     var doc = browser.GetDocument();
 
-                    var coverNode = doc.SelectSingleNode("//img[contains(@class, 'w-full h-full object-cover scale-')]");
-                    var titleNode = doc.SelectSingleNode("//h1[contains(@class, 'text-2xl sm:text-3xl md:text-4xl')]");
+                    var titleNode = doc.SelectSingleNode("//h1[contains(@class, 'text-2xl sm:text-3xl md:text-4xl')]")
+                        ?? doc.SelectSingleNode("//h1[contains(@class, 'lg:text-6xl')]");
 
-                    var coverUrl = coverNode.GetAttributeValue("src", null);
                     var title = titleNode.InnerText;
+
+                    var titleQuoted = title;
+
+                    if (titleQuoted.Contains("'"))
+                        titleQuoted = $"\"{title}\"";
+                    else
+                        titleQuoted = $"'{title}'";
+
+                    var coverNode = doc.SelectSingleNode("//img[contains(@class, 'w-full h-full object-cover scale-')]")
+                            ?? doc.SelectSingleNode("//img[@class='object-cover' and @alt=" + titleQuoted + "]");
+                    var coverUrl = coverNode.GetAttributeValue("src", null);
 
 
                     return new ComicInfo()
