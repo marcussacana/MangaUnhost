@@ -1,4 +1,6 @@
-﻿using CefSharp.DevTools.Page;
+﻿using CefSharp;
+using CefSharp.DevTools.Page;
+using CefSharp.OffScreen;
 using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
@@ -42,7 +44,7 @@ namespace MangaUnhost.Hosts
         Dictionary<int, string> ChapMap = new Dictionary<int, string>();
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
-            foreach (var Chap in doc.SelectNodes("//*[@class='capitulos__lista']/a")) {
+            foreach (var Chap in doc.SelectNodes("//*[contains(@id, 'url_')]")) {
                 var chapName = Chap.SelectSingleParent("//span[@class='numero__capitulo']").InnerText;
 
                 chapName = chapName.Replace("Capítulo", "");
@@ -119,7 +121,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 Author = "Marcussacana",
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
@@ -133,7 +135,7 @@ namespace MangaUnhost.Hosts
             return Uri.Host.Contains("rfdragonscan");
         }
 
-        CloudflareData? cfdata = null;
+        static CloudflareData? cfdata = null;
         HtmlDocument doc = new HtmlDocument();
         Uri currentUrl;
         public ComicInfo LoadUri(Uri Uri)
@@ -141,6 +143,10 @@ namespace MangaUnhost.Hosts
             currentUrl = Uri;
 
             cfdata = doc.LoadUrl(Uri);
+
+            EnsureLogin();
+
+            doc.LoadUrl(Uri, cfdata);
 
             var cover = new Uri(Uri, doc.SelectSingleNode("//img[@class='sumario__img']").GetAttributeValue("src", null)).TryDownload(cfdata);
 
@@ -153,6 +159,35 @@ namespace MangaUnhost.Hosts
                 Cover = cover,
                 ContentType = ContentType.Comic,
                 Url = Uri
+            };
+        }
+
+        private void EnsureLogin()
+        {
+            using ChromiumWebBrowser browser = new ChromiumWebBrowser("https://rfdragonscan.com/accounts/login/");
+            browser.WaitInitialize();
+            browser.WaitForLoad();
+
+            if (cfdata.HasValue && cfdata.Value.Cookies != null)
+                browser.BypassCloudflare(cfdata.Value);
+
+            if (browser.GetCurrentUrl().Contains("accounts/login"))
+            { 
+                browser.EvaluateScript("id_login.value = \"dummy\"");
+                browser.EvaluateScript("id_password.value = \"123dummy456\"");
+                browser.EvaluateScript("button.click();");
+
+                browser.WaitForLoad();
+
+                if (browser.GetCurrentUrl().Contains("accounts/login"))
+                    throw new Exception();
+            }
+
+            cfdata = new CloudflareData()
+            {
+                Cookies = browser.GetCookies().ToContainer(),
+                UserAgent = browser.GetUserAgent(),
+                HTML = browser.GetHTML()
             };
         }
     }

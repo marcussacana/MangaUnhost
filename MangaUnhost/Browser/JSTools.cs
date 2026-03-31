@@ -391,5 +391,14 @@ namespace MangaUnhost.Browser
             Browser.WaitForLoad(URL);
             return Bypass;
         }
+        public static void BypassCloudflare(this ChromiumWebBrowser Browser, CloudflareData Bypass)
+        {
+            var URL = Browser.GetCurrentUrl();
+            foreach (var Cookie in Bypass.Cookies.GetCookies())
+            {
+                Browser.UpdateCookie(Cookie);
+            }
+            Browser.WaitForLoad(URL);
+        }
     }
 }
