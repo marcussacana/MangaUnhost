@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Net;
+using CefSharp.OffScreen;
+using CefSharp;
 
 namespace MangaUnhost.Hosts
 {
@@ -247,6 +249,11 @@ namespace MangaUnhost.Hosts
                 Document.LoadHtml(CFData?.HTML);
             }
 
+            if (CurrentUrl.Host.ToLower() == "tiraninha.world") {
+                LoginLittleTyrant();
+                Document.LoadHtml(CFData?.HTML);
+            }
+
             ComicInfo Info = new ComicInfo();
             var TitleNode = Document.SelectSingleNode("//div[@class='post-title' or @class='manga-info']/*[self::h3 or self::h2 or self::h1]");
             try { TitleNode.RemoveChild(TitleNode.ChildNodes.Where(x => x.Name == "span").Single()); } catch { }
@@ -279,6 +286,38 @@ namespace MangaUnhost.Hosts
             Info.ContentType = ContentType.Comic;
 
             return Info;
+        }
+
+        private void LoginLittleTyrant()
+        {
+            var browser = new ChromiumWebBrowser("https://tiraninha.world/login/");
+            browser.WaitInitialize();
+            browser.WaitForLoad();
+
+            if (browser.IsCloudflareTriggered())
+            {
+                CFData = browser.BypassCloudflare();
+            }
+
+            var uri = browser.GetCurrentUrl();
+            if (!uri.Contains("/login"))
+                return;
+
+            browser.WaitForLoad("https://tiraninha.world/login/");
+            browser.ExecuteScriptAsync("document.getElementsByName(\"log\")[0].value = \"dummy\"; document.getElementsByName(\"pwd\")[0].value = \"123dummy456\"; document.getElementsByName(\"submit_login\")[0].click();");
+            browser.WaitForLoad();
+
+            browser.WaitForLoad(CurrentUrl);
+
+            CFData = new CloudflareData()
+            {
+                Cookies = browser.GetCookies().ToContainer(),
+                UserAgent = browser.GetUserAgent(),
+                HTML = browser.GetSourceAsync().Result
+            };
+
+            //dummy
+            //123dummy456
         }
 
         private byte[] TryDownload(string Url)
