@@ -129,7 +129,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 3)
+                Version = new Version(1, 3, 1)
             };
         }
 
@@ -183,9 +183,9 @@ namespace MangaUnhost.Hosts
                         titleQuoted = $"'{title}'";
 
                     var coverNode = doc.SelectSingleNode("//img[contains(@class, 'w-full h-full object-cover scale-')]")
+                            ?? doc.SelectSingleNode("//img[@class='object-cover' and @alt=" + titleQuoted + " and @loading='lazy']")
                             ?? doc.SelectSingleNode("//img[@class='object-cover' and @alt=" + titleQuoted + "]");
                     var coverUrl = coverNode.GetAttributeValue("src", null);
-
 
                     return new ComicInfo()
                     {
