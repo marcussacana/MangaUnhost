@@ -105,6 +105,7 @@
     <Compile Include="Hosts\Mangago.cs" />
     <Compile Include="Hosts\SussyToons.cs" />
     <Compile Include="Hosts\Mediocretoons.cs" />
+    <Compile Include="Hosts\NexusToons.cs" />
     <Compile Include="Hosts\Taiyo.cs" />
     <Compile Include="Hosts\Mangadex.cs" />
     <Compile Include="Hosts\BaoZimh.cs" />
