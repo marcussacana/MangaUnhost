@@ -224,8 +224,10 @@ namespace MangaUnhost.Browser
             {
                 Obj?.Dispose();
             }
-
-            UrlTools.HttpRequestLocker.Release();
+            try { 
+                UrlTools.HttpRequestLocker.Release();
+            }
+            catch { }
             base.Dispose();
         }
     }

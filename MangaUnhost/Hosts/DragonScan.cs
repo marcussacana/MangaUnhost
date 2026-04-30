@@ -132,7 +132,7 @@ namespace MangaUnhost.Hosts
 
         public bool IsValidUri(Uri Uri)
         {
-            return Uri.Host.Contains("rfdragonscan");
+            return Uri.Host.Contains("rfdragonscan.com");
         }
 
         static CloudflareData? cfdata = null;
