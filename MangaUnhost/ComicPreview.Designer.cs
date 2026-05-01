@@ -33,6 +33,10 @@
             this.ComicMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ExportAs = new System.Windows.Forms.ToolStripMenuItem();
             this.ExportToCBZ = new System.Windows.Forms.ToolStripMenuItem();
+            this.CBZExportSingle = new System.Windows.Forms.ToolStripMenuItem();
+            this.CBZExportSingleToJPG = new System.Windows.Forms.ToolStripMenuItem();
+            this.CBZExportSingleToPNG = new System.Windows.Forms.ToolStripMenuItem();
+            this.CBZExportSingleToBMP = new System.Windows.Forms.ToolStripMenuItem();
             this.CBZExportToJPG = new System.Windows.Forms.ToolStripMenuItem();
             this.CBZExportToPNG = new System.Windows.Forms.ToolStripMenuItem();
             this.CBZExportToBMP = new System.Windows.Forms.ToolStripMenuItem();
@@ -102,6 +106,7 @@
             // ExportToCBZ
             // 
             this.ExportToCBZ.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.CBZExportSingle,
             this.CBZExportToJPG,
             this.CBZExportToPNG,
             this.CBZExportToBMP});
@@ -110,24 +115,56 @@
             this.ExportToCBZ.Text = "CBZ";
             this.ExportToCBZ.Click += new System.EventHandler(this.ExportToCBZ_Click);
             // 
+            // CBZExportSingle
+            // 
+            this.CBZExportSingle.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.CBZExportSingleToJPG,
+            this.CBZExportSingleToPNG,
+            this.CBZExportSingleToBMP});
+            this.CBZExportSingle.Name = "CBZExportSingle";
+            this.CBZExportSingle.Size = new System.Drawing.Size(166, 24);
+            this.CBZExportSingle.Text = "Single CBZ";
+            this.CBZExportSingle.Click += new System.EventHandler(this.CBZExportSingle_Click);
+            // 
+            // CBZExportSingleToJPG
+            // 
+            this.CBZExportSingleToJPG.Name = "CBZExportSingleToJPG";
+            this.CBZExportSingleToJPG.Size = new System.Drawing.Size(115, 24);
+            this.CBZExportSingleToJPG.Text = "JPG";
+            this.CBZExportSingleToJPG.Click += new System.EventHandler(this.CBZExportSingleToJPG_Click);
+            // 
+            // CBZExportSingleToPNG
+            // 
+            this.CBZExportSingleToPNG.Name = "CBZExportSingleToPNG";
+            this.CBZExportSingleToPNG.Size = new System.Drawing.Size(115, 24);
+            this.CBZExportSingleToPNG.Text = "PNG";
+            this.CBZExportSingleToPNG.Click += new System.EventHandler(this.CBZExportSingleToPNG_Click);
+            // 
+            // CBZExportSingleToBMP
+            // 
+            this.CBZExportSingleToBMP.Name = "CBZExportSingleToBMP";
+            this.CBZExportSingleToBMP.Size = new System.Drawing.Size(115, 24);
+            this.CBZExportSingleToBMP.Text = "BMP";
+            this.CBZExportSingleToBMP.Click += new System.EventHandler(this.CBZExportSingleToBMP_Click);
+            // 
             // CBZExportToJPG
             // 
             this.CBZExportToJPG.Name = "CBZExportToJPG";
-            this.CBZExportToJPG.Size = new System.Drawing.Size(115, 24);
+            this.CBZExportToJPG.Size = new System.Drawing.Size(166, 24);
             this.CBZExportToJPG.Text = "JPG";
             this.CBZExportToJPG.Click += new System.EventHandler(this.CBZExportToJPG_Click);
             // 
             // CBZExportToPNG
             // 
             this.CBZExportToPNG.Name = "CBZExportToPNG";
-            this.CBZExportToPNG.Size = new System.Drawing.Size(115, 24);
+            this.CBZExportToPNG.Size = new System.Drawing.Size(166, 24);
             this.CBZExportToPNG.Text = "PNG";
             this.CBZExportToPNG.Click += new System.EventHandler(this.CBZExportToPNG_Click);
             // 
             // CBZExportToBMP
             // 
             this.CBZExportToBMP.Name = "CBZExportToBMP";
-            this.CBZExportToBMP.Size = new System.Drawing.Size(115, 24);
+            this.CBZExportToBMP.Size = new System.Drawing.Size(166, 24);
             this.CBZExportToBMP.Text = "BMP";
             this.CBZExportToBMP.Click += new System.EventHandler(this.CBZExportToBMP_Click);
             // 
@@ -296,6 +333,10 @@
         private System.Windows.Forms.ContextMenuStrip ComicMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem ExportAs;
         private System.Windows.Forms.ToolStripMenuItem ExportToCBZ;
+        private System.Windows.Forms.ToolStripMenuItem CBZExportSingle;
+        private System.Windows.Forms.ToolStripMenuItem CBZExportSingleToJPG;
+        private System.Windows.Forms.ToolStripMenuItem CBZExportSingleToPNG;
+        private System.Windows.Forms.ToolStripMenuItem CBZExportSingleToBMP;
         private System.Windows.Forms.ToolStripMenuItem CBZExportToJPG;
         private System.Windows.Forms.ToolStripMenuItem CBZExportToPNG;
         private System.Windows.Forms.ToolStripMenuItem CBZExportToBMP;

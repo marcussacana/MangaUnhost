@@ -1,27 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
+﻿using CefSharp.DevTools.Page;
+using Ionic.Zip;
+using MangaUnhost.Browser;
+using MangaUnhost.Decoders;
+using MangaUnhost.Others;
+using MangaUnhost.Parallelism;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Shell;
-using System.Drawing.Imaging;
-using Ionic.Zip;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using MangaUnhost.Others;
-using System.Text;
-using MangaUnhost.Browser;
-using Encoder = System.Drawing.Imaging.Encoder;
-using System.Drawing.Drawing2D;
 using System.Diagnostics;
-using MangaUnhost.Parallelism;
-using System.Threading;
-using System.Globalization;
-using CefSharp.DevTools.Page;
 using System.Diagnostics.Eventing.Reader;
-using MangaUnhost.Decoders;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Encoder = System.Drawing.Imaging.Encoder;
 
 namespace MangaUnhost
 {
@@ -49,6 +50,7 @@ namespace MangaUnhost
         bool ChapsFound = false;
         bool IndexFound = false;
 
+        string CoverPath;
         string IndexPath;
         public string ComicPath { get; private set; }
         public string ChapPath { get; private set; }
@@ -81,6 +83,7 @@ namespace MangaUnhost
             ConvertTo.Text = Language.ConvertTo;
             ExportAs.Text = Language.ExportAs;
             ExportAllAs.Text = Language.ExportAllAs; 
+            CBZExportSingle.Text = Language.ExportSingleCBZ;
             OpenDirectory.Text = Language.OpenDirectory;
             OpenChapter.Text = Language.OpenChapter;
             Refresh.Text = Language.Refresh;
@@ -140,6 +143,7 @@ namespace MangaUnhost
                 {
                     using (var Cover = Image.FromFile(PossibleCoverPath))
                         CoverBox.Image = ResizeKeepingRatio((Bitmap)Cover, CoverBox.Width, CoverBox.Height);
+                    CoverPath = PossibleCoverPath;
                     CoverFound = true;
                 }
                 if (File.Exists(PossibleIndexPath))
@@ -378,7 +382,8 @@ namespace MangaUnhost
                     using (var Cover = ComicHost.GetDecoder().Decode(ComicInfo.Cover))
                     {
                         CoverBox.Image = ResizeKeepingRatio(Cover, CoverBox.Width, CoverBox.Height);
-                        Cover.Save(Path.Combine(ComicPath, Language.Cover + ".png"));
+                        CoverPath = Path.Combine(ComicPath, Language.Cover + ".png");
+                        Cover.Save(CoverPath);
                         CoverFound = true;
                     }
                 }
@@ -506,6 +511,25 @@ namespace MangaUnhost
             BeginInvoke(new MethodInvoker(() => CBZExportChapters(null)));
         }
 
+        private void CBZExportSingle_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile(null)));
+        }
+
+        private void CBZExportSingleToJPG_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("jpg")));
+        }
+
+        private void CBZExportSingleToPNG_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("png")));
+        }
+
+        private void CBZExportSingleToBMP_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("bmp")));
+        }
 
         private void ExportEverythingAs_Clicked(object sender, EventArgs e)
         {
@@ -678,15 +702,124 @@ namespace MangaUnhost
             Main.SubStatus = "";
         }
 
+        public void CBZExportSingleFile(string Format, string OutDirectory = null, string NamePrefix = "")
+        {
+            var OutDir = OutDirectory ?? SelectDirectory();
+            if (OutDir == null)
+                return;
+
+            var ComicName = Path.GetFileName(ComicPath.TrimEnd(' ', '\\', '/'));
+            var Output = Path.Combine(OutDir, NamePrefix + ComicName + ".cbz");
+            if (File.Exists(Output))
+                return;
+
+            var TempRoot = Path.Combine(Path.GetTempPath(), "MangaUnhost", Guid.NewGuid().ToString("N"));
+            var StagingDir = Path.Combine(TempRoot, ComicName);
+
+            try
+            {
+                Directory.CreateDirectory(StagingDir);
+
+                var Chapters = Directory.GetDirectories(ChapPath)
+                    .OrderBy(x => DataTools.ForceNumber(Path.GetFileName(x.TrimEnd('\\', '/'))))
+                    .ToArray();
+                int totalPages = Chapters
+                    .SelectMany(chapter => Directory.GetFiles(chapter)
+                        .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x))))
+                    .Count();
+
+                int pageIndex = 0;
+
+                Dictionary<int, string> ChapterIndex = new Dictionary<int, string>();
+
+                if (CoverFound)
+                {
+                    ChapterIndex[pageIndex] = "FrontCover";
+                    var Extension = "." + (Format?.TrimStart('.').ToLower() ?? Path.GetExtension(CoverPath).TrimStart('.').ToLower());
+                    var OutPage = Path.Combine(StagingDir, $"{pageIndex++:D6}{Extension}");
+                    ExportPage(CoverPath, OutPage, Format);
+                }
+
+                foreach (var Chapter in Chapters)
+                {
+                    var ChapName = Path.GetFileName(Chapter.TrimEnd('\\', '/'));
+                    var Pages = Directory.GetFiles(Chapter)
+                        .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x)))
+                        .OrderBy(x => DataTools.ForceNumber(Path.GetFileName(x)))
+                        .ToArray();
+
+                    for (int i = 0; i < Pages.Length; i++)
+                    {
+                        Main.Status = string.Format(Language.Exporting, pageIndex + 1, Math.Max(1, totalPages));
+                        Main.SubStatus = ChapName;
+
+                        ChapterIndex[pageIndex] = ChapName;
+
+                        var Page = Pages[i];
+                        var Extension = "." + (Format?.TrimStart('.').ToLower() ?? Path.GetExtension(Page).TrimStart('.').ToLower());
+                        var OutPage = Path.Combine(StagingDir, $"{pageIndex:D6}{Extension}");
+                        ExportPage(Page, OutPage, Format);
+                        pageIndex++;
+                    }
+                }
+
+                if (pageIndex == 0)
+                    return;
+
+                Main.Status = Language.Compressing;
+                Main.SubStatus = ComicName;
+
+                var MetaPath = Path.Combine(StagingDir, "ComicInfo.xml");
+
+                StringBuilder Builder = new StringBuilder();
+
+                Builder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+                Builder.AppendLine("<ComicInfo>");
+
+                if (!string.IsNullOrWhiteSpace(ComicName))
+                    Builder.AppendLine($"  <Title>{SecurityElement.Escape(ComicName)}</Title>");
+
+                Builder.AppendLine("  <Pages>");
+
+                foreach (var page in ChapterIndex.OrderBy(x => x.Key))
+                {
+                    if (page.Value == "FrontCover")
+                        Builder.AppendLine($"    <Page Image=\"{page.Key}\" Type=\"FrontCover\" />");
+                    else
+                        Builder.AppendLine($"    <Page Image=\"{page.Key}\" Bookmark=\"{SecurityElement.Escape(page.Value)}\" />");
+                }
+
+                Builder.AppendLine("  </Pages>");
+                Builder.AppendLine("</ComicInfo>");
+
+                File.WriteAllText(MetaPath, Builder.ToString(), Encoding.UTF8);
+
+                CreateCBZ(StagingDir, Output);
+            }
+            finally
+            {
+                Main.Status = Language.IDLE;
+                Main.SubStatus = "";
+
+                if (Directory.Exists(TempRoot))
+                    Directory.Delete(TempRoot, true);
+            }
+        }
+
         private static void CreateCBZ(string InputDir, string Output)
         {
             using (ZipFile Zip = new ZipFile())
             {
                 var Pages = Directory.GetFiles(InputDir)
                     .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x)))
+                    .OrderBy(x => Path.GetFileName(x), StringComparer.InvariantCultureIgnoreCase)
                     .ToArray();
 
                 Zip.AddFiles(Pages, "");
+
+                if (File.Exists(Path.Combine(InputDir, "ComicInfo.xml")))
+                    Zip.AddFile(Path.Combine(InputDir, "ComicInfo.xml"));
+
                 Zip.CompressionMethod = CompressionMethod.BZip2;
                 Zip.Save(Output);
             }
@@ -712,6 +845,41 @@ namespace MangaUnhost
 
                 return SaveAs.FileName;
             }
+        }
+
+        private static void ExportPage(string InputPage, string OutPage, string Format)
+        {
+            if (string.IsNullOrWhiteSpace(Format))
+            {
+                File.Copy(InputPage, OutPage, true);
+                return;
+            }
+
+            var decoder = new CommonImage();
+            Format = Format.TrimStart('.').ToLower();
+
+            Retry(() =>
+            {
+                var data = File.ReadAllBytes(InputPage);
+                using (Image Original = decoder.Decode(data))
+                {
+                    ImageFormat OutFormat = DataTools.GetImageFormat(Format);
+                    if (OutFormat.Guid == ImageFormat.Jpeg.Guid)
+                    {
+                        using (EncoderParameters JpgEncoder = new EncoderParameters(1))
+                        using (EncoderParameter Parameter = new EncoderParameter(Encoder.Quality, 93L))
+                        {
+                            ImageCodecInfo JpgCodec = ImageCodecInfo.GetImageDecoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+                            JpgEncoder.Param[0] = Parameter;
+                            Original.Save(OutPage, JpgCodec, JpgEncoder);
+                        }
+                    }
+                    else
+                    {
+                        Original.Save(OutPage);
+                    }
+                }
+            });
         }
 
         private void ConvertToJPG_Click(object sender, EventArgs e)

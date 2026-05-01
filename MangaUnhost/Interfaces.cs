@@ -160,6 +160,7 @@ namespace MangaUnhost {
         string OpenChapter { get; }
         string ExportAs { get; }
         string ExportAllAs { get; }
+        string ExportSingleCBZ { get; }
         string ConvertTo { get; }
         string SelectASaveDir { get; }
         string Refresh { get; }

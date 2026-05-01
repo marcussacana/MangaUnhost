@@ -4,6 +4,7 @@ using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -11,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Collections.Specialized;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -34,6 +36,7 @@ namespace MangaUnhost.Hosts
         private bool networkCaptureActive;
         private readonly object networkCaptureSync = new object();
         private readonly List<CapturedNetworkEntry> capturedNetworkEntries = new List<CapturedNetworkEntry>();
+        private readonly Dictionary<string, NetworkRequestInfo> pendingNetworkRequests = new Dictionary<string, NetworkRequestInfo>(StringComparer.InvariantCultureIgnoreCase);
         private Uri currentSeriesUrl;
 
         public NovelChapter DownloadChapter(int ID)
@@ -202,11 +205,14 @@ namespace MangaUnhost.Hosts
 
             var chapters = TryExtractChaptersFromBrowserRequests(reportedChapterCount);
 
-            if (!chapters.Any() || (reportedChapterCount > 0 && chapters.Count < reportedChapterCount))
-                chapters = MergeChapterEntries(chapters, TryExtractChaptersFromRsc(currentSeriesUrl));
+            if (Program.Debug)
+            {
+                Program.Writer?.WriteLine("[DragonScanNext] Browser chapter count: {0} | Reported: {1}", chapters.Count, reportedChapterCount);
+                Program.Writer?.Flush();
+            }
 
             if (!chapters.Any() || (reportedChapterCount > 0 && chapters.Count < reportedChapterCount))
-                chapters = MergeChapterEntries(chapters, ProbeChaptersByNumber(doc));
+                chapters = MergeChapterEntries(chapters, ProbeChaptersByNumber(doc, chapters));
 
             if (!chapters.Any())
                 throw new Exception("Failed to load the chapter list from RF DragonScan.");
@@ -289,6 +295,8 @@ namespace MangaUnhost.Hosts
                     args.Headers["Accept-Encoding"] = "identity";
                 }
                 catch { }
+
+                CaptureNetworkRequest(args);
             }, (sender, args) =>
             {
                 if (!networkCaptureActive)
@@ -305,6 +313,7 @@ namespace MangaUnhost.Hosts
             lock (networkCaptureSync)
             {
                 capturedNetworkEntries.Clear();
+                pendingNetworkRequests.Clear();
                 networkCaptureActive = true;
             }
         }
@@ -481,6 +490,29 @@ namespace MangaUnhost.Hosts
             browserUserAgent = browser.GetUserAgent() ?? ProxyTools.UserAgent;
         }
 
+        private void CaptureNetworkRequest(OnWebRequestEventArgs args)
+        {
+            var url = args?.WebRequest?.RequestUri?.AbsoluteUri;
+            if (string.IsNullOrWhiteSpace(url) || !ShouldCaptureNetworkEntry(url, null))
+                return;
+
+            var info = new NetworkRequestInfo()
+            {
+                Url = url,
+                Method = args?.WebRequest?.Method ?? "GET",
+                Referer = args?.WebRequest?.Referer,
+                Accept = args?.WebRequest?.Accept,
+                ContentType = args?.WebRequest?.ContentType,
+                Headers = CloneHeaders(args?.Headers),
+                PostData = args?.PostData?.ToArray()
+            };
+
+            lock (networkCaptureSync)
+            {
+                pendingNetworkRequests[url] = info;
+            }
+        }
+
         private void CaptureNetworkResponse(OnWebResponseEventArgs args)
         {
             var url = args?.WebRequest?.RequestUri?.AbsoluteUri;
@@ -504,9 +536,16 @@ namespace MangaUnhost.Hosts
                 if (!networkCaptureActive)
                     return;
 
+                pendingNetworkRequests.TryGetValue(url, out NetworkRequestInfo requestInfo);
                 capturedNetworkEntries.Add(new CapturedNetworkEntry()
                 {
                     Url = url,
+                    Method = requestInfo?.Method ?? args?.WebRequest?.Method ?? "GET",
+                    Referer = requestInfo?.Referer ?? args?.WebRequest?.Referer,
+                    Accept = requestInfo?.Accept ?? args?.WebRequest?.Accept,
+                    RequestContentType = requestInfo?.ContentType ?? args?.WebRequest?.ContentType,
+                    Headers = requestInfo?.Headers ?? CloneHeaders(args?.Headers),
+                    PostData = requestInfo?.PostData,
                     ContentType = args?.WebResponse?.ContentType,
                     Body = body
                 });
@@ -556,6 +595,17 @@ namespace MangaUnhost.Hosts
             catch { }
 
             return Encoding.UTF8.GetString(bytes);
+        }
+
+        private static (string Key, string Value)[] CloneHeaders(NameValueCollection headers)
+        {
+            if (headers == null || headers.Count == 0)
+                return Array.Empty<(string Key, string Value)>();
+
+            return headers.AllKeys
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => (Key: x, Value: headers[x]))
+                .ToArray();
         }
 
         private HtmlDocument DownloadHtmlDocument(Uri url, string referer)
@@ -641,25 +691,6 @@ namespace MangaUnhost.Hosts
                     .ToList();
             }
 
-            var numberMatches = Regex.Matches(
-                normalized,
-                @"""(?:chapterNumber|chapter|capitulo|capituloNumero|capituloNumber)""\s*:\s*""?(\d+(?:[.,]\d+)?)",
-                RegexOptions.IgnoreCase);
-
-            foreach (Match match in numberMatches)
-            {
-                var number = match.Groups[1].Value.Replace(',', '.');
-                var absolute = new Uri($"{currentSeriesUrl.AbsoluteUri.TrimEnd('/')}/capitulo/{number}").AbsoluteUri;
-                if (!seen.Add(absolute))
-                    continue;
-
-                entries.Add(new ChapterEntry()
-                {
-                    Url = absolute,
-                    Name = number
-                });
-            }
-
             return entries
                 .OrderBy(x => GetChapterSortKey(x.Name, x.Url))
                 .ThenBy(x => x.Url, StringComparer.InvariantCultureIgnoreCase)
@@ -675,8 +706,16 @@ namespace MangaUnhost.Hosts
             {
                 LoadDocument(currentSeriesUrl, _ => true, 12, 500);
                 OpenChapterTab();
+                expectedCount = Math.Max(expectedCount, ExtractRenderedChapterCount());
                 var visibleEntries = WaitAndCollectChapters();
-                var requestEntries = ParseCapturedChapterEntries(GetCapturedNetworkEntriesSnapshot());
+                if (visibleEntries.Any() && (expectedCount <= 0 || visibleEntries.Count >= expectedCount))
+                    return MergeChapterEntries(visibleEntries);
+
+                var capturedEntries = GetCapturedNetworkEntriesSnapshot();
+                var requestEntries = ParseCapturedChapterEntries(capturedEntries);
+                if (expectedCount > 0 && requestEntries.Count < expectedCount)
+                    requestEntries = MergeChapterEntries(requestEntries, RepeatCapturedChapterRequests(capturedEntries, requestEntries.Count, expectedCount));
+
                 var merged = MergeChapterEntries(visibleEntries, requestEntries);
 
                 if (merged.Any() && (expectedCount <= 0 || merged.Count >= expectedCount))
@@ -685,7 +724,14 @@ namespace MangaUnhost.Hosts
                 ThreadTools.Wait(1200, true);
                 OpenChapterTab();
                 visibleEntries = MergeChapterEntries(visibleEntries, WaitAndCollectChapters());
-                requestEntries = MergeChapterEntries(requestEntries, ParseCapturedChapterEntries(GetCapturedNetworkEntriesSnapshot()));
+                if (visibleEntries.Any() && (expectedCount <= 0 || visibleEntries.Count >= expectedCount))
+                    return MergeChapterEntries(visibleEntries);
+
+                capturedEntries = GetCapturedNetworkEntriesSnapshot();
+                requestEntries = MergeChapterEntries(requestEntries, ParseCapturedChapterEntries(capturedEntries));
+                if (expectedCount > 0 && requestEntries.Count < expectedCount)
+                    requestEntries = MergeChapterEntries(requestEntries, RepeatCapturedChapterRequests(capturedEntries, requestEntries.Count, expectedCount));
+
                 return MergeChapterEntries(visibleEntries, requestEntries);
             }
             finally
@@ -702,39 +748,214 @@ namespace MangaUnhost.Hosts
                 if (string.IsNullOrWhiteSpace(item?.Body))
                     continue;
 
-                entries.AddRange(ExtractChaptersFromApiPayload(item.Body));
+                entries.AddRange(FilterCurrentSeriesChapters(ExtractChaptersFromApiPayload(item.Body)));
             }
 
             return MergeChapterEntries(entries);
         }
 
-        private List<ChapterEntry> ProbeChaptersByNumber(HtmlDocument seriesDoc)
+        private List<ChapterEntry> RepeatCapturedChapterRequests(IEnumerable<CapturedNetworkEntry> capturedEntries, int currentCount, int expectedCount)
         {
-            int reportedCount = ExtractReportedChapterCount(seriesDoc);
-            if (reportedCount <= 0)
+            var seed = FindBestCapturedChapterRequest(capturedEntries);
+            if (seed == null)
                 return new List<ChapterEntry>();
 
-            int probeMax = Math.Min(Math.Max(reportedCount + 12, reportedCount * 2), 400);
+            var entries = new List<ChapterEntry>();
+            foreach (var replay in BuildChapterReplayRequests(seed, currentCount, expectedCount))
+            {
+                var payload = ReplayCapturedRequest(replay);
+                if (string.IsNullOrWhiteSpace(payload))
+                    continue;
+
+                var current = FilterCurrentSeriesChapters(ExtractChaptersFromApiPayload(payload));
+                if (current.Any())
+                    entries = MergeChapterEntries(entries, current);
+
+                if (Program.Debug)
+                {
+                    Program.Writer?.WriteLine("[DragonScanNext] Replay {0} {1} => {2} chapters", replay.Method, replay.Url, current.Count);
+                    Program.Writer?.Flush();
+                }
+
+                if (expectedCount > 0 && currentCount + entries.Count >= expectedCount)
+                    break;
+            }
+
+            return entries;
+        }
+
+        private CapturedNetworkEntry FindBestCapturedChapterRequest(IEnumerable<CapturedNetworkEntry> capturedEntries)
+        {
+            return capturedEntries?
+                .Where(x => !string.IsNullOrWhiteSpace(x?.Url) && !string.IsNullOrWhiteSpace(x?.Body))
+                .Select(x => new { Entry = x, Chapters = FilterCurrentSeriesChapters(ExtractChaptersFromApiPayload(x.Body)) })
+                .Where(x => x.Chapters.Any())
+                .OrderByDescending(x => x.Chapters.Count)
+                .ThenByDescending(x => HasChapterReplayPotential(x.Entry))
+                .ThenByDescending(x => x.Entry.Url.IndexOf("api.", StringComparison.InvariantCultureIgnoreCase) >= 0)
+                .Select(x => x.Entry)
+                .FirstOrDefault();
+        }
+
+        private bool HasChapterReplayPotential(CapturedNetworkEntry entry)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.Url))
+                return false;
+
+            var uri = new Uri(entry.Url);
+            var query = HttpUtility.ParseQueryString(uri.Query ?? string.Empty);
+            if (FindQueryKey(query, "page", "p", "offset", "skip", "start", "from") != null)
+                return true;
+
+            if (entry.PostData == null || entry.PostData.Length == 0)
+                return false;
+
+            return TryBuildJsonPaginationTemplate(DecodeNetworkBody(entry.PostData, "utf-8"), out _, out _, out _);
+        }
+
+        private IEnumerable<CapturedNetworkEntry> BuildChapterReplayRequests(CapturedNetworkEntry seed, int currentCount, int expectedCount)
+        {
+            if (seed == null || expectedCount <= currentCount)
+                yield break;
+
+            int batchSize = Math.Max(1, FilterCurrentSeriesChapters(ExtractChaptersFromApiPayload(seed.Body)).Count);
+            int maxPages = Math.Max(2, (int)Math.Ceiling(expectedCount / (double)batchSize) + 1);
+
+            var seedUri = new Uri(seed.Url);
+            var query = HttpUtility.ParseQueryString(seedUri.Query ?? string.Empty);
+            var pageKey = FindQueryKey(query, "page", "p");
+            var offsetKey = FindQueryKey(query, "offset", "skip", "start", "from");
+            var limitKey = FindQueryKey(query, "limit", "take", "size", "perPage", "per_page", "first");
+
+            if (pageKey != null)
+            {
+                int currentPage = ParseOrDefault(query[pageKey], 1);
+                for (int page = currentPage + 1; page <= maxPages; page++)
+                    yield return seed.CloneWithUrl(ReplaceQueryValue(seedUri, pageKey, page.ToString(CultureInfo.InvariantCulture)).AbsoluteUri);
+
+                yield break;
+            }
+
+            if (offsetKey != null)
+            {
+                int currentOffset = ParseOrDefault(query[offsetKey], 0);
+                int limit = ParseOrDefault(limitKey != null ? query[limitKey] : null, batchSize);
+                for (int offset = currentOffset + limit; offset < expectedCount + limit; offset += limit)
+                    yield return seed.CloneWithUrl(ReplaceQueryValue(seedUri, offsetKey, offset.ToString(CultureInfo.InvariantCulture)).AbsoluteUri);
+
+                yield break;
+            }
+
+            if (seed.PostData != null && seed.PostData.Length > 0)
+            {
+                foreach (var replay in BuildChapterReplayRequestsFromBody(seed, batchSize, expectedCount))
+                    yield return replay;
+            }
+        }
+
+        private IEnumerable<CapturedNetworkEntry> BuildChapterReplayRequestsFromBody(CapturedNetworkEntry seed, int batchSize, int expectedCount)
+        {
+            string bodyText = DecodeNetworkBody(seed.PostData, "utf-8");
+            if (string.IsNullOrWhiteSpace(bodyText))
+                yield break;
+
+            if (!TryBuildJsonPaginationTemplate(bodyText, out JToken root, out string key, out int currentValue))
+                yield break;
+
+            bool isPage = key.Equals("page", StringComparison.InvariantCultureIgnoreCase) || key.Equals("p", StringComparison.InvariantCultureIgnoreCase);
+            int maxPages = Math.Max(2, (int)Math.Ceiling(expectedCount / (double)Math.Max(1, batchSize)) + 1);
+
+            if (isPage)
+            {
+                for (int page = currentValue + 1; page <= maxPages; page++)
+                    yield return seed.CloneWithPostData(UpdateJsonPaginationValue(root, key, page));
+            }
+            else
+            {
+                for (int offset = currentValue + batchSize; offset < expectedCount + batchSize; offset += batchSize)
+                    yield return seed.CloneWithPostData(UpdateJsonPaginationValue(root, key, offset));
+            }
+        }
+
+        private List<ChapterEntry> ProbeChaptersByNumber(HtmlDocument seriesDoc, IEnumerable<ChapterEntry> existingChapters = null)
+        {
+            int reportedCount = ExtractReportedChapterCount(seriesDoc);
+            var knownNumbers = new HashSet<int>();
+            int maxKnown = 0;
+
+            if (existingChapters != null)
+            {
+                foreach (var chapter in existingChapters)
+                {
+                    if (!TryGetIntegerChapterNumber(chapter?.Name, chapter?.Url, out int number))
+                        continue;
+
+                    knownNumbers.Add(number);
+                    if (number > maxKnown)
+                        maxKnown = number;
+                }
+            }
+
+            if (reportedCount <= 0 && maxKnown <= 0)
+                return new List<ChapterEntry>();
+
+            var existenceCache = new Dictionary<int, bool>();
+            int expectedMax = Math.Max(reportedCount, maxKnown);
+            int probeMax = FindHighestExistingChapterNumber(expectedMax, existenceCache);
             var entries = new List<ChapterEntry>();
 
             for (int number = probeMax; number >= 1; number--)
             {
-                var chapterUri = new Uri($"{currentSeriesUrl.AbsoluteUri.TrimEnd('/')}/capitulo/{number}");
-                var chapterDoc = DownloadHtmlDocument(chapterUri, currentSeriesUrl.AbsoluteUri);
-                if (!LooksLikeChapterDocument(chapterDoc))
+                if (knownNumbers.Contains(number))
+                    continue;
+
+                if (!ChapterExists(number, existenceCache))
                     continue;
 
                 entries.Add(new ChapterEntry()
                 {
-                    Url = chapterUri.AbsoluteUri,
+                    Url = new Uri($"{currentSeriesUrl.AbsoluteUri.TrimEnd('/')}/capitulo/{number}").AbsoluteUri,
                     Name = number.ToString(CultureInfo.InvariantCulture)
                 });
+            }
+
+            if (Program.Debug)
+            {
+                Program.Writer?.WriteLine("[DragonScanNext] Probe max: {0} | Known: {1} | Added: {2}", probeMax, knownNumbers.Count, entries.Count);
+                Program.Writer?.Flush();
             }
 
             return entries
                 .OrderBy(x => GetChapterSortKey(x.Name, x.Url))
                 .ThenBy(x => x.Url, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();
+        }
+
+        private int FindHighestExistingChapterNumber(int seed, IDictionary<int, bool> existenceCache)
+        {
+            int current = Math.Max(1, seed);
+            while (current > 1 && !ChapterExists(current, existenceCache))
+                current--;
+
+            foreach (var step in new[] { 100, 10, 1 })
+            {
+                while (current + step <= 400 && ChapterExists(current + step, existenceCache))
+                    current += step;
+            }
+
+            return current;
+        }
+
+        private bool ChapterExists(int number, IDictionary<int, bool> existenceCache)
+        {
+            if (existenceCache.TryGetValue(number, out bool exists))
+                return exists;
+
+            var chapterUri = new Uri($"{currentSeriesUrl.AbsoluteUri.TrimEnd('/')}/capitulo/{number}");
+            var chapterDoc = DownloadHtmlDocument(chapterUri, currentSeriesUrl.AbsoluteUri);
+            exists = LooksLikeChapterDocument(chapterDoc);
+            existenceCache[number] = exists;
+            return exists;
         }
 
         private List<string> ExtractPageUrlsFromDocument(HtmlDocument doc)
@@ -765,6 +986,187 @@ namespace MangaUnhost.Hosts
             }
 
             return pages;
+        }
+
+        private string ReplayCapturedRequest(CapturedNetworkEntry entry)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.Url))
+                return null;
+
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(entry.Url);
+                request.Method = string.IsNullOrWhiteSpace(entry.Method) ? "GET" : entry.Method;
+                request.Timeout = 1000 * 30;
+                request.UseDefaultCredentials = true;
+                request.CookieContainer = cookies;
+                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
+                if (!string.IsNullOrWhiteSpace(entry.Referer))
+                    request.Referer = entry.Referer;
+
+                request.UserAgent = browserUserAgent ?? ProxyTools.UserAgent;
+
+                if (!string.IsNullOrWhiteSpace(entry.Accept))
+                    request.Accept = entry.Accept;
+
+                if (!string.IsNullOrWhiteSpace(entry.RequestContentType))
+                    request.ContentType = entry.RequestContentType;
+
+                ApplyReplayHeaders(request, entry.Headers);
+                foreach (var header in GetReplayHeaders(entry.Headers))
+                {
+                    try
+                    {
+                        request.Headers[header.Key] = header.Value;
+                    }
+                    catch { }
+                }
+
+                if (entry.PostData != null && entry.PostData.Length > 0)
+                {
+                    request.ContentLength = entry.PostData.Length;
+                    using (var upload = request.GetRequestStream())
+                        upload.Write(entry.PostData, 0, entry.PostData.Length);
+                }
+
+                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var responseData = response.GetResponseStream())
+                using (var output = new MemoryStream())
+                {
+                    foreach (var newCookie in response.Headers.GetSetCookies(response.ResponseUri))
+                        cookies?.Add(newCookie);
+
+                    responseData.CopyTo(output);
+                    return DecodeNetworkBody(output.ToArray(), response.CharacterSet);
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void ApplyReplayHeaders(HttpWebRequest request, (string Key, string Value)[] headers)
+        {
+            if (request == null || headers == null)
+                return;
+
+            foreach (var header in headers)
+            {
+                if (string.IsNullOrWhiteSpace(header.Key) || string.IsNullOrWhiteSpace(header.Value))
+                    continue;
+
+                if (header.Key.Equals("User-Agent", StringComparison.InvariantCultureIgnoreCase))
+                    request.UserAgent = header.Value;
+                else if (header.Key.Equals("Accept", StringComparison.InvariantCultureIgnoreCase))
+                    request.Accept = header.Value;
+                else if (header.Key.Equals("Referer", StringComparison.InvariantCultureIgnoreCase))
+                    request.Referer = header.Value;
+                else if (header.Key.Equals("Content-Type", StringComparison.InvariantCultureIgnoreCase))
+                    request.ContentType = header.Value;
+            }
+        }
+
+        private static (string Key, string Value)[] GetReplayHeaders((string Key, string Value)[] headers)
+        {
+            if (headers == null)
+                return Array.Empty<(string Key, string Value)>();
+
+            return headers
+                .Where(x =>
+                    !string.IsNullOrWhiteSpace(x.Key) &&
+                    !string.IsNullOrWhiteSpace(x.Value) &&
+                    !x.Key.Equals("Host", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("User-Agent", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("Accept", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("Referer", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("Content-Type", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("Content-Length", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("Cookie", StringComparison.InvariantCultureIgnoreCase) &&
+                    !x.Key.Equals("Accept-Encoding", StringComparison.InvariantCultureIgnoreCase))
+                .ToArray();
+        }
+
+        private static string FindQueryKey(System.Collections.Specialized.NameValueCollection query, params string[] names)
+        {
+            return query?.AllKeys?.FirstOrDefault(key => key != null && names.Any(name => key.Equals(name, StringComparison.InvariantCultureIgnoreCase)));
+        }
+
+        private static int ParseOrDefault(string value, int fallback)
+        {
+            return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed)
+                ? parsed
+                : fallback;
+        }
+
+        private static Uri ReplaceQueryValue(Uri uri, string key, string value)
+        {
+            var builder = new UriBuilder(uri);
+            var query = HttpUtility.ParseQueryString(builder.Query ?? string.Empty);
+            query[key] = value;
+            builder.Query = query.ToString();
+            return builder.Uri;
+        }
+
+        private static bool TryBuildJsonPaginationTemplate(string json, out JToken root, out string key, out int currentValue)
+        {
+            root = null;
+            key = null;
+            currentValue = 0;
+
+            try
+            {
+                root = JToken.Parse(json);
+            }
+            catch
+            {
+                return false;
+            }
+
+            foreach (var candidate in new[] { "page", "p", "offset", "skip", "start", "from" })
+            {
+                var property = EnumerateJsonProperties(root)
+                    .FirstOrDefault(x =>
+                        x.Name.Equals(candidate, StringComparison.InvariantCultureIgnoreCase) &&
+                        int.TryParse(x.Value.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _));
+
+                if (property == null)
+                    continue;
+
+                key = property.Name;
+                currentValue = int.Parse(property.Value.ToString(), CultureInfo.InvariantCulture);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static byte[] UpdateJsonPaginationValue(JToken root, string key, int value)
+        {
+            var clone = root.DeepClone();
+            var property = EnumerateJsonProperties(clone)
+                .FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+
+            if (property != null)
+                property.Value = value;
+
+            return Encoding.UTF8.GetBytes(clone.ToString(Formatting.None));
+        }
+
+        private static IEnumerable<JProperty> EnumerateJsonProperties(JToken token)
+        {
+            if (token == null)
+                yield break;
+
+            if (token is JProperty property)
+                yield return property;
+
+            foreach (var child in token.Children())
+            {
+                foreach (var nested in EnumerateJsonProperties(child))
+                    yield return nested;
+            }
         }
 
         private List<string> TryExtractPagesFromApi(Uri chapterUri)
@@ -1041,6 +1443,9 @@ namespace MangaUnhost.Hosts
                 foreach (Match match in matches)
                 {
                     var absolute = new Uri(new Uri(SiteBase), match.Value).AbsoluteUri;
+                    if (!IsCurrentSeriesChapterUrl(absolute))
+                        continue;
+
                     if (!seen.Add(absolute))
                         continue;
 
@@ -1186,6 +1591,24 @@ namespace MangaUnhost.Hosts
             return Regex.Replace(HttpUtility.HtmlDecode(text ?? string.Empty), @"\s+", " ").Trim();
         }
 
+        private List<ChapterEntry> FilterCurrentSeriesChapters(IEnumerable<ChapterEntry> entries)
+        {
+            if (entries == null)
+                return new List<ChapterEntry>();
+
+            return entries
+                .Where(x => x != null && IsCurrentSeriesChapterUrl(x.Url))
+                .ToList();
+        }
+
+        private bool IsCurrentSeriesChapterUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url) || currentSeriesUrl == null)
+                return false;
+
+            return url.StartsWith(currentSeriesUrl.AbsoluteUri.TrimEnd('/') + "/capitulo/", StringComparison.InvariantCultureIgnoreCase);
+        }
+
         private Uri ResolveSeriesUri(Uri uri)
         {
             var segments = GetPathSegments(uri);
@@ -1270,25 +1693,49 @@ namespace MangaUnhost.Hosts
 
         private void OpenChapterTab()
         {
-            var clicked = browser.EvaluateScript<bool>(@"(function () {
-    if (document.querySelectorAll('a[href*=""/capitulo/""]').length > 0)
+            string seriesPrefix = JsonConvert.ToString(currentSeriesUrl.AbsoluteUri.TrimEnd('/') + "/capitulo/");
+            var clicked = browser.EvaluateScript<bool>(@$"(function (seriesPrefix) {{
+    function hasCurrentSeriesChapters(root) {{
+        return Array.from((root || document).querySelectorAll('a[href*=""/capitulo/""]')).some(function (anchor) {{
+            try {{
+                return new URL(anchor.href || anchor.getAttribute('href') || '', location.href).href.indexOf(seriesPrefix) === 0;
+            }} catch (error) {{
+                return false;
+            }}
+        }});
+    }}
+
+    if (hasCurrentSeriesChapters(document))
         return true;
 
-    function normalize(text) {
+    function normalize(text) {{
         return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
-    }
+    }}
 
-    var button = Array.from(document.querySelectorAll('button')).find(function (element) {
+    var button = Array.from(document.querySelectorAll('button, [role=""tab""], [role=""button""]')).find(function (element) {{
         var text = normalize(element.textContent);
-        return text.indexOf('capítulos') === 0 || text.indexOf('capitulos') === 0;
-    });
+        return text.indexOf('capítulos') === 0 ||
+               text.indexOf('capitulos') === 0 ||
+               text === 'capítulos' ||
+               text === 'capitulos';
+    }});
+
+    if (!button) {{
+        var label = Array.from(document.querySelectorAll('[aria-controls], [id]')).find(function (element) {{
+            var text = normalize(element.textContent);
+            return text.indexOf('capítulos') === 0 || text.indexOf('capitulos') === 0;
+        }});
+
+        if (label)
+            button = label;
+    }}
 
     if (!button)
         return false;
 
-    button.click();
+    try {{ button.click(); }} catch (error) {{ return false; }}
     return true;
-})();");
+}})({seriesPrefix});");
 
             if (clicked)
                 ThreadTools.Wait(2500, true);
@@ -1296,77 +1743,158 @@ namespace MangaUnhost.Hosts
 
         private List<ChapterEntry> WaitAndCollectChapters()
         {
+            var entries = new List<ChapterEntry>();
             var lastCount = -1;
             var stableRounds = 0;
-            var entries = new List<ChapterEntry>();
+            ScrollChapterListsToTop();
+            ThreadTools.Wait(1200, true);
 
-            for (int i = 0; i < 20 && stableRounds < 4; i++)
+            for (int i = 0; i < 50 && stableRounds < 8; i++)
             {
-                ThreadTools.Wait(i == 0 ? 2000 : 600, true);
+                ThreadTools.Wait(i == 0 ? 1800 : 450, true);
+                OpenChapterTab();
+                ExpandAllChapterGroups();
+                int loadMoreClicks = ClickChapterLoadMoreButtons();
 
                 var current = ExtractVisibleChapters();
                 if (!current.Any())
                 {
-                    OpenChapterTab();
+                    ScrollChapterListsBy(900);
                     continue;
                 }
 
-                if (current.Count == lastCount)
+                entries = MergeChapterEntries(entries, current);
+
+                if (entries.Count == lastCount)
                     stableRounds++;
                 else
                     stableRounds = 0;
 
-                lastCount = current.Count;
-                entries = current;
+                lastCount = entries.Count;
+
+                bool scrolled = ScrollChapterListsBy(900);
+                if (Program.Debug)
+                {
+                    Program.Writer?.WriteLine("[DragonScanNext] Chapter round {0}: total={1} visible={2} loadMore={3} scrolled={4}", i + 1, entries.Count, current.Count, loadMoreClicks, scrolled);
+                    Program.Writer?.Flush();
+                }
+
+                if (!scrolled && loadMoreClicks <= 0 && stableRounds >= 2)
+                    break;
             }
 
-            return entries
-                .GroupBy(x => x.Url, StringComparer.InvariantCultureIgnoreCase)
-                .Select(x => x.First())
-                .OrderBy(x => GetChapterSortKey(x.Name, x.Url))
-                .ThenBy(x => x.Url, StringComparer.InvariantCultureIgnoreCase)
-                .ToList();
+            return MergeChapterEntries(entries);
+        }
+
+        private int ExtractRenderedChapterCount()
+        {
+            const string script = @"(function () {
+    function normalize(text) {
+        return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }
+
+    var max = 0;
+    Array.from(document.querySelectorAll('button, [role=""tab""], [role=""button""], h1, h2, h3, h4, span, div, p')).forEach(function (element) {
+        var text = normalize(element.textContent);
+        if (!text || (text.indexOf('capítulos') < 0 && text.indexOf('capitulos') < 0))
+            return;
+
+        var matches = text.match(/cap[íi]?tulos?\s*[:\-]?\s*(\d+)/i) ||
+                      text.match(/(\d+)\s*cap[íi]?tulos?/i);
+        if (!matches)
+            return;
+
+        var value = parseInt(matches[1], 10);
+        if (!isNaN(value) && value > max)
+            max = value;
+    });
+
+    return max;
+})();";
+
+            return browser.EvaluateScript<int>(script);
         }
 
         private List<ChapterEntry> ExtractVisibleChapters()
         {
-            const string script = @"(function () {
-    function normalize(text) {
+            string seriesPrefix = JsonConvert.ToString(currentSeriesUrl.AbsoluteUri.TrimEnd('/') + "/capitulo/");
+            string script = @$"(function (seriesPrefix) {{
+    function normalize(text) {{
         return (text || '').replace(/\s+/g, ' ').trim();
-    }
+    }}
+
+    function isCurrentSeriesChapter(href) {{
+        if (!href)
+            return false;
+
+        try {{
+            return new URL(href, location.href).href.indexOf(seriesPrefix) === 0;
+        }} catch (error) {{
+            return false;
+        }}
+    }}
 
     var items = [];
-    var seen = {};
+    var seen = {{}};
 
-    document.querySelectorAll('a[href*=""/capitulo/""]').forEach(function (anchor) {
+    document.querySelectorAll('a[href*=""/capitulo/""]').forEach(function (anchor) {{
         var href = anchor.href || anchor.getAttribute('href') || '';
-        if (!href)
+        if (!isCurrentSeriesChapter(href))
             return;
 
-        var text = normalize(anchor.textContent);
-        if (!text)
-            return;
-
-        var match = text.match(/cap[íi]?tulo\s*([0-9]+(?:[.,][0-9]+)?)/i) ||
-                    text.match(/([0-9]+(?:[.,][0-9]+)?)/);
-        var name = match ? match[1].replace(',', '.') : text;
         var absolute = new URL(href, location.href).href;
+        var text = normalize(anchor.textContent);
+        var urlMatch = absolute.match(/\/capitulo\/([0-9]+(?:[.,][0-9]+)?)/i);
+        var textMatch = text.match(/cap[íi]?tulo\s*([0-9]+(?:[.,][0-9]+)?)/i) ||
+                        text.match(/([0-9]+(?:[.,][0-9]+)?)/);
+        var name = urlMatch
+            ? urlMatch[1].replace(',', '.')
+            : (textMatch ? textMatch[1].replace(',', '.') : text);
+
+        if (!name)
+            return;
 
         if (seen[absolute])
             return;
 
         seen[absolute] = true;
-        items.push({ Url: absolute, Name: name });
-    });
+        items.push({{Url: absolute, Name: name }});
+    }});
 
     return JSON.stringify(items);
-})();";
+}})({seriesPrefix});";
 
             var json = browser.EvaluateScript<string>(script);
             if (string.IsNullOrWhiteSpace(json))
                 return new List<ChapterEntry>();
 
             return JsonConvert.DeserializeObject<List<ChapterEntry>>(json) ?? new List<ChapterEntry>();
+        }
+
+        private void ExpandAllChapterGroups()
+        {
+            browser.EvaluateScript(@"(function () {
+    function normalize(text) {
+        return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }
+
+    Array.from(document.querySelectorAll('button, div, [role=""button""]')).forEach(function (element) {
+        var text = normalize(element.textContent);
+        if (!text || (text.indexOf('temporada') !== 0 && text.indexOf('season') !== 0))
+            return;
+
+        var expanded = (element.getAttribute('aria-expanded') || '').toLowerCase();
+        if (expanded === 'true')
+            return;
+
+        var icon = element.querySelector('svg');
+        var looksCollapsed = !icon || ((icon.className && String(icon.className).toLowerCase().indexOf('chevron-down') >= 0));
+        if (!looksCollapsed && expanded !== 'false')
+            return;
+
+        try { element.click(); } catch (error) { }
+    });
+})();");
         }
 
         private List<string> WaitAndCollectPages()
@@ -1488,6 +2016,195 @@ namespace MangaUnhost.Hosts
 })();");
         }
 
+        private int ClickChapterLoadMoreButtons()
+        {
+            string seriesPrefix = JsonConvert.ToString(currentSeriesUrl.AbsoluteUri.TrimEnd('/') + "/capitulo/");
+            string script = @$"(function (seriesPrefix) {{
+    function normalize(text) {{
+        return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }}
+
+    function isCurrentSeriesChapter(href) {{
+        if (!href)
+            return false;
+
+        try {{
+            return new URL(href, location.href).href.indexOf(seriesPrefix) === 0;
+        }} catch (error) {{
+            return false;
+        }}
+    }}
+
+    function isVisible(element) {{
+        if (!element)
+            return false;
+
+        var rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+    }}
+
+    function belongsToChapterArea(element) {{
+        var current = element;
+        for (var i = 0; current && i < 8; i++, current = current.parentElement) {{
+            var text = normalize(current.textContent);
+            if (text.indexOf('temporada') >= 0 || text.indexOf('capítulos') >= 0 || text.indexOf('capitulos') >= 0)
+                return true;
+
+            if (Array.from(current.querySelectorAll('a[href*=""/capitulo/""]')).some(function (anchor) {{
+                return isCurrentSeriesChapter(anchor.href || anchor.getAttribute('href') || '');
+            }}))
+                return true;
+        }}
+
+        return false;
+    }}
+
+    var clicked = 0;
+    Array.from(document.querySelectorAll('button, [role=""button""], a')).forEach(function (element) {{
+        if (!isVisible(element) || !belongsToChapterArea(element))
+            return;
+
+        var text = normalize(element.textContent);
+        if (!text)
+            return;
+
+        var matches =
+            text.indexOf('carregar mais') >= 0 ||
+            text.indexOf('mostrar mais') >= 0 ||
+            text.indexOf('ver mais') >= 0 ||
+            text.indexOf('mais capítulos') >= 0 ||
+            text.indexOf('mais capitulos') >= 0;
+
+        if (!matches)
+            return;
+
+        try {{
+            element.click();
+            clicked++;
+        }} catch (error) {{ }}
+    }});
+
+    return clicked;
+}})({seriesPrefix});";
+
+            return browser.EvaluateScript<int>(script);
+        }
+
+        private bool ScrollChapterListsBy(int step)
+        {
+            string seriesPrefix = JsonConvert.ToString(currentSeriesUrl.AbsoluteUri.TrimEnd('/') + "/capitulo/");
+            string script = @$"(function (step, seriesPrefix) {{
+    function normalize(text) {{
+        return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }}
+
+    function isCurrentSeriesChapter(href) {{
+        if (!href)
+            return false;
+
+        try {{
+            return new URL(href, location.href).href.indexOf(seriesPrefix) === 0;
+        }} catch (error) {{
+            return false;
+        }}
+    }}
+
+    function isScrollable(element) {{
+        if (!element || element === document.body || element === document.documentElement)
+            return false;
+
+        var style = window.getComputedStyle(element);
+        var overflowY = (style.overflowY || style.overflow || '').toLowerCase();
+        if (overflowY.indexOf('auto') === -1 && overflowY.indexOf('scroll') === -1)
+            return false;
+
+        return element.scrollHeight > element.clientHeight + 20;
+    }}
+
+    var moved = false;
+    Array.from(document.querySelectorAll('*')).forEach(function (element) {{
+        if (!isScrollable(element))
+            return;
+
+        var anchorCount = Array.from(element.querySelectorAll('a[href*=""/capitulo/""]')).filter(function (anchor) {{
+            return isCurrentSeriesChapter(anchor.href || anchor.getAttribute('href') || '');
+        }}).length;
+
+        var text = normalize(element.textContent);
+        if (anchorCount <= 0 && text.indexOf('temporada') < 0 && text.indexOf('capítulos') < 0 && text.indexOf('capitulos') < 0)
+            return;
+
+        var before = element.scrollTop || 0;
+        var max = Math.max(0, element.scrollHeight - element.clientHeight);
+        if (before >= max - 4)
+            return;
+
+        element.scrollTop = Math.min(max, before + step);
+        if ((element.scrollTop || 0) > before)
+            moved = true;
+    }});
+
+    var beforeY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    window.scrollBy(0, step);
+    var afterY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    return moved || afterY > beforeY;
+}})({Math.Max(250, step)}, {seriesPrefix});";
+
+            return browser.EvaluateScript<bool>(script);
+        }
+
+        private void ScrollChapterListsToTop()
+        {
+            string seriesPrefix = JsonConvert.ToString(currentSeriesUrl.AbsoluteUri.TrimEnd('/') + "/capitulo/");
+            string script = @$"(function (seriesPrefix) {{
+    function normalize(text) {{
+        return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }}
+
+    function isCurrentSeriesChapter(href) {{
+        if (!href)
+            return false;
+
+        try {{
+            return new URL(href, location.href).href.indexOf(seriesPrefix) === 0;
+        }} catch (error) {{
+            return false;
+        }}
+    }}
+
+    function isScrollable(element) {{
+        if (!element || element === document.body || element === document.documentElement)
+            return false;
+
+        var style = window.getComputedStyle(element);
+        var overflowY = (style.overflowY || style.overflow || '').toLowerCase();
+        if (overflowY.indexOf('auto') === -1 && overflowY.indexOf('scroll') === -1)
+            return false;
+
+        return element.scrollHeight > element.clientHeight + 20;
+    }}
+
+    Array.from(document.querySelectorAll('*')).forEach(function (element) {{
+        if (!isScrollable(element))
+            return;
+
+        var anchorCount = Array.from(element.querySelectorAll('a[href*=""/capitulo/""]')).filter(function (anchor) {{
+            return isCurrentSeriesChapter(anchor.href || anchor.getAttribute('href') || '');
+        }}).length;
+
+        var text = normalize(element.textContent);
+        if (anchorCount <= 0 && text.indexOf('temporada') < 0 && text.indexOf('capítulos') < 0 && text.indexOf('capitulos') < 0)
+            return;
+
+        element.scrollTop = 0;
+    }});
+
+    window.scrollTo(0, 0);
+}})({seriesPrefix});";
+
+            browser.EvaluateScript(script);
+        }
+
         private byte[] DownloadBinary(string url, string referer)
         {
             if (string.IsNullOrWhiteSpace(url))
@@ -1537,6 +2254,24 @@ namespace MangaUnhost.Hosts
                 : null;
         }
 
+        private static bool TryGetIntegerChapterNumber(string rawName, string url, out int value)
+        {
+            value = 0;
+
+            var chapterNumber = ExtractCanonicalChapterNumber(rawName, url);
+            if (string.IsNullOrWhiteSpace(chapterNumber) ||
+                !double.TryParse(chapterNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed))
+            {
+                return false;
+            }
+
+            if (Math.Abs(parsed - Math.Round(parsed)) > 0.0001d)
+                return false;
+
+            value = (int)Math.Round(parsed);
+            return value > 0;
+        }
+
         private static bool IsSupportedHost(Uri uri)
         {
             return uri.Host.Equals("rfdragonscan.net", StringComparison.InvariantCultureIgnoreCase) ||
@@ -1566,8 +2301,57 @@ namespace MangaUnhost.Hosts
         private sealed class CapturedNetworkEntry
         {
             public string Url { get; set; }
+            public string Method { get; set; }
+            public string Referer { get; set; }
+            public string Accept { get; set; }
             public string ContentType { get; set; }
+            public string RequestContentType { get; set; }
+            public (string Key, string Value)[] Headers { get; set; }
+            public byte[] PostData { get; set; }
             public string Body { get; set; }
+
+            public CapturedNetworkEntry CloneWithUrl(string url)
+            {
+                return new CapturedNetworkEntry()
+                {
+                    Url = url,
+                    Method = Method,
+                    Referer = Referer,
+                    Accept = Accept,
+                    ContentType = ContentType,
+                    RequestContentType = RequestContentType,
+                    Headers = Headers?.ToArray(),
+                    PostData = PostData?.ToArray(),
+                    Body = Body
+                };
+            }
+
+            public CapturedNetworkEntry CloneWithPostData(byte[] postData)
+            {
+                return new CapturedNetworkEntry()
+                {
+                    Url = Url,
+                    Method = Method,
+                    Referer = Referer,
+                    Accept = Accept,
+                    ContentType = ContentType,
+                    RequestContentType = RequestContentType,
+                    Headers = Headers?.ToArray(),
+                    PostData = postData?.ToArray(),
+                    Body = Body
+                };
+            }
+        }
+
+        private sealed class NetworkRequestInfo
+        {
+            public string Url { get; set; }
+            public string Method { get; set; }
+            public string Referer { get; set; }
+            public string Accept { get; set; }
+            public string ContentType { get; set; }
+            public (string Key, string Value)[] Headers { get; set; }
+            public byte[] PostData { get; set; }
         }
 
         private sealed class ScrollState

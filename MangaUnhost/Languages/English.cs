@@ -123,6 +123,7 @@
         public string OpenChapter => "Open Chapter";
         public string ExportAs => "Export As";
         public string ExportAllAs => "Export Library to CBZ";
+        public string ExportSingleCBZ => "Single CBZ";
         public string ConvertTo => "Convert To";
         public string SelectASaveDir => "Select a directory to save";
         public string Refresh => "Refresh";
