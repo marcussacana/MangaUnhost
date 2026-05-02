@@ -63,6 +63,11 @@ namespace MangaUnhost
         IHost ComicHost = null;
         Uri ComicUrl = null;
 
+        ToolStripMenuItem CBZExportSingleManhwaCrop;
+        ToolStripMenuItem CBZExportSingleManhwaCropToJPG;
+        ToolStripMenuItem CBZExportSingleManhwaCropToPNG;
+        ToolStripMenuItem CBZExportSingleManhwaCropToBMP;
+
         public bool Initialized { get; private set; }
 
         Action<string> OnExportAllAs;
@@ -70,9 +75,15 @@ namespace MangaUnhost
         static Dictionary<string, ComicInfo> InfoCache = new Dictionary<string, ComicInfo>();
         static Dictionary<string, int> CountCache = new Dictionary<string, int>();
 
+        const float ManhwaMaxHeightRatio = 1.5f;
+        const float ManhwaMinCutHeightRatio = 0.05f;
+        const int ManhwaSplitMinSeparatorHeight = 1;
+        const float ManhwaBridgeGapHeightRatio = 0.015f;
+
         public ComicPreview(string ComicDir, Action<string> OnExportAllAs)
         {
             InitializeComponent();
+            SetupCBZCropMenu();
             SetupLanguagePairs();
 
             ComicPath += ComicDir;
@@ -84,6 +95,7 @@ namespace MangaUnhost
             ExportAs.Text = Language.ExportAs;
             ExportAllAs.Text = Language.ExportAllAs; 
             CBZExportSingle.Text = Language.ExportSingleCBZ;
+            CBZExportSingleManhwaCrop.Text = Language.ExportSingleCBZManhwaCrop;
             OpenDirectory.Text = Language.OpenDirectory;
             OpenChapter.Text = Language.OpenChapter;
             Refresh.Text = Language.Refresh;
@@ -109,6 +121,40 @@ namespace MangaUnhost
         }
 
         readonly string[] Langs = new string[] { "EN", "JA", "zh-CN", "RU", "ID", "FR", "IT", "ES", "PT" };
+
+        sealed class StagedCbzPage
+        {
+            public string SourcePath { get; set; }
+            public string ChapterName { get; set; }
+            public bool IsFrontCover { get; set; }
+        }
+
+        sealed class SingleCbzTitlePageSettings
+        {
+            public int Width { get; set; }
+            public string Extension { get; set; }
+        }
+
+        void SetupCBZCropMenu()
+        {
+            CBZExportSingleManhwaCrop = new ToolStripMenuItem();
+            CBZExportSingleManhwaCropToJPG = new ToolStripMenuItem("JPG");
+            CBZExportSingleManhwaCropToPNG = new ToolStripMenuItem("PNG");
+            CBZExportSingleManhwaCropToBMP = new ToolStripMenuItem("BMP");
+
+            CBZExportSingleManhwaCrop.DropDownItems.AddRange(new ToolStripItem[] {
+                CBZExportSingleManhwaCropToJPG,
+                CBZExportSingleManhwaCropToPNG,
+                CBZExportSingleManhwaCropToBMP
+            });
+
+            CBZExportSingleManhwaCrop.Click += CBZExportSingleManhwaCrop_Click;
+            CBZExportSingleManhwaCropToJPG.Click += CBZExportSingleManhwaCropToJPG_Click;
+            CBZExportSingleManhwaCropToPNG.Click += CBZExportSingleManhwaCropToPNG_Click;
+            CBZExportSingleManhwaCropToBMP.Click += CBZExportSingleManhwaCropToBMP_Click;
+
+            ExportToCBZ.DropDownItems.Insert(1, CBZExportSingleManhwaCrop);
+        }
 
         void SetupLanguagePairs() {
             foreach (var SL in new string[] { "AUTO" }.Concat(Langs)) {
@@ -531,6 +577,26 @@ namespace MangaUnhost
             BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("bmp")));
         }
 
+        private void CBZExportSingleManhwaCrop_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile(null, optimizeCropForManhwa: true)));
+        }
+
+        private void CBZExportSingleManhwaCropToJPG_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("jpg", optimizeCropForManhwa: true)));
+        }
+
+        private void CBZExportSingleManhwaCropToPNG_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("png", optimizeCropForManhwa: true)));
+        }
+
+        private void CBZExportSingleManhwaCropToBMP_Click(object sender, EventArgs e)
+        {
+            BeginInvoke(new MethodInvoker(() => CBZExportSingleFile("bmp", optimizeCropForManhwa: true)));
+        }
+
         private void ExportEverythingAs_Clicked(object sender, EventArgs e)
         {
             BeginInvoke(new MethodInvoker(() => OnExportAllAs(null)));
@@ -702,7 +768,7 @@ namespace MangaUnhost
             Main.SubStatus = "";
         }
 
-        public void CBZExportSingleFile(string Format, string OutDirectory = null, string NamePrefix = "")
+        public void CBZExportSingleFile(string Format, string OutDirectory = null, string NamePrefix = "", bool optimizeCropForManhwa = false)
         {
             var OutDir = OutDirectory ?? SelectDirectory();
             if (OutDir == null)
@@ -715,6 +781,7 @@ namespace MangaUnhost
 
             var TempRoot = Path.Combine(Path.GetTempPath(), "MangaUnhost", Guid.NewGuid().ToString("N"));
             var StagingDir = Path.Combine(TempRoot, ComicName);
+            var WorkingDir = StagingDir;
 
             try
             {
@@ -727,17 +794,22 @@ namespace MangaUnhost
                     .SelectMany(chapter => Directory.GetFiles(chapter)
                         .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x))))
                     .Count();
+                var TitlePageSettings = GetSingleCbzTitlePageSettings(Format, Chapters);
 
                 int pageIndex = 0;
-
-                Dictionary<int, string> ChapterIndex = new Dictionary<int, string>();
+                List<StagedCbzPage> StagedPages = new List<StagedCbzPage>();
 
                 if (CoverFound)
                 {
-                    ChapterIndex[pageIndex] = "FrontCover";
                     var Extension = "." + (Format?.TrimStart('.').ToLower() ?? Path.GetExtension(CoverPath).TrimStart('.').ToLower());
                     var OutPage = Path.Combine(StagingDir, $"{pageIndex++:D6}{Extension}");
                     ExportPage(CoverPath, OutPage, Format);
+                    StagedPages.Add(new StagedCbzPage
+                    {
+                        SourcePath = OutPage,
+                        ChapterName = "FrontCover",
+                        IsFrontCover = true
+                    });
                 }
 
                 foreach (var Chapter in Chapters)
@@ -748,28 +820,51 @@ namespace MangaUnhost
                         .OrderBy(x => DataTools.ForceNumber(Path.GetFileName(x)))
                         .ToArray();
 
+                    if (Pages.Length == 0)
+                        continue;
+
+                    var ChapterTitlePage = Path.Combine(StagingDir, $"{pageIndex:D6}{TitlePageSettings.Extension}");
+                    CreateSingleCbzChapterTitlePage(ChapName, ChapterTitlePage, TitlePageSettings.Width, TitlePageSettings.Extension);
+                    StagedPages.Add(new StagedCbzPage
+                    {
+                        SourcePath = ChapterTitlePage,
+                        ChapterName = ChapName
+                    });
+                    pageIndex++;
+
                     for (int i = 0; i < Pages.Length; i++)
                     {
                         Main.Status = string.Format(Language.Exporting, pageIndex + 1, Math.Max(1, totalPages));
                         Main.SubStatus = ChapName;
 
-                        ChapterIndex[pageIndex] = ChapName;
-
                         var Page = Pages[i];
                         var Extension = "." + (Format?.TrimStart('.').ToLower() ?? Path.GetExtension(Page).TrimStart('.').ToLower());
                         var OutPage = Path.Combine(StagingDir, $"{pageIndex:D6}{Extension}");
                         ExportPage(Page, OutPage, Format);
+                        StagedPages.Add(new StagedCbzPage
+                        {
+                            SourcePath = OutPage,
+                            ChapterName = ChapName
+                        });
                         pageIndex++;
                     }
                 }
 
-                if (pageIndex == 0)
+                if (StagedPages.Count == 0)
                     return;
+
+                if (optimizeCropForManhwa)
+                {
+                    WorkingDir = Path.Combine(TempRoot, ComicName + ".manhwa");
+                    StagedPages = OptimizeStagedPagesForManhwa(StagedPages, WorkingDir);
+                    if (StagedPages.Count == 0)
+                        return;
+                }
 
                 Main.Status = Language.Compressing;
                 Main.SubStatus = ComicName;
 
-                var MetaPath = Path.Combine(StagingDir, "ComicInfo.xml");
+                var MetaPath = Path.Combine(WorkingDir, "ComicInfo.xml");
 
                 StringBuilder Builder = new StringBuilder();
 
@@ -781,12 +876,13 @@ namespace MangaUnhost
 
                 Builder.AppendLine("  <Pages>");
 
-                foreach (var page in ChapterIndex.OrderBy(x => x.Key))
+                for (int i = 0; i < StagedPages.Count; i++)
                 {
-                    if (page.Value == "FrontCover")
-                        Builder.AppendLine($"    <Page Image=\"{page.Key}\" Type=\"FrontCover\" />");
+                    var page = StagedPages[i];
+                    if (page.IsFrontCover)
+                        Builder.AppendLine($"    <Page Image=\"{i}\" Type=\"FrontCover\" />");
                     else
-                        Builder.AppendLine($"    <Page Image=\"{page.Key}\" Bookmark=\"{SecurityElement.Escape(page.Value)}\" />");
+                        Builder.AppendLine($"    <Page Image=\"{i}\" Bookmark=\"{SecurityElement.Escape(page.ChapterName)}\" />");
                 }
 
                 Builder.AppendLine("  </Pages>");
@@ -794,7 +890,7 @@ namespace MangaUnhost
 
                 File.WriteAllText(MetaPath, Builder.ToString(), Encoding.UTF8);
 
-                CreateCBZ(StagingDir, Output);
+                CreateCBZ(WorkingDir, Output);
             }
             finally
             {
@@ -806,6 +902,490 @@ namespace MangaUnhost
             }
         }
 
+        SingleCbzTitlePageSettings GetSingleCbzTitlePageSettings(string format, string[] chapters)
+        {
+            string ReferencePage = CoverFound ? CoverPath : null;
+            if (ReferencePage == null)
+            {
+                foreach (var Chapter in chapters)
+                {
+                    ReferencePage = Directory.GetFiles(Chapter)
+                        .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x)))
+                        .OrderBy(x => DataTools.ForceNumber(Path.GetFileName(x)))
+                        .FirstOrDefault();
+                    if (ReferencePage != null)
+                        break;
+                }
+            }
+
+            int Width = 1200;
+            if (ReferencePage != null)
+                Width = GetImageWidth(ReferencePage);
+
+            return new SingleCbzTitlePageSettings
+            {
+                Width = Math.Max(256, Width),
+                Extension = GetGeneratedPageExtension(format, ReferencePage)
+            };
+        }
+
+        static int GetImageWidth(string imagePath)
+        {
+            CommonImage Decoder = new CommonImage();
+            using (Image Original = Decoder.Decode(File.ReadAllBytes(imagePath)))
+                return Original.Width;
+        }
+
+        static string GetGeneratedPageExtension(string format, string referencePage)
+        {
+            if (!string.IsNullOrWhiteSpace(format))
+                return "." + format.TrimStart('.').ToLowerInvariant();
+
+            string Extension = Path.GetExtension(referencePage ?? string.Empty)?.ToLowerInvariant();
+            switch (Extension)
+            {
+                case ".jpg":
+                case ".jpeg":
+                    return ".jpg";
+                case ".png":
+                    return ".png";
+                case ".bmp":
+                    return ".bmp";
+                default:
+                    return ".png";
+            }
+        }
+
+        static void CreateSingleCbzChapterTitlePage(string chapterName, string outputPath, int width, string extension)
+        {
+            const int HorizontalPadding = 48;
+            const int VerticalPadding = 36;
+            string Text = chapterName?.Trim();
+            if (string.IsNullOrWhiteSpace(Text))
+                Text = "Chapter";
+
+            using (Bitmap MeasureBitmap = new Bitmap(1, 1, PixelFormat.Format24bppRgb))
+            using (Graphics MeasureGraphics = Graphics.FromImage(MeasureBitmap))
+            {
+                MeasureGraphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                StringFormat Format = new StringFormat(StringFormat.GenericTypographic)
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center,
+                    FormatFlags = StringFormatFlags.NoWrap
+                };
+
+                float MinFontSize = 8f;
+                float MaxFontSize = Math.Max(16f, width);
+                float BestFontSize = MinFontSize;
+                float AvailableWidth = Math.Max(1, width - (HorizontalPadding * 2));
+
+                while (MaxFontSize - MinFontSize > 0.5f)
+                {
+                    float TrySize = (MinFontSize + MaxFontSize) / 2f;
+                    using (Font TryFont = new Font("Segoe UI", TrySize, FontStyle.Bold, GraphicsUnit.Pixel))
+                    {
+                        SizeF Size = MeasureGraphics.MeasureString(Text, TryFont, int.MaxValue, Format);
+                        if (Size.Width <= AvailableWidth)
+                        {
+                            BestFontSize = TrySize;
+                            MinFontSize = TrySize;
+                        }
+                        else
+                        {
+                            MaxFontSize = TrySize;
+                        }
+                    }
+                }
+
+                using (Font FinalFont = new Font("Segoe UI", BestFontSize, FontStyle.Bold, GraphicsUnit.Pixel))
+                {
+                    SizeF TextSize = MeasureGraphics.MeasureString(Text, FinalFont, int.MaxValue, Format);
+                    int Height = Math.Max((int)Math.Ceiling(TextSize.Height) + (VerticalPadding * 2), VerticalPadding * 2 + 1);
+
+                    using (Bitmap Result = new Bitmap(width, Height, PixelFormat.Format24bppRgb))
+                    using (Graphics Graphics = Graphics.FromImage(Result))
+                    using (Brush Background = new SolidBrush(Color.White))
+                    using (Brush Foreground = new SolidBrush(Color.Black))
+                    {
+                        Graphics.Clear(Color.White);
+                        Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                        Graphics.SmoothingMode = SmoothingMode.HighQuality;
+
+                        RectangleF Bounds = new RectangleF(HorizontalPadding, VerticalPadding, width - (HorizontalPadding * 2), Height - (VerticalPadding * 2));
+                        Graphics.DrawString(Text, FinalFont, Foreground, Bounds, Format);
+                        SaveBitmap(Result, outputPath, extension);
+                    }
+                }
+            }
+        }
+
+        List<StagedCbzPage> OptimizeStagedPagesForManhwa(List<StagedCbzPage> stagedPages, string outputDir)
+        {
+            if (!Directory.Exists(outputDir))
+                Directory.CreateDirectory(outputDir);
+
+            List<StagedCbzPage> OptimizedPages = new List<StagedCbzPage>();
+            int OutputIndex = 0;
+
+            for (int i = 0; i < stagedPages.Count; i++)
+            {
+                var page = stagedPages[i];
+                Main.Status = string.Format(Language.Converting, i + 1, stagedPages.Count);
+                Main.SubStatus = page.IsFrontCover ? Path.GetFileName(ComicPath.TrimEnd(' ', '\\', '/')) : page.ChapterName;
+
+                var SourceExtension = Path.GetExtension(page.SourcePath);
+                var OutputExtension = NormalizeManhwaOutputExtension(page.SourcePath);
+                var OutputPath = Path.Combine(outputDir, $"{OutputIndex:D6}{SourceExtension}");
+
+                if (page.IsFrontCover)
+                {
+                    File.Copy(page.SourcePath, OutputPath, true);
+                    OptimizedPages.Add(new StagedCbzPage
+                    {
+                        SourcePath = OutputPath,
+                        ChapterName = page.ChapterName,
+                        IsFrontCover = true
+                    });
+                    OutputIndex++;
+                    continue;
+                }
+
+                if (ExportManhwaOptimizedPages(page, outputDir, OutputExtension, ref OutputIndex, OptimizedPages))
+                    continue;
+
+                File.Copy(page.SourcePath, OutputPath, true);
+                OptimizedPages.Add(new StagedCbzPage
+                {
+                    SourcePath = OutputPath,
+                    ChapterName = page.ChapterName
+                });
+                OutputIndex++;
+            }
+
+            return OptimizedPages;
+        }
+
+        bool ExportManhwaOptimizedPages(StagedCbzPage page, string outputDir, string outputExtension, ref int outputIndex, List<StagedCbzPage> optimizedPages)
+        {
+            CommonImage Decoder = new CommonImage();
+            using (Image Original = Decoder.Decode(File.ReadAllBytes(page.SourcePath)))
+            using (Bitmap Source = new Bitmap(Original))
+            {
+                Color Background = GuessPageBackground(Source);
+                var PageRects = BuildManhwaPagesFromProjection(Source, Background);
+                if (PageRects.Count == 0)
+                    return false;
+
+                bool Unchanged = PageRects.Count == 1
+                    && PageRects[0].Y == 0
+                    && PageRects[0].Height == Source.Height
+                    && string.Equals(outputExtension, Path.GetExtension(page.SourcePath), StringComparison.InvariantCultureIgnoreCase);
+
+                if (Unchanged)
+                    return false;
+
+                foreach (var Rect in PageRects)
+                {
+                    using (Bitmap Result = Source.Clone(Rect, PixelFormat.Format24bppRgb))
+                    {
+                        var OutputPath = Path.Combine(outputDir, $"{outputIndex:D6}{outputExtension}");
+                        SaveBitmap(Result, OutputPath, outputExtension);
+                        optimizedPages.Add(new StagedCbzPage
+                        {
+                            SourcePath = OutputPath,
+                            ChapterName = page.ChapterName
+                        });
+                        outputIndex++;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        static string NormalizeManhwaOutputExtension(string sourcePath)
+        {
+            var Extension = Path.GetExtension(sourcePath)?.ToLowerInvariant();
+            switch (Extension)
+            {
+                case ".jpg":
+                case ".jpeg":
+                    return ".jpg";
+                case ".png":
+                    return ".png";
+                case ".bmp":
+                    return ".bmp";
+                default:
+                    return ".png";
+            }
+        }
+
+        static List<Rectangle> BuildManhwaPagesFromProjection(Bitmap source, Color background)
+        {
+            List<Rectangle> Result = new List<Rectangle>();
+            int Height = source.Height;
+            int Width = source.Width;
+            int MaxHeight = GetManhwaMaxHeight(Width);
+            int MinCutHeight = GetManhwaMinCutHeight(Height);
+            int[] Profile = BuildHorizontalProjectionProfile(source, background);
+            double[] Smoothed = SmoothProjectionProfile(Profile, GetProjectionSmoothingRadius(Width, Height));
+            bool[] OccupiedRows = BuildOccupiedRows(Smoothed, Width);
+            bool[] SmoothedOccupiedRows = ApplyRowRunLengthSmoothing(OccupiedRows, GetProjectionBridgeGap(Height));
+            double ValleyThreshold = GetProjectionValleyThreshold(Smoothed, Width);
+
+            int StartY = 0;
+            while (StartY < Height)
+            {
+                int Remaining = Height - StartY;
+                if (Remaining <= MaxHeight)
+                {
+                    Result.Add(new Rectangle(0, StartY, Width, Remaining));
+                    break;
+                }
+
+                int SearchStart = Math.Min(Height - 1, StartY + MinCutHeight);
+                int SearchEnd = Math.Min(Height - 1, StartY + MaxHeight);
+                int CutY = FindImmediateProjectionCut(Smoothed, SmoothedOccupiedRows, SearchStart, SearchEnd, ValleyThreshold);
+                if (CutY <= StartY)
+                    CutY = FindBestProjectionCut(Smoothed, SmoothedOccupiedRows, SearchStart, SearchEnd);
+
+                if (CutY <= StartY)
+                    CutY = Math.Min(Height, StartY + MaxHeight);
+
+                Result.Add(new Rectangle(0, StartY, Width, CutY - StartY));
+                StartY = CutY;
+            }
+
+            return Result;
+        }
+
+        static Color GuessPageBackground(Bitmap source)
+        {
+            List<Color> Samples = new List<Color>();
+            int MaxX = Math.Max(0, source.Width - 1);
+            int MaxY = Math.Max(0, source.Height - 1);
+            Samples.Add(source.GetPixel(0, 0));
+            Samples.Add(source.GetPixel(MaxX, 0));
+            Samples.Add(source.GetPixel(0, MaxY));
+            Samples.Add(source.GetPixel(MaxX, MaxY));
+            Samples.Add(source.GetPixel(source.Width / 2, 0));
+            Samples.Add(source.GetPixel(source.Width / 2, MaxY));
+
+            int Brightness = Samples.Sum(x => x.R + x.G + x.B) / Math.Max(1, Samples.Count * 3);
+            return Brightness >= 128 ? Color.White : Color.Black;
+        }
+
+        static unsafe int[] BuildHorizontalProjectionProfile(Bitmap source, Color background)
+        {
+            int[] Profile = new int[source.Height];
+            int BackgroundLum = (background.R + background.G + background.B) / 3;
+            const int BackgroundTolerance = 28;
+            const int EdgeTolerance = 18;
+
+            BitmapData Data = source.LockBits(
+                new Rectangle(0, 0, source.Width, source.Height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
+
+            try
+            {
+                for (int y = 0; y < source.Height; y++)
+                {
+                    byte* Row = (byte*)Data.Scan0 + (y * Data.Stride);
+                    int Foreground = 0;
+                    int LastLum = -1;
+
+                    for (int x = 0; x < source.Width; x++)
+                    {
+                        byte b = Row[x * 4 + 0];
+                        byte g = Row[x * 4 + 1];
+                        byte r = Row[x * 4 + 2];
+                        int Lum = (r + g + b) / 3;
+                        bool FarFromBackground = Math.Abs(Lum - BackgroundLum) > BackgroundTolerance;
+                        bool IsEdge = LastLum != -1 && Math.Abs(Lum - LastLum) > EdgeTolerance;
+                        if (FarFromBackground || IsEdge)
+                            Foreground++;
+
+                        LastLum = Lum;
+                    }
+
+                    Profile[y] = Foreground;
+                }
+            }
+            finally
+            {
+                source.UnlockBits(Data);
+            }
+
+            return Profile;
+        }
+
+        static double[] SmoothProjectionProfile(int[] profile, int radius)
+        {
+            double[] Smoothed = new double[profile.Length];
+            for (int i = 0; i < profile.Length; i++)
+            {
+                int Start = Math.Max(0, i - radius);
+                int End = Math.Min(profile.Length - 1, i + radius);
+                long Sum = 0;
+                for (int j = Start; j <= End; j++)
+                    Sum += profile[j];
+
+                Smoothed[i] = Sum / (double)(End - Start + 1);
+            }
+
+            return Smoothed;
+        }
+
+        static int GetProjectionSmoothingRadius(int width, int height)
+        {
+            return Math.Max(2, Math.Min(12, Math.Min(width, height) / 160));
+        }
+
+        static double GetProjectionValleyThreshold(double[] profile, int width)
+        {
+            double[] Ordered = profile.OrderBy(x => x).ToArray();
+            double LowerQuantile = Ordered[Math.Min(Ordered.Length - 1, Ordered.Length / 10)];
+            return Math.Max(width * 0.01d, LowerQuantile * 1.5d);
+        }
+
+        static bool[] BuildOccupiedRows(double[] profile, int width)
+        {
+            double[] NonZero = profile.Where(x => x > 0).ToArray();
+            double Average = NonZero.Length > 0 ? NonZero.Average() : 0;
+            double Threshold = Math.Max(Math.Max(4, width * 0.006d), Average * 0.08d);
+            return profile.Select(x => x > Threshold).ToArray();
+        }
+
+        static bool[] ApplyRowRunLengthSmoothing(bool[] occupiedRows, int maxGap)
+        {
+            bool[] Result = (bool[])occupiedRows.Clone();
+            int GapStart = -1;
+
+            for (int i = 0; i < occupiedRows.Length; i++)
+            {
+                if (!occupiedRows[i])
+                {
+                    if (GapStart == -1)
+                        GapStart = i;
+                    continue;
+                }
+
+                if (GapStart != -1)
+                {
+                    int GapLength = i - GapStart;
+                    bool HasBefore = GapStart > 0 && occupiedRows[GapStart - 1];
+                    bool HasAfter = occupiedRows[i];
+                    if (HasBefore && HasAfter && GapLength <= maxGap)
+                    {
+                        for (int y = GapStart; y < i; y++)
+                            Result[y] = true;
+                    }
+
+                    GapStart = -1;
+                }
+            }
+
+            return Result;
+        }
+
+        static int FindImmediateProjectionCut(double[] profile, bool[] occupiedRows, int searchStart, int searchEnd, double valleyThreshold)
+        {
+            int y = searchStart;
+            while (y <= searchEnd)
+            {
+                if (occupiedRows[y])
+                {
+                    y++;
+                    continue;
+                }
+
+                int ValleyStart = y;
+                while (y <= searchEnd && !occupiedRows[y])
+                    y++;
+
+                int ValleyEnd = y - 1;
+                if (ValleyEnd - ValleyStart + 1 >= ManhwaSplitMinSeparatorHeight)
+                {
+                    int BestY = FindLowestProjectionIndex(profile, ValleyStart, ValleyEnd);
+                    if (profile[BestY] <= valleyThreshold || ValleyEnd - ValleyStart + 1 >= GetProjectionBridgeGap(occupiedRows.Length))
+                        return GetProjectionValleyCenter(profile, BestY, ValleyStart, ValleyEnd);
+                }
+            }
+
+            return -1;
+        }
+
+        static int FindBestProjectionCut(double[] profile, bool[] occupiedRows, int searchStart, int searchEnd)
+        {
+            int BestY = -1;
+            double BestScore = double.MaxValue;
+
+            for (int y = searchStart; y <= searchEnd; y++)
+            {
+                double Score = profile[y];
+                if (!occupiedRows[y])
+                    Score *= 0.65d;
+                if (IsProjectionValley(profile, y))
+                    Score *= 0.75d;
+
+                if (Score < BestScore)
+                {
+                    BestScore = Score;
+                    BestY = y;
+                }
+            }
+
+            if (BestY == -1)
+                return -1;
+
+            return GetProjectionValleyCenter(profile, BestY, searchStart, searchEnd);
+        }
+
+        static int FindLowestProjectionIndex(double[] profile, int start, int end)
+        {
+            int BestY = start;
+            double BestScore = profile[start];
+            for (int y = start + 1; y <= end; y++)
+            {
+                if (profile[y] < BestScore)
+                {
+                    BestScore = profile[y];
+                    BestY = y;
+                }
+            }
+
+            return BestY;
+        }
+
+        static bool IsProjectionValley(double[] profile, int y)
+        {
+            double Current = profile[y];
+            double Previous = y > 0 ? profile[y - 1] : Current;
+            double Next = y + 1 < profile.Length ? profile[y + 1] : Current;
+            return Current <= Previous && Current <= Next;
+        }
+
+        static int GetProjectionValleyCenter(double[] profile, int seed, int minY, int maxY)
+        {
+            int Left = seed;
+            int Right = seed;
+            double Limit = profile[seed] + 2.0d;
+
+            while (Left > minY && profile[Left - 1] <= Limit)
+                Left--;
+
+            while (Right < maxY && profile[Right + 1] <= Limit)
+                Right++;
+
+            return Math.Max(minY, Math.Min(maxY + 1, (Left + Right) / 2));
+        }
+
+        static int GetManhwaMaxHeight(int width) => Math.Max(1, (int)Math.Round(width * ManhwaMaxHeightRatio));
+        static int GetManhwaMinCutHeight(int sourceHeight) => Math.Max(1, (int)Math.Round(sourceHeight * ManhwaMinCutHeightRatio));
+        static int GetProjectionBridgeGap(int sourceHeight) => Math.Max(4, Math.Min(80, (int)Math.Round(sourceHeight * ManhwaBridgeGapHeightRatio)));
+
         private static void CreateCBZ(string InputDir, string Output)
         {
             using (ZipFile Zip = new ZipFile())
@@ -816,9 +1396,6 @@ namespace MangaUnhost
                     .ToArray();
 
                 Zip.AddFiles(Pages, "");
-
-                if (File.Exists(Path.Combine(InputDir, "ComicInfo.xml")))
-                    Zip.AddFile(Path.Combine(InputDir, "ComicInfo.xml"));
 
                 Zip.CompressionMethod = CompressionMethod.BZip2;
                 Zip.Save(Output);
@@ -880,6 +1457,25 @@ namespace MangaUnhost
                     }
                 }
             });
+        }
+
+        private static void SaveBitmap(Bitmap image, string outputPath, string extension)
+        {
+            extension = extension?.Trim().TrimStart('.').ToLowerInvariant();
+            ImageFormat OutFormat = DataTools.GetImageFormat(extension);
+            if (OutFormat.Guid == ImageFormat.Jpeg.Guid)
+            {
+                using (EncoderParameters JpgEncoder = new EncoderParameters(1))
+                using (EncoderParameter Parameter = new EncoderParameter(Encoder.Quality, 93L))
+                {
+                    ImageCodecInfo JpgCodec = ImageCodecInfo.GetImageDecoders().First(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+                    JpgEncoder.Param[0] = Parameter;
+                    image.Save(outputPath, JpgCodec, JpgEncoder);
+                }
+                return;
+            }
+
+            image.Save(outputPath, OutFormat);
         }
 
         private void ConvertToJPG_Click(object sender, EventArgs e)

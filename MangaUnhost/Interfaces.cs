@@ -161,6 +161,7 @@ namespace MangaUnhost {
         string ExportAs { get; }
         string ExportAllAs { get; }
         string ExportSingleCBZ { get; }
+        string ExportSingleCBZManhwaCrop { get; }
         string ConvertTo { get; }
         string SelectASaveDir { get; }
         string Refresh { get; }

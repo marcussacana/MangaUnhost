@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms.VisualStyles;
 
 namespace MangaUnhost {
-    internal class BitmapTrim : IDisposable {
+    internal unsafe class BitmapTrim : IDisposable {
         Bitmap Texture;
         public BitmapTrim(Bitmap Image) => Texture = Image;
 
@@ -86,6 +88,48 @@ namespace MangaUnhost {
             return Result;
         }
 
+        public static List<Rectangle> ExtractContentBands(Bitmap Image, int MinSeparatorHeight = 4) {
+            List<Rectangle> Bands = new List<Rectangle>();
+            int ContentStart = 0;
+            int SeparatorStart = -1;
+            int MinBlockHeightForMonotoneSplit = (int)Math.Ceiling(Image.Width * 1.2d);
+
+            for (int Y = 0; Y < Image.Height; Y++) {
+                bool CanUseMonotoneLine = (Y - ContentStart) > MinBlockHeightForMonotoneSplit;
+                bool IsSeparator = IsWhiteLine(Image, Y) || IsBlackLine(Image, Y) || (CanUseMonotoneLine && IsMonotoneLine(Image, Y));
+                if (IsSeparator) {
+                    if (SeparatorStart == -1)
+                        SeparatorStart = Y;
+                    continue;
+                }
+
+                if (SeparatorStart == -1)
+                    continue;
+
+                if (Y - SeparatorStart >= MinSeparatorHeight) {
+                    if (SeparatorStart > ContentStart)
+                        Bands.Add(new Rectangle(0, ContentStart, Image.Width, SeparatorStart - ContentStart));
+
+                    ContentStart = Y;
+                }
+
+                SeparatorStart = -1;
+            }
+
+            if (SeparatorStart != -1) {
+                if (Image.Height - SeparatorStart >= MinSeparatorHeight && SeparatorStart > ContentStart)
+                    Bands.Add(new Rectangle(0, ContentStart, Image.Width, SeparatorStart - ContentStart));
+            }
+            else if (Image.Height > ContentStart) {
+                Bands.Add(new Rectangle(0, ContentStart, Image.Width, Image.Height - ContentStart));
+            }
+
+            if (Bands.Count == 0 && Image.Height > 0)
+                Bands.Add(new Rectangle(0, 0, Image.Width, Image.Height));
+
+            return Bands;
+        }
+
 
 
         public int BufferLenght = 2000;
@@ -127,42 +171,106 @@ namespace MangaUnhost {
                 return Result;
             }
         }
+        public static bool IsWhiteLine(Bitmap image, int y)
+        {
+            return Scan(image, y, IsWhiteLineInternal);
+        }
 
-        bool IsWhiteLine(Bitmap Image, int Y) {
-            if (Y > Image.Height)
+        public static bool IsBlackLine(Bitmap image, int y)
+        {
+            return Scan(image, y, IsBlackLineInternal);
+        }
+
+        public static bool IsMonotoneLine(Bitmap image, int y, int tolerance = 5)
+        {
+            return Scan(image, y, (row, width) => IsMonotoneLineInternal((byte*)row.ToPointer(), width, tolerance));
+        }
+
+        private static bool Scan(Bitmap image, int y, Func<IntPtr, int, bool> predicate)
+        {
+            if (y < 0 || y >= image.Height)
                 return false;
 
-            for (int X = 0; X < Image.Width; X++) {
-                Color Pixel = Image.GetPixel(X, Y);
-                if (Pixel == Color.White)
-                    continue;
+            BitmapData data = image.LockBits(
+                new Rectangle(0, 0, image.Width, image.Height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
 
-                if (Pixel.R >= 240 && Pixel.G >= 240 && Pixel.B >= 240)
-                    continue;
-
-                return false;
+            try
+            {
+                byte* row = (byte*)data.Scan0 + (y * data.Stride);
+                return predicate(new IntPtr(row), image.Width);
             }
+            finally
+            {
+                image.UnlockBits(data);
+            }
+        }
+
+
+        private static bool IsWhiteLineInternal(IntPtr row, int width) => IsWhiteLineInternal((byte*)row.ToPointer(), width);
+        private static bool IsWhiteLineInternal(byte* row, int width)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                byte b = row[x * 4 + 0];
+                byte g = row[x * 4 + 1];
+                byte r = row[x * 4 + 2];
+
+                if (r < 240 || g < 240 || b < 240)
+                    return false;
+            }
+
             return true;
         }
 
-        bool IsBlackLine(Bitmap Image, int Y) {
-            if (Y > Image.Height)
-                return false;
+        private static bool IsBlackLineInternal(IntPtr row, int width) => IsBlackLineInternal((byte*)row.ToPointer(), width);
+        private static bool IsBlackLineInternal(byte* row, int width)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                byte b = row[x * 4 + 0];
+                byte g = row[x * 4 + 1];
+                byte r = row[x * 4 + 2];
 
-            for (int X = 0; X < Image.Width; X++) {
-                Color Pixel = Image.GetPixel(X, Y);
-                if (Pixel == Color.White)
-                    continue;
-
-                if (Pixel.R <= 40 && Pixel.G <= 40 && Pixel.B <= 40)
-                    continue;
-
-                return false;
+                if (r > 30 || g > 30 || b > 30)
+                    return false;
             }
+
             return true;
         }
 
+        private static bool IsMonotoneLineInternal(byte* row, int width, int tolerance)
+        {
+            long totalLum = 0;
 
+            // primeira passada: média
+            for (int x = 0; x < width; x++)
+            {
+                byte b = row[x * 4 + 0];
+                byte g = row[x * 4 + 1];
+                byte r = row[x * 4 + 2];
+
+                totalLum += (r + g + b) / 3;
+            }
+
+            int avg = (int)(totalLum / width);
+
+            // segunda passada: validar desvio
+            for (int x = 0; x < width; x++)
+            {
+                byte b = row[x * 4 + 0];
+                byte g = row[x * 4 + 1];
+                byte r = row[x * 4 + 2];
+
+                int lum = (r + g + b) / 3;
+
+                if (Math.Abs(lum - avg) > tolerance)
+                    return false;
+            }
+
+            return true;
+        }
 
         public void Dispose() {
             Texture.Dispose();
