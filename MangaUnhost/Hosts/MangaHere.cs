@@ -20,7 +20,7 @@ namespace MangaUnhost.Hosts {
 
         public IEnumerable<byte[]> DownloadPages(int ID) {
             foreach (var PageUrl in GetChapterPages(ID)) {
-                yield return TryDownload(new Uri(PageUrl));
+                yield return TryDownload(new Uri(PageUrl), CurrentUrl.AbsoluteUri);
             }
         }
 
@@ -111,7 +111,7 @@ namespace MangaUnhost.Hosts {
                 Author = "Marcussacana",
                 SupportComic = true,
                 SupportNovel = false,
-                Version = new Version(1, 0)
+                Version = new Version(1, 1)
             };
         }
 
@@ -119,7 +119,9 @@ namespace MangaUnhost.Hosts {
             return Uri.Host.ToLower().Contains("mangahere") && Uri.AbsolutePath.ToLower().Contains("/manga/");
         }
 
+        Uri CurrentUrl = null;
         public ComicInfo LoadUri(Uri Uri) {
+            CurrentUrl = Uri;
             Document = new HtmlDocument();
             Document.LoadHtml(Encoding.UTF8.GetString(TryDownload(Uri)));
 
@@ -132,7 +134,7 @@ namespace MangaUnhost.Hosts {
                 .SelectSingleNode("//img[@class=\"detail-info-cover-img\"]")
                 .GetAttributeValue("src", string.Empty);
 
-            Info.Cover = TryDownload(new Uri(URL));
+            Info.Cover = TryDownload(new Uri(URL), Referer: Uri.AbsoluteUri);
 
             Info.ContentType = ContentType.Comic;
 

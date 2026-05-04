@@ -164,7 +164,8 @@ namespace MangaUnhost.Hosts
         {
             return (HTML.Contains("/mangareader/") && HTML.Contains("main-info") ) || 
                    (HTML.Contains("wp-manga-chapter") && HTML.Contains("tab-chapter-listing") || 
-                   (HTML.Contains("Chapter <!-- -->") && HTML.Contains("self.__next_f")));
+                   (HTML.Contains("Chapter <!-- -->") && HTML.Contains("self.__next_f")) ||
+                   (HTML.Contains("id=\"chapterlist\"")));
         }
 
         public bool IsValidUri(Uri Uri)
