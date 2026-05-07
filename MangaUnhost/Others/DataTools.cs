@@ -335,8 +335,10 @@ namespace MangaUnhost.Others
                     if (HTML.StartsWith("https:\\/\\/") || HTML.StartsWith("http:\\/\\/"))
                         HTML = HTML.Replace("\\/", "/").Replace("\\\"", "\"");
 
-                    if (!HTML.StartsWith("https://") && !HTML.StartsWith("http://"))
+                    if (!HTML.StartsWith("https://") && !HTML.StartsWith("http://")) {
+                        Ind++;
                         continue;
+                    }
 
                     var End = HTML.IndexOf(Prefix ?? ' ');
 
