@@ -336,7 +336,7 @@ namespace MangaUnhost.Others
                         HTML = HTML.Replace("\\/", "/").Replace("\\\"", "\"");
 
                     if (!HTML.StartsWith("https://") && !HTML.StartsWith("http://")) {
-                        Ind++;
+                        HTML = HTML.Substring(1);
                         continue;
                     }
 
