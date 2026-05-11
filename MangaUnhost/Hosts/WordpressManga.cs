@@ -59,7 +59,7 @@ namespace MangaUnhost.Hosts
                 {
                     if ((DateTime.Now - Begin).TotalSeconds > 20)
                         break;
-                    ThreadTools.Wait(1000, true);
+                    ThreadTools.Wait(2000, true);
                     lastCount = Nodes?.Count ?? 0;
                     Document = Browser.GetDocument();
                     Nodes = Document.SelectNodes(XPATH);
@@ -183,7 +183,7 @@ namespace MangaUnhost.Hosts
                 }
 
                 string[] Links = (from x in Chapter
-                                  .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img|//img[@class='chapter-image']")
+                                  .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img|//img[@class='chapter-image']|//div[@class='reading-content']/img")
                                   select (x.GetAttributeValue("data-src", null) ??
                                           x.GetAttributeValue("src", null) ??
                                           x.GetAttributeValue("data-cfsrc", "")).Trim()).Distinct().ToArray();
@@ -209,7 +209,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 5, 2)
+                Version = new Version(2, 5, 3)
             };
         }
 
