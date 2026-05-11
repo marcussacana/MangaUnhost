@@ -46,16 +46,21 @@ namespace MangaUnhost.Hosts
             var Nodes = Document.SelectNodes(XPATH);
 
 
-            if (Nodes == null || Nodes.Count == 0)
+            if (Nodes == null || Nodes.Count == 0 || Document.SelectSingleNode("//*[@id='btn-load-more-chapters']") != null)
             {
                 var Browser = JSTools.DefaultBrowser;
                 Browser.WaitForLoad(CurrentUrl.AbsoluteUri);
 
+                int lastCount = 0;
+
+                Browser.EvaluateScript("setInterval(function(){\r\n  var btn = document.getElementById('btn-load-more-chapters');\r\n  if (btn !== null) \r\n    btn.click();\r\n}, 1000);");
                 var Begin = DateTime.Now;
-                while (Nodes == null || Nodes.Count == 0)
+                while (Nodes == null || (Nodes.Count == 0 || Nodes.Count != lastCount))
                 {
                     if ((DateTime.Now - Begin).TotalSeconds > 20)
                         break;
+                    ThreadTools.Wait(1000, true);
+                    lastCount = Nodes?.Count ?? 0;
                     Document = Browser.GetDocument();
                     Nodes = Document.SelectNodes(XPATH);
                 }
@@ -65,10 +70,12 @@ namespace MangaUnhost.Hosts
                 Nodes = Document.SelectNodes("//div[@class='chapter-details']/a");
 
             string lastName = null;
-
             foreach (var Node in ReverseChapters ? Nodes.Reverse() : Nodes)
             {
                 string URL = Node.GetAttributeValue("href", "");
+                var ReleasedLabel = Node.SelectSingleParent("//span[@class='chapter-release-date']");
+                if (ReleasedLabel != null)
+                    ReleasedLabel.InnerHtml = "";
                 string Name = Node.InnerText.Trim().ToLower();
                 string Prefix = string.Empty;
 
@@ -202,7 +209,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 5, 1)
+                Version = new Version(2, 5, 2)
             };
         }
 
