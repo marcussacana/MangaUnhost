@@ -68,11 +68,10 @@ namespace MangaUnhost.Hosts
 
             while (true)
             {
-                if (!html.Contains("data-index"))
+                if (!html.Contains("alt=\"Page"))
                     break;
 
-                html = html.Substring("data-index");
-                html = html.Substring("<img");
+                html = html.Substring("alt=\"Page");
                 html = html.Substring("src=");
 
                 char Close = ' ';
@@ -108,7 +107,7 @@ namespace MangaUnhost.Hosts
             {
                 Name = "Lycantoons",
                 Author = "Marcussacana",
-                Version = new Version(1, 0),
+                Version = new Version(1, 1),
                 SupportComic = true,
             };
         }
