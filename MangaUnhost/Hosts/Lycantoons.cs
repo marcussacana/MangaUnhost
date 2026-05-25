@@ -54,7 +54,7 @@ namespace MangaUnhost.Hosts
         public string[] GetPages(int ID) {
             var chapUrl = ChapterMap[ID];
 
-            if (PageMap.ContainsKey(ID))
+            if (PageMap.ContainsKey(ID) && PageMap[ID].Length == 0)
             {
                 return PageMap[ID];
             }
