@@ -8,6 +8,7 @@ using System.Web;
 using System.Net;
 using CefSharp.OffScreen;
 using CefSharp;
+using System.Text;
 
 namespace MangaUnhost.Hosts
 {
@@ -182,6 +183,17 @@ namespace MangaUnhost.Hosts
                     continue;
                 }
 
+                ScriptNode = Chapter.SelectSingleNode("//script[contains(., 'pages =')]");
+                if (ScriptNode != null)
+                {
+                    var Script = ScriptNode.InnerText.Substring("pages =", ";");
+
+                    var Rst = (List<object>)JSTools.DefaultBrowser.EvaluateScript(Script);
+                    AllLinks.AddRange(Rst.Cast<string>().Select(x => Encoding.UTF8.GetString(Convert.FromBase64String(x))));
+                    continue;
+                }
+
+
                 string[] Links = (from x in Chapter
                                   .SelectNodes("//img[starts-with(@id, 'image-')]|//*[starts-with(@id, 'image-')]//img|//img[@class='chapter-image']|//div[@class='reading-content']/img")
                                   select (x.GetAttributeValue("data-src", null) ??
@@ -209,7 +221,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = true,
-                Version = new Version(2, 5, 3)
+                Version = new Version(2, 6)
             };
         }
 
