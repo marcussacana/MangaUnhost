@@ -6,6 +6,7 @@ using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Threading;
 using System.Web;
@@ -47,10 +48,23 @@ namespace MangaUnhost.Hosts
                 return chapCache[id];
 
             browser.WaitForLoad(chapMap[id]);
+
             while (true) {
                 try { 
                     ThreadTools.Wait(6000, true);
                     var doc = browser.GetDocument();
+
+                    var script = doc.SelectSingleNode("//script[contains(., 'imagens_lista')]");
+
+                    if (script != null)
+                    {
+                        var js = script.InnerText;
+                        js = js.Substring("imagens_lista", "}");
+                        js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
+
+                        var pageList = browser.EvaluateScript<List<object>>(js);
+                        return chapCache[id] = pageList.Cast<string>().ToList();
+                    }
 
                     var pages = new List<string>();
                     foreach (var page in doc.SelectNodes("//div[contains(@class, 'min-h-[300px]')]/img"))
@@ -129,7 +143,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 3, 1)
+                Version = new Version(1, 4)
             };
         }
 

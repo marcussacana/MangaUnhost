@@ -1,4 +1,5 @@
 ﻿using CefSharp.DevTools.Page;
+using HtmlAgilityPack;
 using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
@@ -280,6 +281,27 @@ namespace MangaUnhost
             }
         }
 
+        public string[] GetOrderedChapters()
+        {
+            if (File.Exists(IndexPath))
+            {
+                var index = File.ReadAllText(IndexPath);
+
+                var doc = new HtmlAgilityPack.HtmlDocument();
+                doc.LoadHtml(index);
+
+                var chapList = doc.SelectNodes("//a[@href]")
+                    .Select(x => x.GetAttributeValue("href", null))
+                    .Select(x => Path.Combine(this.ComicPath, x))
+                    .Select(x => Path.GetFullPath(x))
+                    .Select(x => Path.Combine(Path.GetDirectoryName(x), Path.GetFileNameWithoutExtension(x)));
+
+                return chapList.ToArray();
+            }
+
+            return Directory.GetDirectories(ChapPath).OrderBy(x => DataTools.ForceNumber(x)).ToArray();
+        }
+
         public void JITContextMenu()
         {
             OpenChapter.Visible = false;
@@ -288,7 +310,7 @@ namespace MangaUnhost
             {
                 List<ToolStripMenuItem> Items = new List<ToolStripMenuItem>();
 
-                var Chapters = Directory.GetDirectories(ChapPath).OrderBy(x => DataTools.ForceNumber(x)).ToArray();
+                var Chapters = GetOrderedChapters();
                 for (int i = 0; i < Chapters.Length; i++)
                 {
                     var ID = i;
@@ -787,9 +809,8 @@ namespace MangaUnhost
             {
                 Directory.CreateDirectory(StagingDir);
 
-                var Chapters = Directory.GetDirectories(ChapPath)
-                    .OrderBy(x => DataTools.ForceNumber(Path.GetFileName(x.TrimEnd('\\', '/'))))
-                    .ToArray();
+                var Chapters = GetOrderedChapters();
+
                 int totalPages = Chapters
                     .SelectMany(chapter => Directory.GetFiles(chapter)
                         .Where(x => !x.EndsWith(".tl.png") && !x.EndsWith(".tl" + Path.GetExtension(x))))
