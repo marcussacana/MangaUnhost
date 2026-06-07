@@ -540,15 +540,23 @@ namespace MangaUnhost
         }
 
         public static byte[] DecodeWebP(byte[] Data) {
-            using (var Image = Dynamicweb.WebP.Decoder.Decode(Data))
-            using (MemoryStream Buffer = new MemoryStream())
+            try { 
+                using (var Image = Dynamicweb.WebP.Decoder.Decode(Data))
+                using (MemoryStream Buffer = new MemoryStream())
+                {
+                    Image.Save(Buffer, ImageFormat.Png);
+                    return Buffer.ToArray();
+                }
+            }
+            catch
             {
-                Image.Save(Buffer, ImageFormat.Png);
-                return Buffer.ToArray();
+                return DecodeWebPFallback(Data);
             }
         }
 
-        public static byte[] DecodeAvif(byte[] Data)
+        public static byte[] DecodeWebPFallback(byte[] Data) => DecodeImage(Data, "image/webp");
+        public static byte[] DecodeAvif(byte[] Data) => DecodeImage(Data, "image/avif");
+        public static byte[] DecodeImage(byte[] Data, string mimetype)
         {
             CefSharp.OffScreen.ChromiumWebBrowser Browser = JSTools.DefaultBrowser;
             var browser = JSTools.DefaultBrowser;
@@ -557,7 +565,7 @@ namespace MangaUnhost
 
 
             string base64 = Convert.ToBase64String(Data);
-            string dataUrl = "data:image/avif;base64," + base64;
+            string dataUrl = $"data:{mimetype};base64," + base64;
 
             // Script para desenhar a imagem e retornar o PNG como Base64
             string js = $@"
