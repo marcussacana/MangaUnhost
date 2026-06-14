@@ -37,7 +37,7 @@ namespace MangaUnhost.Hosts
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
-            foreach (var node in doc.SelectNodes("//div[contains(@id, 'content-capitulos')]//span[contains(@class, 'chakra-badge') and not(.//*[local-name() = 'svg'])]").Reverse())
+            foreach (var node in doc.SelectNodes("//div[contains(@id, 'content-capitulos')]//span[contains(@class, 'chakra-badge') and not(.//*[local-name() = 'svg'])]"))
             {
                 var chapName = node.InnerText.Replace("Cap.", "").Trim();
                 int id = ChapterMap.Count;
