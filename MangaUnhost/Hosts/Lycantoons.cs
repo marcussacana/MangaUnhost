@@ -1,11 +1,18 @@
-﻿using CefSharp.OffScreen;
+﻿using CefSharp;
+using CefSharp.OffScreen;
 using HtmlAgilityPack;
+using Http2;
+using Http2.Hpack;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
+using Nito.AsyncEx.Synchronous;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -85,14 +92,6 @@ namespace MangaUnhost.Hosts
 
             }
 
-            /*
-             HTML Parser Not Working
-            foreach (var node in doc.SelectNodes("//div[@data-index]//img"))
-            {
-                pages.Add(node.GetAttributeValue("src", null));
-            }
-            */
-            
             return PageMap[ID] = pages.ToArray();
         }
 
@@ -107,7 +106,7 @@ namespace MangaUnhost.Hosts
             {
                 Name = "Lycantoons",
                 Author = "Marcussacana",
-                Version = new Version(1, 1),
+                Version = new Version(2, 0),
                 SupportComic = true,
             };
         }
@@ -161,8 +160,72 @@ namespace MangaUnhost.Hosts
             };
         }
 
+
+
+        //This site is blocking http1 requests, since there are no http2 support on .net 4,
+        //the best method is to let the browser download and dump the result.
         public byte[] TryDownload(string url) {
-            return url.TryDownload(CFData, currentUri.AbsoluteUri, UserAgent: ProxyTools.UserAgent);
+            byte[] result = null;
+            bool done = false;
+
+            EventHandler<JavascriptMessageReceivedEventArgs> handler = null;
+
+            handler = (s, e) =>
+            {
+                var base64 = e.Message?.ToString();
+
+                if (!string.IsNullOrEmpty(base64))
+                {
+                    try
+                    {
+                        result = Convert.FromBase64String(base64);
+                    }
+                    catch
+                    {
+                        result = null;
+                    }
+
+                    done = true;
+                }
+            };
+
+            Browser.JavascriptMessageReceived += handler;
+
+            var script = $@"
+                fetch('{url}', {{
+                    method: 'GET',
+                    credentials: 'omit'
+                }})
+                .then(r => r.arrayBuffer())
+                .then(buffer => {{
+                    const bytes = new Uint8Array(buffer);
+                    let binary = '';
+
+                    for (let i = 0; i < bytes.length; i++) {{
+                        binary += String.fromCharCode(bytes[i]);
+                    }}
+
+                    const b64 = btoa(binary);
+
+                    CefSharp.PostMessage(b64);
+                }});
+            ";
+
+            Browser.ExecuteScriptAsync(script);
+
+            int timeout = 100000;
+            int elapsed = 0;
+
+            while (!done && elapsed < timeout)
+            {
+                ThreadTools.Wait(100, true);
+                elapsed += 100;
+            }
+
+            Browser.JavascriptMessageReceived -= handler;
+
+            return done ? result : null;
         }
+
     }
 }

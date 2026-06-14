@@ -15,6 +15,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using static MangaUnhost.Browser.RequestTools;
 
 namespace MangaUnhost.Hosts
 {
@@ -31,10 +32,7 @@ namespace MangaUnhost.Hosts
         private Uri currentSeriesUrl;
         private string currentSeriesId;
         private bool networkHooksInstalled;
-        private bool networkCaptureActive;
-        private readonly object networkCaptureSync = new object();
         private readonly List<CapturedNetworkEntry> capturedNetworkEntries = new List<CapturedNetworkEntry>();
-        private readonly Dictionary<string, NetworkRequestInfo> pendingNetworkRequests = new Dictionary<string, NetworkRequestInfo>(StringComparer.InvariantCultureIgnoreCase);
 
         private static string LastLanguage;
 
@@ -253,119 +251,34 @@ namespace MangaUnhost.Hosts
             if (browser == null || networkHooksInstalled)
                 return;
 
-            browser.RegisterWebRequestHandlerEvents((sender, args) =>
-            {
-                if (!networkCaptureActive)
-                    return;
-
-                try
-                {
-                    args.Headers["Accept-Encoding"] = "identity";
-                }
-                catch
-                {
-                }
-
-                CaptureNetworkRequest(args);
-            }, (sender, args) =>
-            {
-                if (!networkCaptureActive)
-                    return;
-
-                CaptureNetworkResponse(args);
-            });
+            browser.CaptureRequests(capturedNetworkEntries, ShouldCaptureNetworkEntry, ShouldCaptureNetworkBody);
 
             networkHooksInstalled = true;
         }
 
         private void BeginNetworkCapture()
         {
-            lock (networkCaptureSync)
+            lock (capturedNetworkEntries)
             {
                 capturedNetworkEntries.Clear();
-                pendingNetworkRequests.Clear();
-                networkCaptureActive = true;
             }
         }
 
         private void EndNetworkCapture()
         {
-            lock (networkCaptureSync)
+            lock (capturedNetworkEntries)
             {
-                networkCaptureActive = false;
+               capturedNetworkEntries.Clear();
             }
         }
 
         private List<CapturedNetworkEntry> GetCapturedNetworkEntriesSnapshot()
         {
-            lock (networkCaptureSync)
+            lock (capturedNetworkEntries)
             {
                 return capturedNetworkEntries.ToList();
             }
         }
-
-        private void CaptureNetworkRequest(OnWebRequestEventArgs args)
-        {
-            var url = args?.WebRequest?.RequestUri?.AbsoluteUri;
-            if (string.IsNullOrWhiteSpace(url) || !ShouldCaptureNetworkEntry(url, null))
-                return;
-
-            var info = new NetworkRequestInfo()
-            {
-                Url = url,
-                Method = args?.WebRequest?.Method ?? "GET",
-                Referer = args?.WebRequest?.Referer,
-                Accept = args?.WebRequest?.Accept,
-                ContentType = args?.WebRequest?.ContentType,
-                Headers = CloneHeaders(args?.Headers),
-                PostData = args?.PostData?.ToArray()
-            };
-
-            lock (networkCaptureSync)
-            {
-                pendingNetworkRequests[url] = info;
-            }
-        }
-
-        private void CaptureNetworkResponse(OnWebResponseEventArgs args)
-        {
-            var url = args?.WebRequest?.RequestUri?.AbsoluteUri;
-            if (string.IsNullOrWhiteSpace(url) || !ShouldCaptureNetworkEntry(url, args?.WebResponse?.ContentType))
-                return;
-
-            string body = null;
-            if (ShouldCaptureNetworkBody(url, args?.WebResponse?.ContentType))
-            {
-                using (var buffer = new MemoryStream())
-                {
-                    args.ResponseData.CopyTo(buffer);
-                    var bytes = buffer.ToArray();
-                    args.OverrideData = new MemoryStream(bytes);
-                    body = DecodeNetworkBody(bytes, args?.WebResponse?.CharacterSet);
-                }
-            }
-
-            lock (networkCaptureSync)
-            {
-                if (!networkCaptureActive)
-                    return;
-
-                pendingNetworkRequests.TryGetValue(url, out NetworkRequestInfo requestInfo);
-                capturedNetworkEntries.Add(new CapturedNetworkEntry()
-                {
-                    Url = url,
-                    Method = requestInfo?.Method ?? args?.WebRequest?.Method ?? "GET",
-                    Referer = requestInfo?.Referer ?? args?.WebRequest?.Referer,
-                    Accept = requestInfo?.Accept ?? args?.WebRequest?.Accept,
-                    RequestContentType = requestInfo?.ContentType ?? args?.WebRequest?.ContentType,
-                    Headers = requestInfo?.Headers ?? CloneHeaders(args?.Headers),
-                    PostData = requestInfo?.PostData,
-                    ContentType = args?.WebResponse?.ContentType,
-                    Body = body
-                });
-            }
-        }
-
         private bool ShouldCaptureNetworkEntry(string url, string contentType)
         {
             var lowered = (url ?? string.Empty).ToLowerInvariant();
@@ -392,33 +305,6 @@ namespace MangaUnhost.Hosts
                    loweredUrl.Contains("/ajax/image/");
         }
 
-        private static string DecodeNetworkBody(byte[] bytes, string charset)
-        {
-            if (bytes == null || bytes.Length == 0)
-                return string.Empty;
-
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(charset))
-                    return Encoding.GetEncoding(charset).GetString(bytes);
-            }
-            catch
-            {
-            }
-
-            return Encoding.UTF8.GetString(bytes);
-        }
-
-        private static (string Key, string Value)[] CloneHeaders(NameValueCollection headers)
-        {
-            if (headers == null || headers.Count == 0)
-                return Array.Empty<(string Key, string Value)>();
-
-            return headers.AllKeys
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => (Key: x, Value: headers[x]))
-                .ToArray();
-        }
 
         private Uri ResolveSeriesUri(Uri originalUri, HtmlDocument loadedDoc)
         {
@@ -1329,30 +1215,6 @@ namespace MangaUnhost.Hosts
         {
             public string Text { get; set; }
             public string Key { get; set; }
-        }
-
-        private sealed class CapturedNetworkEntry
-        {
-            public string Url { get; set; }
-            public string Method { get; set; }
-            public string Referer { get; set; }
-            public string Accept { get; set; }
-            public string ContentType { get; set; }
-            public string RequestContentType { get; set; }
-            public (string Key, string Value)[] Headers { get; set; }
-            public byte[] PostData { get; set; }
-            public string Body { get; set; }
-        }
-
-        private sealed class NetworkRequestInfo
-        {
-            public string Url { get; set; }
-            public string Method { get; set; }
-            public string Referer { get; set; }
-            public string Accept { get; set; }
-            public string ContentType { get; set; }
-            public (string Key, string Value)[] Headers { get; set; }
-            public byte[] PostData { get; set; }
         }
 
         private sealed class ScrollState

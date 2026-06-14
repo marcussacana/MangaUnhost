@@ -1,14 +1,17 @@
 ﻿using CefSharp;
-using CefSharp.OffScreen;
+using CefSharp.DevTools;
 using CefSharp.EventHandler;
-using System;
-using System.Collections.Generic;
-using System.Net;
+using CefSharp.OffScreen;
 using MangaUnhost.Others;
 using Microsoft.VisualBasic;
-using CefSharp.DevTools;
-using System.Windows;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
+using System.Windows;
 
 namespace MangaUnhost.Browser
 {
@@ -194,6 +197,145 @@ namespace MangaUnhost.Browser
         {
             Browser.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0");
         }
+
+        private static readonly Dictionary<string, NetworkRequestInfo> pendingNetworkRequests = new Dictionary<string, NetworkRequestInfo>(StringComparer.InvariantCultureIgnoreCase);
+
+        public static void CaptureRequests(this IWebBrowser browser, List<CapturedNetworkEntry> captures, Func<string, string, bool> ShouldCaptureRequest, Func<string, string, bool> ShouldCaptureResponse)
+        {
+            browser.RegisterWebRequestHandlerEvents((sender, args) =>
+            {
+                try
+                {
+                    args.Headers["Accept-Encoding"] = "identity";
+                }
+                catch
+                {
+                }
+
+                CaptureNetworkRequest(args, captures, ShouldCaptureRequest, ShouldCaptureResponse);
+            }, (sender, args) =>
+            {
+                CaptureNetworkResponse(args, captures, ShouldCaptureRequest, ShouldCaptureResponse);
+            });
+        }
+
+        private static void CaptureNetworkRequest(OnWebRequestEventArgs args, List<CapturedNetworkEntry> captures, Func<string, string, bool> ShouldCaptureRequest, Func<string, string, bool> ShouldCaptureResponse)
+        {
+            var url = args?.WebRequest?.RequestUri?.AbsoluteUri;
+            if (string.IsNullOrWhiteSpace(url) || !ShouldCaptureRequest(url, null))
+                return;
+
+            var info = new NetworkRequestInfo()
+            {
+                Url = url,
+                Method = args?.WebRequest?.Method ?? "GET",
+                Referer = args?.WebRequest?.Referer,
+                Accept = args?.WebRequest?.Accept,
+                ContentType = args?.WebRequest?.ContentType,
+                Headers = CloneHeaders(args?.Headers),
+                PostData = args?.PostData?.ToArray()
+            };
+
+            lock (captures)
+            {
+                pendingNetworkRequests[url] = info;
+            }
+        }
+
+        private static void CaptureNetworkResponse(OnWebResponseEventArgs args, List<CapturedNetworkEntry> captures, Func<string, string, bool> ShouldCaptureRequest, Func<string, string, bool> ShouldCaptureResponse)
+        {
+            var url = args?.WebRequest?.RequestUri?.AbsoluteUri;
+            if (string.IsNullOrWhiteSpace(url) || !ShouldCaptureRequest(url, args?.WebResponse?.ContentType))
+                return;
+
+            byte[] bytes = null;
+            string body = null;
+
+            if (ShouldCaptureResponse.Invoke(url, args?.WebResponse?.ContentType))
+            {
+                using (var buffer = new MemoryStream())
+                {
+                    args.ResponseData.CopyTo(buffer);
+                    bytes = buffer.ToArray();
+                    args.OverrideData = new MemoryStream(bytes);
+                    body = DecodeNetworkBody(bytes, args?.WebResponse?.CharacterSet);
+                }
+            }
+
+            lock (captures)
+            {
+                pendingNetworkRequests.TryGetValue(url, out NetworkRequestInfo requestInfo);
+                captures.Add(new CapturedNetworkEntry()
+                {
+                    Url = url,
+                    Method = requestInfo?.Method ?? args?.WebRequest?.Method ?? "GET",
+                    Referer = requestInfo?.Referer ?? args?.WebRequest?.Referer,
+                    Accept = requestInfo?.Accept ?? args?.WebRequest?.Accept,
+                    RequestContentType = requestInfo?.ContentType ?? args?.WebRequest?.ContentType,
+                    Headers = requestInfo?.Headers ?? CloneHeaders(args?.Headers),
+                    PostData = requestInfo?.PostData,
+                    ContentType = args?.WebResponse?.ContentType,
+                    Body = body,
+                    Response = bytes
+                });
+                pendingNetworkRequests.Remove(url);
+            }
+        }
+
+
+        private static string DecodeNetworkBody(byte[] bytes, string charset)
+        {
+            if (bytes == null || bytes.Length == 0)
+                return string.Empty;
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(charset))
+                    return Encoding.GetEncoding(charset).GetString(bytes);
+            }
+            catch
+            {
+            }
+
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        private static (string Key, string Value)[] CloneHeaders(NameValueCollection headers)
+        {
+            if (headers == null || headers.Count == 0)
+                return Array.Empty<(string Key, string Value)>();
+
+            return headers.AllKeys
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => (Key: x, Value: headers[x]))
+                .ToArray();
+        }
+
+        public sealed class CapturedNetworkEntry
+        {
+            public string Url { get; set; }
+            public string Method { get; set; }
+            public string Referer { get; set; }
+            public string Accept { get; set; }
+            public string ContentType { get; set; }
+            public string RequestContentType { get; set; }
+            public (string Key, string Value)[] Headers { get; set; }
+            public byte[] PostData { get; set; }
+            public string Body { get; set; }
+            public byte[] Response { get; set; }
+        }
+
+        public sealed class NetworkRequestInfo
+        {
+            public string Url { get; set; }
+            public string Method { get; set; }
+            public string Referer { get; set; }
+            public string Accept { get; set; }
+            public string ContentType { get; set; }
+            public (string Key, string Value)[] Headers { get; set; }
+            public byte[] PostData { get; set; }
+        }
+
 
         //public delegate void Func<in T>(T arg);
         //public static void CatchResources(this ChromiumWebBrowser Browser, bool SkipFrames, Func<NovelResource> ResourceEvent, Func<NovelScript> ScriptEvent)
