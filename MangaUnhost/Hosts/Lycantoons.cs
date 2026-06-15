@@ -1,20 +1,12 @@
 ﻿using CefSharp;
 using CefSharp.OffScreen;
 using HtmlAgilityPack;
-using Http2;
-using Http2.Hpack;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
-using Nito.AsyncEx.Synchronous;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Security;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MangaUnhost.Hosts
 {
