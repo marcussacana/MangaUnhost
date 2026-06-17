@@ -6,9 +6,11 @@ using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace MangaUnhost.Hosts
@@ -54,6 +56,8 @@ namespace MangaUnhost.Hosts
                     ThreadTools.Wait(6000, true);
                     var doc = browser.GetDocument();
 
+                    /*
+
                     var script = doc.SelectSingleNode("//script[contains(., 'imagens_lista')]");
 
                     if (script != null)
@@ -65,6 +69,43 @@ namespace MangaUnhost.Hosts
                         var pageList = browser.EvaluateScript<List<object>>(js);
                         return chapCache[id] = pageList.Cast<string>().ToList();
                     }
+                    */
+
+                    var resp = GetChapter(slug, chapMap[id].TrimEnd('/').Split('/').Last());
+
+                    if (resp != null)
+                    {
+                        var js = resp;
+                        js = js.Substring("imagens_lista", "}");
+                        js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
+
+                        var pageListA = browser.EvaluateScript<List<object>>(js).Cast<string>();
+
+                        js = resp;
+
+                        while (js.Contains("imagens_lista"))
+                            js = js.Substring("imagens_lista");
+
+                        js = js.Substring(null, "}");
+                        js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
+
+
+                        var pageListB = browser.EvaluateScript<List<object>>(js).Cast<string>();
+
+                        var pageList = pageListA.Count() > pageListB.Count() ? pageListA : pageListB;
+
+                        if (pageListA.Where(x => x.Contains("scraper")).Any())
+                        {
+                            pageList = pageListB;
+                        } 
+                        else if (pageListB.Where(x => x.Contains("scraper")).Any())
+                        {
+                            pageList = pageListA;
+                        }
+
+                        return chapCache[id] = pageList.ToList();
+                    }
+
 
                     var pages = new List<string>();
                     foreach (var page in doc.SelectNodes("//div[contains(@class, 'min-h-[300px]')]/img"))
@@ -79,6 +120,65 @@ namespace MangaUnhost.Hosts
                     return chapCache[id] = pages;
                 } catch (Exception ex) { }
             }
+        }
+
+
+        public string GetChapter(string slug, string chapter)
+        {
+            var task = GetChapterAsync(slug, chapter);
+
+            while (!task.IsCompleted && !task.IsFaulted)
+            {
+                ThreadTools.Wait(100, true);
+            }
+
+            return task.Result;
+        }
+
+
+        public async Task<string> GetChapterAsync(string slug, string chapter)
+        {
+            using var client = new HttpClient();
+
+            var rsc = "h8oni";
+
+            var routerStateTree = $"[\"\",{{\"children\":[\"ler\",{{\"children\":[[\"slug\",\"{slug}\",\"d\"],{{\"children\":[[\"chapter\",\"{chapter}\",\"d\"],{{\"children\":[\"__PAGE__\",{{}},null,null,false]}},null,null,false]}} ,null,null,false]}} ,null,\"refetch\",false]}} ,null,null,true]";
+
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"https://yomu.com.br/ler/{slug}/{chapter}?_rsc={rsc}");
+
+            request.Headers.TryAddWithoutValidation("Accept", "*/*");
+            request.Headers.TryAddWithoutValidation("Accept-Language", "en-US,en;q=0.9");
+            request.Headers.TryAddWithoutValidation("Accept-Encoding", "identity");
+
+            request.Headers.TryAddWithoutValidation("rsc", "1");
+            request.Headers.TryAddWithoutValidation("next-router-state-tree", routerStateTree);
+            request.Headers.TryAddWithoutValidation("next-url", $"/obra/{slug}");
+
+            request.Headers.TryAddWithoutValidation("Sec-GPC", "1");
+            request.Headers.TryAddWithoutValidation("Sec-Fetch-Dest", "empty");
+            request.Headers.TryAddWithoutValidation("Sec-Fetch-Mode", "cors");
+            request.Headers.TryAddWithoutValidation("Sec-Fetch-Site", "same-origin");
+
+            request.Headers.TryAddWithoutValidation("Priority", "u=0");
+
+            request.Headers.TryAddWithoutValidation("Pragma", "no-cache");
+            request.Headers.TryAddWithoutValidation("Cache-Control", "no-cache");
+
+            request.Headers.Referrer =
+                new Uri($"https://yomu.com.br/ler/{slug}/{chapter}?_rsc={rsc}");
+
+            request.Headers.TryAddWithoutValidation("User-Agent", browser.GetUserAgent());
+
+            request.Headers.TryAddWithoutValidation(
+                "Cookie",
+                browser.GetCookies().ToContainer().GetCookieHeader(request.RequestUri));
+
+            var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsStringAsync();
         }
         public Dictionary<string, string> GetChapters()
         {
@@ -143,7 +243,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 4)
+                Version = new Version(1, 2)
             };
         }
 
@@ -159,10 +259,13 @@ namespace MangaUnhost.Hosts
 
         Uri currentUrl;
         static ChromiumWebBrowser browser;
+        string slug;
 
         public ComicInfo LoadUri(Uri Uri)
         {
             currentUrl = Uri;
+
+            slug = Uri.AbsolutePath.Replace("/obra/", "/ler/").Substring("/ler/").Split('/').First();
 
             if (browser == null)
             {
