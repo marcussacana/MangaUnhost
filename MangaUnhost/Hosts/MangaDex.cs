@@ -180,7 +180,7 @@ namespace MangaUnhost.Hosts
 
             var ChapID = ChapterInfo[ID];
             var QueryURI = $"https://api.mangadex.org/at-home/server/{ChapID}";
-            var Resp = Encoding.UTF8.GetString(QueryURI.Download(UserAgent: ProxyTools.UserAgent));
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download(UserAgent: AccountTools.GenerateName()));
 
             var Info = JsonConvert.DeserializeObject<MangaChapterData>(Resp);
 
@@ -209,7 +209,7 @@ namespace MangaUnhost.Hosts
 
             do
             {
-                var Resp = Encoding.UTF8.GetString((QueryURI + Offset).Download(UserAgent: ProxyTools.UserAgent));
+                var Resp = Encoding.UTF8.GetString((QueryURI + Offset).Download(UserAgent: AccountTools.GenerateName()));
 
                 Info = JsonConvert.DeserializeObject<Feed>(Resp);
 
@@ -233,7 +233,7 @@ namespace MangaUnhost.Hosts
                 Name = "Mangadex",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(3, 1)
+                Version = new Version(3, 2)
             };
         }
 
@@ -254,7 +254,7 @@ namespace MangaUnhost.Hosts
 
             var QueryURI = $"https://api.mangadex.org/manga/{ComicID}?&includes[]=cover_art";
 
-            var Resp = Encoding.UTF8.GetString(QueryURI.Download(UserAgent: ProxyTools.UserAgent));
+            var Resp = Encoding.UTF8.GetString(QueryURI.Download(UserAgent: AccountTools.GenerateName()));
 
             var Info = JsonConvert.DeserializeObject<Manga>(Resp);
 
@@ -275,7 +275,7 @@ namespace MangaUnhost.Hosts
             {
                 Title = TitleInfo.En ?? TitleInfo.JaRo ?? TitleInfo.Ja_Ro ?? AltTitle ?? TitleInfo.Ja ?? TitleInfo.Ko,
                 ContentType = ContentType.Comic,
-                Cover = CoverURI.TryDownload(UserAgent: ProxyTools.UserAgent),
+                Cover = CoverURI.TryDownload(UserAgent: AccountTools.GenerateName()),
                 Url = Uri
             };
         }
