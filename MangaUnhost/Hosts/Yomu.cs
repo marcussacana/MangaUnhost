@@ -56,7 +56,7 @@ namespace MangaUnhost.Hosts
                     ThreadTools.Wait(6000, true);
                     var doc = browser.GetDocument();
 
-                    /*
+                    
 
                     var script = doc.SelectSingleNode("//script[contains(., 'imagens_lista')]");
 
@@ -69,46 +69,49 @@ namespace MangaUnhost.Hosts
                         var pageList = browser.EvaluateScript<List<object>>(js);
                         return chapCache[id] = pageList.Cast<string>().ToList();
                     }
-                    */
+                    
+                    try { 
+                        var resp = GetChapter(slug, chapMap[id].TrimEnd('/').Split('/').Last());
 
-                    var resp = GetChapter(slug, chapMap[id].TrimEnd('/').Split('/').Last());
-
-                    if (resp != null)
-                    {
-                        var js = resp;
-                        js = js.Substring("imagens_lista", "}");
-                        js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
-
-                        var pageListA = browser.EvaluateScript<List<object>>(js).Cast<string>();
-
-                        js = resp;
-
-                        while (js.Contains("imagens_lista"))
-                            js = js.Substring("imagens_lista");
-
-                        js = js.Substring(null, "}");
-                        js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
-
-
-                        var pageListB = browser.EvaluateScript<List<object>>(js).Cast<string>();
-
-                        var pageList = pageListA.Count() > pageListB.Count() ? pageListA : pageListB;
-
-                        if (pageListA.Where(x => x.Contains("scraper")).Any())
+                        if (resp != null)
                         {
-                            pageList = pageListB;
-                        } 
-                        else if (pageListB.Where(x => x.Contains("scraper")).Any())
-                        {
-                            pageList = pageListA;
+                            var js = resp;
+                            js = js.Substring("imagens_lista", "}");
+                            js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
+
+                            var pageListA = browser.EvaluateScript<List<object>>(js).Cast<string>();
+
+                            js = resp;
+
+                            while (js.Contains("imagens_lista"))
+                                js = js.Substring("imagens_lista");
+
+                            js = js.Substring(null, "}");
+                            js = js.Substring(":").Replace("\\\\", "\\").Replace("\\\"", "\"");
+
+
+                            var pageListB = browser.EvaluateScript<List<object>>(js).Cast<string>();
+
+                            var pageList = pageListA.Count() > pageListB.Count() ? pageListA : pageListB;
+
+                            if (pageListA.Where(x => x.Contains("scraper")).Any())
+                            {
+                                pageList = pageListB;
+                            } 
+                            else if (pageListB.Where(x => x.Contains("scraper")).Any())
+                            {
+                                pageList = pageListA;
+                            }
+
+                            return chapCache[id] = pageList.ToList();
                         }
-
-                        return chapCache[id] = pageList.ToList();
+                    }
+                    catch(Exception ex)
+                    { 
                     }
 
-
                     var pages = new List<string>();
-                    foreach (var page in doc.SelectNodes("//div[contains(@class, 'min-h-[300px]')]/img"))
+                    foreach (var page in doc.SelectNodes("//img[contains(@alt, 'Página')]"))
                     {
                         var urlPath = page.GetAttributeValue("src", null);
                         pages.Add(new Uri(new Uri($"https://yomu.com.br"), urlPath).AbsoluteUri);
@@ -243,7 +246,7 @@ namespace MangaUnhost.Hosts
                 Name = "Yomu",
                 Author = "Marcussacana",
                 SupportComic = true,
-                Version = new Version(1, 2)
+                Version = new Version(1, 2, 1)
             };
         }
 
