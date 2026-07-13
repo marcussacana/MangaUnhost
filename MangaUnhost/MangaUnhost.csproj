@@ -103,6 +103,7 @@
     </Compile>
     <Compile Include="Decoders\AvifDecoder.cs" />
     <Compile Include="Hosts\BlackoutComics.cs" />
+    <Compile Include="Hosts\ComixTo.cs" />
     <Compile Include="Hosts\DragonScan.cs" />
     <Compile Include="Hosts\DragonScanNext.cs" />
     <Compile Include="Hosts\HentaiNexus.cs" />
@@ -145,7 +146,6 @@
     <Compile Include="Downloader.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Hosts\Batoto.cs" />
     <Compile Include="Hosts\HeavenManga.cs" />
     <Compile Include="Hosts\LHScan.cs" />
     <Compile Include="Hosts\MangaHere.cs" />
