@@ -23,36 +23,86 @@ namespace MangaUnhost.Hosts
 
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
+            EnsureBrowser();
             foreach (var page in GetPages(ID))
             {
-                yield return TryDump(page);
+                var dump = TryDump(page);
+                if (dump == null && !page.StartsWith("data:"))
+                {
+                    try
+                    {
+                        var refUrl = ChapterMap.ContainsKey(ID) ? ChapterMap[ID] : currentUri?.AbsoluteUri;
+                        dump = page.TryDownload(Referer: refUrl, UserAgent: Browser?.GetUserAgent());
+                    }
+                    catch { }
+                }
+                yield return dump;
             }
         }
 
         public IEnumerable<KeyValuePair<int, string>> EnumChapters()
         {
-            var OrderMode = doc.SelectSingleNode("//div[p[contains(., 'Ordenar por:')]]//span");
+            EnsureBrowser();
+            var chapList = new List<KeyValuePair<string, string>>();
 
-            bool Ascending = OrderMode?.InnerText?.Contains("Crescente") ?? false;
-
-            var chapNodes = doc.SelectNodes("//div[contains(@id, 'content-capitulos')]//span[contains(@class, 'chakra-badge') and not(.//*[local-name() = 'svg'])]").AsEnumerable();
-
-            if (Ascending)
-                chapNodes = chapNodes.Reverse();
-
-            foreach (var node in chapNodes)
+            try
             {
-                var chapName = node.InnerText.Replace("Cap.", "").Trim();
+                var html = Browser.GetHTML();
+                var match = System.Text.RegularExpressions.Regex.Match(html, @"\\*""capitulos\\*""\s*:\s*\[(.*?)\]");
+                if (match.Success)
+                {
+                    var jsonStr = "[" + match.Groups[1].Value.Replace("\\\"", "\"").Replace("\\\\", "\\") + "]";
+                    var chaptersJson = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(jsonStr);
+                    if (chaptersJson != null && chaptersJson.Count > 0)
+                    {
+                        var baseUrl = currentUri.AbsoluteUri.TrimEnd('/');
+                        foreach (var chap in chaptersJson)
+                        {
+                            string num = null;
+                            if (chap.ContainsKey("numero") && chap["numero"] != null)
+                                num = chap["numero"].ToString();
+                            else if (chap.ContainsKey("id") && chap["id"] != null)
+                                num = chap["id"].ToString();
+
+                            if (num != null)
+                            {
+                                chapList.Add(new KeyValuePair<string, string>(num, $"{baseUrl}/{num}"));
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            if (chapList.Count == 0)
+            {
+                var OrderMode = doc.SelectSingleNode("//div[p[contains(., 'Ordenar por:')]]//span | //button[contains(., 'ordem:')]");
+                bool Ascending = OrderMode?.InnerText?.Contains("Crescente") == true || OrderMode?.InnerText?.Contains("antigos") == true;
+
+                var chapNodes = doc.SelectNodes("//div[contains(@id, 'content-capitulos')]//span[contains(@class, 'chakra-badge') and not(.//*[local-name() = 'svg'])] | //button[p[contains(., 'CAP.') or contains(., 'Cap.')]]//p[contains(., 'CAP.') or contains(., 'Cap.')] | //p[(contains(., 'CAP.') or contains(., 'Cap.')) and not(ancestor::header)]");
+
+                if (chapNodes != null)
+                {
+                    var nodes = chapNodes.AsEnumerable();
+                    if (Ascending)
+                        nodes = nodes.Reverse();
+
+                    foreach (var node in nodes)
+                    {
+                        var chapName = node.InnerText.Replace("CAP.", "").Replace("Cap.", "").Trim();
+                        if (string.IsNullOrWhiteSpace(chapName)) continue;
+
+                        var baseUrl = currentUri.AbsoluteUri.TrimEnd('/');
+                        chapList.Add(new KeyValuePair<string, string>(chapName, $"{baseUrl}/{chapName}"));
+                    }
+                }
+            }
+
+            foreach (var item in chapList)
+            {
                 int id = ChapterMap.Count;
-
-                var baseUrl = currentUri.AbsoluteUri;
-
-                if (baseUrl.EndsWith("/"))
-                    baseUrl = baseUrl.Substring(0, baseUrl.Length - 1);
-
-                ChapterMap[id] = $"{baseUrl}/{chapName}";
-
-                yield return new KeyValuePair<int, string>(id, chapName);
+                ChapterMap[id] = item.Value;
+                yield return new KeyValuePair<int, string>(id, item.Key);
             }
         }
 
@@ -75,18 +125,38 @@ namespace MangaUnhost.Hosts
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            var node = doc.SelectNodes("//script[contains(., 'imageUrls')]");
-
-            if (node != null)
+            try
             {
-                var js = node.Single().InnerHtml;
-                js = js.Substring("imageUrls", "]");
-                js = js.Substring("[").Replace("\\\"", "\"");
-
-                var rst = Browser.EvaluateScript<List<object>>($"[{js}]").Cast<string>().ToArray();
-                if (rst.Length > 0)
-                    return PageMap[ID] = rst;
+                var match = System.Text.RegularExpressions.Regex.Match(html, @"\\*""imageUrls\\*""\s*:\s*\[(.*?)\]");
+                if (match.Success)
+                {
+                    var jsonStr = "[" + match.Groups[1].Value.Replace("\\\"", "\"").Replace("\\\\", "\\") + "]";
+                    var rst = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(jsonStr);
+                    if (rst != null && rst.Length > 0)
+                        return PageMap[ID] = rst;
+                }
             }
+            catch { }
+
+            try
+            {
+                var nodes = doc.SelectNodes("//script[contains(., 'imageUrls')]");
+                if (nodes != null)
+                {
+                    foreach (var node in nodes)
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(node.InnerHtml, @"\\*""imageUrls\\*""\s*:\s*\[(.*?)\]");
+                        if (match.Success)
+                        {
+                            var jsonStr = "[" + match.Groups[1].Value.Replace("\\\"", "\"").Replace("\\\\", "\\") + "]";
+                            var rst = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(jsonStr);
+                            if (rst != null && rst.Length > 0)
+                                return PageMap[ID] = rst;
+                        }
+                    }
+                }
+            }
+            catch { }
 
 
             var pages = CollectPageUrlsFromBrowser();
@@ -147,21 +217,28 @@ namespace MangaUnhost.Hosts
         Uri currentUri = null;
         ChromiumWebBrowser Browser { get; set; }
 
+        private void EnsureBrowser()
+        {
+            if (Browser != null) return;
+            Browser = new ChromiumWebBrowser("about:blank");
+            Browser.WaitInitialize();
+            Browser.EarlyInjection("window.__originalToDataURL = HTMLCanvasElement.prototype.toDataURL; window.__originalToBlob = HTMLCanvasElement.prototype.toBlob; window.__originalCreateElement = Document.prototype.createElement;");
+        }
+
         public ComicInfo LoadUri(Uri Uri)
         {
-            if (Browser == null)
-            {
-                Browser = new ChromiumWebBrowser(Uri.AbsoluteUri);
-                Browser.WaitInitialize();
-            }
+            EnsureBrowser();
 
             if (int.TryParse(Uri.PathAndQuery.Split('/').Last(), out _))
             {
                 Uri = new Uri(Uri.AbsoluteUri.Substring(0, Uri.AbsoluteUri.LastIndexOf("/")));
             }
 
-            Browser.WaitForLoad(Uri);
-            ThreadTools.Wait(1000);
+            if (Browser.Address != Uri.AbsoluteUri)
+            {
+                Browser.WaitForLoad(Uri);
+                ThreadTools.Wait(1000);
+            }
 
             currentUri = Uri;
 
@@ -171,13 +248,22 @@ namespace MangaUnhost.Hosts
             doc = new HtmlDocument();
             doc.LoadHtml(Browser.GetHTML());
 
-            var titleNode = doc.SelectNodes("//h1[@itemprop=\"name\"]").FirstOrDefault();
-            var coverNode = doc.SelectNodes("//meta[@property=\"og:image\"]").FirstOrDefault();
+            var titleNode = doc.SelectNodes("//h1[@itemprop=\"name\"]")?.FirstOrDefault();
+            if (titleNode == null)
+                titleNode = doc.SelectNodes("//h1")?.FirstOrDefault();
+
+            var coverNode = doc.SelectNodes("//meta[@property=\"og:image\"]")?.FirstOrDefault();
+            string coverUrl = coverNode?.GetAttributeValue("content", null);
+            if (string.IsNullOrWhiteSpace(coverUrl))
+            {
+                var imgNode = doc.SelectNodes("//img[contains(@alt, 'Capa') or contains(@alt, 'cover')]")?.FirstOrDefault();
+                coverUrl = imgNode?.GetAttributeValue("src", null);
+            }
 
             return new ComicInfo()
             {
-                Title = titleNode?.InnerText.Trim(),
-                Cover = TryDump(coverNode?.GetAttributeValue("content", null)),
+                Title = titleNode?.InnerText?.Trim() ?? "Unknown",
+                Cover = TryDump(coverUrl),
                 ContentType = ContentType.Comic,
                 Url = Uri
             };
@@ -187,6 +273,22 @@ namespace MangaUnhost.Hosts
         {
             if (string.IsNullOrWhiteSpace(url))
                 return null;
+
+            if (url.StartsWith("data:"))
+            {
+                var commaIdx = url.IndexOf(',');
+                if (commaIdx != -1)
+                {
+                    try
+                    {
+                        var base64 = url.Substring(commaIdx + 1);
+                        return Convert.FromBase64String(base64);
+                    }
+                    catch { }
+                }
+            }
+
+            EnsureBrowser();
 
             byte[] result = null;
             bool done = false;
@@ -228,44 +330,181 @@ namespace MangaUnhost.Hosts
                     const prefix = {safePrefix};
                     try {{
                         const url = {safeUrl};
-                        const img = new Image();
-                        img.crossOrigin = 'anonymous';
-                        img.decoding = 'async';
+                        
+                        let cleanToDataURL = window.__originalToDataURL;
+                        let cleanToBlob = window.__originalToBlob;
+                        let cleanCreateElement = window.__originalCreateElement || document.createElement;
 
-                        const loaded = new Promise((resolve, reject) => {{
-                            img.onload = () => resolve();
-                            img.onerror = () => reject(new Error('image load failed'));
-                        }});
-
-                        img.src = url;
-
-                        if (!(img.complete && img.naturalWidth > 0)) {{
-                            await loaded;
+                        if (!cleanToDataURL || !cleanToBlob) {{
+                            try {{
+                                let ifr = cleanCreateElement.call(document, 'iframe');
+                                ifr.style.display = 'none';
+                                document.body.appendChild(ifr);
+                                cleanToDataURL = cleanToDataURL || ifr.contentWindow.HTMLCanvasElement.prototype.toDataURL;
+                                cleanToBlob = cleanToBlob || ifr.contentWindow.HTMLCanvasElement.prototype.toBlob;
+                                document.body.removeChild(ifr);
+                            }} catch (e) {{
+                                cleanToDataURL = cleanToDataURL || HTMLCanvasElement.prototype.toDataURL;
+                                cleanToBlob = cleanToBlob || HTMLCanvasElement.prototype.toBlob;
+                            }}
                         }}
 
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
+                        const sendDataUrl = (canvas) => {{
+                            try {{
+                                const dUrl = cleanToDataURL ? cleanToDataURL.call(canvas, 'image/png') : canvas.toDataURL('image/png');
+                                if (dUrl && dUrl.startsWith('data:image')) {{
+                                    CefSharp.PostMessage(prefix + dUrl.split(',')[1]);
+                                    return true;
+                                }}
+                            }} catch (e) {{}}
+                            return false;
+                        }};
 
-                        canvas.width = img.naturalWidth;
-                        canvas.height = img.naturalHeight;
-                        ctx.drawImage(img, 0, 0);
+                        const sendBlob = async (canvas) => {{
+                            return new Promise(resolve => {{
+                                try {{
+                                    const fn = cleanToBlob || canvas.toBlob;
+                                    fn.call(canvas, blob => {{
+                                        if (!blob) {{
+                                            resolve(false);
+                                            return;
+                                        }}
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {{
+                                            if (reader.result && reader.result.includes(',')) {{
+                                                CefSharp.PostMessage(prefix + reader.result.split(',')[1]);
+                                                resolve(true);
+                                            }} else {{
+                                                resolve(false);
+                                            }}
+                                        }};
+                                        reader.readAsDataURL(blob);
+                                    }}, 'image/png');
+                                }} catch (e) {{
+                                    resolve(false);
+                                }}
+                            }});
+                        }};
 
-                        await new Promise(resolve => {{
-                            canvas.toBlob(blob => {{
-                                if (!blob) {{
-                                    CefSharp.PostMessage(prefix);
-                                    resolve();
+                        const matchesUrl = (src) => {{
+                            if (!src || typeof src !== 'string') return false;
+                            if (src === url) return true;
+                            try {{
+                                const u1 = new URL(src, location.href).href;
+                                const u2 = new URL(url, location.href).href;
+                                if (u1 === u2 || u1.split('?')[0] === u2.split('?')[0]) return true;
+                            }} catch {{}}
+                            return src.includes(url) || url.includes(src);
+                        }};
+
+                        let foundDomImg = null;
+                        let foundDomCanvas = null;
+
+                        const allContainers = Array.from(document.querySelectorAll('div[data-page-idx], div[data-page], .rpage-page, div[id*=""page""]'));
+                        for (const container of allContainers) {{
+                            const img = container.querySelector('img');
+                            if (img && matchesUrl((img.currentSrc || img.getAttribute('src') || img.src || '').trim())) {{
+                                foundDomImg = img;
+                                const c = container.querySelector('canvas');
+                                if (c && c.width > 0 && c.height > 0) foundDomCanvas = c;
+                                break;
+                            }}
+                        }}
+
+                        if (!foundDomImg && !foundDomCanvas) {{
+                            for (const img of Array.from(document.querySelectorAll('img'))) {{
+                                if (matchesUrl((img.currentSrc || img.getAttribute('src') || img.src || '').trim())) {{
+                                    foundDomImg = img;
+                                    break;
+                                }}
+                            }}
+                        }}
+
+                        if (foundDomCanvas) {{
+                            if (sendDataUrl(foundDomCanvas)) return;
+                            if (await sendBlob(foundDomCanvas)) return;
+                        }}
+
+                        if (foundDomImg && foundDomImg.complete && foundDomImg.naturalWidth > 0) {{
+                            try {{
+                                const canvas = cleanCreateElement.call(document, 'canvas');
+                                const ctx = canvas.getContext('2d');
+                                canvas.width = foundDomImg.naturalWidth;
+                                canvas.height = foundDomImg.naturalHeight;
+                                ctx.drawImage(foundDomImg, 0, 0);
+                                if (sendDataUrl(canvas)) return;
+                                if (await sendBlob(canvas)) return;
+                            }} catch (e) {{
+                            }}
+                        }}
+
+                        try {{
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.decoding = 'async';
+
+                            const loaded = new Promise((resolve, reject) => {{
+                                img.onload = () => resolve();
+                                img.onerror = () => reject(new Error('image load failed'));
+                            }});
+
+                            img.src = url;
+                            if (!(img.complete && img.naturalWidth > 0)) {{
+                                await loaded;
+                            }}
+
+                            const canvas = cleanCreateElement.call(document, 'canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            ctx.drawImage(img, 0, 0);
+
+                            if (sendDataUrl(canvas)) return;
+                            if (await sendBlob(canvas)) return;
+                        }} catch (e) {{
+                        }}
+
+                        try {{
+                            const response = await fetch(url, {{ credentials: 'omit' }});
+                            if (response.ok) {{
+                                const blob = await response.blob();
+                                if (blob && blob.size > 0) {{
+                                    await new Promise(res => {{
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {{
+                                            if (reader.result && reader.result.includes(',')) {{
+                                                CefSharp.PostMessage(prefix + reader.result.split(',')[1]);
+                                            }}
+                                            res();
+                                        }};
+                                        reader.readAsDataURL(blob);
+                                    }});
                                     return;
                                 }}
+                            }}
+                        }} catch (e) {{}}
 
-                                const reader = new FileReader();
-                                reader.onloadend = () => {{
-                                    CefSharp.PostMessage(prefix + reader.result.split(',')[1]);
-                                    resolve();
-                                }};
-                                reader.readAsDataURL(blob);
-                            }}, 'image/png');
-                        }});
+                        try {{
+                            const img = new Image();
+                            const loaded = new Promise((resolve, reject) => {{
+                                img.onload = () => resolve();
+                                img.onerror = () => reject(new Error('load failed'));
+                            }});
+                            img.src = url;
+                            if (!(img.complete && img.naturalWidth > 0)) {{
+                                await loaded;
+                            }}
+                            const canvas = cleanCreateElement.call(document, 'canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            ctx.drawImage(img, 0, 0);
+
+                            if (sendDataUrl(canvas)) return;
+                            if (await sendBlob(canvas)) return;
+                        }} catch (e) {{}}
+
+                        CefSharp.PostMessage(prefix);
                     }} catch {{
                         CefSharp.PostMessage(prefix);
                     }}
@@ -352,54 +591,109 @@ namespace MangaUnhost.Hosts
                     try {{
                         const prefix = {PrefixJs};
                         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-                        const pages = Array.from(document.querySelectorAll('div[data-page-idx]'));
+                        const collectedMap = new Map();
 
-                        if (!pages.length) {{
-                            CefSharp.PostMessage(prefix + '[]');
-                            return;
+                        const tryExtractFromScriptOrData = (text) => {{
+                            if (!text || typeof text !== 'string') return;
+                            try {{
+                                const matches = text.matchAll(/\\*""imageUrls\\*""\s*:\s*\[(.*?)\]/g);
+                                for (const match of matches) {{
+                                    let inner = match[1].replace(/\\""/g, '""').replace(/\\\\/g, '\\');
+                                    const arr = JSON.parse('[' + inner + ']');
+                                    if (Array.isArray(arr) && arr.length > 0) {{
+                                        arr.forEach((u, idx) => {{
+                                            if (u && typeof u === 'string' && u.startsWith('http')) {{
+                                                if (!Array.from(collectedMap.values()).includes(u)) {{
+                                                    collectedMap.set(idx, u);
+                                                }}
+                                            }}
+                                        }});
+                                    }}
+                                }}
+                            }} catch (e) {{}}
+                        }};
+
+                        if (typeof self.__next_f !== 'undefined' && Array.isArray(self.__next_f)) {{
+                            for (const item of self.__next_f) tryExtractFromScriptOrData(JSON.stringify(item));
                         }}
+                        if (typeof window.__next_f !== 'undefined' && Array.isArray(window.__next_f)) {{
+                            for (const item of window.__next_f) tryExtractFromScriptOrData(JSON.stringify(item));
+                        }}
+                        if (typeof window.__NEXT_DATA__ !== 'undefined') {{
+                            tryExtractFromScriptOrData(JSON.stringify(window.__NEXT_DATA__));
+                        }}
+                        Array.from(document.querySelectorAll('script')).forEach(s => {{
+                            if (s && (s.textContent || s.innerHTML)) {{
+                                tryExtractFromScriptOrData(s.textContent || s.innerHTML);
+                            }}
+                        }});
+
+                        const collectCurrent = () => {{
+                            const nodes = Array.from(document.querySelectorAll('div[data-page-idx], div[data-page], .rpage-page, div[id*=""page""]'));
+                            for (const node of nodes) {{
+                                let idx = parseInt(node.getAttribute('data-page-idx') ?? node.getAttribute('data-page') ?? -1);
+                                const img = node.querySelector('img');
+                                if (img) {{
+                                    const src = (img.currentSrc || img.getAttribute('src') || img.src || '').trim();
+                                    if (src.length > 0 && !src.startsWith('data:')) {{
+                                        if (idx !== -1 && !isNaN(idx)) {{
+                                            collectedMap.set(idx, src);
+                                        }} else {{
+                                            if (!Array.from(collectedMap.values()).includes(src)) {{
+                                                collectedMap.set(collectedMap.size, src);
+                                            }}
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }};
 
                         window.scrollTo(0, 0);
                         await sleep(500);
+                        collectCurrent();
 
-                        for (const page of pages) {{
-                            page.scrollIntoView({{ block: 'center', inline: 'nearest' }});
-                            await sleep(350);
-                        }}
+                        let lastCount = -1;
+                        let retriesWithoutNew = 0;
 
-                        window.scrollTo(0, document.body.scrollHeight);
-                        await sleep(500);
-                        window.scrollTo(0, 0);
+                        while (retriesWithoutNew < 3) {{
+                            const step = window.innerHeight * 0.6;
+                            let curr = 0;
+                            const maxScroll = Math.max(document.body.scrollHeight, window.innerHeight * 2);
 
-                        for (let i = 0; i < 40; i++) {{
-                            const ready = pages.every(page => {{
-                                const img = page.querySelector('img');
-                                if (!img) {{
-                                    return false;
+                            while (curr <= maxScroll) {{
+                                window.scrollTo(0, curr);
+                                await sleep(300);
+                                collectCurrent();
+
+                                const nodes = Array.from(document.querySelectorAll('div[data-page-idx], div[data-page], .rpage-page, div[id*=""page""]'));
+                                for (const node of nodes) {{
+                                    if (!node.dataset.scrolled) {{
+                                        node.dataset.scrolled = '1';
+                                        node.scrollIntoView({{ block: 'center', inline: 'nearest' }});
+                                        await sleep(300);
+                                        collectCurrent();
+                                    }}
                                 }}
 
-                                const src = (img.currentSrc || img.getAttribute('src') || img.src || '').trim();
-                                return src.length > 0;
-                            }});
-
-                            if (ready) {{
-                                break;
+                                curr += step;
                             }}
 
                             window.scrollTo(0, document.body.scrollHeight);
                             await sleep(500);
+                            collectCurrent();
+
+                            if (collectedMap.size > lastCount) {{
+                                lastCount = collectedMap.size;
+                                retriesWithoutNew = 0;
+                            }} else {{
+                                retriesWithoutNew++;
+                            }}
                         }}
 
-                        await sleep(3000);
+                        Array.from(document.querySelectorAll('script')).forEach(s => tryExtractFromScriptOrData(s.textContent || s.innerHTML));
 
-                        const urls = pages.map(page => {{
-                            const img = page.querySelector('img');
-                            if (!img) {{
-                                return '';
-                            }}
-
-                            return (img.currentSrc || img.getAttribute('src') || img.src || '').trim();
-                        }}).filter(url => url.length > 0);
+                        const sortedIndices = Array.from(collectedMap.keys()).sort((a, b) => a - b);
+                        const urls = sortedIndices.map(k => collectedMap.get(k));
 
                         CefSharp.PostMessage(prefix + JSON.stringify(urls));
                     }} catch {{

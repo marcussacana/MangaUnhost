@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 using CefSharp.Handler;
+using MangaUnhost.Browser;
 
 namespace CefSharp.EventHandler
 {

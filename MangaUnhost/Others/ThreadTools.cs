@@ -27,5 +27,27 @@ namespace MangaUnhost.Others {
                 throw new TimeoutException();
             }
         }
+
+        public static T RunInBackground<T>(this Task<T> Task)
+        {
+            while (!Task.IsCanceled && !Task.IsCompleted && !Task.IsFaulted)
+                Wait(100, true);
+
+            if (Task.IsFaulted)
+                throw Task.Exception;
+
+            if (Task.IsCanceled)
+                return default;
+
+            return Task.Result;
+        }
+        public static void RunInBackground(this Task Task)
+        {
+            while (!Task.IsCanceled && !Task.IsCompleted && !Task.IsFaulted)
+                Wait(100, true);
+
+            if (Task.IsFaulted)
+                throw Task.Exception;
+        }
     }
 }

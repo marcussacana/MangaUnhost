@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using CefSharp;
 using CefSharp.OffScreen;
 using MangaUnhost.Browser;
@@ -232,6 +232,8 @@ namespace MangaUnhost
 
             //CefSettings.DisableGpuAcceleration();
 
+            CefSettings.CefCommandLineArgs.Add("disable-features", "SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure,disable-partitioned-cookies");
+
             //CefSettings.CefCommandLineArgs.Add("disable-web-security");
             CefSettings.CefCommandLineArgs.Add("user-agent", ProxyTools.UserAgent);
             CefSettings.CefCommandLineArgs.Add("isolate-origins", "https://accounts.google.com,https://chrome.google.com,https://chromewebstore.google.com,https://mail.google.com,https://www.google.com,https://google.com");
@@ -265,6 +267,35 @@ namespace MangaUnhost
 
             CrawlerThread = new Thread(CrawlerWorker);
             CrawlerThread.Start();
+
+            if (Program.Debug)
+            {
+                new Thread(() =>
+                {
+                    ThreadTools.Wait(1000);
+                    try
+                    {
+                        var testUri = new Uri("https://lycantoons.com/series/guia-da-reforma-da-nobre-dama");
+                        var host = Hosts.FirstOrDefault(h => h.IsValidUri(testUri));
+                        if (host != null)
+                        {
+                            BeginInvoke(new Action(() =>
+                            {
+                                try
+                                {
+                                    LoadUri(testUri, host);
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (Program.Debug)
+                                        MessageBox.Show(ex.ToString(), "Debug Load Error");
+                                }
+                            }));
+                        }
+                    }
+                    catch { }
+                }).Start();
+            }
 
             if (!Program.Updater.HaveUpdate())
                 return;

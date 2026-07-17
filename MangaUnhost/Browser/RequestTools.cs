@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows;
+using System.Windows.Forms;
 
 namespace MangaUnhost.Browser
 {
@@ -24,18 +25,37 @@ namespace MangaUnhost.Browser
                 Browser.RequestHandler = new RequestEventHandler();
             }
 
-            Browser.BrowserInitialized += (Sender, Args) =>
+            if (Browser.IsBrowserInitialized)
             {
-                var WBroser = (ChromiumWebBrowser)Sender;
-                var HBrowser = WBroser.GetBrowserHost();
+                Cef.UIThreadTaskFactory.StartNew(() =>
+                {
+                    var WBroser = Browser;
+                    var HBrowser = WBroser.GetBrowserHost();
 
-                var ProxyInfo = new Dictionary<string, object>();
-                ProxyInfo["mode"] = "fixed_servers";
-                ProxyInfo["server"] = $"{Proxy.Address.Scheme}://{Proxy.Address.Host}:{Proxy.Address.Port}";
+                    var ProxyInfo = new Dictionary<string, object>();
+                    ProxyInfo["mode"] = "fixed_servers";
+                    ProxyInfo["server"] = $"{Proxy.Address.Scheme}://{Proxy.Address.Host}:{Proxy.Address.Port}";
 
-                if (!HBrowser.RequestContext.SetPreference("proxy", ProxyInfo, out string Error))
-                    throw new Exception("Failed to Set the Proxy: " + Error);
-            };
+                    if (!HBrowser.RequestContext.SetPreference("proxy", ProxyInfo, out string Error))
+                        throw new Exception("Failed to Set the Proxy: " + Error);
+
+                }).RunInBackground();
+            }
+            else
+            {
+                Browser.BrowserInitialized += (Sender, Args) =>
+                {
+                    var WBroser = (ChromiumWebBrowser)Sender;
+                    var HBrowser = WBroser.GetBrowserHost();
+
+                    var ProxyInfo = new Dictionary<string, object>();
+                    ProxyInfo["mode"] = "fixed_servers";
+                    ProxyInfo["server"] = $"{Proxy.Address.Scheme}://{Proxy.Address.Host}:{Proxy.Address.Port}";
+
+                    if (!HBrowser.RequestContext.SetPreference("proxy", ProxyInfo, out string Error))
+                        throw new Exception("Failed to Set the Proxy: " + Error);
+                };
+            }
 
             ((RequestEventHandler)Browser.RequestHandler).SetCredentials(Proxy.Credentials as NetworkCredential);
             ((RequestEventHandler)Browser.RequestHandler).GetAuthCredentialsEvent += (Sender, Args) =>
@@ -57,19 +77,37 @@ namespace MangaUnhost.Browser
             {
                 Browser.RequestHandler = new RequestEventHandler();
             }
-
-            Browser.IsBrowserInitializedChanged += (Sender, Args) =>
+            if (Browser.IsBrowserInitialized)
             {
-                var WBroser = (ChromiumWebBrowser)Sender;
-                var HBrowser = WBroser.GetBrowserHost();
+                Cef.UIThreadTaskFactory.StartNew(() =>
+                {
+                    var WBroser = Browser;
+                    var HBrowser = WBroser.GetBrowserHost();
 
-                var ProxyInfo = new Dictionary<string, object>();
-                ProxyInfo["mode"] = "fixed_servers";
-                ProxyInfo["server"] = $"{Proxy.Address.Scheme}://{Proxy.Address.Host}:{Proxy.Address.Port}";
+                    var ProxyInfo = new Dictionary<string, object>();
+                    ProxyInfo["mode"] = "fixed_servers";
+                    ProxyInfo["server"] = $"{Proxy.Address.Scheme}://{Proxy.Address.Host}:{Proxy.Address.Port}";
 
-                if (!HBrowser.RequestContext.SetPreference("proxy", ProxyInfo, out string Error))
-                    throw new Exception("Failed to Set the Proxy: " + Error);
-            };
+                    if (!HBrowser.RequestContext.SetPreference("proxy", ProxyInfo, out string Error))
+                        throw new Exception("Failed to Set the Proxy: " + Error);
+
+                }).RunInBackground();
+            }
+            else
+            {
+                Browser.IsBrowserInitializedChanged += (Sender, Args) =>
+                {
+                    var WBroser = (ChromiumWebBrowser)Sender;
+                    var HBrowser = WBroser.GetBrowserHost();
+
+                    var ProxyInfo = new Dictionary<string, object>();
+                    ProxyInfo["mode"] = "fixed_servers";
+                    ProxyInfo["server"] = $"{Proxy.Address.Scheme}://{Proxy.Address.Host}:{Proxy.Address.Port}";
+
+                    if (!HBrowser.RequestContext.SetPreference("proxy", ProxyInfo, out string Error))
+                        throw new Exception("Failed to Set the Proxy: " + Error);
+                };
+            }
 
             ((RequestEventHandler)Browser.RequestHandler).SetCredentials(Proxy.Credentials as NetworkCredential);
             ((RequestEventHandler)Browser.RequestHandler).GetAuthCredentialsEvent += (Sender, Args) =>

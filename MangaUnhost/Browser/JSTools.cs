@@ -1,5 +1,6 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.DevTools.Debugger;
+using CefSharp.DevTools.DeviceOrientation;
 using CefSharp.EventHandler;
 using CefSharp.Handler;
 using CefSharp.OffScreen;
@@ -12,8 +13,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Net;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Titanium.Web.Proxy;
+using Titanium.Web.Proxy.EventArguments;
+using Titanium.Web.Proxy.Models;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace MangaUnhost.Browser
@@ -206,126 +211,160 @@ namespace MangaUnhost.Browser
             var Status = Main.Status;
             Main.Status = Main.Language.BypassingCloudFlare;
 
-            var OriRequestHandler = WebBrowser.RequestHandler;
-
 
             var Container = new CookieContainer();
 
-            int skipNum = 0;
-            
-            WebBrowser.RegisterWebRequestHandlerEvents(null, (sender, e) =>
+            var proxyServer = new ProxyServer();
+            proxyServer.EnableHttp2 = true;
+            proxyServer.SupportedSslProtocols = SslProtocols.Tls12 | (SslProtocols)12288;
+            proxyServer.EnableConnectionPool = true;
+            proxyServer.ReuseSocket = true;
+
+            proxyServer.BeforeResponse += async (sender, e) =>
             {
-                var Cookies = e.Headers.GetValues("Set-Cookie");
-
-                if (Cookies == null)
-                    return;
-
-                foreach (var Cookie in Cookies)
+                try
                 {
-                    Container.SetCookies(e.WebRequest.RequestUri, Cookie);
-                }
-            }, (sender, e) =>
-            {
-                e.DefaultHandler = e.WebRequest.Url != Url;
-                /*if (!e.DefaultHandler && skipNum == 0) { 
-                    e.DefaultHandler = true;
-                    skipNum++;
-                }
-                */
-            });
-            
-
-            if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser)
-            {
-                winWebBrowser.Size = new Size(1280, 720);
-            }
-            else if (WebBrowser is CefSharp.OffScreen.ChromiumWebBrowser offWebBrowser)
-            {
-                offWebBrowser.Size = new Size(1280, 720);
-            }
-
-            int Proxies = 0;
-            WebBrowser.Load(Url);
-
-            var Browser = WebBrowser.GetBrowser();
-            Browser.WaitForLoad(10);
-
-            while (Browser.IsCloudflareTriggered())
-            {
-                int maxWait = 10;
-                while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha() && maxWait-- > 0)
-                {
-                    ThreadTools.Wait(1000, true);
-                }
-
-                if (Browser.GetHTML().Contains("Please enable cookies."))
-                {
-                    throw new Exception("Banned IP on Cloudflare");
-                }
-
-                if (Browser.IsCloudflareAskingCaptcha())
-                {
-                    int Tries = 3;
-                    while (Browser.IsCloudflareTriggered() && Tries > 0)
+                    var setCookieHeaders = e.HttpClient.Response.Headers.GetHeaders("Set-Cookie");
+                    if (setCookieHeaders != null)
                     {
-                        if (Browser.GetCurrentUrl() != Url)
-                            DefaultBrowser.WaitForLoad(Url);
-
-                        if (!Browser.TurnstileIsSolved() && Tries > 1)
+                        foreach (var header in setCookieHeaders)
                         {
-                            Browser.TurnstileSolve();
-                        }
-                        else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser)
-                        {
-                            var MaxWait = 60;
-                            BrowserPopup popup = new BrowserPopup(WebBrowser, new Rectangle(0, 0, 1280, 720), () =>
+                            try
                             {
-                                try
-                                {
-                                    if (Browser.IsCloudflareTriggered() && !Browser.TurnstileIsSolved() && MaxWait-- > 0)
-                                        return false;
-                                }
-                                catch
-                                {
-
-                                }
-                                return false;
-                            });
-
-                            popup.ShowDialog();
-                            popup.Focus();
+                                Container.SetCookies(e.HttpClient.Request.RequestUri, header.Value);
+                            }
+                            catch { }
                         }
-
-                        ThreadTools.Wait(3000, true);
-                        Browser.WaitForLoad(10);
-                        Tries--;
                     }
                 }
-            }
-
-            Browser.WaitForLoad(15);
-            var HTML = Browser.GetHTML();
-            var BrowserCookies = Browser.GetCookies();
-
-            foreach (var Cookie in BrowserCookies.ToContainer().GetCookies())
-                Container.Add(Cookie);
-
-
-            WebBrowser.RequestHandler = OriRequestHandler;
-
-            //WebBrowser.Load("about:blank");
-
-            Main.Status = Status;
-
-            if (Program.Debug)
-                Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
-
-            return new CloudflareData()
-            {
-                Cookies = Container,
-                UserAgent = Browser.GetUserAgent(),
-                HTML = HTML
+                catch { }
             };
+
+            var endPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, 0, true);
+            proxyServer.AddEndPoint(endPoint);
+            proxyServer.Start(false);
+
+            int port = proxyServer.ProxyEndPoints[0].Port;
+
+            try
+            {
+                if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser winWebBrowser)
+                {
+                    winWebBrowser.Size = new Size(1920, 1080);
+                    winWebBrowser.UseProxy(new WebProxy(new Uri($"http://127.0.0.1:{port}")));
+                }
+                else if (WebBrowser is CefSharp.OffScreen.ChromiumWebBrowser offWebBrowser)
+                {
+                    offWebBrowser.Size = new Size(1920, 1080);
+                    offWebBrowser.UseProxy(new WebProxy(new Uri($"http://127.0.0.1:{port}")));
+                }
+
+                WebBrowser.WaitInitialize();
+                WebBrowser.ToggleAudioMute();
+
+                int Proxies = 0;
+                WebBrowser.Load(Url);
+
+                var Browser = WebBrowser.GetBrowser();
+                Browser.WaitForLoad(10);
+
+                while (Browser.IsCloudflareTriggered())
+                {
+                    int maxWait = 10;
+                    while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha() && maxWait-- > 0)
+                    {
+                        ThreadTools.Wait(1000, true);
+                    }
+
+                    if (Browser.GetHTML().Contains("Please enable cookies."))
+                    {
+                        throw new Exception("Banned IP on Cloudflare");
+                    }
+
+                    if (Browser.IsCloudflareAskingCaptcha())
+                    {
+                        int Tries = 3;
+                        while (Browser.IsCloudflareTriggered() && Tries > 0)
+                        {
+                            if (Browser.GetCurrentUrl() != Url)
+                                DefaultBrowser.WaitForLoad(Url);
+
+                            if (!Browser.TurnstileIsSolved() && Tries > 1)
+                            {
+                                Browser.TurnstileSolve();
+                            }
+                            else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser)
+                            {
+                                var MaxWait = 60;
+                                BrowserPopup popup = new BrowserPopup(WebBrowser, new Rectangle(0, 0, 1280, 720), () =>
+                                {
+                                    try
+                                    {
+                                        if (Browser.IsCloudflareTriggered() && !Browser.TurnstileIsSolved() && MaxWait-- > 0)
+                                            return false;
+                                    }
+                                    catch
+                                    {
+
+                                    }
+                                    return false;
+                                });
+
+                                popup.ShowDialog();
+                                popup.Focus();
+                            }
+
+                            ThreadTools.Wait(3000, true);
+                            Browser.WaitForLoad(10);
+                            Tries--;
+                        }
+                    }
+                }
+
+                Browser.WaitForLoad(15);
+                var HTML = Browser.GetHTML();
+                var BrowserCookies = Browser.GetCookies();
+
+                foreach (var Cookie in BrowserCookies.ToContainer().GetCookies())
+                    Container.Add(Cookie);
+
+                Main.Status = Status;
+
+                if (Program.Debug)
+                    Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
+
+
+                return new CloudflareData()
+                {
+                    Cookies = Container,
+                    UserAgent = Browser.GetUserAgent(),
+                    HTML = HTML
+                };
+            }
+            finally
+            {
+                try
+                {
+                    proxyServer.Stop();
+                }
+                catch { }
+
+                try
+                {
+                    Cef.UIThreadTaskFactory.StartNew(() =>
+                    {
+                        try
+                        {
+                            var rc = WebBrowser.GetBrowserHost().RequestContext;
+                            var proxyPref = new Dictionary<string, object> { ["mode"] = "direct" };
+                            string error;
+                            rc.SetPreference("proxy", proxyPref, out error);
+                        }
+                        catch { }
+                    }).Wait();
+                }
+                catch { }
+            }
         }
 
         public static HtmlDocument GetDocument(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetDocument();
