@@ -25,6 +25,7 @@ namespace MangaUnhost.Hosts
             if (browser != null) return;
             browser = new ChromiumWebBrowser("about:blank");
             browser.WaitInitialize();
+            browser.EarlyInjection("window.__originalToDataURL = HTMLCanvasElement.prototype.toDataURL; window.__originalCreateElement = Document.prototype.createElement;");
         }
 
         public ComicInfo LoadUri(Uri Uri)
@@ -76,7 +77,12 @@ namespace MangaUnhost.Hosts
                     JSON.stringify(
                         Array.from(document.querySelectorAll('a'))
                              .filter(a => /\/title\/[^/]+\/\d+-chapter/.test(a.href))
-                             .map(a => ({url: a.href, title: a.innerText.trim()}))
+                             .map(a => {
+                                 let title = a.innerText.trim();
+                                 let m = a.href.match(/chapter-([\d.-]+)/i);
+                                 let num = m ? m[1] : '';
+                                 return {url: a.href, title: title, num: num};
+                             })
                     )
                 ";
 
@@ -89,6 +95,10 @@ namespace MangaUnhost.Hosts
                     {
                         string url = item["url"]?.ToString();
                         string name = item["title"]?.ToString();
+                        string num = item["num"]?.ToString();
+
+                        if (!string.IsNullOrEmpty(num))
+                            name = num;
 
                         if (string.IsNullOrEmpty(url)) continue;
                         if (ChapterMap.Values.Contains(url)) continue;
@@ -128,6 +138,16 @@ namespace MangaUnhost.Hosts
         {
             foreach (var url in GetChapterPages(ID))
             {
+                if (url.StartsWith("data:"))
+                {
+                    var commaIdx = url.IndexOf(',');
+                    if (commaIdx != -1)
+                    {
+                        var base64 = url.Substring(commaIdx + 1);
+                        yield return Convert.FromBase64String(base64);
+                        continue;
+                    }
+                }
                 yield return url.TryDownload(Referer: ChapterMap[ID]);
             }
         }
@@ -145,65 +165,159 @@ namespace MangaUnhost.Hosts
 
             var jsAccumulateImages = @"
                 (async function() {
-                    let images = new Set();
+                    let pagesDict = {};
+                    let unknownPages = [];
                     
+                    let cleanToDataURL = window.__originalToDataURL;
+                    if (!cleanToDataURL) {
+                        try {
+                            let createEl = window.__originalCreateElement || document.createElement;
+                            let ifr = createEl.call(document, 'iframe');
+                            ifr.style.display = 'none';
+                            document.body.appendChild(ifr);
+                            cleanToDataURL = ifr.contentWindow.HTMLCanvasElement.prototype.toDataURL;
+                            document.body.removeChild(ifr);
+                        } catch (e) {
+                            cleanToDataURL = HTMLCanvasElement.prototype.toDataURL;
+                        }
+                    }
+
                     function collect() {
-                        Array.from(document.querySelectorAll('img')).forEach(img => {
-                            let src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
-                            if (src && src.startsWith('http') &&
-                                !src.includes('avatar') &&
-                                !src.includes('logo') &&
-                                !src.includes('favicon') &&
-                                !src.includes('@280') &&
-                                !src.includes('comix.to/assets') &&
-                                !src.includes('google.com') &&
-                                !src.includes('cloudflare') &&
-                                !src.includes('static.comix.to')) {
-                                images.add(src);
+                        document.querySelectorAll('.rpage-page').forEach(pageContainer => {
+                            let pageNum = -1;
+                            let dataPage = pageContainer.getAttribute('data-page');
+                            if (dataPage !== null) {
+                                pageNum = parseInt(dataPage);
+                            } else {
+                                let label = pageContainer.getAttribute('aria-label');
+                                if (label) {
+                                    let m = label.match(/Page\s+(\d+)/i);
+                                    if (m) pageNum = parseInt(m[1]);
+                                }
+                            }
+
+                            let img = pageContainer.querySelector('img');
+                            let foundValidImg = false;
+
+                            if (img) {
+                                let src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
+                                if (src && src.startsWith('http') &&
+                                    !src.includes('avatar') &&
+                                    !src.includes('logo') &&
+                                    !src.includes('favicon') &&
+                                    !src.includes('@280') &&
+                                    !src.includes('comix.to/assets') &&
+                                    !src.includes('google.com') &&
+                                    !src.includes('cloudflare') &&
+                                    !src.includes('static.comix.to')) {
+                                    
+                                    if (pageNum === -1) {
+                                        let alt = img.getAttribute('alt') || '';
+                                        let m = alt.match(/Page\s+(\d+)/i);
+                                        if (m) pageNum = parseInt(m[1]);
+                                    }
+                                    
+                                    if (pageNum !== -1) {
+                                        pagesDict[pageNum] = src;
+                                        foundValidImg = true;
+                                    } else {
+                                        if (!unknownPages.includes(src) && !Object.values(pagesDict).includes(src)) {
+                                            unknownPages.push(src);
+                                            foundValidImg = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!foundValidImg) {
+                                let canvas = pageContainer.querySelector('canvas');
+                                if (canvas && pageNum !== -1 && !pagesDict[pageNum]) {
+                                    try {
+                                        let dataUrl = cleanToDataURL ? cleanToDataURL.call(canvas, 'image/png') : canvas.toDataURL('image/png');
+                                        if (dataUrl && dataUrl.startsWith('data:image')) {
+                                            pagesDict[pageNum] = dataUrl;
+                                        }
+                                    } catch (e) {
+                                        // Ignore tainted canvas errors
+                                    }
+                                }
                             }
                         });
                     }
 
-                    let processed = 0;
-                    let retries = 0;
+                    // Force remove lazy loading attributes just in case
+                    document.querySelectorAll('img[loading]').forEach(img => img.removeAttribute('loading'));
 
-                    while (true) {
-                        let pages = document.querySelectorAll('.rpage-page');
-                        
-                        if (processed >= pages.length) {
-                            if (pages.length > 0) {
-                                pages[pages.length - 1].scrollIntoView({ block: 'end' });
-                            }
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                            pages = document.querySelectorAll('.rpage-page');
+                    let sweeps = 0;
+                    let lastImagesSize = 0;
+
+                    while (sweeps < 3) {
+                        // Un-mark all elements for the current sweep
+                        document.querySelectorAll('.rpage-page').forEach(p => p.removeAttribute('data-scrolled'));
+
+                        let retries = 0;
+
+                        while (true) {
+                            let unscrolled = document.querySelectorAll('.rpage-page:not([data-scrolled])');
                             
-                            if (processed >= pages.length) {
-                                retries++;
-                                if (retries >= 6) break; // Waited 3s total at the end
-                            } else {
+                            if (unscrolled.length > 0) {
+                                // Process the next unscrolled element
+                                let p = unscrolled[0];
+                                p.setAttribute('data-scrolled', 'true');
+                                p.scrollIntoView({ block: 'center' });
+                                
+                                await new Promise(r => setTimeout(r, 250)); // Wait for image to render
+                                collect();
                                 retries = 0;
+                            } else {
+                                // All visible elements have been processed.
+                                // Scroll to the very last visible one to trigger loading of the next batch.
+                                let all = document.querySelectorAll('.rpage-page');
+                                if (all.length > 0) {
+                                    all[all.length - 1].scrollIntoView({ block: 'end' });
+                                }
+                                
+                                await new Promise(r => setTimeout(r, 500));
+                                collect();
+                                
+                                let newUnscrolled = document.querySelectorAll('.rpage-page:not([data-scrolled])');
+                                if (newUnscrolled.length > 0) {
+                                    retries = 0;
+                                    continue;
+                                }
+                                
+                                retries++;
+                                if (retries >= 6) {
+                                    // Waited 3s total at bottom with no new elements
+                                    break;
+                                }
                             }
-                            continue;
                         }
-                        
-                        // Scroll the current page container into view
-                        let p = pages[processed];
-                        p.scrollIntoView({ block: 'center' });
-                        
-                        // Wait for image to load/render
-                        await new Promise(resolve => setTimeout(resolve, 250));
-                        collect();
-                        
-                        processed++;
+
+                        // Sweep check
+                        let currentSize = Object.keys(pagesDict).length + unknownPages.length;
+                        if (currentSize > lastImagesSize) {
+                            lastImagesSize = currentSize;
+                            sweeps++;
+                            // Scroll to top to restart
+                            let all = document.querySelectorAll('.rpage-page');
+                            if (all.length > 0) all[0].scrollIntoView({ block: 'start' });
+                            await new Promise(r => setTimeout(r, 500));
+                        } else {
+                            break;
+                        }
                     }
                     
-                    return JSON.stringify(Array.from(images));
+                    let sortedKeys = Object.keys(pagesDict).map(Number).sort((a,b) => a - b);
+                    let finalUrls = sortedKeys.map(k => pagesDict[k]).concat(unknownPages);
+                    return JSON.stringify(finalUrls);
                 })();
             ";
 
             var task = browser.EvaluateScriptAsync<string>(jsAccumulateImages);
-            while (!task.IsCompleted && !task.IsCanceled)
-                ThreadTools.Wait(500, true);
+
+            while (!task.IsCanceled && !task.IsCompleted && !task.IsFaulted) 
+                ThreadTools.Wait(1000, true);
 
             var imgsJson = task.Result;
 
