@@ -1,11 +1,9 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.EventHandler;
 using CefSharp.OffScreen;
 using MangaUnhost.Others;
 using Newtonsoft.Json;
-using Nito.AsyncEx;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -17,7 +15,6 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms.VisualStyles;
 
 namespace MangaUnhost.Browser
 {
@@ -112,8 +109,7 @@ namespace MangaUnhost.Browser
                 if (string.IsNullOrEmpty(ID))
                     throw new Exception("File Input Not Found");
 
-                AsyncContext.Run(() => Browser.SetInputFile(ID, tmpPath));
-
+                Browser.SetInputFile(ID, tmpPath).RunInBackground();
 
                 int waiting = 0;
 
@@ -327,7 +323,7 @@ namespace MangaUnhost.Browser
                     {
                         string query = $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}";
 
-                        using (var searcher = new ManagementObjectSearcher(query) { Options = new EnumerationOptions() { Timeout = TimeSpan.FromSeconds(1) } })
+                        using (var searcher = new ManagementObjectSearcher(query) { Options = new System.Management.EnumerationOptions() { Timeout = TimeSpan.FromSeconds(1) } })
                         using (var results = searcher.Get())
                         {
                             foreach (ManagementObject obj in results)

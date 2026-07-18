@@ -21,6 +21,7 @@ namespace MangaUnhost {
         public CookieContainer Cookies;
         public string UserAgent;
         public string HTML;
+        public (string Key, string Value)[] Headers;
     }
 
     public struct PluginInfo {

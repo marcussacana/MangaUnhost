@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace MangaUnhost.Hosts
 {
@@ -32,7 +33,16 @@ namespace MangaUnhost.Hosts
                     try
                     {
                         var refUrl = ChapterMap.ContainsKey(ID) ? ChapterMap[ID] : currentUri?.AbsoluteUri;
-                        dump = page.TryDownload(Referer: refUrl, UserAgent: Browser?.GetUserAgent());
+                        dump = page.TryDownload(CFData, isImage: true);
+                        if (dump.Length < 20000)
+                        {
+                            var dumpstr = Encoding.UTF8.GetString(dump);
+                            if (dumpstr.IsCloudflareTriggered())
+                            {
+                                CFData = JSTools.BypassCloudflare(page);
+                                dump = TryDump(page);
+                            }
+                        }
                     }
                     catch { }
                 }
@@ -241,6 +251,8 @@ namespace MangaUnhost.Hosts
             }
 
             currentUri = Uri;
+
+            Browser.WaitForLoad();
 
             if (Browser.IsCloudflareTriggered())
                 CFData = Browser.BypassCloudflare();

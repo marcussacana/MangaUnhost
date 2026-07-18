@@ -1,4 +1,4 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.WinForms;
 using MangaUnhost.Browser;
 using System.IO;
@@ -63,7 +63,7 @@ namespace MangaUnhost
                 Browser.JavascriptObjectRepository.ResolveObject += (sender, args) =>
                 {
                     if (args.ObjectName == "embedded")
-                        args.ObjectRepository.Register("embedded", new WCRAPI(this), true);
+                        args.ObjectRepository.Register("embedded", new WCRAPI(this), BindingOptions.DefaultBinder);
                 };
 
                 Browser.MenuHandler = new MenuHandler(this);

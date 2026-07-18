@@ -1,4 +1,4 @@
-﻿// Copyright © 2017 The CefSharp Authors. All rights reserved.
+// Copyright © 2017 The CefSharp Authors. All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 // Edited by marcussacana; 2020
@@ -334,7 +334,7 @@ namespace CefSharp.EventHandler
         public bool IsFolder { get; set; }
         public bool IsMultiselect { get; set; }
         public bool Cancel { get; set; }
-        public string SelectedPath { get => SelectedPaths.FirstOrDefault(null); set => SelectedPaths = new string[] { value }; }
+        public string SelectedPath { get => SelectedPaths.FirstOrDefault(); set => SelectedPaths = new string[] { value }; }
         public string[] SelectedPaths { get; set; }
         public FileDialogEventArgs(IWebBrowser BrowserControl, IBrowser Browser, CefFileDialogMode Mode, IEnumerable<string> Filters) : base(BrowserControl, Browser)
         {

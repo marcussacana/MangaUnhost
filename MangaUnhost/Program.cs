@@ -1,4 +1,4 @@
-﻿using Ionic.Zip;
+using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using MangaUnhost.Parallelism;
@@ -28,7 +28,7 @@ namespace MangaUnhost
         public static TextWriter Writer = null;
         public static bool Debug = Debugger.IsAttached || File.Exists("DEBUG");
         public static string CurrentAssembly => Assembly.GetExecutingAssembly().Location;
-        public static string CefDir => Path.Combine(Path.GetDirectoryName(CurrentAssembly), (Environment.Is64BitProcess ? "x64" : "x86"));
+        public static string CefDir => Path.Combine(Path.GetDirectoryName(CurrentAssembly), $"runtimes\\win-{(Environment.Is64BitProcess ? "x64" : "x86")}\\native");
         public static string SettingsPath = AppDomain.CurrentDomain.BaseDirectory + "MangaUnhost.ini";
 
 
@@ -91,6 +91,10 @@ namespace MangaUnhost
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+#if NETCOREAPP
+                Application.SetHighDpiMode(HighDpiMode.DpiUnaware);
+                Application.SetDefaultFont(new System.Drawing.Font(new System.Drawing.FontFamily("Microsoft Sans Serif"), 8.25f));
+#endif
 
                 //new Main();
                 //Application.Run(new ImageTest());
@@ -100,8 +104,6 @@ namespace MangaUnhost
             //WineHelper();
             CefUpdater();
             OcvUpdater();
-
-            UnlockHeaders();
 
             Application.Run(new Main());
 
@@ -125,7 +127,7 @@ namespace MangaUnhost
             string Result = Updater.FinishUpdate();
             if (Result != null)
             {
-                Process.Start(Result);
+                Process.Start(new ProcessStartInfo { FileName = Result, UseShellExecute = true });
                 Environment.Exit(0);
             }
         }
@@ -142,6 +144,10 @@ namespace MangaUnhost
 
             if (!Outdated)
                 return;
+
+            if (Debugger.IsAttached)
+                return;
+
 
             var OCVName = Environment.Is64BitProcess ? "opencv-x64.zip" : "opencv-x86.zip";
             string Url = $"{OcvRepo}{OCVName}?raw=true";
@@ -335,27 +341,6 @@ namespace MangaUnhost
             {
                 return;
             }
-        }
-
-        /// <summary>
-        /// We aren't kids microsoft, we shouldn't need this
-        /// </summary>
-        public static void UnlockHeaders()
-        {
-            var tHashtable = typeof(WebHeaderCollection).Assembly.GetType("System.Net.HeaderInfoTable")
-                            .GetFields(BindingFlags.NonPublic | BindingFlags.Static)
-                            .Where(x => x.FieldType.Name == "Hashtable").Single();
-
-            var Table = (Hashtable)tHashtable.GetValue(null);
-            foreach (var Key in Table.Keys.Cast<string>().ToArray())
-            {
-                var HeaderInfo = Table[Key];
-                HeaderInfo.GetType().GetField("IsRequestRestricted", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(HeaderInfo, false);
-                HeaderInfo.GetType().GetField("IsResponseRestricted", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(HeaderInfo, false);
-                Table[Key] = HeaderInfo;
-            }
-
-            tHashtable.SetValue(null, Table);
         }
 
         public static void WineHelper()

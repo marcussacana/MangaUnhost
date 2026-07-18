@@ -1,13 +1,8 @@
-using CefSharp;
-using CefSharp.DevTools.Debugger;
-using CefSharp.DevTools.DeviceOrientation;
+﻿using CefSharp;
 using CefSharp.EventHandler;
-using CefSharp.Handler;
 using CefSharp.OffScreen;
 using HtmlAgilityPack;
-using MangaUnhost;
 using MangaUnhost.Others;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,9 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Titanium.Web.Proxy;
-using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Models;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
@@ -27,6 +20,78 @@ namespace MangaUnhost.Browser
     {
 
         static ChromiumWebBrowser _DefBrowser = null;
+        
+        private static (string Key, string Value)[] _cachedImageHeaders = null;
+        public static (string Key, string Value)[] GetImageHeaders()
+        {
+            if (_cachedImageHeaders != null)
+                return _cachedImageHeaders;
+
+            using var Browser = new ChromiumWebBrowser("about:blank");
+
+            if (Browser == null)
+            {
+                return new (string, string)[] {
+                    ("Sec-Fetch-Dest", "image"),
+                    ("Sec-Fetch-Mode", "no-cors"),
+                    ("Sec-Fetch-Site", "cross-site"),
+                    ("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
+                };
+            }
+
+            var proxyServer = new ProxyServer();
+            proxyServer.EnableHttp2 = true;
+            proxyServer.SupportedSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13;
+            
+            var endPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, 0, true);
+            proxyServer.AddEndPoint(endPoint);
+            proxyServer.Start(false);
+            int port = proxyServer.ProxyEndPoints[0].Port;
+
+            string dummyUrl = "http://example.com/favicon.ico";
+            bool captured = false;
+
+            proxyServer.BeforeRequest += async (sender, e) =>
+            {
+                if (e.HttpClient.Request.RequestUri.AbsolutePath.Contains("favicon.ico"))
+                {
+                    var list = new List<(string Key, string Value)>();
+                    foreach (var header in e.HttpClient.Request.Headers)
+                    {
+                        var name = header.Name.ToLowerInvariant();
+                        if (name != "cookie" && name != "host" && name != "accept-encoding")
+                            list.Add((header.Name, header.Value));
+                    }
+                    _cachedImageHeaders = list.ToArray();
+                    captured = true;
+                    e.Ok("<html></html>");
+                }
+            };
+
+            Browser.UseProxy(new WebProxy(new Uri($"http://127.0.0.1:{port}")));
+
+            Browser.WaitForLoad("about:blank");
+            Browser.EvaluateScriptUnsafe("new Image().src = 'https://google.com/favicon.ico';");
+
+            var waitBegin = DateTime.Now;
+            while (!captured && (DateTime.Now - waitBegin).TotalSeconds < 10)
+                ThreadTools.Wait(100, true);
+
+            proxyServer.Stop();
+
+            if (_cachedImageHeaders == null)
+            {
+                _cachedImageHeaders = new (string, string)[] {
+                    ("Sec-Fetch-Dest", "image"),
+                    ("Sec-Fetch-Mode", "no-cors"),
+                    ("Sec-Fetch-Site", "cross-site"),
+                    ("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
+                };
+            }
+
+            return _cachedImageHeaders;
+        }
+
         public static ChromiumWebBrowser DefaultBrowser
         {
             get
@@ -86,7 +151,7 @@ namespace MangaUnhost.Browser
 
         public static void EarlyInjection(this IWebBrowser Browser, string Javascript, JavascriptInjectionFilter.Locations Location = JavascriptInjectionFilter.Locations.HEAD)
         {
-            Browser.DisableCORS();
+            //Browser.DisableCORS();
 
             if (!(Browser.RequestHandler is RequestEventHandler))
                 Browser.RequestHandler = new RequestEventHandler();
@@ -213,10 +278,12 @@ namespace MangaUnhost.Browser
 
 
             var Container = new CookieContainer();
+            var capturedHeaders = new List<(string Key, string Value)>();
 
             var proxyServer = new ProxyServer();
+
             proxyServer.EnableHttp2 = true;
-            proxyServer.SupportedSslProtocols = SslProtocols.Tls12 | (SslProtocols)12288;
+            proxyServer.SupportedSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13;
             proxyServer.EnableConnectionPool = true;
             proxyServer.ReuseSocket = true;
 
@@ -224,10 +291,21 @@ namespace MangaUnhost.Browser
             {
                 try
                 {
-                    var setCookieHeaders = e.HttpClient.Response.Headers.GetHeaders("Set-Cookie");
-                    if (setCookieHeaders != null)
+                    if (e.HttpClient.Request.RequestUri.AbsoluteUri.StartsWith(Url) || Url.StartsWith(e.HttpClient.Request.RequestUri.AbsoluteUri))
                     {
-                        foreach (var header in setCookieHeaders)
+                        capturedHeaders.Clear();
+                        foreach (var header in e.HttpClient.Request.Headers)
+                        {
+                            var name = header.Name.ToLowerInvariant();
+                            if (name != "cookie" && name != "user-agent" && name != "host" && name != "accept-encoding")
+                                capturedHeaders.Add((header.Name, header.Value));
+                        }
+                    }
+
+                    var cookieHeader = e.HttpClient.Request.Headers.GetHeaders("Cookie").Concat(e.HttpClient.Response.Headers.GetHeaders("Set-Cookie"));
+                    if (cookieHeader != null)
+                    {
+                        foreach (var header in cookieHeader)
                         {
                             try
                             {
@@ -322,6 +400,7 @@ namespace MangaUnhost.Browser
                 }
 
                 Browser.WaitForLoad(15);
+
                 var HTML = Browser.GetHTML();
                 var BrowserCookies = Browser.GetCookies();
 
@@ -338,7 +417,8 @@ namespace MangaUnhost.Browser
                 {
                     Cookies = Container,
                     UserAgent = Browser.GetUserAgent(),
-                    HTML = HTML
+                    HTML = HTML,
+                    Headers = capturedHeaders.ToArray()
                 };
             }
             finally
@@ -369,7 +449,7 @@ namespace MangaUnhost.Browser
 
         public static HtmlDocument GetDocument(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetDocument();
         public static string GetHTML(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetHTML();
-        public static bool IsCloudflareTriggered(this ChromiumWebBrowser Browser) => Browser.GetBrowser().IsCloudflareTriggered();
+        public static bool  IsCloudflareTriggered(this ChromiumWebBrowser Browser) => Browser.GetBrowser().IsCloudflareTriggered();
 
         public static HtmlDocument GetDocument(this IBrowser Browser)
         {
@@ -378,14 +458,27 @@ namespace MangaUnhost.Browser
             return Document;
         }
 
-        public static string GetHTML(this IBrowser Browser) =>
-            AsyncContext.Run(async () => {  try { return await Browser?.MainFrame?.GetSourceAsync(); } catch { return null; } });
+        public static string GetHTML(this IBrowser Browser)
+        {
+            try
+            {
+                return Browser?.MainFrame?.GetSourceAsync().RunInBackground(10);
+            }
+            catch (TimeoutException ex)
+            {
+                return Browser.GetHTML();
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public static bool IsCloudflareTriggered(this IBrowser Browser) => Browser.GetHTML().IsCloudflareTriggered();
         public static bool IsCloudflareAskingCaptcha(this IBrowser Browser) => Browser.GetHTML().IsCloudflareAskingCaptcha();
 
         public static bool IsCloudflareTriggered(this HtmlDocument Document) => Document.ToHTML().IsCloudflareTriggered();
         public static bool IsCloudflareAskingCaptcha(this HtmlDocument Document) => Document.ToHTML().IsCloudflareAskingCaptcha();
-        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Please Wait... | Cloudflare") || HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD") || HTML.Contains("Checking if the site connection is secure") || HTML.Contains("Just a moment...");
+        public static bool IsCloudflareTriggered(this string HTML) => HTML.Contains("Please Wait... | Cloudflare") || HTML.Contains("Attention Required! | Cloudflare") || HTML.Contains("5 seconds...") || HTML.Contains("Checking your browser") || HTML.Contains("DDOS-GUARD") || HTML.Contains("Checking if the site connection is secure")  || HTML.Contains("Ray ID:") || HTML.Contains("Just a moment...");
         public static bool IsCloudflareAskingCaptcha(this string HTML) => HTML.Contains("why_captcha_headline") || HTML.Contains("captcha-prompt spacer") || HTML.Contains("turnstile-wrapper") || HTML.Contains("name=\"cf-turnstile-response\"") || HTML.Contains("Verify you are human by completing the action below");
         public static IFrame GetFrameByUrl(this ChromiumWebBrowser Browser, string UrlFragment) => Browser.GetBrowser().GetFrameByUrl(UrlFragment);
         public static IFrame GetFrameByUrl(this IBrowser Browser, string UrlFragment)

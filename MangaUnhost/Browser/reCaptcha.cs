@@ -2,7 +2,6 @@
 using CefSharp.OffScreen;
 using CefSharp.EventHandler;
 using MangaUnhost.Others;
-using Nito.AsyncEx;
 using System;
 using System.Drawing;
 
@@ -252,7 +251,7 @@ namespace MangaUnhost.Browser {
             if (URL == null)
                 return null;
 
-            byte[] MP3 = AsyncContext.Run(async () => await URL.TryDownloadAsync(BFrame.Url, Browser.GetUserAgent()));
+            byte[] MP3 = URL.TryDownloadAsync(BFrame.Url, Browser.GetUserAgent()).RunInBackground();
             if (MP3 == null)
                 return null;
 

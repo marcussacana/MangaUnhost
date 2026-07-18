@@ -103,7 +103,7 @@ namespace MangaUnhost.Hosts
                 return false;
 
             var path = Uri.AbsolutePath.ToLowerInvariant();
-            return path.StartsWith("/manga/") || path.StartsWith("/read/");
+            return path.StartsWith("/manga/") || path.StartsWith("/title/") || path.StartsWith("/read/");
         }
 
         public ComicInfo LoadUri(Uri Uri)
@@ -308,16 +308,16 @@ namespace MangaUnhost.Hosts
 
         private Uri ResolveSeriesUri(Uri originalUri, HtmlDocument loadedDoc)
         {
-            if (originalUri.AbsolutePath.StartsWith("/manga/", StringComparison.InvariantCultureIgnoreCase))
+            if (originalUri.AbsolutePath.StartsWith("/manga/", StringComparison.InvariantCultureIgnoreCase) || originalUri.AbsolutePath.StartsWith("/title/", StringComparison.InvariantCultureIgnoreCase))
                 return NormalizeUri(originalUri);
 
             var seriesLink = loadedDoc.SelectSingleNode("//link[@rel='canonical']")
                 ?.GetAttributeValue("href", null);
 
-            if (string.IsNullOrWhiteSpace(seriesLink) || !seriesLink.Contains("/manga/"))
+            if (string.IsNullOrWhiteSpace(seriesLink) || (!seriesLink.Contains("/manga/") && !seriesLink.Contains("/title/")))
             {
                 seriesLink = loadedDoc
-                    .SelectSingleNode("//a[contains(@href, '/manga/')]")
+                    .SelectSingleNode("//a[contains(@href, '/manga/') or contains(@href, '/title/')]")
                     ?.GetAttributeValue("href", null);
             }
 
@@ -421,21 +421,23 @@ namespace MangaUnhost.Hosts
     var items = [];
     var seen = {};
 
-    Array.from(document.querySelectorAll('button, a, [role=""tab""], li, label, div')).forEach(function (element) {
+    Array.from(document.querySelectorAll('button, a, [role=""tab""], li, label, div, span, option')).forEach(function (element) {
         var text = normalize(element.textContent);
-        if (!looksLikeLanguage(text))
+        var code = element.getAttribute('data-code') || element.getAttribute('data-lang') || element.value;
+        
+        if (!looksLikeLanguage(text) && !code)
             return;
 
-        var key = text.toLowerCase()
+        var key = (code ? normalize(code) : text.toLowerCase()
             .replace(/\(\s*\d+\s*chapters?\s*\)/ig, '')
-            .replace(/\(\s*\d+\s*volumes?\s*\)/ig, '')
+            .replace(/\(\s*\d+\s*volumes?\s*\)/ig, ''))
             .trim();
 
         if (!key || seen[key])
             return;
 
         seen[key] = true;
-        items.push({ Text: text, Key: key });
+        items.push({ Text: text || key, Key: key });
     });
 
     return JSON.stringify(items);
@@ -462,17 +464,25 @@ namespace MangaUnhost.Hosts
 
     var targetText = normalize(text);
     var targetKey = normalize(key);
-    var candidates = Array.from(document.querySelectorAll('button, a, [role=""tab""], li, label, div'));
+    var candidates = Array.from(document.querySelectorAll('button, a, [role=""tab""], li, label, div, span, option'));
 
     for (var i = 0; i < candidates.length; i++) {{
         var current = candidates[i];
         var label = normalize(current.textContent);
-        if (!label)
+        var code = normalize(current.getAttribute('data-code') || current.getAttribute('data-lang') || current.value);
+        
+        if (!label && !code)
             continue;
 
-        if (label === targetText || label === targetKey || label.indexOf(targetKey + ' (') === 0) {{
+        if ((code && code === targetKey) || label === targetText || label === targetKey || label.indexOf(targetKey + ' (') === 0) {{
             try {{
-                current.click();
+                if (current.tagName === 'OPTION') {{
+                    current.selected = true;
+                    if (current.parentElement)
+                        current.parentElement.dispatchEvent(new Event('change', {{ bubbles: true }}));
+                }} else {{
+                    current.click();
+                }}
                 return true;
             }} catch (error) {{
             }}

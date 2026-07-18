@@ -33,8 +33,6 @@ namespace MangaUnhost.Parallelism
 
             new Main();
 
-            Program.UnlockHeaders();
-
             try
             {
                 HandlerType Type = (HandlerType)int.Parse(arg.Split('-').First());

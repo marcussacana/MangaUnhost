@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -17,7 +17,6 @@ using Encoder = System.Drawing.Imaging.Encoder;
 using System.Drawing.Drawing2D;
 using System.Diagnostics;
 using System.Threading;
-using System.Web.WebSockets;
 
 namespace MangaUnhost
 {

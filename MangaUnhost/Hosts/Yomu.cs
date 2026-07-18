@@ -26,6 +26,11 @@ namespace MangaUnhost.Hosts
             throw new NotImplementedException();
         }
 
+        ~Yomu()
+        {
+            browser?.Dispose();
+        }
+
         public IEnumerable<byte[]> DownloadPages(int ID)
         {
             foreach (var page in GetPages(ID)) {
@@ -194,7 +199,9 @@ namespace MangaUnhost.Hosts
             browser.WaitForLoad(readBase + "1");
             ThreadTools.Wait(5000, true);
 
-            while (true)
+            var chapNodeFilter = "//div[@class='p-2 space-y-1']/a";
+
+            while ((browser.GetDocument().SelectNodes(chapNodeFilter)?.Count ?? 0) == 0)
             {
                 try
                 {
@@ -211,7 +218,7 @@ namespace MangaUnhost.Hosts
 
 
             var doc = browser.GetDocument();
-            var chaplist = doc.SelectNodes("//div[@class='p-2 space-y-1']/a");
+            var chaplist = doc.SelectNodes(chapNodeFilter);
 
             entries = new Dictionary<string, string>();
             foreach (var chapter in chaplist)
@@ -261,7 +268,7 @@ namespace MangaUnhost.Hosts
         }
 
         Uri currentUrl;
-        static ChromiumWebBrowser browser;
+        ChromiumWebBrowser browser;
         string slug;
 
         public ComicInfo LoadUri(Uri Uri)

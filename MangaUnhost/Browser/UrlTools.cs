@@ -1,26 +1,37 @@
-﻿using CefSharp.DevTools.Network;
-using MangaUnhost;
-using MangaUnhost.Others;
-using Nito.AsyncEx;
+﻿using MangaUnhost.Others;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Net.Http;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace MangaUnhost.Browser
 {
     public static class UrlTools
     {
+        public static (string Key, string Value)[] MergeHeaders((string Key, string Value)[] defaultHeaders, (string Key, string Value)[] overrideHeaders)
+        {
+            if (defaultHeaders == null && overrideHeaders == null) return null;
+            if (defaultHeaders == null) return overrideHeaders;
+            if (overrideHeaders == null) return defaultHeaders;
+
+            var dict = new System.Collections.Generic.Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var h in defaultHeaders) dict[h.Key] = h.Value;
+            foreach (var h in overrideHeaders) dict[h.Key] = h.Value;
+
+            var list = new System.Collections.Generic.List<(string Key, string Value)>();
+            foreach (var kvp in dict) list.Add((kvp.Key, kvp.Value));
+            return list.ToArray();
+        }
+
         public static string SetUrlParameter(this string url, string paramName, string value)
         {
             return new Uri(url).SetParameter(paramName, value).ToString();
@@ -122,23 +133,23 @@ namespace MangaUnhost.Browser
             };
         }
 
-        public static string TryDownloadString(this Uri Url, CloudflareData? CFData = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
-            Encoding.UTF8.GetString(Url.TryDownload(CFData, Referer, Proxy, Accept, null, Headers, AcceptableErrors, Retries, TimeoutSecs) ?? new byte[0]);
+        public static string TryDownloadString(this Uri Url, CloudflareData? CFData = null, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false) =>
+            Encoding.UTF8.GetString(Url.TryDownload(Referer, CFData?.UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, MergeHeaders(CFData?.Headers, Headers), CFData?.Cookies, AcceptableErrors, Retries, TimeoutSecs, isImage) ?? new byte[0]);
 
-        public static string TryDownloadString(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
-            Encoding.UTF8.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs) ?? new byte[0]);
+        public static string TryDownloadString(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false) =>
+            Encoding.UTF8.GetString(Url.TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs, isImage) ?? new byte[0]);
 
-        public static string TryDownloadString(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
-            Encoding.UTF8.GetString(new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs) ?? new byte[0]);
+        public static string TryDownloadString(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false) =>
+            Encoding.UTF8.GetString(new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs, isImage) ?? new byte[0]);
 
-        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, int TimeoutSecs = 120) =>
-            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries, TimeoutSecs);
-        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, int TimeoutSecs = 120) =>
-            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, Headers, CFData?.Cookies, AcceptableErros, Retries, TimeoutSecs);
-        public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120) =>
-            new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs);
+        public static byte[] TryDownload(this Uri Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false) =>
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, MergeHeaders(CFData?.Headers, Headers), CFData?.Cookies, AcceptableErros, Retries, TimeoutSecs, isImage);
+        public static byte[] TryDownload(this string Url, CloudflareData? CFData, string Referer = null, string Proxy = null, string Accept = null, string UserAgent = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false) =>
+            Url.TryDownload(Referer, CFData?.UserAgent ?? UserAgent ?? ProxyTools.UserAgent, Proxy, Accept, MergeHeaders(CFData?.Headers, Headers), CFData?.Cookies, AcceptableErros, Retries, TimeoutSecs, isImage);
+        public static byte[] TryDownload(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false) =>
+            new Uri(Url).TryDownload(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, TimeoutSecs, isImage);
 
-        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120)
+        public static byte[] TryDownload(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, int TimeoutSecs = 120, bool isImage = false)
         {
             bool Finished = false;
             byte[] Result = null;
@@ -146,7 +157,7 @@ namespace MangaUnhost.Browser
             var Thread = new Thread(async () => {
                 try
                 {
-                    Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors: AcceptableErrors);
+                    Result = await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors: AcceptableErrors, Retries: 3, isImage: isImage);
                 }
                 finally
                 {
@@ -168,61 +179,32 @@ namespace MangaUnhost.Browser
             return Result;
         }
 
-        public static async Task<byte[]> TryDownloadAsync(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies, AcceptableErros, Retries);
-        public static async Task<byte[]> TryDownloadAsync(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3) =>
-            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies, AcceptableErros, Retries);
-        public static async Task<byte[]> TryDownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3) =>
-            await new Uri(Url).TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries);
+        public static async Task<byte[]> TryDownloadAsync(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, bool isImage = false) =>
+            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, Accept, MergeHeaders(CFData.Headers, Headers), CFData.Cookies, AcceptableErros, Retries, isImage);
+        public static async Task<byte[]> TryDownloadAsync(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, WebExceptionStatus[] AcceptableErros = null, int Retries = 3, bool isImage = false) =>
+            await Url.TryDownloadAsync(Referer, CFData.UserAgent, Proxy, Accept, MergeHeaders(CFData.Headers, Headers), CFData.Cookies, AcceptableErros, Retries, isImage);
+        public static async Task<byte[]> TryDownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, bool isImage = false) =>
+            await new Uri(Url).TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries, isImage);
 
-        public static async Task<byte[]> TryDownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3)
+        public static async Task<byte[]> TryDownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, WebExceptionStatus[] AcceptableErrors = null, int Retries = 3, bool isImage = false)
         {
             try
             {
-                return await Url.DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
+                return await Url.DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, isImage);
             }
             catch (Exception ex)
             {
-                if (ex is WebException)
+                if (ex is HttpRequestException || ex is OperationCanceledException)
                 {
-                    var Exception = (WebException)ex;
-                    if (Exception.Status == WebExceptionStatus.ConnectFailure)
+                    // Trata ConnectionClosed com o fallback bruto TLS
+                    if (ex.InnerException is System.IO.IOException || ex.InnerException is System.Net.Sockets.SocketException)
                     {
-                        return null;
-                    }
-
-                    if (AcceptableErrors != null && AcceptableErrors.Contains(Exception.Status))
-                    {
-                        if (Exception.Status == WebExceptionStatus.ConnectionClosed)
-                        {
+                        if (AcceptableErrors != null && AcceptableErrors.Contains(WebExceptionStatus.ConnectionClosed))
                             return GetErrorContentOverHttps(Url, Referer, UserAgent, Cookie);
-                        }
-                        else
-                        {
-                            await HttpRequestLocker.WaitAsync();
-                            try
-                            {
-                                using (WebResponse Response = Exception.Response)
-                                using (Stream ResponseData = Response.GetResponseStream())
-                                using (MemoryStream Stream = new MemoryStream())
-                                {
-                                    foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
-                                    {
-                                        if (Cookie != null)
-                                            Cookie.Add(NewCookie);
-                                    }
-                                    ResponseData.CopyTo(Stream);
-                                    return Stream.ToArray();
-                                }
-                            }
-                            finally
-                            {
-                                HttpRequestLocker.Release();
-                            }
-                        }
                     }
+                    
                     if (Retries > 0)
-                        return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries - 1);
+                        return await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors, Retries - 1, isImage);
                 }
                 if (Program.Debug)
                 {
@@ -234,81 +216,110 @@ namespace MangaUnhost.Browser
         }
 
         public static SemaphoreSlim HttpRequestLocker = new SemaphoreSlim(20, 20);
-        public static byte[] Download(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
-            new Uri(Url).Download(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies);
-        public static byte[] Download(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
-            Url.Download(Referer, CFData.UserAgent, Proxy, Accept, Headers, CFData.Cookies);
-        public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
-            new Uri(Url).Download(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
-        public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
+        public static byte[] Download(this string Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, bool isImage = false) =>
+            new Uri(Url).Download(Referer, CFData.UserAgent, Proxy, Accept, MergeHeaders(CFData.Headers, Headers), CFData.Cookies, isImage);
+        public static byte[] Download(this Uri Url, CloudflareData CFData, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, bool isImage = false) =>
+            Url.Download(Referer, CFData.UserAgent, Proxy, Accept, MergeHeaders(CFData.Headers, Headers), CFData.Cookies, isImage);
+        public static byte[] Download(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, bool isImage = false) =>
+            new Uri(Url).Download(Referer, UserAgent, Proxy, Accept, Headers, Cookie, isImage);
+        public static byte[] Download(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, bool isImage = false)
         {
-            byte[] Result = null;
-
-            var Thread = new System.Threading.Thread(() =>
-            Result = AsyncContext.Run(async () =>
-            await Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie)));
-
-            Thread.Start();
-
-            while (Thread.IsRunning())
-                ThreadTools.Wait(100, true);
-
-            if (Result == null)
-                throw new WebException();
-
-            return Result;
+            return Url.TryDownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, AcceptableErrors: null, Retries: 3, isImage: isImage).RunInBackground();
         }
-        public static async Task<byte[]> DownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null) =>
-            await new Uri(Url).DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie);
-        public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null)
+        public static async Task<byte[]> DownloadAsync(this string Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, bool isImage = false) =>
+            await new Uri(Url).DownloadAsync(Referer, UserAgent, Proxy, Accept, Headers, Cookie, isImage);
+        
+        private static readonly ConditionalWeakTable<CookieContainer, ConcurrentDictionary<string, HttpClient>> _cookieClients = new();
+        private static readonly ConcurrentDictionary<string, HttpClient> _statelessClients = new();
+
+        private static HttpClient GetHttpClient(CookieContainer cookies, string proxy)
         {
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(Url);
+            var proxyKey = proxy ?? string.Empty;
+            if (cookies == null)
+            {
+                return _statelessClients.GetOrAdd(proxyKey, p => CreateClient(null, p));
+            }
+
+            var proxyDict = _cookieClients.GetValue(cookies, _ => new ConcurrentDictionary<string, HttpClient>());
+            return proxyDict.GetOrAdd(proxyKey, p => CreateClient(cookies, p));
+        }
+
+        private static HttpClient CreateClient(CookieContainer cookies, string proxy)
+        {
+            var handler = new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+            };
+            
+            if (cookies != null)
+            {
+                handler.UseCookies = true;
+                handler.CookieContainer = cookies;
+            }
+            else
+            {
+                handler.UseCookies = false;
+            }
+
+            if (!string.IsNullOrEmpty(proxy))
+            {
+                handler.UseProxy = true;
+                handler.Proxy = new WebProxy(proxy);
+            }
+
+            return new HttpClient(handler);
+        }
+
+        public static async Task<byte[]> DownloadAsync(this Uri Url, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, bool isImage = false)
+        {
+            var client = GetHttpClient(Cookie, Proxy);
+            using var request = new HttpRequestMessage(HttpMethod.Get, Url);
+            
+            request.Version = HttpVersion.Version20;
+            request.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
 
             if (Headers == null)
-                Request.Headers["Host"] = Url.Host;
+                request.Headers.TryAddWithoutValidation("Host", Url.Host);
             else
             {
                 foreach (var Entry in Headers)
-                    Request.Headers[Entry.Key] = Entry.Value;
+                    request.Headers.TryAddWithoutValidation(Entry.Key, Entry.Value);
             }
 
-            Request.UseDefaultCredentials = true;
-            Request.Method = "GET";
-            Request.Timeout = Proxy == null ? 1000 * 5 : 1000 * 30;
-
             if (Referer != null)
-                Request.Referer = Referer;
-
-            if (Cookie != null)
-                Request.CookieContainer = Cookie;
+                request.Headers.TryAddWithoutValidation("Referer", Referer);
 
             if (UserAgent != null)
-                Request.UserAgent = UserAgent;
+                request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
 
-            if (Accept != null)
-                Request.Accept = Accept;
+            if (isImage)
+            {
+                var imgHeaders = JSTools.GetImageHeaders();
+                foreach (var h in imgHeaders)
+                {
+                    if (h.Key.ToLowerInvariant() == "accept" && Accept != null)
+                        continue;
+                    request.Headers.TryAddWithoutValidation(h.Key, h.Value);
+                }
+                if (Accept != null)
+                    request.Headers.TryAddWithoutValidation("Accept", Accept);
+            }
             else
-                Request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
+            {
+                if (Accept != null)
+                    request.Headers.TryAddWithoutValidation("Accept", Accept);
+                else
+                    request.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+            }
 
-            if (Proxy != null)
-                Request.Proxy = new WebProxy(Proxy);
+            using var cts = new CancellationTokenSource(Proxy == null ? 5000 : 30000);
 
             await HttpRequestLocker.WaitAsync();
             try
             {
-                using (var Response = await Request.GetResponseAsync())
-                using (var RespData = Response.GetResponseStream())
-                using (var Output = new MemoryStream())
-                {
-                    foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
-                    {
-                        if (Cookie != null)
-                            Cookie.Add(NewCookie);
-                    }
-
-                    await RespData.CopyToAsync(Output);
-                    return Output.ToArray();
-                }
+                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cts.Token);
+                return await response.Content.ReadAsByteArrayAsync();
             }
             finally
             {
@@ -316,110 +327,57 @@ namespace MangaUnhost.Browser
             }
         }
 
-        public static byte[] Upload(this string Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null) =>
-            new Uri(Url).Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies);
+        public static byte[] Upload(this string Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, bool isImage = false) =>
+            new Uri(Url).Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, MergeHeaders(cfdata?.Headers, Headers), cfdata?.Cookies);
         public static byte[] Upload(this Uri Url, CloudflareData? cfdata, byte[] Data, string Referer = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, int timeout = 30) =>
-            Url.Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, Headers, cfdata?.Cookies, timeout);
+            Url.Upload(Data, Referer, cfdata?.UserAgent, Proxy, Accept, MergeHeaders(cfdata?.Headers, Headers), cfdata?.Cookies, timeout);
         public static byte[] Upload(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30) =>
             new Uri(Url).Upload(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout);
         public static byte[] Upload(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30)
         {
-            byte[] Result = null;
-
-            var Thread = new System.Threading.Thread(() =>
-            Result = AsyncContext.Run(async () =>
-            await Url.UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout)));
-
-            Thread.Start();
-
-            while (Thread.IsRunning())
-                ThreadTools.Wait(100, true);
-
-            if (Result == null)
-                throw new WebException();
-
-            return Result;
+            return Url.UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout).RunInBackground();
         }
         public static async Task<byte[]> UploadAsync(this string Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30) =>
             await new Uri(Url).UploadAsync(Data, Referer, UserAgent, Proxy, Accept, Headers, Cookie, timeout);
         public static async Task<byte[]> UploadAsync(this Uri Url, byte[] Data = null, string Referer = null, string UserAgent = null, string Proxy = null, string Accept = null, (string Key, string Value)[] Headers = null, CookieContainer Cookie = null, int timeout = 30)
         {
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(Url);
+            var client = GetHttpClient(Cookie, Proxy);
+            using var request = new HttpRequestMessage(HttpMethod.Post, Url);
+            
+            request.Version = HttpVersion.Version20;
+            request.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
 
             if (Headers == null)
-                Request.Headers["Host"] = Url.Host;
+                request.Headers.TryAddWithoutValidation("Host", Url.Host);
             else
             {
                 foreach (var Entry in Headers)
-                    Request.Headers[Entry.Key] = Entry.Value;
+                    request.Headers.TryAddWithoutValidation(Entry.Key, Entry.Value);
             }
 
-            Request.UseDefaultCredentials = true;
-            Request.Method = "POST";
-            Request.Timeout = 1000 * timeout;
-
             if (Referer != null)
-                Request.Referer = Referer;
-
-            if (Cookie != null)
-                Request.CookieContainer = Cookie;
+                request.Headers.TryAddWithoutValidation("Referer", Referer);
 
             if (UserAgent != null)
-                Request.UserAgent = UserAgent;
+                request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
 
             if (Accept != null)
-                Request.Accept = Accept;
+                request.Headers.TryAddWithoutValidation("Accept", Accept);
 
-            if (Proxy != null)
-                Request.Proxy = new WebProxy(Proxy);
+            if (Data != null)
+                request.Content = new ByteArrayContent(Data);
+
+            using var cts = new CancellationTokenSource(1000 * timeout);
 
             await HttpRequestLocker.WaitAsync();
-
             try
             {
-
-                if (Data != null)
-                {
-                    Request.ContentLength = Data.Length;
-                    using (var UploadStream = Request.GetRequestStream())
-                    using (var Input = new MemoryStream(Data))
-                    {
-                        Input.CopyTo(UploadStream);
-                    }
-                }
-
-                try
-                {
-                    using (var Response = await Request.GetResponseAsync())
-                    using (var RespData = Response.GetResponseStream())
-                    using (var Output = new MemoryStream())
-                    {
-                        foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
-                        {
-                            if (Cookie != null)
-                                Cookie.Add(NewCookie);
-                        }
-
-                        await RespData.CopyToAsync(Output);
-                        return Output.ToArray();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (ex is WebException wex)
-                    {
-                        var Response = wex.Response;
-                        if (Response != null)
-                        { 
-                            foreach (var NewCookie in Response.Headers.GetSetCookies(Response.ResponseUri))
-                            {
-                                if (Cookie != null)
-                                    Cookie.Add(NewCookie);
-                            }
-                        }
-                    }
-                    return null;
-                }
+                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cts.Token);
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+            catch
+            {
+                return null;
             }
             finally
             {
@@ -443,7 +401,7 @@ namespace MangaUnhost.Browser
 
             return CookieContainer.GetCookies();
         }
-        public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null)
+        public static byte[] GetErrorContentOverHttps(this Uri Url, string Referer = null, string UserAgent = null, CookieContainer Cookie = null, bool isImage = false)
         {
             TcpClient Tcp = new TcpClient(Url.Host, 443);
             Tcp.ReceiveTimeout = 1000 * 15;

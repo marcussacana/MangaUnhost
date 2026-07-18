@@ -1,4 +1,4 @@
-﻿using CefSharp.OffScreen;
+using CefSharp.OffScreen;
 using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
@@ -11,8 +11,11 @@ using System.Web;
 namespace MangaUnhost.Hosts
 {
     class NHentai : IHost {
-        static string CurrentUrl;
-        static ChromiumWebBrowser Browser = null;
+        string CurrentUrl;
+        ChromiumWebBrowser Browser = null;
+        static System.Net.CookieContainer Cookies = null;
+        static bool IsLogged = false;
+        static object LoginLock = new object();
 
         Dictionary<int, string> ChapterLinks = new Dictionary<int, string>();
         Dictionary<string, string[]> PageLinks = new Dictionary<string, string[]>();
@@ -111,6 +114,8 @@ namespace MangaUnhost.Hosts
         }
 
         public ComicInfo LoadUri(Uri Uri) {
+            CurrentUrl = Uri.AbsoluteUri;
+
             if (Browser == null) {
                 Browser = new ChromiumWebBrowser("about:blank");
                 Browser.Size = new System.Drawing.Size(500, 600);
@@ -119,12 +124,16 @@ namespace MangaUnhost.Hosts
                 while (!Browser.IsBrowserInitialized)
                     ThreadTools.Wait(100, true);
 
-                Login();
-                SkipSlowDown();
-                SolveCaptcha();
+                lock (LoginLock) {
+                    if (!IsLogged) {
+                        Login();
+                        SkipSlowDown();
+                        SolveCaptcha();
+                        Cookies = Browser.GetBrowser().GetCookies().ToContainer();
+                        IsLogged = true;
+                    }
+                }
             }
-
-            CurrentUrl = Uri.AbsoluteUri;
 
             var Document = DownloadDocument(Uri);
             ComicInfo Info = new ComicInfo();
@@ -158,6 +167,7 @@ namespace MangaUnhost.Hosts
                 Browser.GetBrowser().EvaluateScript("document.getElementsByClassName(\"button button-wide\")[0].click();");
                 ThreadTools.Wait(1000, true);
                 Browser.GetBrowser().WaitForLoad();
+                Cookies = Browser.GetBrowser().GetCookies().ToContainer();
             }
         }
 
@@ -177,6 +187,7 @@ namespace MangaUnhost.Hosts
             ThreadTools.Wait(1000, true);
             Browser.GetBrowser().WaitForLoad();
 
+            Cookies = Browser.GetBrowser().GetCookies().ToContainer();
             return true;
         }
         public HtmlDocument DownloadDocument(Uri Url) {
@@ -187,7 +198,7 @@ namespace MangaUnhost.Hosts
         public byte[] TryDownload(Uri Url, int Tries = 3) {
             return Url.TryDownload(Referer: "https://nhentai.net",
                                    UserAgent: ProxyTools.UserAgent,
-                                   Cookie: Browser.GetBrowser().GetCookies().ToContainer(), Retries: Tries);
+                                   Cookie: Cookies ?? Browser?.GetBrowser()?.GetCookies()?.ToContainer(), Retries: Tries);
         }
         public bool IsValidPage(string HTML, Uri URL) => false;
     }

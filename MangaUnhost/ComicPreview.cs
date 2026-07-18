@@ -1,4 +1,4 @@
-﻿using CefSharp.DevTools.Page;
+using CefSharp.DevTools.Page;
 using HtmlAgilityPack;
 using Ionic.Zip;
 using MangaUnhost.Browser;
@@ -30,6 +30,7 @@ namespace MangaUnhost
     public partial class ComicPreview : UserControl
     {
         static WCRWindow Reader;
+        static System.Threading.SemaphoreSlim UpdateQueue = new System.Threading.SemaphoreSlim(1, 1);
         ~ComicPreview()
         {
             var Img = CoverBox.Image;
@@ -188,10 +189,17 @@ namespace MangaUnhost
                 string PossibleChapterPath = Path.Combine(ComicPath, Language.Chapters);
                 if (File.Exists(PossibleCoverPath))
                 {
-                    using (var Cover = Image.FromFile(PossibleCoverPath))
-                        CoverBox.Image = ResizeKeepingRatio((Bitmap)Cover, CoverBox.Width, CoverBox.Height);
-                    CoverPath = PossibleCoverPath;
-                    CoverFound = true;
+                    try
+                    {
+                        using (var Cover = Image.FromFile(PossibleCoverPath))
+                            CoverBox.Image = ResizeKeepingRatio((Bitmap)Cover, Math.Max(180, CoverBox.Width), Math.Max(260, CoverBox.Height));
+                        CoverPath = PossibleCoverPath;
+                        CoverFound = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Cover error: " + ex.ToString());
+                    }
                 }
                 if (File.Exists(PossibleIndexPath))
                 {
@@ -220,7 +228,14 @@ namespace MangaUnhost
 
             string HostName = null;
 
-            ComicUrl = new Uri(Ini.GetConfig("InternetShortcut", "URL", UrlPath));
+            try
+            {
+                ComicUrl = new Uri(Ini.GetConfig("InternetShortcut", "URL", UrlPath));
+            }
+            catch (Exception ex)
+            {
+                ComicUrl = new Uri("http://error.local/?msg=" + Uri.EscapeDataString(ex.Message));
+            }
 
             var Hosts = Main.GetHostsInstances();
             var HostQuery = (from x in Hosts where x.IsValidUri(ComicUrl) select x);
@@ -336,7 +351,7 @@ namespace MangaUnhost
                             case ReaderMode.Legacy:
                                 var HtmlReader = Chapter + ".html";
                                 if (File.Exists(HtmlReader))
-                                    Process.Start(HtmlReader);
+                                    Process.Start(new ProcessStartInfo { FileName = HtmlReader, UseShellExecute = true });
                                 break;
                             default:
                                 Reader = new WCRWindow(ID, Chapters);
@@ -483,13 +498,14 @@ namespace MangaUnhost
             if (Error)
                 return;
 
-            //Prevent for update check freezes
-            ThreadTools.ForceTimeoutAt = DateTime.Now.AddMinutes(1);
-
-            Nito.AsyncEx.AsyncContext.Run(() =>
+            Task.Run(() =>
             {
+                UpdateQueue.Wait();
                 try
                 {
+                    //Prevent for update check freezes
+                    ThreadTools.ForceTimeoutAt = DateTime.Now.AddMinutes(1);
+
                     int DownloadedChapters = 0;
                     if (ChapsFound)
                         DownloadedChapters = Directory.GetDirectories(ChapPath).Length;
@@ -516,18 +532,30 @@ namespace MangaUnhost
                 {
                     Error = true;
                 }
+                finally
+                {
+                    ThreadTools.ForceTimeoutAt = null;
+                    UpdateQueue.Release();
+                }
             });
-
-            ThreadTools.ForceTimeoutAt = null;
         }
 
         private void OpenSiteClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(ComicUrl.AbsoluteUri);
+            if (ComicUrl != null)
+            {
+                try {
+                    Process.Start(new ProcessStartInfo { FileName = ComicUrl.AbsoluteUri, UseShellExecute = true });
+                } catch { }
+            }
         }
 
         private void DownloadClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            if (ComicHost == null) {
+                MessageBox.Show("Plugin not found or unsupported.", "MangaUnhost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             Main.Instance.LoadUri(ComicUrl, ComicHost);
             Main.Instance.FocusDownloader();
         }
@@ -535,7 +563,11 @@ namespace MangaUnhost
         private void CoverClicked(object sender, EventArgs e)
         {
             if (IndexFound)
-                Process.Start(IndexPath);
+            {
+                try {
+                    Process.Start(new ProcessStartInfo { FileName = IndexPath, UseShellExecute = true });
+                } catch { }
+            }
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -1908,13 +1940,26 @@ namespace MangaUnhost
             }
         }
 
+        private void OpenChapter_Click(object sender, EventArgs e)
+        {
+            if (ChapsFound)
+            {
+                try {
+                    Process.Start(new ProcessStartInfo { FileName = ChapPath, UseShellExecute = true });
+                } catch { }
+            }
+        }
+
         private void OpenDirectory_Click(object sender, EventArgs e)
         {
-            Process.Start(ComicPath);
+            try {
+                Process.Start(new ProcessStartInfo { FileName = ComicPath, UseShellExecute = true });
+            } catch { }
         }
 
         public Bitmap ResizeKeepingRatio(Bitmap source, int width, int height)
         {
+            if (width <= 0 || height <= 0) return null;
             Bitmap result = null;
 
             try

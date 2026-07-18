@@ -1,4 +1,4 @@
-﻿using HtmlAgilityPack;
+using HtmlAgilityPack;
 using MangaUnhost.Browser;
 using MangaUnhost.Decoders;
 using MangaUnhost.Others;
@@ -8,7 +8,6 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Caching;
 
 namespace MangaUnhost.Hosts
 {

@@ -249,7 +249,7 @@ namespace MangaUnhost
                 SchemeHandlerFactory = new LocalSchemeFactory()
             });
 
-            if (!Cef.Initialize(CefSettings, false, browserProcessHandler: null))
+            if (!Cef.Initialize(CefSettings, false))
                 throw new Exception("Failed to Initialize CEFSharp");
         }
 
@@ -267,35 +267,6 @@ namespace MangaUnhost
 
             CrawlerThread = new Thread(CrawlerWorker);
             CrawlerThread.Start();
-
-            if (Program.Debug)
-            {
-                new Thread(() =>
-                {
-                    ThreadTools.Wait(1000);
-                    try
-                    {
-                        var testUri = new Uri("https://lycantoons.com/series/guia-da-reforma-da-nobre-dama");
-                        var host = Hosts.FirstOrDefault(h => h.IsValidUri(testUri));
-                        if (host != null)
-                        {
-                            BeginInvoke(new Action(() =>
-                            {
-                                try
-                                {
-                                    LoadUri(testUri, host);
-                                }
-                                catch (Exception ex)
-                                {
-                                    if (Program.Debug)
-                                        MessageBox.Show(ex.ToString(), "Debug Load Error");
-                                }
-                            }));
-                        }
-                    }
-                    catch { }
-                }).Start();
-            }
 
             if (!Program.Updater.HaveUpdate())
                 return;
@@ -881,23 +852,35 @@ namespace MangaUnhost
         private void MainCoverClicked(object sender, EventArgs e)
         {
             if (LastIndex != null)
-                System.Diagnostics.Process.Start(LastIndex);
+                System.Diagnostics.Process.Start("explorer", LastIndex);
         }
 
         public void FocusDownloader() => MainTabMenu.SelectTab(DownloaderTab);
 
         public static IHost[] GetHostsInstances() =>
             (from Asm in AppDomain.CurrentDomain.GetAssemblies()
-             from Typ in Asm.GetTypes()
+             from Typ in GetLoadableTypes(Asm)
              where typeof(IHost).IsAssignableFrom(Typ) && !Typ.IsInterface
              select (IHost)Activator.CreateInstance(Typ)).OrderBy(x => x.GetPluginInfo().Name).ToArray();
 
 
         public static ILanguage[] GetLanguagesInstance() =>
             (from Asm in AppDomain.CurrentDomain.GetAssemblies()
-             from Typ in Asm.GetTypes()
+             from Typ in GetLoadableTypes(Asm)
              where typeof(ILanguage).IsAssignableFrom(Typ) && !Typ.IsInterface
              select (ILanguage)Activator.CreateInstance(Typ)).OrderBy(x => x.LanguageName).ToArray();
+
+        public static Type[] GetLoadableTypes(System.Reflection.Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (System.Reflection.ReflectionTypeLoadException e)
+            {
+                return e.Types.Where(t => t != null).ToArray();
+            }
+        }
 
         int Page = 0;
         bool Enumerating = false;
@@ -1015,6 +998,12 @@ namespace MangaUnhost
 
         public void RefreshLibrary(bool Partial = false)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() => RefreshLibrary(Partial)));
+                return;
+            }
+
             if (Enumerating)
                 return;
 
@@ -1209,6 +1198,39 @@ namespace MangaUnhost
         {
             Settings.ComparsionFactor = Sensitivity;
             Settings.UseAForge = Aforge;
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_NCHITTEST = 0x84;
+            const int HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13, HTTOPRIGHT = 14, HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                base.WndProc(ref m);
+                if (m.Result.ToInt32() == 1) // HTCLIENT
+                {
+                    int x = (int)(m.LParam.ToInt64() & 0xFFFF);
+                    int y = (int)((m.LParam.ToInt64() >> 16) & 0xFFFF);
+                    Point clientPoint = this.PointToClient(new Point(x, y));
+
+                    bool isLeft = clientPoint.X <= 5;
+                    bool isRight = clientPoint.X >= this.ClientSize.Width - 5;
+                    bool isTop = clientPoint.Y <= 5;
+                    bool isBottom = clientPoint.Y >= this.ClientSize.Height - 5;
+
+                    if (isTop && isLeft) m.Result = (IntPtr)HTTOPLEFT;
+                    else if (isTop && isRight) m.Result = (IntPtr)HTTOPRIGHT;
+                    else if (isBottom && isLeft) m.Result = (IntPtr)HTBOTTOMLEFT;
+                    else if (isBottom && isRight) m.Result = (IntPtr)HTBOTTOMRIGHT;
+                    else if (isTop) m.Result = (IntPtr)HTTOP;
+                    else if (isBottom) m.Result = (IntPtr)HTBOTTOM;
+                    else if (isLeft) m.Result = (IntPtr)HTLEFT;
+                    else if (isRight) m.Result = (IntPtr)HTRIGHT;
+                }
+                return;
+            }
+            base.WndProc(ref m);
         }
 	}
 }

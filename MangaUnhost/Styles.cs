@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing.Text;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
@@ -374,6 +374,36 @@ namespace MangaUnhost
 	        State = MouseState.Down;
 	        Invalidate();
 	    }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_NCHITTEST = 0x84;
+            const int HTTRANSPARENT = -1;
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                base.WndProc(ref m);
+                if (m.Result.ToInt32() == 1) // HTCLIENT
+                {
+                    int x = (int)(m.LParam.ToInt64() & 0xFFFF);
+                    int y = (int)((m.LParam.ToInt64() >> 16) & 0xFFFF);
+                    Point clientPoint = this.PointToClient(new Point(x, y));
+
+                    bool isLeft = clientPoint.X <= 5;
+                    bool isRight = clientPoint.X >= this.ClientSize.Width - 5;
+                    bool isTop = clientPoint.Y <= 5;
+                    bool isBottom = clientPoint.Y >= this.ClientSize.Height - 5;
+
+                    if (isLeft || isRight || isTop || isBottom)
+                    {
+                        m.Result = (IntPtr)HTTRANSPARENT;
+                        return;
+                    }
+                }
+                return;
+            }
+            base.WndProc(ref m);
+        }
 	    #endregion
 
 	    #region Draw Control
@@ -1335,6 +1365,35 @@ namespace MangaUnhost
 
 	    #endregion
 
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_NCHITTEST = 0x84;
+            const int HTTRANSPARENT = -1;
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                base.WndProc(ref m);
+                if (m.Result.ToInt32() == 1) // HTCLIENT
+                {
+                    int x = (int)(m.LParam.ToInt64() & 0xFFFF);
+                    int y = (int)((m.LParam.ToInt64() >> 16) & 0xFFFF);
+                    Point clientPoint = this.PointToClient(new Point(x, y));
+
+                    bool isLeft = clientPoint.X <= 5;
+                    bool isRight = clientPoint.X >= this.ClientSize.Width - 5;
+                    bool isTop = clientPoint.Y <= 5;
+                    bool isBottom = clientPoint.Y >= this.ClientSize.Height - 5;
+
+                    if (isLeft || isRight || isTop || isBottom)
+                    {
+                        m.Result = (IntPtr)HTTRANSPARENT;
+                        return;
+                    }
+                }
+                return;
+            }
+            base.WndProc(ref m);
+        }
 	}
 
 	[DefaultEvent("Scroll")]

@@ -1,8 +1,6 @@
-﻿using Nito.AsyncEx;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace MangaUnhost.Others {
     public static class ThreadTools {
@@ -28,10 +26,15 @@ namespace MangaUnhost.Others {
             }
         }
 
-        public static T RunInBackground<T>(this Task<T> Task)
+        public static T RunInBackground<T>(this Task<T> Task, int Timeout = 0)
         {
-            while (!Task.IsCanceled && !Task.IsCompleted && !Task.IsFaulted)
+            DateTime endTime = DateTime.Now.AddSeconds(Timeout);
+
+            while (!Task.IsCanceled && !Task.IsCompleted && !Task.IsFaulted && (DateTime.Now < endTime || Timeout == 0))
                 Wait(100, true);
+
+            if (DateTime.Now > endTime)
+                throw new TimeoutException();
 
             if (Task.IsFaulted)
                 throw Task.Exception;

@@ -1,10 +1,9 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.OffScreen;
 using MangaUnhost.Others;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Web.UI.WebControls;
 using System.Windows.Input;
 
 namespace MangaUnhost.Browser {

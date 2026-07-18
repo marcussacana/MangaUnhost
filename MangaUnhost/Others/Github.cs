@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -128,7 +128,7 @@ class GitHub {
 
         string Result = FinishUpdate();
         if (Result != null) {
-            Process.Start(Result);
+            Process.Start(new ProcessStartInfo { FileName = Result, UseShellExecute = true });
             Environment.Exit(0);
         }
 
@@ -141,7 +141,7 @@ class GitHub {
 
         Directory.CreateDirectory(TempUpdateDir);
         Zip.ExtractAll(TempUpdateDir, ExtractExistingFileAction.OverwriteSilently);
-        Process.Start(TempUpdateDir + Path.GetFileName(MainExecutable));
+        Process.Start(new ProcessStartInfo { FileName = TempUpdateDir + Path.GetFileName(MainExecutable), UseShellExecute = true });
         Environment.Exit(0);
     }
 
@@ -235,7 +235,7 @@ class GitHub {
     }
 
     public void BypassSLL() {
-        ServicePointManager.SecurityProtocol = (SecurityProtocolType)0x00003FF0;
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
         ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
     }
 }

@@ -1,10 +1,10 @@
 ﻿using CefSharp;
+using CefSharp.DevTools.Page;
 using EPubFactory;
 using LibAPNG;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using Microsoft.VisualBasic.Devices;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,6 +13,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MangaUnhost
@@ -400,7 +401,7 @@ namespace MangaUnhost
                     break;
                 case ContentType.Novel:
                     var Chapter = Host.DownloadChapter(ID);
-                    AsyncContext.Run(async () =>
+                    new Task(async () =>
                     {
                         using (var Epub = await EPubWriter.CreateWriterAsync(File.Create(ChapterPath), Info.Title ?? "Untitled", Chapter.Author ?? "Anon", Chapter.URL ?? "None"))
                         {
@@ -463,7 +464,7 @@ namespace MangaUnhost
 
                             await Epub.WriteEndOfPackageAsync();
                         }
-                    });
+                    }).RunInBackground();
                     break;
                 default:
                     throw new Exception("Invalid Content Type");
