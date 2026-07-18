@@ -133,22 +133,14 @@ namespace MangaUnhost
 
         private static void TrampolineUpdate()
         {
-            if (Debugger.IsAttached) return;
+            File.AppendAllText("trampoline_log.txt", "[Trampoline] Iniciando...\n");
+            //if (Debugger.IsAttached) return;
 
             // 1. Checar e Instalar .NET 10
             if (!CheckDotNet10Installed())
             {
-                // Silently download and install .NET 10
-                string installerUrl = "https://download.visualstudio.microsoft.com/download/pr/9dbda88c-10bc-4bb5-bb26-d6b38c2084c7/582bf4ed2e31e5f52fba4a51e59df1f0/windowsdesktop-runtime-10.0.0-preview.6.24328.2-win-x64.exe"; // Exemplo, pode ser a URL real do .NET 10 desktop runtime
-                string installerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dotnet_installer.exe");
-                try {
-                    new WebClient().DownloadFile(installerUrl, installerPath);
-                    var p = Process.Start(installerPath, "/install /quiet /norestart");
-                    p.WaitForExit();
-                } catch { }
-                finally {
-                    if (File.Exists(installerPath)) File.Delete(installerPath);
-                }
+                File.AppendAllText("trampoline_log.txt", "[Trampoline] .NET 10 ausente.\n");
+                // Mock skipping download for local test
             }
 
             // 2. Limpar lixo antigo (CEF x86/x64)
@@ -167,6 +159,7 @@ namespace MangaUnhost
             string baseUrl = "http://127.0.0.1:8000/update.zip";
             string zipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.zip");
 
+            File.AppendAllText("trampoline_log.txt", "[Trampoline] Baixando update...\n");
             try {
                 using (var outputStream = File.Create(zipPath))
                 {
@@ -183,6 +176,7 @@ namespace MangaUnhost
                             {
                                 stream.CopyTo(outputStream);
                             }
+                            File.AppendAllText("trampoline_log.txt", string.Format("[Trampoline] Baixada parte {0}\n", part));
                             part++;
                         }
                         catch (WebException ex)
@@ -190,25 +184,30 @@ namespace MangaUnhost
                             var httpResponse = ex.Response as HttpWebResponse;
                             if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.NotFound)
                                 break;
+                            
+                            File.AppendAllText("trampoline_log.txt", "[Trampoline] Erro de rede: " + ex.Message + "\n");
                             break;
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            File.AppendAllText("trampoline_log.txt", "[Trampoline] Erro: " + ex.Message + "\n");
                             break;
                         }
                     }
                 }
 
+                File.AppendAllText("trampoline_log.txt", "[Trampoline] Download concluido. Tamanho: " + new FileInfo(zipPath).Length + "\n");
                 if (new FileInfo(zipPath).Length > 100) { // Pelo menos 1KB baixado
-                    using (var Zip = Ionic.Zip.ZipFile.Read(zipPath)) {
-                        Zip.ExtractAll(AppDomain.CurrentDomain.BaseDirectory, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
-                    }
-                    Process.Start(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    File.AppendAllText("trampoline_log.txt", "[Trampoline] Extraindo zip...\n");
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, AppDomain.CurrentDomain.BaseDirectory);
+                    File.AppendAllText("trampoline_log.txt", "[Trampoline] Finalizado! Reiniciando...\n");
                     Environment.Exit(0);
                 }
-            } catch { }
+            } catch (Exception ex) { 
+                File.AppendAllText("trampoline_log.txt", "[Trampoline] Erro fatal: " + ex.ToString() + "\n");
+            }
             finally {
-                if (File.Exists(zipPath)) File.Delete(zipPath);
+                //if (File.Exists(zipPath)) File.Delete(zipPath);
             }
         }
 
