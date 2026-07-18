@@ -1,0 +1,128 @@
+name: Build Modern MangaUnhost
+
+on:
+  push:
+    branches:
+      - master-dotnet10
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        dotnet-quality: 'preview'
+
+    - name: Build and Publish
+      run: |
+        dotnet publish MangaUnhost.sln -c Release -r win-x64 --self-contained false -o publish
+
+    - name: Package Artifacts
+      shell: python
+      run: |
+        import os
+        import shutil
+        import zipfile
+
+        pub_dir = 'publish'
+        cef_dir = 'cef_pack'
+        native_dir = 'native_pack'
+        app_dir = 'app_pack'
+
+        os.makedirs(cef_dir, exist_ok=True)
+        os.makedirs(native_dir, exist_ok=True)
+        os.makedirs(app_dir, exist_ok=True)
+
+        # 1. NativeLibs
+        native_libs = ["LibAPNG.dll", "libwebp.dll", "libwebp_x86.dll", "libwebp_x64.dll", "cvextern.dll"]
+        for lib in native_libs:
+            src = os.path.join(pub_dir, lib)
+            if os.path.exists(src):
+                shutil.move(src, native_dir)
+        
+        with zipfile.ZipFile('NativeLibs.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+            for root, _, files in os.walk(native_dir):
+                for f in files:
+                    file_path = os.path.join(root, f)
+                    zf.write(file_path, os.path.relpath(file_path, native_dir))
+
+        # 2. CEF
+        cef_files = ["CefSharp.BrowserSubprocess.exe", "libcef.dll", "libEGL.dll", "libGLESv2.dll", "chrome_elf.dll", "d3dcompiler_47.dll", "vk_swiftshader.dll", "vulkan-1.dll", "snapshot_blob.bin", "v8_context_snapshot.bin", "icudtl.dat"]
+        for f in cef_files:
+            src = os.path.join(pub_dir, f)
+            if os.path.exists(src):
+                shutil.move(src, cef_dir)
+        
+        # Locales
+        locales_src = os.path.join(pub_dir, 'locales')
+        if os.path.exists(locales_src):
+            locales_dst = os.path.join(cef_dir, 'locales')
+            os.makedirs(locales_dst, exist_ok=True)
+            en_us_pak = os.path.join(locales_src, 'en-US.pak')
+            if os.path.exists(en_us_pak):
+                shutil.move(en_us_pak, locales_dst)
+            shutil.rmtree(locales_src, ignore_errors=True)
+
+        # SwiftShader
+        swift_src = os.path.join(pub_dir, 'swiftshader')
+        if os.path.exists(swift_src):
+            shutil.move(swift_src, cef_dir)
+
+        # We will use a static CEF version name or read from somewhere
+        cef_version = "v149.0.60" # Use dynamic parsing if needed later
+        cef_zip_name = f'CEFx64-{cef_version}.zip'
+        with zipfile.ZipFile(cef_zip_name, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for root, _, files in os.walk(cef_dir):
+                for f in files:
+                    file_path = os.path.join(root, f)
+                    zf.write(file_path, os.path.relpath(file_path, cef_dir))
+
+        # 3. App Core Zip
+        for item in os.listdir(pub_dir):
+            shutil.move(os.path.join(pub_dir, item), app_dir)
+
+        with zipfile.ZipFile('update.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+            for root, _, files in os.walk(app_dir):
+                for f in files:
+                    file_path = os.path.join(root, f)
+                    zf.write(file_path, os.path.relpath(file_path, app_dir))
+
+        # 4. Split App Core Zip
+        chunk_size = 2 * 1024 * 1024
+        with open('update.zip', 'rb') as f:
+            part = 0
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                with open(f'update.zip.{part:03d}', 'wb') as chunk_file:
+                    chunk_file.write(data)
+                part += 1
+
+        # 5. Generate update.ini
+        with open('update.ini', 'w') as f:
+            f.write('[Updater]\nVersion=modern\n')
+
+    - name: Deploy to Data Branch
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git fetch origin data
+        git checkout data
+        
+        # Copiar todos os zips e ini para o branch
+        Move-Item -Path "update.ini" -Destination "." -Force
+        Move-Item -Path "update.zip.*" -Destination "." -Force
+        Move-Item -Path "CEFx64*.zip" -Destination "." -Force
+        Move-Item -Path "NativeLibs.zip" -Destination "." -Force
+        
+        git add update.ini update.zip.* CEFx64*.zip NativeLibs.zip
+        git commit -m "Auto-build Modern Update"
+        git push origin data
