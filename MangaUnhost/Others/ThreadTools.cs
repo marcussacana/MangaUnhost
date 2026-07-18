@@ -33,7 +33,7 @@ namespace MangaUnhost.Others {
             while (!Task.IsCanceled && !Task.IsCompleted && !Task.IsFaulted && (DateTime.Now < endTime || Timeout == 0))
                 Wait(100, true);
 
-            if (DateTime.Now > endTime)
+            if (DateTime.Now > endTime && Timeout != 0)
                 throw new TimeoutException();
 
             if (Task.IsFaulted)

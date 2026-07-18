@@ -1,4 +1,4 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.EventHandler;
 using CefSharp.OffScreen;
 using HtmlAgilityPack;
@@ -28,17 +28,19 @@ namespace MangaUnhost.Browser
                 return _cachedImageHeaders;
 
             using var Browser = new ChromiumWebBrowser("about:blank");
+            Browser.WaitInitialize();
 
             if (Browser == null)
             {
                 return new (string, string)[] {
                     ("Sec-Fetch-Dest", "image"),
                     ("Sec-Fetch-Mode", "no-cors"),
-                    ("Sec-Fetch-Site", "cross-site"),
+                    ("Sec-Fetch-Site", "same-site"),
                     ("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
                 };
             }
 
+#if INTERCEPTION
             var proxyServer = new ProxyServer();
             proxyServer.EnableHttp2 = true;
             proxyServer.SupportedSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13;
@@ -71,25 +73,80 @@ namespace MangaUnhost.Browser
             Browser.UseProxy(new WebProxy(new Uri($"http://127.0.0.1:{port}")));
 
             Browser.WaitForLoad("about:blank");
-            Browser.EvaluateScriptUnsafe("new Image().src = 'https://google.com/favicon.ico';");
+            Browser.EvaluateScriptUnsafe("new Image().src = 'https://cloudflare.com/favicon.ico';");
 
             var waitBegin = DateTime.Now;
             while (!captured && (DateTime.Now - waitBegin).TotalSeconds < 10)
                 ThreadTools.Wait(100, true);
 
             proxyServer.Stop();
+#else
+            bool captured = false;
+            var targetRequestIds = new System.Collections.Generic.HashSet<string>();
+            var list = new Dictionary<string, string>();
+
+            Cef.UIThreadTaskFactory.StartNew(async () => {
+                var browser = Browser.GetBrowser();
+                var devtools = browser.GetDevToolsClient();
+                await devtools.Network.EnableAsync();
+                devtools.Network.RequestWillBeSent += (s, e) =>
+                {
+                    if (e.Request.Url.Contains("favicon.ico"))
+                    {
+                        targetRequestIds.Add(e.RequestId);
+                        foreach (var header in e.Request.Headers)
+                        {
+                            var name = header.Key.ToLowerInvariant();
+                            if (name.StartsWith(":")) continue;
+                            if (name != "cookie" && name != "host" && name != "accept-encoding")
+                                list[name] = header.Value?.ToString();
+                        }
+                    }
+                };
+                devtools.Network.RequestWillBeSentExtraInfo += (s, e) =>
+                {
+                    if (targetRequestIds.Contains(e.RequestId))
+                    {
+                        foreach (var header in e.Headers)
+                        {
+                            var name = header.Key.ToLowerInvariant();
+                            if (name.StartsWith(":")) continue;
+                            if (name != "cookie" && name != "host" && name != "accept-encoding")
+                                list[name] = header.Value?.ToString();
+                        }
+                        captured = true;
+                    }
+                };
+            }).Unwrap().Wait();
+
+            Browser.WaitForLoad("about:blank");
+            Browser.EvaluateScriptUnsafe("new Image().src = 'https://cloudflare.com/favicon.ico';");
+
+            var waitBegin = DateTime.Now;
+            while (!captured && (DateTime.Now - waitBegin).TotalSeconds < 5)
+                ThreadTools.Wait(100, true);
+
+            var arrayList = new List<(string Key, string Value)>();
+            foreach (var kvp in list)
+                arrayList.Add((kvp.Key, kvp.Value));
+
+            if (arrayList.Count > 0)
+                _cachedImageHeaders = arrayList.ToArray();
+#endif
 
             if (_cachedImageHeaders == null)
             {
                 _cachedImageHeaders = new (string, string)[] {
                     ("Sec-Fetch-Dest", "image"),
                     ("Sec-Fetch-Mode", "no-cors"),
-                    ("Sec-Fetch-Site", "cross-site"),
+                    ("Sec-Fetch-Site", "same-site"),
                     ("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
                 };
             }
 
-            return _cachedImageHeaders;
+            return _cachedImageHeaders = _cachedImageHeaders
+                .Where(x => !new[] { "Referer", "Origin", ":path", ":authority" }.Contains(x.Key, StringComparer.InvariantCultureIgnoreCase))
+                .Select(x => (x.Key, x.Value)).ToArray();
         }
 
         public static ChromiumWebBrowser DefaultBrowser
@@ -276,7 +333,23 @@ namespace MangaUnhost.Browser
             var Status = Main.Status;
             Main.Status = Main.Language.BypassingCloudFlare;
 
+            try
+            {
+#if INTERCEPTION
+                return CaptureProxyData(WebBrowser, Url);
+#else
+                return CaptureDevToolsData(WebBrowser, Url);
+#endif
+            }
+            finally
+            {
+                Main.Status = Status;
+            }
+        }
 
+#if INTERCEPTION
+        private static CloudflareData CaptureProxyData(IWebBrowser WebBrowser, string Url)
+        {
             var Container = new CookieContainer();
             var capturedHeaders = new List<(string Key, string Value)>();
 
@@ -412,7 +485,6 @@ namespace MangaUnhost.Browser
                 if (Program.Debug)
                     Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
 
-
                 return new CloudflareData()
                 {
                     Cookies = Container,
@@ -446,6 +518,155 @@ namespace MangaUnhost.Browser
                 catch { }
             }
         }
+#else
+        private static CloudflareData CaptureDevToolsData(IWebBrowser WebBrowser, string Url)
+        {
+            var capturedHeaders = new Dictionary<string, string>();
+            var targetRequestIds = new System.Collections.Generic.HashSet<string>();
+            var capturedCookies = new System.Collections.Generic.List<string>();
+            
+            Cef.UIThreadTaskFactory.StartNew(async () => {
+                var browser = WebBrowser.GetBrowser();
+                var devtools = browser.GetDevToolsClient();
+                await devtools.Network.EnableAsync();
+                devtools.Network.RequestWillBeSent += (s, e) =>
+                {
+                    if (e.Request.Url.Contains(new Uri(Url).Host))
+                    {
+                        targetRequestIds.Add(e.RequestId);
+                        foreach (var header in e.Request.Headers)
+                        {
+                            var name = header.Key.ToLowerInvariant();
+                            if (name.StartsWith(":"))
+                                continue;
+                            if (name == "cookie")
+                                capturedCookies.Add(header.Value?.ToString());
+                            else if (name != "user-agent" && name != "host" && name != "accept-encoding")
+                                capturedHeaders[name] = header.Value?.ToString();
+                        }
+                    }
+                };
+                devtools.Network.RequestWillBeSentExtraInfo += (s, e) =>
+                {
+                    if (targetRequestIds.Contains(e.RequestId))
+                    {
+                        foreach (var header in e.Headers)
+                        {
+                            var name = header.Key.ToLowerInvariant();
+                            if (name.StartsWith(":"))
+                                continue;
+                            if (name == "cookie")
+                                capturedCookies.Add(header.Value?.ToString());
+                            else if (name != "user-agent" && name != "host" && name != "accept-encoding")
+                                capturedHeaders[name] = header.Value?.ToString();
+                        }
+                    }
+                };
+            }).Unwrap().Wait();
+
+            WebBrowser.WaitInitialize();
+
+            var Browser = WebBrowser.GetBrowser();
+
+            int Proxies = 0;
+
+            WebBrowser.Load("about:blank");
+            Browser.WaitForLoad(10);
+            WebBrowser.Load(Url);
+
+            Browser.WaitForLoad(10);
+
+            while (Browser.IsCloudflareTriggered())
+            {
+                int maxWait = 10;
+                while (Browser.IsCloudflareTriggered() && !Browser.IsCloudflareAskingCaptcha() && maxWait-- > 0)
+                {
+                    ThreadTools.Wait(1000, true);
+                }
+
+                if (Browser.GetHTML().Contains("Please enable cookies."))
+                {
+                    throw new Exception("Banned IP on Cloudflare");
+                }
+
+                if (Browser.IsCloudflareAskingCaptcha())
+                {
+                    int Tries = 3;
+                    while (Browser.IsCloudflareTriggered() && Tries > 0)
+                    {
+                        if (Browser.GetCurrentUrl() != Url)
+                            DefaultBrowser.WaitForLoad(Url);
+
+                        if (!Browser.TurnstileIsSolved() && Tries > 1)
+                        {
+                            Browser.TurnstileSolve();
+                        }
+                        else if (WebBrowser is CefSharp.WinForms.ChromiumWebBrowser)
+                        {
+                            var MaxWait = 60;
+                            BrowserPopup popup = new BrowserPopup(WebBrowser, new Rectangle(0, 0, 1280, 720), () =>
+                            {
+                                try
+                                {
+                                    if (Browser.IsCloudflareTriggered() && !Browser.TurnstileIsSolved() && MaxWait-- > 0)
+                                        return false;
+                                }
+                                catch { }
+                                return false;
+                            });
+
+                            popup.ShowDialog();
+                            popup.Focus();
+                        }
+
+                        ThreadTools.Wait(3000, true);
+                        Browser.WaitForLoad(10);
+                        Tries--;
+                    }
+                }
+            }
+
+            Browser.WaitForLoad(15);
+
+            var HTML = Browser.GetHTML();
+            
+            var Container = new CookieContainer();
+            var uri = new Uri(Url);
+            
+            // Parse captured request cookies
+            foreach (var cookieStr in capturedCookies)
+            {
+                if (string.IsNullOrWhiteSpace(cookieStr)) continue;
+                try
+                {
+                    foreach (var c in cookieStr.Split(';'))
+                    {
+                        var pair = c.Split(new[] { '=' }, 2);
+                        if (pair.Length == 2)
+                            Container.Add(new System.Net.Cookie(pair[0].Trim(), pair[1].Trim(), "/", uri.Host));
+                    }
+                }
+                catch { }
+            }
+
+            var BrowserCookies = Browser.GetCookies();
+            foreach (var Cookie in BrowserCookies.ToContainer().GetCookies())
+                Container.Add(Cookie);
+
+            if (Program.Debug)
+                Program.Writer?.WriteLine("CF Bypass Result: {0}\r\nHTML: {1}", Browser.MainFrame.Url, HTML);
+
+            return new CloudflareData()
+            {
+                Cookies = Container,
+                UserAgent = Browser.GetUserAgent(),
+                HTML = HTML,
+                Headers = capturedHeaders
+                .Where(x => !new [] { "Referer", "Origin", ":path", ":authority" }.Contains(x.Key, StringComparer.InvariantCultureIgnoreCase))
+                .Select(x => (x.Key, x.Value)).ToArray()
+            };
+        }
+#endif
 
         public static HtmlDocument GetDocument(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetDocument();
         public static string GetHTML(this ChromiumWebBrowser Browser) => Browser.GetBrowser().GetHTML();

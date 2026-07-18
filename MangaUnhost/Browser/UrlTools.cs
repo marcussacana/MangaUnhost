@@ -1,4 +1,4 @@
-﻿using MangaUnhost.Others;
+using MangaUnhost.Others;
 using System;
 using System.IO;
 using System.Linq;
@@ -298,12 +298,42 @@ namespace MangaUnhost.Browser
                 var imgHeaders = JSTools.GetImageHeaders();
                 foreach (var h in imgHeaders)
                 {
-                    if (h.Key.ToLowerInvariant() == "accept" && Accept != null)
+                    string key = h.Key;
+                    string val = h.Value;
+
+                    if (key.ToLowerInvariant() == "accept" && Accept != null)
                         continue;
-                    request.Headers.TryAddWithoutValidation(h.Key, h.Value);
+
+                    if (string.IsNullOrWhiteSpace(val))
+                        continue;
+                    
+                    // Do not overwrite sec-fetch-site if CFData already provided it (e.g. same-origin)
+                    if (key.ToLowerInvariant() == "sec-fetch-site")
+                    {
+                        if (request.Headers.Contains(key)) continue;
+                        val = "same-site";
+                    }
+
+                    // Remove document-specific headers that were injected by CFData
+                    if (request.Headers.Contains(key))
+                        request.Headers.Remove(key);
+                        
+                    request.Headers.TryAddWithoutValidation(key, val);
                 }
+                
+                // Specific cleanup of headers that shouldn't be in image requests
+                if (request.Headers.Contains("upgrade-insecure-requests"))
+                    request.Headers.Remove("upgrade-insecure-requests");
+
+                if (request.Headers.Contains("sec-fetch-user"))
+                    request.Headers.Remove("sec-fetch-user");
+
                 if (Accept != null)
+                {
+                    if (request.Headers.Contains("Accept"))
+                        request.Headers.Remove("Accept");
                     request.Headers.TryAddWithoutValidation("Accept", Accept);
+                }
             }
             else
             {

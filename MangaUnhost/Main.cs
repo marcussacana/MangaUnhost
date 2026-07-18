@@ -448,37 +448,77 @@ namespace MangaUnhost
         }
         private void DbgButtonCClicked(object sender, EventArgs e)
         {
-            var OBrowser = new ChromiumWebBrowser("https://bato.to/");
+            var testUrl = "https://httpbin.org/cookies/set?testcookie=123";
 
+            // Usar o WinForms invés do OffScreen garante que a aba do DevTools
+            // saiba o posicionamento (XY) baseado num parent control real.
+            var OBrowser = new CefSharp.WinForms.ChromiumWebBrowser("about:blank");
             OBrowser.Size = new Size(1280, 720);
+            
+            // Adicionar temporariamente à interface invisível garante o XY 100% correto.
+            this.Controls.Add(OBrowser);
+            OBrowser.Visible = false;
+            
+            OBrowser.CreateControl();
             OBrowser.WaitInitialize();
 
+            // Abrir ANTES do request pra você ver tudo acontecendo
             OBrowser.ShowDevTools();
+            ThreadTools.Wait(1000, true);
 
-            ThreadTools.Wait(3000, true);
-            DbgPreview.Image = OBrowser.ScreenshotOrNull();
-            Extensions.SafeDoEvents();
+            var cfdata = JSTools.BypassCloudflare(OBrowser, testUrl);
 
+            string cookieDump = "Cookies:\n";
+            // Extrair todos independente de path/domain pra debug
+            foreach (System.Net.Cookie cookie in cfdata.Cookies.GetCookies())
+                cookieDump += $"{cookie.Name} = {cookie.Value}\n";
 
-            var cfdata = OBrowser.BypassCloudflare();
+            string headerDump = "Headers:\n";
+            if (cfdata.Headers != null)
+                foreach (var h in cfdata.Headers)
+                    headerDump += $"{h.Key}: {h.Value}\n";
 
-            MessageBox.Show("Finished");
-            DbgPreview.Image = OBrowser.ScreenshotOrNull();
+            MessageBox.Show(cookieDump + "\n" + headerDump, "Data Capture Test");
+            
+            this.Controls.Remove(OBrowser);
         }
 
         private void dbgBrowser_Click(object sender, EventArgs e)
         {
-            var Browser = new ChromiumWebBrowser("https://www.google.com");            
-            Browser.BypassGoogleCEFBlock();
-            Browser.Size = new Size(1280, 720);
+            try
+            {
+                var rawHeaders = JSTools.GetImageHeaders();
+                string dump = "=== GetImageHeaders() ===\n";
+                if (rawHeaders != null)
+                {
+                    foreach (var h in rawHeaders)
+                        dump += $"{h.Key}: {h.Value}\n";
+                }
+                else dump += "NULL\n";
 
-            Browser.WaitInitialize();
+                var cfData = new CloudflareData
+                {
+                    UserAgent = "Test/1.0",
+                    Cookies = new System.Net.CookieContainer(),
+                    Headers = new (string Key, string Value)[] {
+                        ("sec-fetch-dest", "document"),
+                        ("upgrade-insecure-requests", "1"),
+                        ("accept", "text/html")
+                    }
+                };
 
-            Browser.ShowDevTools();
+                var data = UrlTools.TryDownloadAsync(new Uri("https://httpbin.org/headers"), cfData, Referer: "https://httpbin.org/", isImage: true).RunInBackground();
+                string serverReceived = data != null ? System.Text.Encoding.UTF8.GetString(data) : "NULL - Download failed";
 
-            BrowserPopup pop = new BrowserPopup(Browser, () => (Browser.EvaluateScript("globalThis.close") as string) == "1");
+                dump += "\n=== Server Received (TryDownload isImage=true) ===\n";
+                dump += serverReceived;
 
-            pop.ShowDialog();
+                MessageBox.Show(dump, "Header Compare Test");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error");
+            }
         }
 
         private void BntLibSelectClicked(object sender, EventArgs e)
