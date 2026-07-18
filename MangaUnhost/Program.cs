@@ -99,6 +99,7 @@ namespace MangaUnhost
             TrampolineUpdate();
             FinishUpdate();
             //WineHelper();
+            //WineHelper();
             CefUpdater();
             OcvUpdater();
 
@@ -113,6 +114,116 @@ namespace MangaUnhost
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             File.WriteAllText("MangaUnhost-FatalError.log", e.ExceptionObject.ToString());
+        }
+
+        private static void TrampolineUpdate()
+        {
+            string updateIniUrl = "https://github.com/marcussacana/MangaUnhost/raw/data/update.ini";
+            string updateIni = null;
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    updateIni = client.DownloadString(updateIniUrl);
+                }
+            }
+            catch { return; }
+
+            if (!updateIni.Contains("Version=modern")) return;
+
+            if (!CheckDotNet10Installed())
+            {
+                string installerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dotnet_installer.exe");
+                try
+                {
+                    // URL genérica para baixar o .NET 10 Desktop Runtime
+                    // Para fins de simplificação, uma vez liberado oficialmente, a URL exata do redistributable deve ser usada.
+                    string downloadUrl = "https://download.visualstudio.microsoft.com/download/pr/499bd14d-7bc4-4731-9a74-ebdc4deef4c3/d8d47be408a2fc1d0f5fc67e41b2554f/windowsdesktop-runtime-10.0.0-preview.6.24328.4-win-x64.exe";
+                    
+                    // Allow parsing URL from ini if specified
+                    var match = System.Text.RegularExpressions.Regex.Match(updateIni, @"DotNet10Url=(.+)");
+                    if (match.Success) downloadUrl = match.Groups[1].Value.Trim();
+
+                    using (var client = new WebClient())
+                    {
+                        client.DownloadFile(downloadUrl, installerPath);
+                    }
+                    var p = Process.Start(new ProcessStartInfo(installerPath, "/install /quiet /norestart") { UseShellExecute = true });
+                    p.WaitForExit();
+                }
+                catch { }
+                finally
+                {
+                    if (File.Exists(installerPath)) try { File.Delete(installerPath); } catch { }
+                }
+            }
+
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string[] folders = { "x86", "x64" };
+            foreach (var folder in folders)
+            {
+                string path = Path.Combine(baseDir, folder);
+                if (Directory.Exists(path))
+                {
+                    try { Directory.Delete(path, true); } catch { }
+                }
+            }
+
+            string baseUrl = "https://github.com/marcussacana/MangaUnhost/raw/data/update.zip";
+            string zipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.zip");
+
+            try
+            {
+                if (File.Exists(zipPath)) File.Delete(zipPath);
+
+                using (var fs = new FileStream(zipPath, FileMode.Create, FileAccess.Write))
+                {
+                    int part = 0;
+                    while (true)
+                    {
+                        try
+                        {
+                            string partUrl = string.Format("{0}.{1:D3}", baseUrl, part);
+                            using (var client = new WebClient())
+                            {
+                                byte[] data = client.DownloadData(partUrl);
+                                fs.Write(data, 0, data.Length);
+                            }
+                            part++;
+                        }
+                        catch (WebException ex)
+                        {
+                            var httpResponse = ex.Response as HttpWebResponse;
+                            if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.NotFound)
+                                break;
+                            break;
+                        }
+                    }
+                }
+
+                if (new FileInfo(zipPath).Length > 100)
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, AppDomain.CurrentDomain.BaseDirectory);
+                    Process.Start(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+                    Environment.Exit(0);
+                }
+            }
+            catch { }
+            finally { if (File.Exists(zipPath)) try { File.Delete(zipPath); } catch { } }
+        }
+
+        static bool CheckDotNet10Installed()
+        {
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string desktopRuntimePath = Path.Combine(programFiles, "dotnet", "shared", "Microsoft.WindowsDesktop.App");
+            if (Directory.Exists(desktopRuntimePath))
+            {
+                foreach (var dir in Directory.GetDirectories(desktopRuntimePath))
+                {
+                    if (Path.GetFileName(dir).StartsWith("10.0.")) return true;
+                }
+            }
+            return false;
         }
 
         private static void FinishUpdate()
@@ -131,99 +242,6 @@ namespace MangaUnhost
             }
         }
 
-        private static void TrampolineUpdate()
-        {
-            File.AppendAllText("trampoline_log.txt", "[Trampoline] Iniciando...\n");
-            //if (Debugger.IsAttached) return;
-
-            // 1. Checar e Instalar .NET 10
-            if (!CheckDotNet10Installed())
-            {
-                File.AppendAllText("trampoline_log.txt", "[Trampoline] .NET 10 ausente.\n");
-                // Mock skipping download for local test
-            }
-
-            // 2. Limpar lixo antigo (CEF x86/x64)
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string[] folders = { "x86", "x64" };
-            foreach (var folder in folders)
-            {
-                string path = Path.Combine(baseDir, folder);
-                if (Directory.Exists(path))
-                {
-                    try { Directory.Delete(path, true); } catch { }
-                }
-            }
-
-            // 3. Baixar zip moderno em pedaços do data repo
-            string baseUrl = "http://127.0.0.1:8000/update.zip";
-            string zipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.zip");
-
-            File.AppendAllText("trampoline_log.txt", "[Trampoline] Baixando update...\n");
-            try {
-                using (var outputStream = File.Create(zipPath))
-                {
-                    int part = 0;
-                    while (true)
-                    {
-                        string url = string.Format("{0}.{1:D3}", baseUrl, part);
-                        try
-                        {
-                            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-                            req.Method = "GET";
-                            using (var resp = req.GetResponse())
-                            using (var stream = resp.GetResponseStream())
-                            {
-                                stream.CopyTo(outputStream);
-                            }
-                            File.AppendAllText("trampoline_log.txt", string.Format("[Trampoline] Baixada parte {0}\n", part));
-                            part++;
-                        }
-                        catch (WebException ex)
-                        {
-                            var httpResponse = ex.Response as HttpWebResponse;
-                            if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.NotFound)
-                                break;
-                            
-                            File.AppendAllText("trampoline_log.txt", "[Trampoline] Erro de rede: " + ex.Message + "\n");
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            File.AppendAllText("trampoline_log.txt", "[Trampoline] Erro: " + ex.Message + "\n");
-                            break;
-                        }
-                    }
-                }
-
-                File.AppendAllText("trampoline_log.txt", "[Trampoline] Download concluido. Tamanho: " + new FileInfo(zipPath).Length + "\n");
-                if (new FileInfo(zipPath).Length > 100) { // Pelo menos 1KB baixado
-                    File.AppendAllText("trampoline_log.txt", "[Trampoline] Extraindo zip...\n");
-                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, AppDomain.CurrentDomain.BaseDirectory);
-                    File.AppendAllText("trampoline_log.txt", "[Trampoline] Finalizado! Reiniciando...\n");
-                    Environment.Exit(0);
-                }
-            } catch (Exception ex) { 
-                File.AppendAllText("trampoline_log.txt", "[Trampoline] Erro fatal: " + ex.ToString() + "\n");
-            }
-            finally {
-                //if (File.Exists(zipPath)) File.Delete(zipPath);
-            }
-        }
-
-        static bool CheckDotNet10Installed()
-        {
-            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string desktopRuntimePath = Path.Combine(programFiles, "dotnet", "shared", "Microsoft.WindowsDesktop.App");
-            if (Directory.Exists(desktopRuntimePath))
-            {
-                foreach (var dir in Directory.GetDirectories(desktopRuntimePath))
-                {
-                    if (Path.GetFileName(dir).StartsWith("10.0.")) return true;
-                }
-            }
-            return false;
-        }
 
         private static string OCVDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86");
         private static void OcvUpdater(string OcvRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
