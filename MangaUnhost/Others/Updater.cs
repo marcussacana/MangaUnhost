@@ -5,13 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using Ionic.Zip;
+using System.Collections.Generic;
 
-class GitHub {
+class Updater {
 
-    string API = "https://api.github.com/repos/{0}/{1}/releases";
-
+    string UpdateIniUrl = "https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/update.ini";
+    string BaseZipUrl = "https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/update.zip";
+    
     string cache = null;
-    string Name = null;
     public static string MainExecutable = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
     public static string TempUpdateDir = Path.GetDirectoryName(MainExecutable) + "\\GitHubRelease\\";
     public static string CurrentVersion {
@@ -20,17 +21,16 @@ class GitHub {
             return Version.FileMajorPart + "." + Version.FileMinorPart + "." + Version.FileBuildPart;
         }
     }
-    public GitHub(string Username, string Project) {
-        API = string.Format(API, Username, Project);
 
+    public Updater() {
         if (!File.Exists(MainExecutable))
             throw new Exception("Failed to Catch the Executable Path");
     }
-    public GitHub(string Username, string Project, string Name) {
-        API = string.Format(API, Username, Project);
-        this.Name = Name;
-        if (!File.Exists(MainExecutable))
-            throw new Exception("Failed to Catch the Executable Path");
+
+    // Constructor to allow overriding the repo URL for sandbox testing
+    public Updater(string BaseUrl) {
+        UpdateIniUrl = BaseUrl.TrimEnd('/') + "/update.ini";
+        BaseZipUrl = BaseUrl.TrimEnd('/') + "/update.zip";
     }
 
     public string FinishUpdate() {
@@ -49,7 +49,6 @@ class GitHub {
                 string Base = File.Substring(RunningDir.Length).TrimStart('\\');
                 string UpPath = RunningDir + Base;
                 string OlPath = OriginalPath + Base;
-
 
                 Delete(OlPath);
                 System.IO.File.Copy(UpPath, OlPath, true);
@@ -95,33 +94,34 @@ class GitHub {
             break;
         }
     }
+
     public bool HaveUpdate() {
         try {
             if (Debugger.IsAttached)
                 return false;
 
-            string CurrentVersion = FileVersionInfo.GetVersionInfo(MainExecutable).FileVersion.Trim();
-            string LastestVersion = GetLastestVersion().Trim();
-            int[] CurrArr = CurrentVersion.Split('.').Select(x => int.Parse(x)).ToArray();
-            int[] LastArr = LastestVersion.Split('.').Select(x => int.Parse(x)).ToArray();
+            string CurrentVersionStr = CurrentVersion.Trim();
+            string LatestVersionStr = GetLastestVersion().Trim();
+            int[] CurrArr = CurrentVersionStr.Split('.').Select(x => int.Parse(x)).ToArray();
+            int[] LastArr = LatestVersionStr.Split('.').Select(x => int.Parse(x)).ToArray();
             int Max = CurrArr.Length < LastArr.Length ? CurrArr.Length : LastArr.Length;
             for (int i = 0; i < Max; i++) {
                 if (LastArr[i] > CurrArr[i])
                     return true;
                 if (LastArr[i] == CurrArr[i])
                     continue;
-                return false;//Lst<Curr
+                return false;
             }
             return false;
-        } catch (Exception ex){ return false; }
+        } catch (Exception) { return false; }
     }
 
     public bool FinishUpdatePending() {
         if (MainExecutable.Contains("\\GitHubRelease\\"))
             return true;
-
         return false;
     }
+
     public void Update() {
         if (!HaveUpdate())
             return;
@@ -132,94 +132,68 @@ class GitHub {
             Environment.Exit(0);
         }
 
-        MemoryStream Update = new MemoryStream(Download(GetDownloadUrl()));
-        var Zip = ZipFile.Read(Update);
         try {
             if (Directory.Exists(TempUpdateDir))
                 Directory.Delete(TempUpdateDir, true);
         } catch { }
 
         Directory.CreateDirectory(TempUpdateDir);
-        Zip.ExtractAll(TempUpdateDir, ExtractExistingFileAction.OverwriteSilently);
+        
+        using (MemoryStream updateStream = new MemoryStream())
+        {
+            DownloadSplitArchive(BaseZipUrl, updateStream);
+            updateStream.Position = 0;
+
+            using (var Zip = ZipFile.Read(updateStream))
+            {
+                Zip.ExtractAll(TempUpdateDir, ExtractExistingFileAction.OverwriteSilently);
+            }
+        }
+
         Process.Start(new ProcessStartInfo { FileName = TempUpdateDir + Path.GetFileName(MainExecutable), UseShellExecute = true });
         Environment.Exit(0);
     }
 
-    private void Backup(string Path) {
-        if (File.Exists(Path + ".bak"))
-            File.Delete(Path + ".bak");
-        while (File.Exists(Path)) {
-            try {
-                File.Move(Path, Path + ".bak");
-            } catch { Thread.Sleep(100); }
-        }
-    }
-
-    private byte[] Download(string URL) {
-        MemoryStream MEM = new MemoryStream();
-        Download(URL, MEM);
-        byte[] DATA = MEM.ToArray();
-        MEM.Close();
-        return DATA;
-    }
-
-    private void Download(string URL, Stream Output, int tries = 4) {
-        try {
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
-            //Bypass a fucking bug in the fucking .net framework
-            if (Request.Address.AbsoluteUri != URL && tries <= 2) {
-                /*
-                WebClient WC = new WebClient();
-                WC.QueryString.Add("action", "shorturl");
-                WC.QueryString.Add("format", "simple");
-                WC.QueryString.Add("url", URL);
-                URL = WC.DownloadString("https://u.nu/api.php");*/
-
-                Request = (HttpWebRequest)WebRequest.Create("http://proxy-it.nordvpn.com/browse.php?u=" + URL);
-                Request.Referer = "http://proxy-it.nordvpn.com";
+    private void DownloadSplitArchive(string baseUrl, Stream outputStream)
+    {
+        BypassSLL();
+        int part = 0;
+        while (true)
+        {
+            string url = $"{baseUrl}.{part:D3}";
+            try
+            {
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+                req.Method = "GET";
+                req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+                using (var resp = req.GetResponse())
+                using (var stream = resp.GetResponseStream())
+                {
+                    stream.CopyTo(outputStream);
+                }
+                part++;
             }
-
-            Request.UseDefaultCredentials = true;
-            Request.Method = "GET";
-            using WebResponse Response = Request.GetResponse();
-            byte[] FC = new byte[0];
-            using (Stream Reader = Response.GetResponseStream()) {
-                byte[] Buffer = new byte[1024];
-                int bytesRead;
-                do {
-                    bytesRead = Reader.Read(Buffer, 0, Buffer.Length);
-                    Output.Write(Buffer, 0, bytesRead);
-                } while (bytesRead > 0);
+            catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+            {
+                break;
             }
-        } catch (Exception ex) {
-            if (tries < 0)
-                throw new Exception(string.Format("Connection Error: {0}", ex.Message));
-
-            Thread.Sleep(1000);
-            Download(URL, Output, tries - 1);
+            catch (Exception ex)
+            {
+                if (part == 0) throw new Exception("Failed to download update: " + ex.Message);
+                break;
+            }
         }
+        if (part == 0) throw new Exception("No update files found.");
     }
 
-   
-    
     private string GetLastestVersion() {
-        string Reg = @"\""name\"":[\s]*\""[A-z]*([0-9.]*)[A-z]*\""";
-        var a = System.Text.RegularExpressions.Regex.Match(GetApiResult(), Reg);
-        return a.Groups[1].Value;
-    }
-    private string GetDownloadUrl() {
-        string Reg = @"\""browser_download_url\"":[\s]*\""(.*)\""";
-        var a = System.Text.RegularExpressions.Regex.Match(GetApiResult(), Reg);
-        if (Name == null)
-            return a.Groups[1].Value;
-        for (int i = 0; i < a.Groups.Count; i++) {
-            string URL = a.Groups[i].Value;
-            URL = URL.Split('?')[0].ToLower();
-            if (URL.EndsWith(Name.ToLower()))
-                return a.Groups[i].Value;
+        string ini = GetApiResult();
+        foreach (var line in ini.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)) {
+            if (line.StartsWith("Version=")) {
+                return line.Substring(8).Trim();
+            }
         }
-
-        throw new FileNotFoundException("Github Release File Not Found.");
+        return "0.0.0";
     }
 
     private string GetApiResult() {
@@ -229,8 +203,8 @@ class GitHub {
         BypassSLL();
 
         WebClient Client = new WebClient();
-        Client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36 Edg/84.0.522.59");
-        cache = Client.DownloadString(API);
+        Client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        cache = Client.DownloadString(UpdateIniUrl);
         return cache;
     }
 

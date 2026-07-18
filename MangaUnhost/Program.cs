@@ -34,7 +34,7 @@ namespace MangaUnhost
 
         public static string BrowserSubprocessPath => Path.Combine(CefDir, "CefSharp.BrowserSubprocess.exe");
 
-        public static GitHub Updater = new GitHub("Marcussacana", "MangaUnhost");
+        public static Updater Updater = new Updater();
 
         static string LibWebP => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86", "libwebp.dll");
 
@@ -84,7 +84,7 @@ namespace MangaUnhost
             }
 
             var PATH = Environment.GetEnvironmentVariable("PATH");
-            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + OCVDir + ";" + Path.GetDirectoryName(LibWebP));
+            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + AppDomain.CurrentDomain.BaseDirectory + ";" + Path.GetDirectoryName(LibWebP));
 
 
             if (IsRealWindows)
@@ -102,8 +102,7 @@ namespace MangaUnhost
 
             FinishUpdate();
             //WineHelper();
-            CefUpdater();
-            OcvUpdater();
+            DependencyUpdater();
 
             Application.Run(new Main());
 
@@ -131,158 +130,45 @@ namespace MangaUnhost
                 Environment.Exit(0);
             }
         }
-        private static string OCVDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86");
-        private static void OcvUpdater(string OcvRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
+        private static void DependencyUpdater(string DataRepo = "https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/")
         {
-            var AltRepo = "https://github.com/marcussacana/MangaUnhost/blob/data/";
-
-            var VerFlag = Path.Combine(OCVDir, "cvextern.dll");
-
-            var Outdated = false;
-            if (!File.Exists(VerFlag) || (new Version(FileVersionInfo.GetVersionInfo(VerFlag).FileVersion) != new Version(4, 8, 1, 5350)))
-                Outdated = true;
-
-            if (!Outdated)
-                return;
-
-            if (Debugger.IsAttached)
-                return;
-
-
-            var OCVName = Environment.Is64BitProcess ? "opencv-x64.zip" : "opencv-x86.zip";
-            string Url = $"{OcvRepo}{OCVName}?raw=true";
-            string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, OCVName);
-
-            if (!File.Exists(SaveAs))
-            {
-                try
-                {
-
-                    DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
-                    Application.Run(Window);
-                }
-                catch
-                {
-                    if (OcvRepo != AltRepo)
-                    {
-                        CefUpdater(AltRepo);
-                        return;
-                    }
-                    throw;
-                }
-            }
-
-            if (!Directory.Exists(OCVDir))
-                Directory.CreateDirectory(OCVDir);
-
-            ZipFile Zip = new ZipFile(SaveAs);
-            Zip.ExtractAll(OCVDir, ExtractExistingFileAction.OverwriteSilently);
-            Zip.Dispose();
-
-            if (!Debugger.IsAttached)
-                File.Delete(SaveAs);
-        }
-
-        private static void CefUpdater(string CefRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
-        {
-            if (Debugger.IsAttached)
-                return;
-
-            var AltRepo = "https://github.com/marcussacana/MangaUnhost/blob/data/";
-
-            var VerFilePath = Path.Combine(CefDir, "version.txt");
-            bool Outdated = false;
-            if (!File.Exists(BrowserSubprocessPath))
-                Outdated = true;
+            if (Debugger.IsAttached) return;
 
             var TargetVer = new Version(149, 0, 60);
+            string CEFName = $"CEFx64-v{TargetVer}.zip"; // As configured in the GitHub Action
+            string CefUrl = $"{DataRepo}{CEFName}";
+            string NativeLibsUrl = $"{DataRepo}NativeLibs.zip";
 
-            if (!Outdated)
-            {
-                var VerStr = FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion;
-                if (new Version(VerStr) != TargetVer)
-                {
-                    Outdated = true;
-                }
-            }
+            var OutdatedCef = false;
+            if (!File.Exists(BrowserSubprocessPath)) OutdatedCef = true;
+            else if (new Version(FileVersionInfo.GetVersionInfo(BrowserSubprocessPath).FileVersion) != TargetVer) OutdatedCef = true;
+            
+            var OutdatedNative = false;
+            if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibAPNG.dll"))) OutdatedNative = true;
+            if (!File.Exists(LibWebP)) OutdatedNative = true;
+            if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cvextern.dll"))) OutdatedNative = true;
 
-            if (File.Exists(VerFilePath) && File.ReadAllText(VerFilePath).Trim() == TargetVer.ToString())
-                Outdated = false;
+            if (OutdatedCef) DownloadAndExtract(CefUrl, AppDomain.CurrentDomain.BaseDirectory);
+            if (OutdatedNative) DownloadAndExtract(NativeLibsUrl, AppDomain.CurrentDomain.BaseDirectory);
+        }
 
-			var WebP = false;
-			
-            if (!File.Exists(LibWebP))
-				WebP = true;
-
-            if (!Outdated && !WebP)
-                return;
-
-            string CEFName = $"CEF{(Environment.Is64BitProcess ? "x64" : "x86")}-v{TargetVer}.zip";
-            string Url = $"{CefRepo}{CEFName}?raw=true";
-            string SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
-			
-			if (!Outdated && WebP){
-				Url = $"{CefRepo}libWebp{(Environment.Is64BitProcess ? "X64" : "X86")}.zip?raw=true";
-				CEFName = "libWebp.zip";
-				SaveAs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CEFName);
-			}
-
-            string DbgPath = AppDomain.CurrentDomain.BaseDirectory;
-
-            for (int i = 0; i < 4; i++)
-            {
-                DbgPath = Path.GetDirectoryName(DbgPath);
-
-                if (Debug && File.Exists(Path.Combine(DbgPath, CEFName)))
-                {
-                    try
-                    {
-                        ZipFile DZip = new ZipFile(Path.Combine(DbgPath, CEFName));
-                        DZip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
-                        DZip.Dispose();
-                        return;
-                    }
-                    catch
-                    {
-                        if (!Debugger.IsAttached)
-                            File.Delete(Path.Combine(DbgPath, CEFName));
-                    }
-                }
-            }
-
-            if (!File.Exists(SaveAs))
-            {
-                try
-                {
-
-                    DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
+        private static void DownloadAndExtract(string Url, string OutDir)
+        {
+            var zipPath = Path.Combine(OutDir, Path.GetFileName(Url));
+            try {
+                using (var client = new WebClient()) {
+                    client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+                    
+                    DownloadingWindow Window = new DownloadingWindow(Url, zipPath);
                     Application.Run(Window);
                 }
-                catch
-                {
-                    if (CefRepo != AltRepo)
-                    {
-                        CefUpdater(AltRepo);
-                        return;
-                    }
-                    throw;
+                using (var Zip = Ionic.Zip.ZipFile.Read(zipPath)) {
+                    Zip.ExtractAll(OutDir, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
                 }
+            } catch { }
+            finally {
+                if (!Debugger.IsAttached && File.Exists(zipPath)) File.Delete(zipPath);
             }
-
-            ZipFile Zip = new ZipFile(SaveAs);
-            Zip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
-            Zip.Dispose();
-
-			if (Outdated)
-				File.WriteAllText(VerFilePath, TargetVer.ToString());
-
-            if (!Debugger.IsAttached)
-                File.Delete(SaveAs);
-			
-			if (Outdated && WebP){
-                CefUpdater(AltRepo);
-				return;
-			}
         }
 
         static string WCRLastCommit = null;

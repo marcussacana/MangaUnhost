@@ -1,0 +1,114 @@
+name: Build and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Build and Publish
+      run: |
+        dotnet publish MangaUnhost.sln -c Release -r win-x64 --self-contained false -o ./publish
+
+    - name: Prepare Artifacts
+      shell: pwsh
+      run: |
+        $pub = "./publish"
+        $cefDir = "./cef_pack"
+        $nativeDir = "./native_pack"
+        $appDir = "./app_pack"
+        New-Item -ItemType Directory -Force -Path $cefDir
+        New-Item -ItemType Directory -Force -Path $nativeDir
+        New-Item -ItemType Directory -Force -Path $appDir
+        
+        # 1. NativeLibs
+        $nativeLibs = @("LibAPNG.dll", "libwebp.dll", "libwebp_x86.dll", "libwebp_x64.dll", "cvextern.dll", "opencv_videoio_ffmpeg430_64.dll", "opencv_videoio_ffmpeg455_64.dll")
+        foreach ($lib in $nativeLibs) {
+            $src = Join-Path $pub $lib
+            if (Test-Path $src) {
+                Move-Item $src $nativeDir
+            }
+        }
+        Compress-Archive -Path "$nativeDir\*" -DestinationPath "NativeLibs.zip"
+        
+        # 2. CEF
+        $cefFiles = @("CefSharp.BrowserSubprocess.exe", "libcef.dll", "libEGL.dll", "libGLESv2.dll", "chrome_elf.dll", "d3dcompiler_47.dll", "vk_swiftshader.dll", "vulkan-1.dll", "snapshot_blob.bin", "v8_context_snapshot.bin", "icudtl.dat")
+        foreach ($file in $cefFiles) {
+            $src = Join-Path $pub $file
+            if (Test-Path $src) {
+                Move-Item $src $cefDir
+            }
+        }
+        # Locales
+        $localesDirSrc = Join-Path $pub "locales"
+        $localesDirDst = Join-Path $cefDir "locales"
+        if (Test-Path $localesDirSrc) {
+            New-Item -ItemType Directory -Force -Path $localesDirDst
+            $enUsPak = Join-Path $localesDirSrc "en-US.pak"
+            if (Test-Path $enUsPak) {
+                Move-Item $enUsPak $localesDirDst
+            }
+            Remove-Item -Recurse -Force $localesDirSrc
+        }
+        # SwiftShader
+        $swiftDirSrc = Join-Path $pub "swiftshader"
+        if (Test-Path $swiftDirSrc) {
+            Move-Item $swiftDirSrc $cefDir
+        }
+        Compress-Archive -Path "$cefDir\*" -DestinationPath "CEFx64-v149.0.60.zip" # TODO: get CEF version
+        
+        # 3. App Zip
+        Copy-Item -Path "$pub\*" -Destination $appDir -Recurse
+        Compress-Archive -Path "$appDir\*" -DestinationPath "update.zip"
+        
+        # Split update.zip into 40MB chunks
+        # In PowerShell, we can use a script or since we're on windows-latest, we can use 7z or python.
+        # Let's use python which is available on GitHub Actions.
+        python -c "
+        import os
+        chunk_size = 40 * 1024 * 1024
+        with open('update.zip', 'rb') as f:
+            part = 0
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                with open(f'update.zip.{part:03d}', 'wb') as chunk_file:
+                    chunk_file.write(data)
+                part += 1
+        "
+        
+        # Generate update.ini
+        $version = "${{ github.ref_name }}".TrimStart('v')
+        Set-Content -Path "update.ini" -Value "[Updater]`nVersion=$version"
+
+    - name: Commit to Data Branch
+      shell: pwsh
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git fetch origin data
+        git checkout data
+        
+        # Copy the artifacts over
+        Copy-Item -Path "update.zip.*" -Destination "."
+        Copy-Item -Path "update.ini" -Destination "."
+        Copy-Item -Path "NativeLibs.zip" -Destination "."
+        Copy-Item -Path "CEFx64-v149.0.60.zip" -Destination "."
+        
+        git add update.ini update.zip.* NativeLibs.zip CEFx64-v149.0.60.zip
+        git commit -m "Update binaries to ${{ github.ref_name }}"
+        git push origin data

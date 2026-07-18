@@ -711,7 +711,7 @@ namespace MangaUnhost
             CrawlerStartBtn.Text = CurrentLanguage.Start;
             CrawlerCopyBtn.Text = CurrentLanguage.Copy;
 
-            lblTitle.Text = $"MangaUnhost v{GitHub.CurrentVersion}";
+            lblTitle.Text = $"MangaUnhost v{Updater.CurrentVersion}";
         }
 
         private void MainClosing(object sender, FormClosingEventArgs e)
