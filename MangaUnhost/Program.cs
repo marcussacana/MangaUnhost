@@ -1,4 +1,4 @@
-﻿using Ionic.Zip;
+using Ionic.Zip;
 using MangaUnhost.Browser;
 using MangaUnhost.Others;
 using MangaUnhost.Parallelism;
@@ -96,6 +96,7 @@ namespace MangaUnhost
                 //Application.Run(new ImageTest());
             }
 
+            TrampolineUpdate();
             FinishUpdate();
             //WineHelper();
             CefUpdater();
@@ -129,6 +130,102 @@ namespace MangaUnhost
                 Environment.Exit(0);
             }
         }
+
+        private static void TrampolineUpdate()
+        {
+            if (Debugger.IsAttached) return;
+
+            // 1. Checar e Instalar .NET 10
+            if (!CheckDotNet10Installed())
+            {
+                // Silently download and install .NET 10
+                string installerUrl = "https://download.visualstudio.microsoft.com/download/pr/9dbda88c-10bc-4bb5-bb26-d6b38c2084c7/582bf4ed2e31e5f52fba4a51e59df1f0/windowsdesktop-runtime-10.0.0-preview.6.24328.2-win-x64.exe"; // Exemplo, pode ser a URL real do .NET 10 desktop runtime
+                string installerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dotnet_installer.exe");
+                try {
+                    new WebClient().DownloadFile(installerUrl, installerPath);
+                    var p = Process.Start(installerPath, "/install /quiet /norestart");
+                    p.WaitForExit();
+                } catch { }
+                finally {
+                    if (File.Exists(installerPath)) File.Delete(installerPath);
+                }
+            }
+
+            // 2. Limpar lixo antigo (CEF x86/x64)
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string[] folders = { "x86", "x64" };
+            foreach (var folder in folders)
+            {
+                string path = Path.Combine(baseDir, folder);
+                if (Directory.Exists(path))
+                {
+                    try { Directory.Delete(path, true); } catch { }
+                }
+            }
+
+            // 3. Baixar zip moderno em pedaços do data repo
+            string baseUrl = "http://127.0.0.1:8000/update.zip";
+            string zipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.zip");
+
+            try {
+                using (var outputStream = File.Create(zipPath))
+                {
+                    int part = 0;
+                    while (true)
+                    {
+                        string url = string.Format("{0}.{1:D3}", baseUrl, part);
+                        try
+                        {
+                            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+                            req.Method = "GET";
+                            using (var resp = req.GetResponse())
+                            using (var stream = resp.GetResponseStream())
+                            {
+                                stream.CopyTo(outputStream);
+                            }
+                            part++;
+                        }
+                        catch (WebException ex)
+                        {
+                            var httpResponse = ex.Response as HttpWebResponse;
+                            if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.NotFound)
+                                break;
+                            break;
+                        }
+                        catch
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (new FileInfo(zipPath).Length > 100) { // Pelo menos 1KB baixado
+                    using (var Zip = Ionic.Zip.ZipFile.Read(zipPath)) {
+                        Zip.ExtractAll(AppDomain.CurrentDomain.BaseDirectory, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
+                    }
+                    Process.Start(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    Environment.Exit(0);
+                }
+            } catch { }
+            finally {
+                if (File.Exists(zipPath)) File.Delete(zipPath);
+            }
+        }
+
+        static bool CheckDotNet10Installed()
+        {
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string desktopRuntimePath = Path.Combine(programFiles, "dotnet", "shared", "Microsoft.WindowsDesktop.App");
+            if (Directory.Exists(desktopRuntimePath))
+            {
+                foreach (var dir in Directory.GetDirectories(desktopRuntimePath))
+                {
+                    if (Path.GetFileName(dir).StartsWith("10.0.")) return true;
+                }
+            }
+            return false;
+        }
+
         private static string OCVDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86");
         private static void OcvUpdater(string OcvRepo = "https://github.com/marcussacana/MangaUnhost/raw/data/")
         {
