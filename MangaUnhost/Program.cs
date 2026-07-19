@@ -33,7 +33,7 @@ namespace MangaUnhost
         public static string SettingsPath = AppDomain.CurrentDomain.BaseDirectory + "MangaUnhost.ini";
 
 
-        public static string BrowserSubprocessPath => Path.Combine(CefDir, "CefSharp.BrowserSubprocess.exe");
+        public static string BrowserSubprocessPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CefSharp.BrowserSubprocess.exe");
 
         public static Updater Updater = new Updater();
 

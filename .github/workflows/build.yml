@@ -121,10 +121,6 @@ jobs:
 
         # 2. CEF
         cef_files = [
-            "CefSharp.BrowserSubprocess.exe",
-            "CefSharp.BrowserSubprocess.Core.dll",
-            "CefSharp.BrowserSubprocess.dll",
-            "CefSharp.BrowserSubprocess.runtimeconfig.json",
             "libcef.dll", "libEGL.dll", "libGLESv2.dll", "chrome_elf.dll",
             "d3dcompiler_47.dll", "vk_swiftshader.dll", "vulkan-1.dll",
             "snapshot_blob.bin", "v8_context_snapshot.bin", "icudtl.dat",
