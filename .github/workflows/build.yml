@@ -1,4 +1,4 @@
-name: Build Modern MangaUnhost
+name: Build MangaUnhost
 
 on:
   push:
@@ -219,9 +219,9 @@ jobs:
         git add update.ini update.zip.* CEFx64*.zip.* NativeLibs.zip.*
         $changes = git status --porcelain
         if ($changes) {
-            git commit --amend -m "Auto-build Modern Update"
+            git commit --amend -m "Auto-build Update"
             if ($LASTEXITCODE -ne 0) {
-                git commit -m "Auto-build Modern Update"
+                git commit -m "Auto-build Update"
             }
             git push origin data --force
         } else {
