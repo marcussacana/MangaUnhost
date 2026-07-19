@@ -159,6 +159,8 @@ namespace MangaUnhost
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibAPNG.dll"))) OutdatedNative = true;
             if (!File.Exists(LibWebP)) OutdatedNative = true;
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cvextern.dll"))) OutdatedNative = true;
+            if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dxcompiler.dll"))) OutdatedNative = true;
+            if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "opencv_videoio_ffmpeg481_64.dll"))) OutdatedNative = true;
 
             if (OutdatedCef || OutdatedNative) {
                 long CefSize = 0;
