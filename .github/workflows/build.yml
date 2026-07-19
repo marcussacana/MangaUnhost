@@ -208,6 +208,7 @@ jobs:
         Move-Item -Path "CEFx64*.zip.*" -Destination "../artifacts/" -Force
         Move-Item -Path "NativeLibs.zip.*" -Destination "../artifacts/" -Force
         
+        git reset --hard
         git fetch origin data:data
         git checkout data
         
