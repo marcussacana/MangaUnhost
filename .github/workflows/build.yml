@@ -153,14 +153,19 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Mover os artefatos para fora do repo antes do checkout
+        mkdir -p ../artifacts
+        Move-Item -Path "update.ini" -Destination "../artifacts/" -Force
+        Move-Item -Path "update.zip.*" -Destination "../artifacts/" -Force
+        Move-Item -Path "CEFx64*.zip.*" -Destination "../artifacts/" -Force
+        Move-Item -Path "NativeLibs.zip.*" -Destination "../artifacts/" -Force
+        
         git fetch origin data:data
         git checkout data
         
-        # Copiar todos os zips e ini para o branch
-        Move-Item -Path "update.ini" -Destination "." -Force
-        Move-Item -Path "update.zip.*" -Destination "." -Force
-        Move-Item -Path "CEFx64*.zip.*" -Destination "." -Force
-        Move-Item -Path "NativeLibs.zip.*" -Destination "." -Force
+        # Mover de volta para o repo (branch data)
+        Move-Item -Path "../artifacts/*" -Destination "." -Force
         
         git add update.ini update.zip.* CEFx64*.zip.* NativeLibs.zip.*
         git commit -m "Auto-build Modern Update"
