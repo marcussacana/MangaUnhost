@@ -194,6 +194,8 @@ namespace MangaUnhost
                         zip.ExtractAll(tempUpdateDir, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
                     }
                     
+                    if (File.Exists(zipPath)) try { File.Delete(zipPath); } catch { }
+
                     Process.Start(new ProcessStartInfo() {
                         FileName = Path.Combine(tempUpdateDir, "MangaUnhost.exe"),
                         Arguments = "/updatepath=\"" + AppDomain.CurrentDomain.BaseDirectory + "\"",
