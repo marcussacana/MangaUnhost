@@ -141,12 +141,21 @@ jobs:
                     file_path = os.path.join(root, f)
                     zf.write(file_path, os.path.relpath(file_path, app_dir))
 
+        # Copy the zip for the artifact upload before splitting it
+        shutil.copy2('update.zip', 'MangaUnhost-Core.zip')
+
         # 4. Split App Core Zip
         split_zip('update.zip')
 
         # 5. Generate update.ini
         with open('update.ini', 'w') as f:
             f.write('[Updater]\nVersion=modern\n')
+
+    - name: Upload Core Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MangaUnhost-Core
+        path: MangaUnhost-Core.zip
 
     - name: Deploy to Data Branch
       if: github.event_name == 'push' && github.ref == 'refs/heads/master-dotnet10'
