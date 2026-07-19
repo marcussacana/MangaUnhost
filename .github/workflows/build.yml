@@ -43,6 +43,34 @@ jobs:
         os.makedirs(app_dir, exist_ok=True)
 
         # 1. NativeLibs
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        dotnet-quality: 'preview'
+
+    - name: Build and Publish
+      run: |
+        dotnet publish MangaUnhost/MangaUnhost.csproj -c Release -r win-x64 --self-contained false -o publish
+
+    - name: Package Artifacts
+      shell: python
+      run: |
+        import os
+        import shutil
+        import zipfile
+
+        pub_dir = 'publish'
+        cef_dir = 'cef_pack'
+        native_dir = 'native_pack'
+        app_dir = 'app_pack'
+
+        os.makedirs(cef_dir, exist_ok=True)
+        os.makedirs(native_dir, exist_ok=True)
+        os.makedirs(app_dir, exist_ok=True)
+
+        # 1. NativeLibs
         native_libs = ["LibAPNG.dll", "libwebp.dll", "libwebp_x86.dll", "libwebp_x64.dll", "cvextern.dll"]
         for lib in native_libs:
             src = os.path.join(pub_dir, lib)
@@ -54,6 +82,21 @@ jobs:
                 for f in files:
                     file_path = os.path.join(root, f)
                     zf.write(file_path, os.path.relpath(file_path, native_dir))
+
+        chunk_size = 2 * 1024 * 1024
+        def split_zip(zip_path):
+            with open(zip_path, 'rb') as f:
+                part = 0
+                while True:
+                    data = f.read(chunk_size)
+                    if not data:
+                        break
+                    with open(f'{zip_path}.{part:03d}', 'wb') as chunk_file:
+                        chunk_file.write(data)
+                    part += 1
+            os.remove(zip_path)
+            
+        split_zip('NativeLibs.zip')
 
         # 2. CEF
         cef_files = ["CefSharp.BrowserSubprocess.exe", "libcef.dll", "libEGL.dll", "libGLESv2.dll", "chrome_elf.dll", "d3dcompiler_47.dll", "vk_swiftshader.dll", "vulkan-1.dll", "snapshot_blob.bin", "v8_context_snapshot.bin", "icudtl.dat"]
@@ -86,6 +129,8 @@ jobs:
                     file_path = os.path.join(root, f)
                     zf.write(file_path, os.path.relpath(file_path, cef_dir))
 
+        split_zip(cef_zip_name)
+
         # 3. App Core Zip
         for item in os.listdir(pub_dir):
             shutil.move(os.path.join(pub_dir, item), app_dir)
@@ -97,16 +142,7 @@ jobs:
                     zf.write(file_path, os.path.relpath(file_path, app_dir))
 
         # 4. Split App Core Zip
-        chunk_size = 2 * 1024 * 1024
-        with open('update.zip', 'rb') as f:
-            part = 0
-            while True:
-                data = f.read(chunk_size)
-                if not data:
-                    break
-                with open(f'update.zip.{part:03d}', 'wb') as chunk_file:
-                    chunk_file.write(data)
-                part += 1
+        split_zip('update.zip')
 
         # 5. Generate update.ini
         with open('update.ini', 'w') as f:
@@ -122,10 +158,9 @@ jobs:
         # Copiar todos os zips e ini para o branch
         Move-Item -Path "update.ini" -Destination "." -Force
         Move-Item -Path "update.zip.*" -Destination "." -Force
-        Move-Item -Path "CEFx64*.zip" -Destination "." -Force
-        Move-Item -Path "NativeLibs.zip" -Destination "." -Force
+        Move-Item -Path "CEFx64*.zip.*" -Destination "." -Force
+        Move-Item -Path "NativeLibs.zip.*" -Destination "." -Force
         
-        git add update.ini update.zip.* CEFx64*.zip NativeLibs.zip
+        git add update.ini update.zip.* CEFx64*.zip.* NativeLibs.zip.*
         git commit -m "Auto-build Modern Update"
         git push origin data
-
