@@ -293,6 +293,11 @@ namespace MangaUnhost
                 } catch { }
             }
 
+            string resZip = Path.Combine(OriginalPath, "update_modern.zip");
+            if (System.IO.File.Exists(resZip)) {
+                try { System.IO.File.Delete(resZip); } catch { }
+            }
+
             Process.Start(new ProcessStartInfo { 
                 FileName = Path.Combine(OriginalPath, "MangaUnhost.exe"), 
                 UseShellExecute = true 
