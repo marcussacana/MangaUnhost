@@ -37,6 +37,8 @@ jobs:
         fi
         echo "Next Version: $NEXT_VERSION"
         echo "VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+        sed -i "s/AssemblyVersion(\".*\")/AssemblyVersion(\"$NEXT_VERSION.0\")/g" MangaUnhost/Properties/AssemblyInfo.cs
+        sed -i "s/AssemblyFileVersion(\".*\")/AssemblyFileVersion(\"$NEXT_VERSION.0\")/g" MangaUnhost/Properties/AssemblyInfo.cs
         rm -f temp_update.ini
 
     - name: Build and Publish
@@ -67,6 +69,8 @@ jobs:
         native_libs = {
             "LibAPNG.dll": ".",
             "cvextern.dll": ".",
+            "dxcompiler.dll": ".",
+            "opencv_videoio_ffmpeg481_64.dll": ".",
             "libwebp.dll": "x64",
             "libwebp_x64.dll": "x64/libwebp.dll",
             "libwebp_x86.dll": "x86/libwebp.dll"
