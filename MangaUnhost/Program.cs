@@ -293,7 +293,10 @@ namespace MangaUnhost
                 } catch { }
             }
 
-            Process.Start(OriginalPath + Path.GetFileName(CurrentAssembly));
+            Process.Start(new ProcessStartInfo { 
+                FileName = Path.Combine(OriginalPath, "MangaUnhost.exe"), 
+                UseShellExecute = true 
+            });
             Environment.Exit(0);
         }
 
