@@ -96,7 +96,7 @@ namespace MangaUnhost
             }).Start();
 
             var PATH = Environment.GetEnvironmentVariable("PATH");
-            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + AppDomain.CurrentDomain.BaseDirectory + ";" + Path.GetDirectoryName(LibWebP));
+            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + AppDomain.CurrentDomain.BaseDirectory + ";" + CefDir + ";" + Path.GetDirectoryName(LibWebP));
 
 
             if (IsRealWindows)
