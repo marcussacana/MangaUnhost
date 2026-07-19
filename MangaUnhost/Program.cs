@@ -163,6 +163,12 @@ namespace MangaUnhost
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "opencv_videoio_ffmpeg481_64.dll"))) OutdatedNative = true;
 
             if (OutdatedCef || OutdatedNative) {
+                if (Updater.HaveUpdate()) {
+                    Updater.Update();
+                    Environment.Exit(0);
+                    return;
+                }
+
                 long CefSize = 0;
                 long NativeSize = 0;
                 try {
