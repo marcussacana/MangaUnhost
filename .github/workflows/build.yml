@@ -29,10 +29,12 @@ jobs:
         HTTP_STATUS=$(curl -s -o temp_update.ini -w "%{http_code}" https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/update.ini)
         if [ "$HTTP_STATUS" -eq 200 ]; then
           CUR_VER=$(grep -i "^Version=" temp_update.ini | cut -d'=' -f2 | tr -d '\r')
-          if [[ "$CUR_VER" =~ ^10\.0\.([0-9]+)$ ]]; then
-            PATCH_VER=${BASH_REMATCH[1]}
+          if [[ "$CUR_VER" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR_VER=${BASH_REMATCH[1]}
+            MINOR_VER=${BASH_REMATCH[2]}
+            PATCH_VER=${BASH_REMATCH[3]}
             NEXT_PATCH=$((PATCH_VER + 1))
-            NEXT_VERSION="10.0.${NEXT_PATCH}"
+            NEXT_VERSION="${MAJOR_VER}.${MINOR_VER}.${NEXT_PATCH}"
           fi
         fi
         echo "Next Version: $NEXT_VERSION"
