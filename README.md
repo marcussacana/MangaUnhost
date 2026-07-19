@@ -13,6 +13,6 @@ A Software to download manga in many sites
 
 
 ### Status:
-[![img](https://ci.appveyor.com/api/projects/status/github/marcussacana/MangaUnhost?branch=master&retina=true)](https://ci.appveyor.com/project/marcussacana/mangaunhost)
+[![Build Status](https://github.com/marcussacana/MangaUnhost/actions/workflows/build.yml/badge.svg?branch=master-dotnet10)](https://github.com/marcussacana/MangaUnhost/actions/workflows/build.yml)
 
-#### Build: [Download](https://ci.appveyor.com/api/projects/marcussacana/mangaunhost/artifacts/MangaUnhost/bin/MangaUnhost.zip)
+#### Build: [Download MangaUnhost Core](https://nightly.link/marcussacana/MangaUnhost/workflows/build.yml/master-dotnet10/MangaUnhost-Core.zip)
