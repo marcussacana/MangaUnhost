@@ -51,6 +51,11 @@ class Updater {
                 string OlPath = OriginalPath + Base;
 
                 Delete(OlPath);
+                
+                string destDir = Path.GetDirectoryName(OlPath);
+                if (!Directory.Exists(destDir))
+                    Directory.CreateDirectory(destDir);
+
                 System.IO.File.Copy(UpPath, OlPath, true);
             }
 
