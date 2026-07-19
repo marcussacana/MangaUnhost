@@ -84,7 +84,7 @@ namespace MangaUnhost
             }
 
             var PATH = Environment.GetEnvironmentVariable("PATH");
-            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + OCVDir + ";" + Path.GetDirectoryName(LibWebP));
+            Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86") + ";" + Path.GetDirectoryName(LibWebP));
 
 
             if (IsRealWindows)
@@ -236,67 +236,6 @@ namespace MangaUnhost
             }
         }
 
-
-        private static string OCVDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Environment.Is64BitProcess ? "x64" : "x86");
-			}
-
-            string DbgPath = AppDomain.CurrentDomain.BaseDirectory;
-
-            for (int i = 0; i < 4; i++)
-            {
-                DbgPath = Path.GetDirectoryName(DbgPath);
-
-                if (Debug && File.Exists(Path.Combine(DbgPath, CEFName)))
-                {
-                    try
-                    {
-                        ZipFile DZip = new ZipFile(Path.Combine(DbgPath, CEFName));
-                        DZip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
-                        DZip.Dispose();
-                        return;
-                    }
-                    catch
-                    {
-                        if (!Debugger.IsAttached)
-                            File.Delete(Path.Combine(DbgPath, CEFName));
-                    }
-                }
-            }
-
-            if (!File.Exists(SaveAs))
-            {
-                try
-                {
-
-                    DownloadingWindow Window = new DownloadingWindow(Url, SaveAs);
-                    Application.Run(Window);
-                }
-                catch
-                {
-                    if (CefRepo != AltRepo)
-                    {
-                        CefUpdater(AltRepo);
-                        return;
-                    }
-                    throw;
-                }
-            }
-
-            ZipFile Zip = new ZipFile(SaveAs);
-            Zip.ExtractAll(Path.GetDirectoryName(CurrentAssembly), ExtractExistingFileAction.OverwriteSilently);
-            Zip.Dispose();
-
-			if (Outdated)
-				File.WriteAllText(VerFilePath, TargetVer.ToString());
-
-            if (!Debugger.IsAttached)
-                File.Delete(SaveAs);
-			
-			if (Outdated && WebP){
-                CefUpdater(AltRepo);
-				return;
-			}
-        }
 
         static string WCRLastCommit = null;
         public static void EnsureWCR()
