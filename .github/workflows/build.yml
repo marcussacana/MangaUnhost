@@ -62,7 +62,8 @@ jobs:
         import zipfile
 
         pub_dir = 'publish'
-        cef_dir = 'cef_pack'
+        cef_root = 'cef_pack'
+        cef_dir = os.path.join(cef_root, 'runtimes', 'win-x64', 'native')
         native_dir = 'native_pack'
         app_dir = 'app_pack'
 
@@ -71,11 +72,28 @@ jobs:
         os.makedirs(app_dir, exist_ok=True)
 
         # 1. NativeLibs
-        native_libs = ["LibAPNG.dll", "libwebp.dll", "libwebp_x86.dll", "libwebp_x64.dll", "cvextern.dll"]
-        for lib in native_libs:
+        os.makedirs(os.path.join(native_dir, 'x64'), exist_ok=True)
+        os.makedirs(os.path.join(native_dir, 'x86'), exist_ok=True)
+        
+        native_libs = {
+            "LibAPNG.dll": ".",
+            "cvextern.dll": ".",
+            "libwebp.dll": "x64",
+            "libwebp_x64.dll": "x64/libwebp.dll",
+            "libwebp_x86.dll": "x86/libwebp.dll"
+        }
+        
+        for lib, dest in native_libs.items():
             src = os.path.join(pub_dir, lib)
             if os.path.exists(src):
-                shutil.move(src, native_dir)
+                if dest == ".":
+                    shutil.move(src, native_dir)
+                else:
+                    dst_path = os.path.join(native_dir, dest)
+                    if dest.endswith(".dll"):
+                        shutil.move(src, dst_path)
+                    else:
+                        shutil.move(src, os.path.join(dst_path, lib))
         
         with zipfile.ZipFile('NativeLibs.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
             for root, _, files in os.walk(native_dir):
@@ -127,10 +145,10 @@ jobs:
         cef_version = "v149.0.60" # Use dynamic parsing if needed later
         cef_zip_name = f'CEFx64-{cef_version}.zip'
         with zipfile.ZipFile(cef_zip_name, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for root, _, files in os.walk(cef_dir):
+            for root, _, files in os.walk(cef_root):
                 for f in files:
                     file_path = os.path.join(root, f)
-                    zf.write(file_path, os.path.relpath(file_path, cef_dir))
+                    zf.write(file_path, os.path.relpath(file_path, cef_root))
 
         cef_size = os.path.getsize(cef_zip_name)
         split_zip(cef_zip_name)
