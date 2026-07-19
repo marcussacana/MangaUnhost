@@ -170,6 +170,13 @@ namespace MangaUnhost
                 }
             }
 
+            long AppSize = 0;
+            if (updateIni != null)
+            {
+                var matchApp = System.Text.RegularExpressions.Regex.Match(updateIni, @"AppSize=(\d+)");
+                if (matchApp.Success) AppSize = long.Parse(matchApp.Groups[1].Value);
+            }
+
             string baseUrl = "https://github.com/marcussacana/MangaUnhost/raw/data/update.zip";
             string zipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.zip");
 
@@ -177,30 +184,8 @@ namespace MangaUnhost
             {
                 if (File.Exists(zipPath)) File.Delete(zipPath);
 
-                using (var fs = new FileStream(zipPath, FileMode.Create, FileAccess.Write))
-                {
-                    int part = 0;
-                    while (true)
-                    {
-                        try
-                        {
-                            string partUrl = string.Format("{0}.{1:D3}", baseUrl, part);
-                            using (var client = new WebClient())
-                            {
-                                byte[] data = client.DownloadData(partUrl);
-                                fs.Write(data, 0, data.Length);
-                            }
-                            part++;
-                        }
-                        catch (WebException ex)
-                        {
-                            var httpResponse = ex.Response as HttpWebResponse;
-                            if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.NotFound)
-                                break;
-                            break;
-                        }
-                    }
-                }
+                DownloadingWindow Window = new DownloadingWindow(baseUrl, zipPath, AppSize);
+                Application.Run(Window);
 
                 if (new FileInfo(zipPath).Length > 100)
                 {

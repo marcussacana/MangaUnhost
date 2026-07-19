@@ -1,4 +1,4 @@
-﻿using NAudio.Wave.SampleProviders;
+using NAudio.Wave.SampleProviders;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,17 +18,21 @@ namespace MangaUnhost
     {
         long ContentLenght = 0;
         long Downloaded = 0;
+        long GlobalDownloaded = 0;
+        long TotalSize = 0;
 
         bool Finished;
 
         string URL;
         string SaveAs;
-        public DownloadingWindow(string URL, string SaveAs)
+        public DownloadingWindow(string URL, string SaveAs, long TotalSize = 0)
         {
             InitializeComponent();
 
             this.URL = URL;
             this.SaveAs = SaveAs;
+            this.TotalSize = TotalSize;
+            if (this.TotalSize > 0) ContentLenght = this.TotalSize;
 
             Shown += (sender, args) =>
             {
@@ -47,7 +51,7 @@ namespace MangaUnhost
                 try
                 {
                     ProgressBar.ShowText = true;
-                    ProgressBar.Value = (int)((Downloaded / (decimal)ContentLenght) * 100);
+                    ProgressBar.Value = (int)(((TotalSize > 0 ? GlobalDownloaded : Downloaded) / (decimal)ContentLenght) * 100);
                 }
                 catch { }
             }
@@ -116,8 +120,11 @@ namespace MangaUnhost
             using (var RespData = Response.GetResponseStream())
             using (var Output = File.Create(SaveAs))
             {
-                ContentLenght = Response.ContentLength;
-                Downloaded = 0;
+                if (TotalSize <= 0)
+                {
+                    ContentLenght = Response.ContentLength;
+                    Downloaded = 0;
+                }
 
                 int Readed = 0;
                 do
@@ -126,6 +133,7 @@ namespace MangaUnhost
                     Readed = RespData.Read(Buffer, 0, Buffer.Length);
                     Output.Write(Buffer, 0, Readed);
                     Downloaded += Readed;
+                    GlobalDownloaded += Readed;
                 } while (Readed != 0);
             }
         }
