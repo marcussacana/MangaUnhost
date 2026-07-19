@@ -13,7 +13,7 @@ class Updater {
     string BaseZipUrl = "https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/update.zip";
     
     string cache = null;
-    public static string MainExecutable = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+    public static string MainExecutable = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
     public static string TempUpdateDir = Path.GetDirectoryName(MainExecutable) + "\\GitHubRelease\\";
     public static string CurrentVersion {
         get {
