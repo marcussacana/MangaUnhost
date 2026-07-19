@@ -165,8 +165,17 @@ jobs:
         git checkout data
         
         # Mover de volta para o repo (branch data)
+        Remove-Item -Path "update.ini", "update.zip.*", "CEFx64*.zip.*", "NativeLibs.zip.*" -Force -ErrorAction SilentlyContinue
         Move-Item -Path "../artifacts/*" -Destination "." -Force
         
-        git add update.ini update.zip.* CEFx64*.zip.* NativeLibs.zip.*
-        git commit -m "Auto-build Modern Update"
-        git push origin data
+        git add -A
+        $changes = git status --porcelain
+        if ($changes) {
+            git commit --amend -m "Auto-build Modern Update"
+            if ($LASTEXITCODE -ne 0) {
+                git commit -m "Auto-build Modern Update"
+            }
+            git push origin data --force
+        } else {
+            Write-Host "No changes to commit."
+        }
