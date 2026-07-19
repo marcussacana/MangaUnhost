@@ -15,44 +15,33 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
         dotnet-quality: 'preview'
 
-    - name: Build and Publish
+    - name: Determine Next Version
+      id: versioning
+      shell: bash
       run: |
-        dotnet publish MangaUnhost/MangaUnhost.csproj -c Release -r win-x64 --self-contained false -o publish
-
-    - name: Package Artifacts
-      shell: python
-      run: |
-        import os
-        import shutil
-        import zipfile
-
-        pub_dir = 'publish'
-        cef_dir = 'cef_pack'
-        native_dir = 'native_pack'
-        app_dir = 'app_pack'
-
-        os.makedirs(cef_dir, exist_ok=True)
-        os.makedirs(native_dir, exist_ok=True)
-        os.makedirs(app_dir, exist_ok=True)
-
-        # 1. NativeLibs
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
-        dotnet-quality: 'preview'
+        NEXT_VERSION="10.0.0"
+        HTTP_STATUS=$(curl -s -o temp_update.ini -w "%{http_code}" https://raw.githubusercontent.com/marcussacana/MangaUnhost/data/update.ini)
+        if [ "$HTTP_STATUS" -eq 200 ]; then
+          CUR_VER=$(grep -i "^Version=" temp_update.ini | cut -d'=' -f2 | tr -d '\r')
+          if [[ "$CUR_VER" =~ ^10\.0\.([0-9]+)$ ]]; then
+            PATCH_VER=${BASH_REMATCH[1]}
+            NEXT_PATCH=$((PATCH_VER + 1))
+            NEXT_VERSION="10.0.${NEXT_PATCH}"
+          fi
+        fi
+        echo "Next Version: $NEXT_VERSION"
+        echo "VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+        rm -f temp_update.ini
 
     - name: Build and Publish
       run: |
-        dotnet publish MangaUnhost/MangaUnhost.csproj -c Release -r win-x64 --self-contained false -o publish
+        dotnet publish MangaUnhost/MangaUnhost.csproj -c Release -r win-x64 --self-contained false -o publish -p:Version=${{ env.VERSION }}
 
     - name: Package Artifacts
       shell: python
@@ -131,6 +120,17 @@ jobs:
             if os.path.exists(src):
                 shutil.move(src, cef_dir)
         
+        cef_managed_files = [
+            "CefSharp.dll", "CefSharp.Core.dll", "CefSharp.Core.Runtime.dll", 
+            "CefSharp.WinForms.dll", "CefSharp.OffScreen.dll",
+            "CefSharp.BrowserSubprocess.exe", "CefSharp.BrowserSubprocess.Core.dll",
+            "CefSharp.BrowserSubprocess.dll", "CefSharp.BrowserSubprocess.runtimeconfig.json"
+        ]
+        for f in cef_managed_files:
+            src = os.path.join(pub_dir, f)
+            if os.path.exists(src):
+                shutil.move(src, cef_root)
+        
         # Locales
         locales_src = os.path.join(pub_dir, 'locales')
         if os.path.exists(locales_src):
@@ -170,15 +170,15 @@ jobs:
 
         app_size = os.path.getsize('update.zip')
 
-        # Copy the zip for the artifact upload before splitting it
-        shutil.copy2('update.zip', 'MangaUnhost-Core.zip')
-
         # 4. Split App Core Zip
         split_zip('update.zip')
+        
+        version_str = os.environ.get('VERSION', '10.0.0')
 
         # 5. Generate update.ini
         with open('update.ini', 'w') as f:
-            f.write('[Updater]\nVersion=modern\n')
+            f.write('[Updater]\n')
+            f.write(f'Version={version_str}\n')
             f.write(f'AppSize={app_size}\n')
             f.write(f'CefSize={cef_size}\n')
             f.write(f'NativeSize={native_size}\n')
@@ -187,7 +187,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: MangaUnhost-Core
-        path: MangaUnhost-Core.zip
+        path: app_pack/
 
     - name: Deploy to Data Branch
       if: github.event_name == 'push' && github.ref == 'refs/heads/master-dotnet10'
