@@ -204,20 +204,21 @@ namespace MangaUnhost
 
                 if (new FileInfo(zipPath).Length > 100)
                 {
-                    string extractBat = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.bat");
-                    File.WriteAllText(extractBat, 
-                        "@echo off\r\n" +
-                        "timeout /t 2 /nobreak > nul\r\n" +
-                        "powershell -Command \"Expand-Archive -Path 'update_modern.zip' -DestinationPath '.' -Force\"\r\n" +
-                        "del update_modern.zip\r\n" +
-                        "start MangaUnhost.exe\r\n" +
-                        "del \"%~f0\""
-                    );
-                    Process.Start(new ProcessStartInfo() { 
-                        FileName = extractBat, 
-                        CreateNoWindow = true, 
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory 
+                    string tempUpdateDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GitHubRelease");
+                    if (Directory.Exists(tempUpdateDir)) {
+                        try { Directory.Delete(tempUpdateDir, true); } catch { }
+                    }
+                    Directory.CreateDirectory(tempUpdateDir);
+
+                    using (var zip = new Ionic.Zip.ZipFile(zipPath))
+                    {
+                        zip.ExtractAll(tempUpdateDir, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
+                    }
+                    
+                    Process.Start(new ProcessStartInfo() {
+                        FileName = Path.Combine(tempUpdateDir, "MangaUnhost.exe"),
+                        Arguments = "/updatepath=\"" + AppDomain.CurrentDomain.BaseDirectory + "\"",
+                        WorkingDirectory = tempUpdateDir
                     });
                     Environment.Exit(0);
                 }
