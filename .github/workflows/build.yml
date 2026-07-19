@@ -174,10 +174,13 @@ jobs:
         git checkout data
         
         # Mover de volta para o repo (branch data)
+        # Primeiro, removemos os arquivos do index do git para garantir que antigas partes sejam excluídas
+        git rm --ignore-unmatch update.ini update.zip.* CEFx64*.zip.* NativeLibs.zip.* -r -f
         Remove-Item -Path "update.ini", "update.zip.*", "CEFx64*.zip.*", "NativeLibs.zip.*" -Force -ErrorAction SilentlyContinue
         Move-Item -Path "../artifacts/*" -Destination "." -Force
         
-        git add -A
+        # Adicionar apenas os artefatos de update (evitando add -A que inclui submodulos como titanium-web-proxy)
+        git add update.ini update.zip.* CEFx64*.zip.* NativeLibs.zip.*
         $changes = git status --porcelain
         if ($changes) {
             git commit --amend -m "Auto-build Modern Update"
