@@ -83,7 +83,10 @@ jobs:
                     file_path = os.path.join(root, f)
                     zf.write(file_path, os.path.relpath(file_path, native_dir))
 
-        chunk_size = 2 * 1024 * 1024
+        chunk_size = 50 * 1024 * 1024
+        
+        native_size = os.path.getsize('NativeLibs.zip')
+        
         def split_zip(zip_path):
             with open(zip_path, 'rb') as f:
                 part = 0
@@ -129,6 +132,7 @@ jobs:
                     file_path = os.path.join(root, f)
                     zf.write(file_path, os.path.relpath(file_path, cef_dir))
 
+        cef_size = os.path.getsize(cef_zip_name)
         split_zip(cef_zip_name)
 
         # 3. App Core Zip
@@ -141,6 +145,8 @@ jobs:
                     file_path = os.path.join(root, f)
                     zf.write(file_path, os.path.relpath(file_path, app_dir))
 
+        app_size = os.path.getsize('update.zip')
+
         # Copy the zip for the artifact upload before splitting it
         shutil.copy2('update.zip', 'MangaUnhost-Core.zip')
 
@@ -150,6 +156,9 @@ jobs:
         # 5. Generate update.ini
         with open('update.ini', 'w') as f:
             f.write('[Updater]\nVersion=modern\n')
+            f.write(f'AppSize={app_size}\n')
+            f.write(f'CefSize={cef_size}\n')
+            f.write(f'NativeSize={native_size}\n')
 
     - name: Upload Core Artifact
       uses: actions/upload-artifact@v4

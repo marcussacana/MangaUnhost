@@ -160,18 +160,32 @@ namespace MangaUnhost
             if (!File.Exists(LibWebP)) OutdatedNative = true;
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cvextern.dll"))) OutdatedNative = true;
 
-            if (OutdatedCef) DownloadAndExtract(CefUrl, AppDomain.CurrentDomain.BaseDirectory);
-            if (OutdatedNative) DownloadAndExtract(NativeLibsUrl, AppDomain.CurrentDomain.BaseDirectory);
+            if (OutdatedCef || OutdatedNative) {
+                long CefSize = 0;
+                long NativeSize = 0;
+                try {
+                    using (var client = new WebClient()) {
+                        string updateIni = client.DownloadString(DataRepo + "update.ini");
+                        var matchCef = System.Text.RegularExpressions.Regex.Match(updateIni, @"CefSize=(\d+)");
+                        if (matchCef.Success) CefSize = long.Parse(matchCef.Groups[1].Value);
+                        var matchNative = System.Text.RegularExpressions.Regex.Match(updateIni, @"NativeSize=(\d+)");
+                        if (matchNative.Success) NativeSize = long.Parse(matchNative.Groups[1].Value);
+                    }
+                } catch { }
+
+                if (OutdatedCef) DownloadAndExtract(CefUrl, AppDomain.CurrentDomain.BaseDirectory, CefSize);
+                if (OutdatedNative) DownloadAndExtract(NativeLibsUrl, AppDomain.CurrentDomain.BaseDirectory, NativeSize);
+            }
         }
 
-        private static void DownloadAndExtract(string Url, string OutDir)
+        private static void DownloadAndExtract(string Url, string OutDir, long Size = 0)
         {
             var zipPath = Path.Combine(OutDir, Path.GetFileName(Url));
             try {
                 using (var client = new WebClient()) {
                     client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
                     
-                    DownloadingWindow Window = new DownloadingWindow(Url, zipPath);
+                    DownloadingWindow Window = new DownloadingWindow(Url, zipPath, Size);
                     Application.Run(Window);
                 }
                 using (var Zip = Ionic.Zip.ZipFile.Read(zipPath)) {
