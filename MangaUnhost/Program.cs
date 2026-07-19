@@ -100,6 +100,17 @@ namespace MangaUnhost
             FinishUpdate();
             //WineHelper();
             //WineHelper();
+            
+            if (!File.Exists(BrowserSubprocessPath))
+            {
+                if (Updater.HaveUpdate())
+                {
+                    Updater.Update();
+                    Environment.Exit(0);
+                    return;
+                }
+            }
+
             CefUpdater();
             OcvUpdater();
 
