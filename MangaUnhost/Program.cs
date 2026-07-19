@@ -79,9 +79,20 @@ namespace MangaUnhost
                         case "parallel":
                             Server.Connect(Value);
                             return;
+                        case "updatepath":
+                            FinishUpdate(Value);
+                            return;
                     }
                 }
             }
+
+            new Thread(() => {
+                string tempUpdateDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GitHubRelease");
+                int i = 0;
+                while (Directory.Exists(tempUpdateDir) && i < 5) {
+                    try { Directory.Delete(tempUpdateDir, true); } catch { Thread.Sleep(1000); i++; }
+                }
+            }).Start();
 
             var PATH = Environment.GetEnvironmentVariable("PATH");
             Environment.SetEnvironmentVariable("PATH", PATH.TrimEnd(';') + ";" + AppDomain.CurrentDomain.BaseDirectory + ";" + Path.GetDirectoryName(LibWebP));
@@ -227,6 +238,40 @@ namespace MangaUnhost
             {
                 return;
             }
+        }
+
+        private static void FinishUpdate(string OriginalPath)
+        {
+            string RunningDir = Path.GetDirectoryName(CurrentAssembly);
+
+            if (!RunningDir.EndsWith("\\")) RunningDir += '\\';
+            if (!OriginalPath.EndsWith("\\")) OriginalPath += '\\';
+
+            // Wait for the old process to exit
+            while (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(CurrentAssembly)).Count() > 1) {
+                Thread.Sleep(500);
+            }
+
+            foreach (string File in Directory.GetFiles(RunningDir, "*.*", SearchOption.AllDirectories)) {
+                string Base = File.Substring(RunningDir.Length).TrimStart('\\');
+                string UpPath = RunningDir + Base;
+                string OlPath = OriginalPath + Base;
+
+                if (System.IO.File.Exists(OlPath)) {
+                    try { System.IO.File.Delete(OlPath); } catch { }
+                }
+                
+                try {
+                    // Ensure the target directory exists
+                    string targetDir = Path.GetDirectoryName(OlPath);
+                    if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
+                    
+                    System.IO.File.Copy(UpPath, OlPath, true);
+                } catch { }
+            }
+
+            Process.Start(OriginalPath + Path.GetFileName(CurrentAssembly));
+            Environment.Exit(0);
         }
 
         public static void WineHelper()
