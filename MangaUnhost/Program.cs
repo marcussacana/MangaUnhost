@@ -146,8 +146,8 @@ namespace MangaUnhost
         {
             if (Debugger.IsAttached) return;
 
-            var TargetVer = new Version(149, 0, 60);
-            string CEFName = $"CEFx64-v{TargetVer}.zip"; // As configured in the GitHub Action
+            var TargetVer = new Version("149.0.60.0");
+            string CEFName = $"CEFx64-v149.0.60.zip"; // As configured in the GitHub Action
             string CefUrl = $"{DataRepo}{CEFName}";
             string NativeLibsUrl = $"{DataRepo}NativeLibs.zip";
 

@@ -177,7 +177,9 @@ jobs:
         # 4. Split App Core Zip
         split_zip('update.zip')
         
-        version_str = os.environ.get('VERSION', '10.0.0')
+        version_str = "${{ env.VERSION }}"
+        if not version_str or version_str == "":
+            version_str = "10.0.0"
 
         # 5. Generate update.ini
         with open('update.ini', 'w') as f:
