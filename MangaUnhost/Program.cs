@@ -122,6 +122,7 @@ namespace MangaUnhost
             string updateIni = null;
             try
             {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
                 using (var client = new WebClient())
                 {
                     updateIni = client.DownloadString(updateIniUrl);
@@ -203,8 +204,21 @@ namespace MangaUnhost
 
                 if (new FileInfo(zipPath).Length > 100)
                 {
-                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, AppDomain.CurrentDomain.BaseDirectory);
-                    Process.Start(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+                    string extractBat = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update_modern.bat");
+                    File.WriteAllText(extractBat, 
+                        "@echo off\r\n" +
+                        "timeout /t 2 /nobreak > nul\r\n" +
+                        "powershell -Command \"Expand-Archive -Path 'update_modern.zip' -DestinationPath '.' -Force\"\r\n" +
+                        "del update_modern.zip\r\n" +
+                        "start MangaUnhost.exe\r\n" +
+                        "del \"%~f0\""
+                    );
+                    Process.Start(new ProcessStartInfo() { 
+                        FileName = extractBat, 
+                        CreateNoWindow = true, 
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory 
+                    });
                     Environment.Exit(0);
                 }
             }
