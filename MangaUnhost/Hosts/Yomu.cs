@@ -199,7 +199,7 @@ namespace MangaUnhost.Hosts
             browser.WaitForLoad(readBase + "1");
             ThreadTools.Wait(5000, true);
 
-            var chapNodeFilter = "//div[@class='p-2 space-y-1']/a";
+            var chapNodeFilter = "//div[contains(@class,'overflow-y-auto') and contains(@class,'custom-scrollbar')]//a[contains(@href,'/ler/')]";
 
             while ((browser.GetDocument().SelectNodes(chapNodeFilter)?.Count ?? 0) == 0)
             {

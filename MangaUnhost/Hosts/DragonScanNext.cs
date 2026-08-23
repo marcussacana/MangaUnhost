@@ -26,6 +26,7 @@ namespace MangaUnhost.Hosts
 
         private readonly Dictionary<int, ChapterEntry> chapterMap = new Dictionary<int, ChapterEntry>();
         private readonly Dictionary<int, string[]> pageMap = new Dictionary<int, string[]>();
+        private readonly HashSet<string> lockedChapterUrls = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
         private ChromiumWebBrowser browser;
         private CookieContainer cookies = new CookieContainer();
@@ -124,6 +125,7 @@ namespace MangaUnhost.Hosts
         {
             chapterMap.Clear();
             pageMap.Clear();
+            lockedChapterUrls.Clear();
 
             currentSeriesUrl = ResolveSeriesUri(Uri);
             EnsureAuthenticated(currentSeriesUrl);
@@ -204,15 +206,20 @@ namespace MangaUnhost.Hosts
             var reportedChapterCount = ExtractReportedChapterCount(doc);
 
             var chapters = TryExtractChaptersFromBrowserRequests(reportedChapterCount);
+            var availableChapterCount = Math.Max(0, reportedChapterCount - lockedChapterUrls.Count);
 
             if (Program.Debug)
             {
-                Program.Writer?.WriteLine("[DragonScanNext] Browser chapter count: {0} | Reported: {1}", chapters.Count, reportedChapterCount);
+                Program.Writer?.WriteLine("[DragonScanNext] Browser chapter count: {0} | Reported: {1} | Locked (PLUS): {2}", chapters.Count, reportedChapterCount, lockedChapterUrls.Count);
                 Program.Writer?.Flush();
             }
 
-            if (!chapters.Any() || (reportedChapterCount > 0 && chapters.Count < reportedChapterCount))
+            if (!chapters.Any() || (availableChapterCount > 0 && chapters.Count < availableChapterCount))
                 chapters = MergeChapterEntries(chapters, ProbeChaptersByNumber(doc, chapters));
+
+            // Descarta qualquer capítulo PLUS que tenha voltado a entrar via probe/API,
+            // já que essas rotas nao enxergam o badge de assinatura.
+            chapters = chapters.Where(x => !lockedChapterUrls.Contains(x.Url)).ToList();
 
             if (!chapters.Any())
                 throw new Exception("Failed to load the chapter list from RF DragonScan.");
@@ -708,28 +715,30 @@ namespace MangaUnhost.Hosts
                 OpenChapterTab();
                 expectedCount = Math.Max(expectedCount, ExtractRenderedChapterCount());
                 var visibleEntries = WaitAndCollectChapters();
-                if (visibleEntries.Any() && (expectedCount <= 0 || visibleEntries.Count >= expectedCount))
+                var availableCount = Math.Max(0, expectedCount - lockedChapterUrls.Count);
+                if (visibleEntries.Any() && (availableCount <= 0 || visibleEntries.Count >= availableCount))
                     return MergeChapterEntries(visibleEntries);
 
                 var capturedEntries = GetCapturedNetworkEntriesSnapshot();
                 var requestEntries = ParseCapturedChapterEntries(capturedEntries);
-                if (expectedCount > 0 && requestEntries.Count < expectedCount)
+                if (availableCount > 0 && requestEntries.Count < availableCount)
                     requestEntries = MergeChapterEntries(requestEntries, RepeatCapturedChapterRequests(capturedEntries, requestEntries.Count, expectedCount));
 
                 var merged = MergeChapterEntries(visibleEntries, requestEntries);
 
-                if (merged.Any() && (expectedCount <= 0 || merged.Count >= expectedCount))
+                if (merged.Any() && (availableCount <= 0 || merged.Count >= availableCount))
                     return merged;
 
                 ThreadTools.Wait(1200, true);
                 OpenChapterTab();
                 visibleEntries = MergeChapterEntries(visibleEntries, WaitAndCollectChapters());
-                if (visibleEntries.Any() && (expectedCount <= 0 || visibleEntries.Count >= expectedCount))
+                availableCount = Math.Max(0, expectedCount - lockedChapterUrls.Count);
+                if (visibleEntries.Any() && (availableCount <= 0 || visibleEntries.Count >= availableCount))
                     return MergeChapterEntries(visibleEntries);
 
                 capturedEntries = GetCapturedNetworkEntriesSnapshot();
                 requestEntries = MergeChapterEntries(requestEntries, ParseCapturedChapterEntries(capturedEntries));
-                if (expectedCount > 0 && requestEntries.Count < expectedCount)
+                if (availableCount > 0 && requestEntries.Count < availableCount)
                     requestEntries = MergeChapterEntries(requestEntries, RepeatCapturedChapterRequests(capturedEntries, requestEntries.Count, expectedCount));
 
                 return MergeChapterEntries(visibleEntries, requestEntries);
@@ -1858,7 +1867,12 @@ namespace MangaUnhost.Hosts
             return;
 
         seen[absolute] = true;
-        items.push({{Url: absolute, Name: name }});
+
+        var locked = Array.from(anchor.querySelectorAll('span, div')).some(function (el) {{
+            return normalize(el.textContent).toUpperCase() === 'PLUS';
+        }});
+
+        items.push({{Url: absolute, Name: name, Locked: locked }});
     }});
 
     return JSON.stringify(items);
@@ -1868,7 +1882,14 @@ namespace MangaUnhost.Hosts
             if (string.IsNullOrWhiteSpace(json))
                 return new List<ChapterEntry>();
 
-            return JsonConvert.DeserializeObject<List<ChapterEntry>>(json) ?? new List<ChapterEntry>();
+            var entries = JsonConvert.DeserializeObject<List<ChapterEntry>>(json) ?? new List<ChapterEntry>();
+
+            // Capítulos "PLUS" exigem assinatura paga e nunca terminam de baixar;
+            // ficam de fora da lista e o gap é descontado do total esperado.
+            foreach (var locked in entries.Where(x => x.Locked))
+                lockedChapterUrls.Add(locked.Url);
+
+            return entries.Where(x => !x.Locked).ToList();
         }
 
         private void ExpandAllChapterGroups()
@@ -2296,6 +2317,7 @@ namespace MangaUnhost.Hosts
             public string Url { get; set; }
             public string Name { get; set; }
             public string Referer { get; set; }
+            public bool Locked { get; set; }
         }
 
         private sealed class CapturedNetworkEntry

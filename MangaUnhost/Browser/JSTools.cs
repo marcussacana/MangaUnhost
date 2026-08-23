@@ -10,8 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy;
-using Titanium.Web.Proxy.Models;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace MangaUnhost.Browser
@@ -606,6 +604,9 @@ namespace MangaUnhost.Browser
                             var MaxWait = 60;
                             BrowserPopup popup = new BrowserPopup(WebBrowser, new Rectangle(0, 0, 1280, 720), () =>
                             {
+                                if (Browser.IsDisposed || !Browser.IsCloudflareTriggered())
+                                    return true;
+
                                 try
                                 {
                                     if (Browser.IsCloudflareTriggered() && !Browser.TurnstileIsSolved() && MaxWait-- > 0)

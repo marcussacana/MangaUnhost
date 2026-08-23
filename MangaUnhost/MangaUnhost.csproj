@@ -72,7 +72,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\titanium-web-proxy\src\Titanium.Web.Proxy\Titanium.Web.Proxy.csproj" />
+    <!--<ProjectReference Include="..\titanium-web-proxy\src\Titanium.Web.Proxy\Titanium.Web.Proxy.csproj" /> -->
   </ItemGroup>
 
 </Project>

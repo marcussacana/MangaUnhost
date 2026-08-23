@@ -35,18 +35,59 @@ namespace MangaUnhost.Hosts
 
             EnsureBrowser();
             browser.WaitForLoad(Uri.AbsoluteUri);
+
+            // Sem isso, a pagina do desafio do Cloudflare ("Um momento...") podia ficar so
+            // 3s pra resolver e a leitura seguinte pegava a pagina de verificacao vazia em
+            // vez do conteudo real, fazendo a obra "nao carregar" (titulo/capa/capitulos
+            // vazios sem nenhum erro).
+            if (browser.IsCloudflareTriggered())
+            {
+                browser.BypassCloudflare();
+                browser.WaitForLoad(Uri.AbsoluteUri);
+            }
+
             ThreadTools.Wait(3000, true);
 
             var doc = browser.GetDocument();
-            var titleNode = doc.SelectSingleNode("//h1");
-            var title = titleNode != null ? titleNode.InnerText.Trim() : "Unknown";
 
-            var coverNode = doc.SelectSingleNode("//img[contains(@src, 'static.comix.to')]");
-            var coverUrl = coverNode != null ? coverNode.GetAttributeValue("src", "") : "";
+            string title = null;
+            string coverUrl = null;
+
+            // A pagina embute os dados da obra em JSON (React Query cache); ler dali evita
+            // pegar por engano o <h1> ou <img src=static.comix.to> de uma obra "recomendada".
+            // Acha a entrada pelo formato dos dados (hid+title+poster), não pelo nome da chave
+            // de cache (ex.: ["manga","detail","hid"]), que e' um detalhe interno e pode mudar.
+            var dataNode = doc.SelectSingleNode("//script[@id='initial-data']");
+            if (dataNode != null)
+            {
+                try
+                {
+                    var data = JObject.Parse(dataNode.InnerText);
+                    var detail = (data["queries"] as JObject)?.Properties()
+                        .Select(p => p.Value as JObject)
+                        .FirstOrDefault(v => v?["hid"]?.ToString() == MangaHid && v["title"] != null && v["poster"] != null);
+
+                    title = detail?["title"]?.ToString();
+                    coverUrl = detail?["poster"]?["large"]?.ToString() ?? detail?["poster"]?["medium"]?.ToString();
+                }
+                catch { }
+            }
+
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                var titleNode = doc.SelectSingleNode("//h1");
+                title = titleNode != null ? titleNode.InnerText.Trim() : "Unknown";
+            }
+
+            if (string.IsNullOrWhiteSpace(coverUrl))
+            {
+                var coverNode = doc.SelectSingleNode("//img[contains(@src, 'static.comix.to')]");
+                coverUrl = coverNode != null ? coverNode.GetAttributeValue("src", "") : "";
+            }
 
             byte[] cover = null;
             if (!string.IsNullOrEmpty(coverUrl))
-                cover = coverUrl.TryDownload();
+                cover = coverUrl.TryDownload(Referer: Uri.AbsoluteUri, UserAgent: browser.GetUserAgent(), Cookie: browser.GetCookies().ToContainer());
 
             return new ComicInfo
             {
@@ -148,7 +189,7 @@ namespace MangaUnhost.Hosts
                         continue;
                     }
                 }
-                yield return url.TryDownload(Referer: ChapterMap[ID]);
+                yield return url.TryDownload(Referer: ChapterMap[ID], UserAgent: browser.GetUserAgent(), Cookie: browser.GetCookies().ToContainer());
             }
         }
 
@@ -182,152 +223,121 @@ namespace MangaUnhost.Hosts
                         }
                     }
 
-                    function collect() {
-                        document.querySelectorAll('.rpage-page').forEach(pageContainer => {
-                            let pageNum = -1;
-                            let dataPage = pageContainer.getAttribute('data-page');
-                            if (dataPage !== null) {
-                                pageNum = parseInt(dataPage);
-                            } else {
-                                let label = pageContainer.getAttribute('aria-label');
-                                if (label) {
-                                    let m = label.match(/Page\s+(\d+)/i);
+                    function pageNumberOf(pageContainer) {
+                        let dataPage = pageContainer.getAttribute('data-page');
+                        if (dataPage !== null) return parseInt(dataPage);
+                        let label = pageContainer.getAttribute('aria-label');
+                        if (label) {
+                            let m = label.match(/Page\s+(\d+)/i);
+                            if (m) return parseInt(m[1]);
+                        }
+                        return -1;
+                    }
+
+                    // Retorna true se conseguiu capturar a imagem dessa pagina (ou ja tinha).
+                    function collectOne(pageContainer) {
+                        let pageNum = pageNumberOf(pageContainer);
+                        if (pageNum !== -1 && pageNum in pagesDict) return true;
+
+                        let img = pageContainer.querySelector('img');
+                        if (img) {
+                            let src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
+                            if (src && src.startsWith('http') &&
+                                !src.includes('avatar') &&
+                                !src.includes('logo') &&
+                                !src.includes('favicon') &&
+                                !src.includes('@280') &&
+                                !src.includes('comix.to/assets') &&
+                                !src.includes('google.com') &&
+                                !src.includes('cloudflare') &&
+                                !src.includes('static.comix.to')) {
+
+                                if (pageNum === -1) {
+                                    let alt = img.getAttribute('alt') || '';
+                                    let m = alt.match(/Page\s+(\d+)/i);
                                     if (m) pageNum = parseInt(m[1]);
                                 }
-                            }
 
-                            let img = pageContainer.querySelector('img');
-                            let foundValidImg = false;
-
-                            if (img) {
-                                let src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
-                                if (src && src.startsWith('http') &&
-                                    !src.includes('avatar') &&
-                                    !src.includes('logo') &&
-                                    !src.includes('favicon') &&
-                                    !src.includes('@280') &&
-                                    !src.includes('comix.to/assets') &&
-                                    !src.includes('google.com') &&
-                                    !src.includes('cloudflare') &&
-                                    !src.includes('static.comix.to')) {
-                                    
-                                    if (pageNum === -1) {
-                                        let alt = img.getAttribute('alt') || '';
-                                        let m = alt.match(/Page\s+(\d+)/i);
-                                        if (m) pageNum = parseInt(m[1]);
-                                    }
-                                    
-                                    if (pageNum !== -1) {
-                                        pagesDict[pageNum] = src;
-                                        foundValidImg = true;
-                                    } else {
-                                        if (!unknownPages.includes(src) && !Object.values(pagesDict).includes(src)) {
-                                            unknownPages.push(src);
-                                            foundValidImg = true;
-                                        }
-                                    }
+                                if (pageNum !== -1) {
+                                    pagesDict[pageNum] = src;
+                                } else if (!unknownPages.includes(src)) {
+                                    unknownPages.push(src);
                                 }
+                                return true;
                             }
+                        }
 
-                            if (!foundValidImg) {
-                                let canvas = pageContainer.querySelector('canvas');
-                                if (canvas && pageNum !== -1 && !pagesDict[pageNum]) {
-                                    try {
-                                        let dataUrl = cleanToDataURL ? cleanToDataURL.call(canvas, 'image/png') : canvas.toDataURL('image/png');
-                                        if (dataUrl && dataUrl.startsWith('data:image')) {
-                                            pagesDict[pageNum] = dataUrl;
-                                        }
-                                    } catch (e) {
-                                        // Ignore tainted canvas errors
-                                    }
+                        let canvas = pageContainer.querySelector('canvas');
+                        if (canvas && pageNum !== -1) {
+                            try {
+                                let dataUrl = cleanToDataURL ? cleanToDataURL.call(canvas, 'image/png') : canvas.toDataURL('image/png');
+                                if (dataUrl && dataUrl.startsWith('data:image')) {
+                                    pagesDict[pageNum] = dataUrl;
+                                    return true;
                                 }
+                            } catch (e) {
+                                // Ignore tainted canvas errors
                             }
-                        });
+                        }
+
+                        return false;
                     }
 
                     // Force remove lazy loading attributes just in case
                     document.querySelectorAll('img[loading]').forEach(img => img.removeAttribute('loading'));
 
-                    let sweeps = 0;
-                    let lastImagesSize = 0;
+                    let allPages = Array.from(document.querySelectorAll('.rpage-page'));
+                    let total = allPages.length;
 
-                    while (sweeps < 3) {
-                        // Un-mark all elements for the current sweep
-                        document.querySelectorAll('.rpage-page').forEach(p => p.removeAttribute('data-scrolled'));
+                    // Passada inicial: percorre a tira toda uma vez pra disparar o lazy-load de cada pagina.
+                    for (const p of allPages) {
+                        p.scrollIntoView({ block: 'center' });
+                        await new Promise(r => setTimeout(r, 180));
+                        collectOne(p);
+                    }
 
-                        let retries = 0;
+                    // Fecha o que faltou: repesca SO as paginas ainda sem imagem, com mais tempo a
+                    // cada rodada, ate bater o total ou esgotar as tentativas. Uma pagina que so
+                    // carrega devagar (rede/lazy-load atrasado) nao pode ficar faltando no capitulo.
+                    for (let attempt = 0; attempt < 8; attempt++) {
+                        let missing = allPages.filter(p => {
+                            let n = pageNumberOf(p);
+                            return n === -1 || !(n in pagesDict);
+                        });
 
-                        while (true) {
-                            let unscrolled = document.querySelectorAll('.rpage-page:not([data-scrolled])');
-                            
-                            if (unscrolled.length > 0) {
-                                // Process the next unscrolled element
-                                let p = unscrolled[0];
-                                p.setAttribute('data-scrolled', 'true');
-                                p.scrollIntoView({ block: 'center' });
-                                
-                                await new Promise(r => setTimeout(r, 250)); // Wait for image to render
-                                collect();
-                                retries = 0;
-                            } else {
-                                // All visible elements have been processed.
-                                // Scroll to the very last visible one to trigger loading of the next batch.
-                                let all = document.querySelectorAll('.rpage-page');
-                                if (all.length > 0) {
-                                    all[all.length - 1].scrollIntoView({ block: 'end' });
-                                }
-                                
-                                await new Promise(r => setTimeout(r, 500));
-                                collect();
-                                
-                                let newUnscrolled = document.querySelectorAll('.rpage-page:not([data-scrolled])');
-                                if (newUnscrolled.length > 0) {
-                                    retries = 0;
-                                    continue;
-                                }
-                                
-                                retries++;
-                                if (retries >= 6) {
-                                    // Waited 3s total at bottom with no new elements
-                                    break;
-                                }
-                            }
-                        }
+                        if (missing.length === 0) break;
 
-                        // Sweep check
-                        let currentSize = Object.keys(pagesDict).length + unknownPages.length;
-                        if (currentSize > lastImagesSize) {
-                            lastImagesSize = currentSize;
-                            sweeps++;
-                            // Scroll to top to restart
-                            let all = document.querySelectorAll('.rpage-page');
-                            if (all.length > 0) all[0].scrollIntoView({ block: 'start' });
-                            await new Promise(r => setTimeout(r, 500));
-                        } else {
-                            break;
+                        for (const p of missing) {
+                            p.scrollIntoView({ block: 'center' });
+                            await new Promise(r => setTimeout(r, 500 + attempt * 300));
+                            collectOne(p);
                         }
                     }
-                    
+
                     let sortedKeys = Object.keys(pagesDict).map(Number).sort((a,b) => a - b);
                     let finalUrls = sortedKeys.map(k => pagesDict[k]).concat(unknownPages);
-                    return JSON.stringify(finalUrls);
+                    return JSON.stringify({ pages: finalUrls, total: total });
                 })();
             ";
 
-            var task = browser.EvaluateScriptAsync<string>(jsAccumulateImages);
-
-            while (!task.IsCanceled && !task.IsCompleted && !task.IsFaulted) 
-                ThreadTools.Wait(1000, true);
-
-            var imgsJson = task.Result;
+            // Timeout de verdade: sem isso, se o callback nativo do CefSharp nunca disparar
+            // (script async rodando minutos por causa da repescagem de paginas), a Task fica
+            // presa em WaitingForActivation e o polling abaixo gira pra sempre (softlock).
+            var resultJson = browser.EvaluateScriptAsync<string>(jsAccumulateImages).RunInBackground(300);
 
             var result = new List<string>();
-            if (!string.IsNullOrEmpty(imgsJson) && imgsJson != "null")
+            int expectedTotal = 0;
+            if (!string.IsNullOrEmpty(resultJson) && resultJson != "null")
             {
-                var imgs = JArray.Parse(imgsJson);
-                foreach (var img in imgs)
+                var parsed = JObject.Parse(resultJson);
+                expectedTotal = parsed["total"]?.Value<int>() ?? 0;
+
+                foreach (var img in (JArray)parsed["pages"])
                     result.Add(img.ToString());
             }
+
+            if (expectedTotal > 0 && result.Count < expectedTotal)
+                throw new Exception($"Failed to load all chapter pages from Comix.to. Expected {expectedTotal}, got {result.Count}.");
 
             return PagesMap[ID] = result;
         }

@@ -114,9 +114,9 @@ namespace MangaUnhost.Hosts {
             Info.Title = HttpUtility.HtmlDecode(Info.Title);
 
             Info.Cover = Document
-                .SelectSingleNode("//div[@class=\"detail_body\"]")
+                .SelectSingleNode("//div[contains(@class, \"detail_bg\")]")
                 .GetAttributeValue("style", string.Empty)
-                .Substring("url(", ")").TryDownload(Referer);
+                .Substring("url(", ")").Trim('\'', '"').TryDownload(Referer);
 
             Info.ContentType = ContentType.Comic;
 
