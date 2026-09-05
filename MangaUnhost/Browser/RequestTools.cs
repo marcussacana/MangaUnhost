@@ -213,7 +213,7 @@ namespace MangaUnhost.Browser
                 PlatformName = "Android";
 
             var Version = BrowserExt.Version;
-            var ShortVersion = Version.Split('.').First();
+            var ShortVersion = Version?.Split('.')?.First() ?? "";
 
             Browser.RegisterWebRequestHandlerEvents((sender, args) => {
                 args.Headers["Sec-Ch-Ua"] = $"\"Not_A Brand\";v=\"24\", \"Chromium\";v=\"{ShortVersion}\", \"{Name}\";v=\"{ShortVersion}\"";

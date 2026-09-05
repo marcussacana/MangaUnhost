@@ -199,7 +199,10 @@ namespace MangaUnhost.Hosts
             browser.WaitForLoad(readBase + "1");
             ThreadTools.Wait(5000, true);
 
-            var chapNodeFilter = "//div[contains(@class,'overflow-y-auto') and contains(@class,'custom-scrollbar')]//a[contains(@href,'/ler/')]";
+            // O drawer "Lista de Capitulos" da pagina do leitor usa overflow-y-auto sem
+            // custom-scrollbar (isso so aparece na lista inline da pagina da obra); os
+            // links ficam direto dentro de um div.p-2.space-y-1.
+            var chapNodeFilter = "//div[@class='p-2 space-y-1']/a[contains(@href,'/ler/')]";
 
             while ((browser.GetDocument().SelectNodes(chapNodeFilter)?.Count ?? 0) == 0)
             {
@@ -288,7 +291,6 @@ namespace MangaUnhost.Hosts
 
             ThreadTools.Wait(3000, true);
             //browser.ShowDevTools();
-            Login();
 
             int tries = 10;
             while (tries-- > 0)
@@ -328,55 +330,6 @@ namespace MangaUnhost.Hosts
             }
 
             throw new Exception("Failed to Load");
-        }
-
-        public void Login()
-        {
-            var retUrl = browser.GetCurrentUrl();
-
-            if (retUrl.Contains("redirect="))
-                retUrl = retUrl.Substring("redirect=");
-            else
-                retUrl = HttpUtility.UrlEncode("/" + retUrl.Substring("//").Substring("/"));
-
-            browser.WaitForLoad("https://yomu.com.br/auth/login?callbackUrl=" + retUrl);
-
-            var doc = browser.GetDocument();
-            if (doc.SelectSingleNode("//*[@for='email']") == null)
-            {
-                browser.WaitForLoad($"https://yomu.com.br{HttpUtility.UrlDecode(retUrl)}");
-                ThreadTools.Wait(3000, true);
-                return;
-            }
-
-            while (true)
-            {
-                try
-                {
-                    var pos = browser.GetBounds("//*[@for='remember']/..//input");
-                    browser.TypeInInput("//*[@for='email']/../div/input".CreateTargetSelectorFromXPATH(), "anon@anon.com", true);
-                    browser.TypeInInput("//*[@for='password']/../div/input".CreateTargetSelectorFromXPATH(), "123anon456", true);
-                    browser.ExecuteClick(pos);
-
-                    pos = browser.GetBounds("//button[contains(@class, 'from-orange')]");
-                    browser.ExecuteClick(pos);
-
-
-                    while (browser.GetCurrentUrl().Contains("auth/login"))
-                        ThreadTools.Wait(500);
-
-                    browser.WaitForLoad();
-
-                    doc = browser.GetDocument();
-                    if (doc.SelectSingleNode("//*[@for='email']") == null)
-                        return;
-
-                    throw new Exception("Login failed");
-                }
-                catch { 
-                    ThreadTools.Wait(5000, true);
-                }
-            }
         }
     }
 }

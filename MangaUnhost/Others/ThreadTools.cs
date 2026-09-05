@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +15,7 @@ namespace MangaUnhost.Others {
             {
                 Thread.Sleep(Delay);
 
-                if (DoEvents && !Main.Instance.InvokeRequired)
+                if (DoEvents && Main.Instance != null && !Main.Instance.InvokeRequired)
                     Extensions.SafeDoEvents();
             }
 

@@ -16,6 +16,7 @@ param(
 $ProgressPreference = 'SilentlyContinue'
 
 $HostsToTest = @(
+    @{ Name = "ArgosComic";     Url = "https://aniargos.com/d6d0334b-6a91-41d8-a666-fb3265632675/a-heroina-e-obcecada-pelo-vilao-que-me-tornei" }
     @{ Name = "BaoZimh";        Url = "https://www.baozimh.com/" }
     @{ Name = "BlackoutComics"; Url = "https://blackoutcomics.com/" }
     @{ Name = "ComixTo";        Url = "https://comix.to/title/0q23v-i-dont-want-to-play-matchmaker" }
@@ -35,6 +36,7 @@ $HostsToTest = @(
     @{ Name = "Taiyo";          Url = "https://taiyo.moe/" }
     @{ Name = "WPMangaReader";  Url = "https://mangaschan.net/" } # generico: dominio direto morto, plugin ainda vive via IsValidPage
     @{ Name = "Webtoons";       Url = "https://www.webtoons.com/" }
+    @{ Name = "Vegitoons";       Url = "https://vegitoons.black/obra/14159" }
     @{ Name = "Weloma";         Url = "https://weloma.art/" }
     @{ Name = "WordpressManga"; Url = "https://mangalivre.blog/manga/mob-kara-hajimaru-tansaku-eiyuutan/" }
     @{ Name = "Yomu";           Url = "https://yomu.com.br/obra/a-academia-esta-condenada" }
