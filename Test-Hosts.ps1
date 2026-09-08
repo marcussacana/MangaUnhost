@@ -22,6 +22,8 @@ $HostsToTest = @(
     @{ Name = "ComixTo";        Url = "https://comix.to/title/0q23v-i-dont-want-to-play-matchmaker" }
     @{ Name = "DragonScanNext"; Url = "https://rfdragonscan.net/ecdc6b97-c3b8-4318-a34c-a8282f0a29e6/o-vilao-de-cabelos-amarelos-no-romance-da-personagem-principal-feminina-quer-felicidade" }
     @{ Name = "HentaiNexus";    Url = "https://hentainexus.com/" }
+    @{ Name = "InkScan";        Url = "https://inkscann.live/manga/84c4e367-7364-451d-92b8-f73aac0ab520" }
+    @{ Name = "KuroMangas";     Url = "https://kuromangas.com/manga/243" }
     @{ Name = "Lycantoons";     Url = "https://lycantoons.com/series/a-esposa-que-esperou-no-campo-de-trigo" }
     @{ Name = "MangaDex";       Url = "https://mangadex.org/title/a9c157f6-a720-4adc-87a4-79a3601aa4e8/10-nenmae-ni-time-leap-shite-osananajimi-no-ojousama-wo-tasuketara-iinazuke-ni-narimashita" }
     @{ Name = "MangaFire";      Url = "https://mangafire.to/manga/chiisakute-kawaii-bungeibu-no-chiteki-na-senpai-o-hiza-no-ue-ni-nosetara-mainichi-suwattekuru-you-ni-natta.x15x8" }
