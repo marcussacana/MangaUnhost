@@ -24,9 +24,10 @@ namespace MangaUnhost.Hosts
     {
         private const string SiteBase = "https://kuromangas.com";
         private const string CdnBase = "https://cdn.kuromangas.com";
-        private const string DefaultApiEncryptionKey = "i67ato8l6sai74jyIHfE2oMmieshoforanuYTusF4jKdqEwhUEft9dsadcxzsaipnjm8";
-        private const string HostnamePart = "kuromangas.com::v2";
-        private const string Antibot = "x9_4v2_b";
+        private const string FallbackApiEncryptionKey = "i7ato8l6sai74jyIHfE2oMmieshoforanuYTusF4jKdqEwhUEft9dsadcxzsaipnjm8";
+        private const string FallbackHostSuffix = "v2";
+        private const string FallbackAntibot = "x9_4v2_b";
+        private const string ModernUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
         private static readonly string[] SupportedHosts = new[]
         {
@@ -40,7 +41,9 @@ namespace MangaUnhost.Hosts
         private static readonly object AuthLock = new object();
         private static string cachedKnToken = null;
         private static string cachedKuroSession = null;
-        private static string cachedApiEncryptionKey = DefaultApiEncryptionKey;
+        private static string cachedApiEncryptionKey = null;
+        private static string cachedHostSuffix = null;
+        private static string cachedAntibot = null;
 
         private Uri currentSeriesUrl;
         private int currentMangaId;
@@ -333,7 +336,7 @@ namespace MangaUnhost.Hosts
                     var req = new HttpRequestMessage(new HttpMethod(method), $"{SiteBase}{path}");
 
                     req.Headers.Add("Accept", "application/json, text/plain, */*");
-                    req.Headers.Add("User-Agent", ProxyTools.UserAgent);
+                    req.Headers.Add("User-Agent", ModernUserAgent);
                     req.Headers.Add("Referer", $"{SiteBase}/");
                     req.Headers.Add("Origin", SiteBase);
 
@@ -371,6 +374,8 @@ namespace MangaUnhost.Hosts
                             string decrypted = DecryptPayload(vSecure, dataKey);
                             if (!string.IsNullOrEmpty(decrypted))
                                 return decrypted;
+
+                            throw new Exception("Falha ao descriptografar resposta da API do Kuro Mangás.");
                         }
                     }
 
@@ -406,8 +411,12 @@ namespace MangaUnhost.Hosts
                         string pass = acc.Password;
                         if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(pass))
                         {
-                            if (TryLogin(email, pass))
-                                return;
+                            // A API de login do Kuro Mangás exige formato estrito de email
+                            if (email.Contains("@"))
+                            {
+                                if (TryLogin(email, pass))
+                                    return;
+                            }
                         }
                     }
                 }
@@ -446,7 +455,7 @@ namespace MangaUnhost.Hosts
                     client.Timeout = TimeSpan.FromSeconds(8);
                     var req = new HttpRequestMessage(HttpMethod.Get, $"{SiteBase}/api/users/me/profile");
                     req.Headers.Add("Accept", "application/json, text/plain, */*");
-                    req.Headers.Add("User-Agent", ProxyTools.UserAgent);
+                    req.Headers.Add("User-Agent", ModernUserAgent);
                     req.Headers.Add("Referer", $"{SiteBase}/");
                     req.Headers.Add("Origin", SiteBase);
                     req.Headers.Add("X-Client-Token", cachedKnToken);
@@ -474,13 +483,13 @@ namespace MangaUnhost.Hosts
                     client.Timeout = TimeSpan.FromSeconds(15);
                     var req = new HttpRequestMessage(HttpMethod.Post, $"{SiteBase}/api/auth/login");
                     req.Headers.Add("Accept", "application/json, text/plain, */*");
-                    req.Headers.Add("User-Agent", ProxyTools.UserAgent);
+                    req.Headers.Add("User-Agent", ModernUserAgent);
                     req.Headers.Add("Referer", $"{SiteBase}/login");
                     req.Headers.Add("Origin", SiteBase);
 
                     var payload = JsonConvert.SerializeObject(new
                     {
-                        email = email,
+                        email = email.Trim(),
                         password = password,
                         rememberMe = true
                     });
@@ -513,18 +522,13 @@ namespace MangaUnhost.Hosts
             {
                 foreach (var raw in setCookies)
                 {
-                    var cookiePart = raw.Split(';')[0];
-                    var eqIdx = cookiePart.IndexOf('=');
-                    if (eqIdx > 0)
-                    {
-                        string name = cookiePart.Substring(0, eqIdx).Trim();
-                        string val = cookiePart.Substring(eqIdx + 1).Trim();
+                    var knMatch = Regex.Match(raw, @"(?:^|[;, ])_kn=([^;,\s]+)");
+                    if (knMatch.Success)
+                        cachedKnToken = knMatch.Groups[1].Value.Trim();
 
-                        if (name == "_kn")
-                            cachedKnToken = val;
-                        else if (name == "kuro_session")
-                            cachedKuroSession = val;
-                    }
+                    var sessMatch = Regex.Match(raw, @"(?:^|[;, ])kuro_session=([^;,\s]+)");
+                    if (sessMatch.Success)
+                        cachedKuroSession = sessMatch.Groups[1].Value.Trim();
                 }
             }
         }
@@ -612,15 +616,95 @@ namespace MangaUnhost.Hosts
         }
 
 
+        private static void EnsureCryptoParams(bool forceRefresh = false)
+        {
+            if (!forceRefresh && !string.IsNullOrEmpty(cachedApiEncryptionKey))
+                return;
+
+            if (!forceRefresh)
+            {
+                string savedKey = Ini.GetConfig("KuroMangas", "ApiKey", Main.SettingsPath, false);
+                string savedSuffix = Ini.GetConfig("KuroMangas", "ApiHostSuffix", Main.SettingsPath, false);
+                string savedBot = Ini.GetConfig("KuroMangas", "ApiAntibot", Main.SettingsPath, false);
+
+                if (!string.IsNullOrEmpty(savedKey))
+                {
+                    cachedApiEncryptionKey = savedKey;
+                    cachedHostSuffix = !string.IsNullOrEmpty(savedSuffix) ? savedSuffix : FallbackHostSuffix;
+                    cachedAntibot = !string.IsNullOrEmpty(savedBot) ? savedBot : FallbackAntibot;
+                    return;
+                }
+            }
+
+            DumpCryptoParamsFromSite();
+
+            if (string.IsNullOrEmpty(cachedApiEncryptionKey))
+                cachedApiEncryptionKey = FallbackApiEncryptionKey;
+            if (string.IsNullOrEmpty(cachedHostSuffix))
+                cachedHostSuffix = FallbackHostSuffix;
+            if (string.IsNullOrEmpty(cachedAntibot))
+                cachedAntibot = FallbackAntibot;
+        }
+
+        private static void DumpCryptoParamsFromSite()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                    client.DefaultRequestHeaders.Add("User-Agent", ModernUserAgent);
+                    string html = client.GetStringAsync(SiteBase).Result;
+
+                    var scriptMatches = Regex.Matches(html, @"src=[""']?(/assets/[^""'\s>]+\.js)[""']?");
+                    foreach (Match sm in scriptMatches)
+                    {
+                        string jsPath = sm.Groups[1].Value;
+                        string jsUrl = SiteBase + jsPath;
+                        string js = client.GetStringAsync(jsUrl).Result;
+
+                        var keyMatch = Regex.Match(js, @"VITE_API_ENCRYPTION_KEY\s*:\s*[""']([^""']+)[""']");
+                        if (keyMatch.Success)
+                        {
+                            cachedApiEncryptionKey = keyMatch.Groups[1].Value.Trim();
+                            Ini.SetConfig("KuroMangas", "ApiKey", cachedApiEncryptionKey, Main.SettingsPath);
+
+                            var hostMatch = Regex.Match(js, @"hostname\}::([^""'`]+)");
+                            if (hostMatch.Success)
+                            {
+                                cachedHostSuffix = hostMatch.Groups[1].Value.Trim();
+                                Ini.SetConfig("KuroMangas", "ApiHostSuffix", cachedHostSuffix, Main.SettingsPath);
+                            }
+
+                            var botMatch = Regex.Match(js, @"getComputedStyle[^?]*\?[^""]*""([^""]+)""\s*:\s*""bot""");
+                            if (botMatch.Success)
+                            {
+                                cachedAntibot = botMatch.Groups[1].Value.Trim();
+                                Ini.SetConfig("KuroMangas", "ApiAntibot", cachedAntibot, Main.SettingsPath);
+                            }
+
+                            return;
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
         private static string DerivePassword()
         {
+            EnsureCryptoParams();
+
             string dateStr = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            string md5Input = $"{dateStr}{HostnamePart}{Antibot}";
+            string hostnamePart = $"kuromangas.com::{cachedHostSuffix ?? FallbackHostSuffix}";
+            string antibot = cachedAntibot ?? FallbackAntibot;
+            string md5Input = $"{dateStr}{hostnamePart}{antibot}";
+
             using (var md5 = MD5.Create())
             {
                 byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(md5Input));
                 string sub8 = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant().Substring(0, 8);
-                return cachedApiEncryptionKey + sub8;
+                return (cachedApiEncryptionKey ?? FallbackApiEncryptionKey) + sub8;
             }
         }
 
@@ -628,73 +712,44 @@ namespace MangaUnhost.Hosts
         {
             try
             {
-                string password = DerivePassword();
-                string plainJson = RabbitDecrypt(vSecure, password);
-
-                if (!string.IsNullOrEmpty(dataKey))
-                {
-                    try
-                    {
-                        var obj = JObject.Parse(plainJson);
-                        if (obj[dataKey] != null)
-                            return obj[dataKey].ToString();
-                    }
-                    catch { }
-                }
-
-                return plainJson;
-            }
-            catch
-            {
-                try
-                {
-                    RefreshEncryptionKey();
-                    string password = DerivePassword();
-                    string plainJson = RabbitDecrypt(vSecure, password);
-
-                    if (!string.IsNullOrEmpty(dataKey))
-                    {
-                        try
-                        {
-                            var obj = JObject.Parse(plainJson);
-                            if (obj[dataKey] != null)
-                                return obj[dataKey].ToString();
-                        }
-                        catch { }
-                    }
-
-                    return plainJson;
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-        }
-
-        private static void RefreshEncryptionKey()
-        {
-            try
-            {
-                using (var client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromSeconds(10);
-                    client.DefaultRequestHeaders.Add("User-Agent", ProxyTools.UserAgent);
-                    string html = client.GetStringAsync(SiteBase).Result;
-                    var match = Regex.Match(html, @"src=""(/assets/index-[^""]+\.js)""");
-                    if (match.Success)
-                    {
-                        string jsUrl = SiteBase + match.Groups[1].Value;
-                        string js = client.GetStringAsync(jsUrl).Result;
-                        var keyMatch = Regex.Match(js, @"VITE_API_ENCRYPTION_KEY\s*:\s*[""']([^""']+)[""']");
-                        if (keyMatch.Success)
-                        {
-                            cachedApiEncryptionKey = keyMatch.Groups[1].Value;
-                        }
-                    }
-                }
+                string result = TryDecrypt(vSecure, dataKey);
+                if (!string.IsNullOrEmpty(result))
+                    return result;
             }
             catch { }
+
+            try
+            {
+                EnsureCryptoParams(forceRefresh: true);
+                string result = TryDecrypt(vSecure, dataKey);
+                if (!string.IsNullOrEmpty(result))
+                    return result;
+            }
+            catch { }
+
+            return null;
+        }
+
+        private static string TryDecrypt(string vSecure, string dataKey)
+        {
+            string password = DerivePassword();
+            string plainJson = RabbitDecrypt(vSecure, password);
+
+            if (string.IsNullOrWhiteSpace(plainJson))
+                return null;
+
+            plainJson = plainJson.Trim();
+            if (!plainJson.StartsWith("{") && !plainJson.StartsWith("["))
+                return null;
+
+            var obj = JObject.Parse(plainJson);
+            if (!string.IsNullOrEmpty(dataKey))
+            {
+                if (obj[dataKey] != null)
+                    return obj[dataKey].ToString();
+            }
+
+            return plainJson;
         }
 
         public static string RabbitDecrypt(string ciphertextB64, string password)
