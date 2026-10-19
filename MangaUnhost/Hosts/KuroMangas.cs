@@ -24,7 +24,7 @@ namespace MangaUnhost.Hosts
     {
         private const string SiteBase = "https://kuromangas.com";
         private const string CdnBase = "https://cdn.kuromangas.com";
-        private const string FallbackApiEncryptionKey = "i7ato8l6sai74jyIHfE2oMmieshoforanuYTusF4jKdqEwhUEft9dsadcxzsaipnjm8";
+        private const string FallbackApiEncryptionKey = "8at7vo8l6sai74jyIHfE2oeshoforanuYTusF4jKdqEwhUEft9dsadcxzsaipnjm8";
         private const string FallbackHostSuffix = "v2";
         private const string FallbackAntibot = "x9_4v2_b";
         private const string ModernUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -41,6 +41,7 @@ namespace MangaUnhost.Hosts
         private static readonly object AuthLock = new object();
         private static string cachedKnToken = null;
         private static string cachedKuroSession = null;
+        private static string cachedRequestCtx = null;
         private static string cachedApiEncryptionKey = null;
         private static string cachedHostSuffix = null;
         private static string cachedAntibot = null;
@@ -98,7 +99,7 @@ namespace MangaUnhost.Hosts
                 SupportComic = true,
                 SupportNovel = false,
                 GenericPlugin = false,
-                Version = new Version(1, 0, 0)
+                Version = new Version(1, 0, 1)
             };
         }
 
@@ -343,6 +344,9 @@ namespace MangaUnhost.Hosts
                     if (!string.IsNullOrEmpty(cachedKnToken))
                         req.Headers.Add("X-Client-Token", cachedKnToken);
 
+                    if (!string.IsNullOrEmpty(cachedRequestCtx))
+                        req.Headers.Add("X-Request-Ctx", cachedRequestCtx);
+
                     string cookieHeader = BuildCookieHeader();
                     if (!string.IsNullOrEmpty(cookieHeader))
                         req.Headers.Add("Cookie", cookieHeader);
@@ -351,6 +355,7 @@ namespace MangaUnhost.Hosts
                         req.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
                     var resp = client.SendAsync(req).Result;
+                    ExtractCookies(resp);
 
                     if ((resp.StatusCode == HttpStatusCode.Unauthorized || resp.StatusCode == HttpStatusCode.Forbidden) && retryAuth)
                     {
@@ -397,7 +402,7 @@ namespace MangaUnhost.Hosts
         {
             lock (AuthLock)
             {
-                if (!forceRefresh && !string.IsNullOrEmpty(cachedKnToken) && ValidateCurrentSession())
+                if (!forceRefresh && !string.IsNullOrEmpty(cachedKuroSession) && ValidateCurrentSession())
                     return;
 
                 // 1. Tentar credenciais configuradas em AccountTools
@@ -423,12 +428,14 @@ namespace MangaUnhost.Hosts
                 catch { }
 
                 // 2. Tentar tokens persistidos em MangaUnhost.ini
-                string savedKn = Ini.GetConfig("KuroMangas", "Token", Main.SettingsPath, false);
                 string savedSess = Ini.GetConfig("KuroMangas", "Session", Main.SettingsPath, false);
-                if (!string.IsNullOrEmpty(savedKn))
+                string savedCtx = Ini.GetConfig("KuroMangas", "RequestCtx", Main.SettingsPath, false);
+                string savedKn = Ini.GetConfig("KuroMangas", "Token", Main.SettingsPath, false);
+                if (!string.IsNullOrEmpty(savedSess))
                 {
-                    cachedKnToken = savedKn;
                     cachedKuroSession = savedSess;
+                    cachedRequestCtx = savedCtx;
+                    cachedKnToken = savedKn;
                     if (ValidateCurrentSession())
                         return;
                 }
@@ -444,7 +451,7 @@ namespace MangaUnhost.Hosts
 
         private static bool ValidateCurrentSession()
         {
-            if (string.IsNullOrEmpty(cachedKnToken))
+            if (string.IsNullOrEmpty(cachedKuroSession))
                 return false;
 
             try
@@ -458,13 +465,17 @@ namespace MangaUnhost.Hosts
                     req.Headers.Add("User-Agent", ModernUserAgent);
                     req.Headers.Add("Referer", $"{SiteBase}/");
                     req.Headers.Add("Origin", SiteBase);
-                    req.Headers.Add("X-Client-Token", cachedKnToken);
+                    if (!string.IsNullOrEmpty(cachedKnToken))
+                        req.Headers.Add("X-Client-Token", cachedKnToken);
+                    if (!string.IsNullOrEmpty(cachedRequestCtx))
+                        req.Headers.Add("X-Request-Ctx", cachedRequestCtx);
 
                     string cookieHeader = BuildCookieHeader();
                     if (!string.IsNullOrEmpty(cookieHeader))
                         req.Headers.Add("Cookie", cookieHeader);
 
                     var resp = client.SendAsync(req).Result;
+                    ExtractCookies(resp);
                     return resp.IsSuccessStatusCode;
                 }
             }
@@ -487,6 +498,9 @@ namespace MangaUnhost.Hosts
                     req.Headers.Add("Referer", $"{SiteBase}/login");
                     req.Headers.Add("Origin", SiteBase);
 
+                    if (!string.IsNullOrEmpty(cachedRequestCtx))
+                        req.Headers.Add("X-Request-Ctx", cachedRequestCtx);
+
                     var payload = JsonConvert.SerializeObject(new
                     {
                         email = email.Trim(),
@@ -501,11 +515,13 @@ namespace MangaUnhost.Hosts
 
                     ExtractCookies(resp);
 
-                    if (!string.IsNullOrEmpty(cachedKnToken))
+                    if (!string.IsNullOrEmpty(cachedKuroSession))
                     {
-                        Ini.SetConfig("KuroMangas", "Token", cachedKnToken, Main.SettingsPath);
-                        if (!string.IsNullOrEmpty(cachedKuroSession))
-                            Ini.SetConfig("KuroMangas", "Session", cachedKuroSession, Main.SettingsPath);
+                        Ini.SetConfig("KuroMangas", "Session", cachedKuroSession, Main.SettingsPath);
+                        if (!string.IsNullOrEmpty(cachedRequestCtx))
+                            Ini.SetConfig("KuroMangas", "RequestCtx", cachedRequestCtx, Main.SettingsPath);
+                        if (!string.IsNullOrEmpty(cachedKnToken))
+                            Ini.SetConfig("KuroMangas", "Token", cachedKnToken, Main.SettingsPath);
 
                         return true;
                     }
@@ -529,6 +545,10 @@ namespace MangaUnhost.Hosts
                     var sessMatch = Regex.Match(raw, @"(?:^|[;, ])kuro_session=([^;,\s]+)");
                     if (sessMatch.Success)
                         cachedKuroSession = sessMatch.Groups[1].Value.Trim();
+
+                    var vxMatch = Regex.Match(raw, @"(?:^|[;, ])_vx=([^;,\s]+)");
+                    if (vxMatch.Success)
+                        cachedRequestCtx = vxMatch.Groups[1].Value.Trim();
                 }
             }
         }
@@ -552,14 +572,17 @@ namespace MangaUnhost.Hosts
                         var cookies = browser.GetBrowser().GetCookies();
                         if (cookies != null)
                         {
-                            var knCookie = cookies.FirstOrDefault(c => c.Name == "_kn");
                             var sessCookie = cookies.FirstOrDefault(c => c.Name == "kuro_session");
+                            var vxCookie = cookies.FirstOrDefault(c => c.Name == "_vx");
+                            var knCookie = cookies.FirstOrDefault(c => c.Name == "_kn");
 
-                            if (knCookie != null && !string.IsNullOrEmpty(knCookie.Value))
+                            if (sessCookie != null && !string.IsNullOrEmpty(sessCookie.Value))
                             {
-                                cachedKnToken = knCookie.Value;
-                                if (sessCookie != null)
-                                    cachedKuroSession = sessCookie.Value;
+                                cachedKuroSession = sessCookie.Value;
+                                if (vxCookie != null && !string.IsNullOrEmpty(vxCookie.Value))
+                                    cachedRequestCtx = vxCookie.Value;
+                                if (knCookie != null && !string.IsNullOrEmpty(knCookie.Value))
+                                    cachedKnToken = knCookie.Value;
 
                                 isDone = true;
                                 return true;
@@ -587,11 +610,13 @@ namespace MangaUnhost.Hosts
                     popup.ShowDialog();
                 }
 
-                if (!string.IsNullOrEmpty(cachedKnToken))
+                if (!string.IsNullOrEmpty(cachedKuroSession))
                 {
-                    Ini.SetConfig("KuroMangas", "Token", cachedKnToken, Main.SettingsPath);
-                    if (!string.IsNullOrEmpty(cachedKuroSession))
-                        Ini.SetConfig("KuroMangas", "Session", cachedKuroSession, Main.SettingsPath);
+                    Ini.SetConfig("KuroMangas", "Session", cachedKuroSession, Main.SettingsPath);
+                    if (!string.IsNullOrEmpty(cachedRequestCtx))
+                        Ini.SetConfig("KuroMangas", "RequestCtx", cachedRequestCtx, Main.SettingsPath);
+                    if (!string.IsNullOrEmpty(cachedKnToken))
+                        Ini.SetConfig("KuroMangas", "Token", cachedKnToken, Main.SettingsPath);
                 }
                 else
                 {
@@ -607,10 +632,12 @@ namespace MangaUnhost.Hosts
         private static string BuildCookieHeader()
         {
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(cachedKnToken))
-                sb.Append($"_kn={cachedKnToken}; ");
             if (!string.IsNullOrEmpty(cachedKuroSession))
                 sb.Append($"kuro_session={cachedKuroSession}; ");
+            if (!string.IsNullOrEmpty(cachedRequestCtx))
+                sb.Append($"_vx={cachedRequestCtx}; ");
+            if (!string.IsNullOrEmpty(cachedKnToken))
+                sb.Append($"_kn={cachedKnToken}; ");
 
             return sb.ToString().TrimEnd(' ', ';');
         }
@@ -618,6 +645,13 @@ namespace MangaUnhost.Hosts
 
         private static void EnsureCryptoParams(bool forceRefresh = false)
         {
+            if (forceRefresh)
+            {
+                cachedApiEncryptionKey = null;
+                cachedHostSuffix = null;
+                cachedAntibot = null;
+            }
+
             if (!forceRefresh && !string.IsNullOrEmpty(cachedApiEncryptionKey))
                 return;
 
@@ -644,6 +678,10 @@ namespace MangaUnhost.Hosts
                 cachedHostSuffix = FallbackHostSuffix;
             if (string.IsNullOrEmpty(cachedAntibot))
                 cachedAntibot = FallbackAntibot;
+
+            Ini.SetConfig("KuroMangas", "ApiKey", cachedApiEncryptionKey, Main.SettingsPath);
+            Ini.SetConfig("KuroMangas", "ApiHostSuffix", cachedHostSuffix, Main.SettingsPath);
+            Ini.SetConfig("KuroMangas", "ApiAntibot", cachedAntibot, Main.SettingsPath);
         }
 
         private static void DumpCryptoParamsFromSite()
